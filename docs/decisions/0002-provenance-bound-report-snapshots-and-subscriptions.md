@@ -1379,3 +1379,21 @@ Future ADRs or issues must resolve the following questions.
 * How are correction, supersession, and withdrawal tested?
 * How are rendering and delivery failures tested?
 * How are data-minimization requirements verified?
+
+## Core v0.6 publication-ingestion reconciliation (2026-08-04)
+
+This accepted ADR is supplemented by
+[ADR 0003: Adopt Consumer-Side Producer Adapters for Core Publications](0003-consumer-side-producer-adapters.md)
+and the accepted
+[Core v0.6 ingestion amendment](amendments/0002-core-v0.6-ingestion-reconciliation.md).
+
+A report snapshot that includes producer evidence binds to exact canonical
+Publication Record and manifest identity, the referenced registration revision,
+producer contract, source-record contract where present, withdrawal/supersession
+state, and Meridian adapter/projection identity. A catalog row or convenience
+`latest` path is not an authoritative source reference.
+
+Refreshing a view repeats canonical reload, compatibility evaluation,
+authorization, exact manifest verification, producer-contract parsing, and
+projection. It creates a new generation observation and never rewrites an issued
+snapshot. This clarification preserves the reporting decisions accepted above.

@@ -870,3 +870,23 @@ Future ADRs or issues must resolve the following questions.
 * How are policy migrations tested?
 * How are provenance and override behaviors verified?
 * How are standards-based and conventional models tested independently?
+
+## Core v0.6 publication-ingestion reconciliation (2026-08-04)
+
+This accepted ADR is supplemented by
+[ADR 0003: Adopt Consumer-Side Producer Adapters for Core Publications](0003-consumer-side-producer-adapters.md)
+and the accepted
+[Core v0.6 ingestion amendment](amendments/0001-core-v0.6-ingestion-reconciliation.md).
+
+For Core v0.6 ingestion, producer-specific evidence enters Meridian only after
+canonical Publication Record, registration, withdrawal, manifest-path, and
+digest verification. Meridian then selects an exact consumer adapter and invokes
+the producer-owned public reader. Profile compatibility, adapter support,
+manifest validity, authorization, evidence eligibility, Grade-item membership,
+and Grade policy remain separate decisions.
+
+Reproducibility binds to exact publication and manifest identity, producer
+contract, adapter/projection identity, policy versions, and selected evidence. A
+catalog row, producer package version, work ID, or `latest` path is not sufficient
+provenance. This clarification does not transfer producer schema ownership to
+Meridian or change the policy decisions accepted above.
