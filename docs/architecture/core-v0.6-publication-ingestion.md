@@ -674,3 +674,11 @@ Documentation and later code reviews must verify:
 - no intervention-to-academic conversion;
 - exact source provenance; and
 - synthetic-data-only public fixtures.
+
+## Projection snapshots are derived state
+
+Meridian may persist a validated producer projection only after exact canonical
+verification, adapter projection, and a second canonical and authorization
+check. The cache is Meridian-derived state outside Core registry and producer
+work roots. It does not modify Publication Records, registrations, withdrawals,
+producer manifests, or the disposable catalog.

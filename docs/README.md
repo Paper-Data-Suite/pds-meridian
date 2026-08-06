@@ -3,9 +3,9 @@
 Meridian is in the v0.1.1 executable publication-ingestion foundation
 milestone. The installable `0.1.1.dev0` package, strict typing, tests, CI,
 validation tooling, immutable typed evidence inventory, exact consumer adapter
-registry, and bounded Core discovery and canonical-verification preparation
-layer are established. Real producer adapters, evidence projection, grading,
-and reporting remain follow-on work.
+registry, bounded Core discovery and canonical-verification preparation, exact
+evidence serialization, and immutable projection-cache layers are established.
+Real producer adapters, grading, and reporting remain follow-on work.
 
 ## Recommended reading order
 
@@ -15,11 +15,12 @@ and reporting remain follow-on work.
 4. [Typed evidence inventory](architecture/typed-evidence-inventory.md)
 5. [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
 6. [Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
-7. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-8. [ADR index](decisions/README.md)
-9. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-10. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-11. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+7. [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md)
+8. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+9. [ADR index](decisions/README.md)
+10. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+11. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+12. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -123,8 +124,18 @@ The v0.1.1 milestone proceeds through:
 6. ScoreForm adapter;
 7. Quillan adapter;
 8. inventory and diagnostics commands;
-9. exact cache and snapshot rules;
+9. exact cache and snapshot rules — implemented;
 10. cross-producer scenarios;
 11. foundation audit and release.
 
 No complete Grade or proficiency engine is part of this milestone.
+
+## Exact projection snapshots and cache
+
+`meridian.evidence_serialization` and `meridian.projection_cache` persist exact
+validated inventories as immutable canonical JSON bound to Core source, adapter,
+reader, purpose, scope, and authorization-policy identity. Cache access requires
+fresh authorization, and current-state assessment never rewrites historical
+snapshot bytes.
+
+See [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md).

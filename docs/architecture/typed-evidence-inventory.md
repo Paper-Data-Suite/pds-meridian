@@ -405,3 +405,10 @@ This foundation does not implement:
 - report composition.
 
 Those behaviors remain later reviewed issues.
+
+## Exact persistence conversion
+
+`meridian.evidence_serialization` now provides exact closed mapping conversion
+for every inventory model. Persisting an inventory in a projection snapshot does
+not normalize native values, evaluate eligibility, select evidence, or make an
+item Grade-bearing.

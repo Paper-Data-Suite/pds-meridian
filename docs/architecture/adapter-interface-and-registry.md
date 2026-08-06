@@ -411,3 +411,11 @@ This foundation does not implement:
 - diagnostics commands;
 - persistence, caches, snapshots, or reports; or
 - a release-version change.
+
+## Projection-cache boundary
+
+Adapter invocation remains independent from cache persistence. The cache writer
+uses the public projection validation boundary to require exact Core provenance
+and projection identity, but it does not invoke an adapter. Snapshots retain the
+exact adapter key, adapter interface, projection contract, reader distribution,
+and reader version.

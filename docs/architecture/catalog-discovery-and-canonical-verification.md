@@ -474,3 +474,10 @@ This implementation does not provide:
 - cache or snapshot policy;
 - report generation; or
 - release-version changes.
+
+## Post-projection snapshot preparation
+
+`PreparedPublicationInvocation` retains the exact authorization request and
+decision. After adapter projection, cache creation reloads canonical context and
+repeats the exact projection authorization before persisting derived evidence.
+Cache reuse never substitutes for current canonical verification.

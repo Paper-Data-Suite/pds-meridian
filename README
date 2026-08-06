@@ -2,12 +2,14 @@
 
 Meridian now has an installable, strictly typed package foundation, immutable
 typed evidence inventory, deterministic consumer-side adapter registry, and
-bounded Core catalog discovery and canonical-verification preparation layer at
-development version `0.1.1.dev0`. The package can prepare an authorized,
-digest-bound `AdapterProjectionRequest` from coherent canonical Core state. It
-does not yet provide real producer adapters, producer parsing, evidence
-projection, eligibility or selection policy, proficiency calculation, Grade
-calculation, report generation, persistence, or delivery.
+bounded Core catalog discovery and canonical-verification preparation layer,
+exact evidence serialization, and immutable digest-bound projection cache at
+development version `0.1.1.dev0`. The package can prepare an authorized
+`AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, and
+assess current reuse without mutating historical snapshots. It does not yet
+provide real producer adapters, real producer parsing, eligibility or selection
+policy, proficiency calculation, Grade calculation, report snapshots, report
+generation, subscriptions, or delivery.
 
 ## Purpose
 
@@ -54,7 +56,11 @@ The current package provides:
 - Core path and digest verification followed by bounded immutable byte loading;
 - an in-memory SHA-256 handoff invariant through `AdapterProjectionRequest`;
 - final canonical-state rechecking before a prepared request is returned;
-- privacy-safe stable `ingestion.*`, `contracts.*`, and `adapters.*` outcomes;
+- exact `EvidenceInventory` mapping conversion with closed value variants;
+- immutable projection snapshots with canonical JSON, cache keys, and digests;
+- authorization-before-cache-read and read-only current-state assessment;
+- privacy-safe stable `ingestion.*`, `contracts.*`, `adapters.*`, and `cache.*`
+  outcomes;
 - exact verification of the official Core v0.6.0 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
@@ -67,7 +73,7 @@ The package does **not** yet provide:
 - institutional identity or authorization policy;
 - evidence eligibility, attempt selection, or reassessment policy;
 - diagnostics commands;
-- caches or snapshots;
+- report snapshots or issued-report persistence;
 - standards proficiency or Grade calculations;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
@@ -457,3 +463,22 @@ than a silent rewrite.
 ## License
 
 PDS Meridian is licensed under the MIT License.
+
+## Exact projection snapshots and cache
+
+`meridian.evidence_serialization` provides exact closed mapping conversion for
+the typed evidence inventory. `meridian.projection_cache` binds one validated
+inventory to exact Core source state, adapter and reader identity, projection
+authorization purpose and scope, canonical JSON, a deterministic cache key, and
+a content digest.
+
+Cache creation repeats canonical verification and authorization after adapter
+work. Exact replay preserves original bytes and capture time. A different output
+under identical declared inputs fails as projection nondeterminism. Public cache
+reads require fresh authorization before opening student-level snapshot bytes.
+Current assessment distinguishes reusable, reprojection-required, historical,
+and unverifiable states without rewriting historical snapshots.
+
+These projection snapshots are derived cache entries, not report snapshots,
+Grades, proficiency results, or mutable current views. See
+[`docs/architecture/exact-projection-snapshots-and-cache.md`](docs/architecture/exact-projection-snapshots-and-cache.md).

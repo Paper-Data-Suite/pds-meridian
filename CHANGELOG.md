@@ -42,6 +42,14 @@
 - Synthetic ingestion tests covering catalog failures, drift, registration,
   historical and withdrawn series state, compatibility, authorization ordering,
   manifest integrity and bounds, race detection, and no adapter invocation.
+- Exact evidence mapping conversion preserving native scalar types, scales,
+  non-score states, provenance, eligibility, and deterministic order.
+- Immutable projection snapshots with canonical JSON, exact cache identity,
+  digest-bound storage, bounded reads, locking, exact replay, and explicit
+  nondeterminism failures.
+- Fresh authorization before persisted cache reads and read-only current-state
+  assessment for supersession, withdrawal, registration, profile, adapter,
+  reader, manifest, and authorization changes.
 
 The package does not yet implement real producer adapters, adapter invocation,
 real producer projection, eligibility or selection policy, proficiency,
