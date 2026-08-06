@@ -18,6 +18,7 @@ EXPECTED = (
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
+    Path("docs/architecture/catalog-discovery-and-canonical-verification.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -38,6 +39,7 @@ REQUIRED_TEXT = {
         "producer-owned public manifest contract or reader",
         "meridian.evidence",
         "meridian.adapters",
+        "meridian.ingestion",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
@@ -55,6 +57,12 @@ REQUIRED_TEXT = {
         "adapters.reader_unavailable",
         "adapters.projection_contract_violation",
         "Discovery is not authorization.",
+    ),
+    Path("docs/architecture/catalog-discovery-and-canonical-verification.md"): (
+        "Catalog rows are candidate observations only.",
+        "Authorization precedes manifest access.",
+        "PreparedPublicationInvocation",
+        "ingestion.canonical_state_changed",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",
@@ -179,6 +187,7 @@ def check_current_status() -> None:
         "0.1.1.dev0",
         "typed evidence inventory",
         "adapter",
+        "canonical verification",
         "Grade",
     )
     for phrase in required:

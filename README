@@ -1,16 +1,13 @@
 # PDS Meridian
 
-PDS Meridian is the policy-driven grading and reporting layer for Paper Data
-Suite.
-
 Meridian now has an installable, strictly typed package foundation, immutable
-typed evidence inventory, and deterministic consumer-side adapter interface and
-registry at development version `0.1.1.dev0`. The package provides metadata, a
-read-only CLI, Core v0.6 contract probes, tests, CI, release-validation tooling,
-producer-neutral evidence models, exact adapter selection, lazy reader checks,
-and projection-contract enforcement. It does not yet provide real producer
-adapters, publication ingestion, eligibility or selection policy, proficiency
-calculation, Grade calculation, report generation, persistence, or delivery.
+typed evidence inventory, deterministic consumer-side adapter registry, and
+bounded Core catalog discovery and canonical-verification preparation layer at
+development version `0.1.1.dev0`. The package can prepare an authorized,
+digest-bound `AdapterProjectionRequest` from coherent canonical Core state. It
+does not yet provide real producer adapters, producer parsing, evidence
+projection, eligibility or selection policy, proficiency calculation, Grade
+calculation, report generation, persistence, or delivery.
 
 ## Purpose
 
@@ -39,43 +36,40 @@ preserving the meaning and authority of producer-owned records.
 
 The current package provides:
 
-- the `pds-meridian` distribution;
-- the `meridian` import package;
-- one authoritative version declaration;
-- the required Core v0.6 dependency boundary;
-- the `meridian` console command;
-- side-effect-free help and version behavior;
-- strict mypy and Ruff configuration;
-- privacy-safe Core-contract fixtures;
-- immutable `meridian.evidence` models;
-- exact Core and producer-native evidence provenance;
-- typed scalar, point, scaled, and non-score-state values;
-- explicit evidence eligibility status without selection or calculation;
-- immutable `meridian.adapters` keys, descriptors, requests, bindings, and registry;
-- exact fail-closed adapter and capability selection without fallback;
-- lazy producer-reader distribution-version checks without producer imports;
-- projection return-type, Core provenance, and projection-identity enforcement;
-- package, CLI, import, metadata, Core-baseline, evidence, and adapter tests;
+- the `pds-meridian` distribution and `meridian` import package;
+- one authoritative version declaration and the Core v0.6 dependency boundary;
+- the side-effect-free `meridian` help/version command;
+- strict mypy, Ruff, pytest, package, and cross-platform CI validation;
+- immutable `meridian.evidence` models preserving exact native meaning;
+- immutable `meridian.adapters` exact keys, descriptors, requests, and registry;
+- fail-closed adapter selection and lazy producer-reader readiness checks;
+- immutable `meridian.ingestion` discovery, canonical-context, authorization,
+  series-observation, and prepared-invocation models;
+- bounded typed discovery through Core's disposable Academic Catalog;
+- canonical Publication Record, registration, series, and withdrawal reload;
+- deterministic catalog-to-canonical drift detection;
+- Core-owned producer-profile compatibility evaluation;
+- exact adapter selection using canonical Core models only;
+- explicit deployment authorization before manifest access;
+- Core path and digest verification followed by bounded immutable byte loading;
+- an in-memory SHA-256 handoff invariant through `AdapterProjectionRequest`;
+- final canonical-state rechecking before a prepared request is returned;
+- privacy-safe stable `ingestion.*`, `contracts.*`, and `adapters.*` outcomes;
 - exact verification of the official Core v0.6.0 wheel;
-- wheel and source-distribution validation;
-- isolated installed-wheel smoke testing;
-- cross-platform GitHub Actions CI; and
+- wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
 
 The package does **not** yet provide:
 
-- real producer adapters or projection into the inventory;
-- Core catalog discovery;
-- canonical publication, registration, withdrawal, or manifest verification;
-- authorization enforcement;
-- ScoreForm, Quillan, Concord, or Portia adapters;
-- evidence eligibility or selection policy;
-- evidence diagnostics commands;
+- real ScoreForm, Quillan, Concord, Portia, or Vitrine adapters;
+- producer manifest decoding or semantic validation;
+- adapter invocation or evidence projection from real producer records;
+- institutional identity or authorization policy;
+- evidence eligibility, attempt selection, or reassessment policy;
+- diagnostics commands;
 - caches or snapshots;
 - standards proficiency or Grade calculations;
-- report generation;
-- report persistence;
-- subscriptions; or
+- report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
 Package installation alone does not enable publication ingestion.
@@ -115,6 +109,31 @@ adapter entry-point group or producer runtime dependency.
 See
 [`docs/architecture/adapter-interface-and-registry.md`](docs/architecture/adapter-interface-and-registry.md)
 for the complete selection, invocation, error, and side-effect boundary.
+
+## Catalog discovery and canonical verification
+
+`meridian.ingestion` implements the preparation stages before producer parsing.
+Every discovery request wraps a finite Core `PublicationCatalogQuery`. Returned
+`CatalogPublication` values remain candidate observations only; Meridian reloads
+the exact canonical Publication Record, referenced and current registration
+state, complete publication series, and withdrawal state before continuing.
+
+Catalog observations are compared with canonical authority. Any difference fails
+closed as deterministic candidate drift. Meridian then delegates producer
+compatibility to Core, selects an exact adapter using canonical models, checks
+reader distribution readiness without importing the producer, and requires an
+explicit deployment authorization decision before manifest access.
+
+After authorization, Core verifies the canonical manifest path and SHA-256.
+Meridian reads bounded immutable bytes, constructs `AdapterProjectionRequest`,
+and repeats canonical reload so a withdrawal, supersession, registration change,
+or disappearance during verification cannot produce a mixed observation. The
+result is `PreparedPublicationInvocation`; the adapter is not invoked.
+
+See
+[`docs/architecture/catalog-discovery-and-canonical-verification.md`](docs/architecture/catalog-discovery-and-canonical-verification.md)
+for the complete catalog, canonical-state, drift, compatibility, authorization,
+manifest, race, error, and privacy boundary.
 
 ## Requirements
 
@@ -235,24 +254,31 @@ The internal projection destination is documented in
 
 ## Canonical ingestion sequence
 
-Later ingestion work must follow this sequence:
+The implemented preparation layer follows this sequence:
 
 ```text
 query the disposable Core catalog for bounded candidates
-    -> reload the canonical Publication Record
-    -> reload the exact referenced Academic Work Registration revision when required
-    -> inspect current registration state when needed for eligibility or diagnostics
-    -> reload canonical withdrawal and supersession state
-    -> evaluate the installed producer profile
-    -> select an exact Meridian consumer adapter
-    -> enforce authorization for the requested source and use
-    -> verify the exact manifest path, file, and SHA-256 bytes through Core
-    -> parse through the producer-owned public contract or reader
-    -> project native values into Meridian's typed evidence inventory
-    -> apply Meridian-owned eligibility, grading, or reporting policy afterward
+    -> reload the canonical Publication Record by exact publication_id
+    -> reload the exact referenced registration revision when academic
+    -> reload current registration state separately when academic
+    -> reconstruct the canonical publication series and withdrawals
+    -> fail closed on catalog-to-canonical drift
+    -> evaluate the exact Core producer profile
+    -> select an exact Meridian consumer adapter from canonical models
+    -> check producer-reader distribution readiness without importing it
+    -> enforce deployment authorization for the requested source and purpose
+    -> verify the canonical manifest path and SHA-256 through Core
+    -> read bounded immutable bytes
+    -> construct AdapterProjectionRequest
+    -> reload canonical state and reject a changed observation
+    -> return PreparedPublicationInvocation
 ```
 
-`registry/catalog.sqlite` is rebuildable, disposable, and nonauthoritative.
+Later producer-adapter work parses through the producer-owned public reader,
+projects native values into `EvidenceInventory`, and applies Meridian-owned
+eligibility, grading, or reporting policy only afterward.
+
+`registry/catalog.sqlite` remains rebuildable, disposable, and nonauthoritative.
 Catalog rows do not authorize access or replace canonical verification.
 
 ## Routing profiles, producer profiles, and Meridian adapters
@@ -298,11 +324,15 @@ See
 
 Discovery is not authorization.
 
-The existence of a catalog row, canonical Publication Record, installed producer
-package, compatible producer profile, or Meridian adapter does not authorize
-student-record access or use in a Grade or report.
+The existence of a catalog row, canonical Publication Record, compatible
+producer profile, exact Meridian adapter, installed reader distribution, or
+readable filesystem path does not authorize student-record access.
 
-The current package foundation performs no student-level manifest access.
+`meridian.ingestion` requires an explicit deployment-provided
+`PublicationAuthorizer` before Core manifest verification or byte reading. A
+denied decision performs no manifest access. The package defines the typed
+request, decision, and enforcement point but does not implement institutional
+identity, role, legal, audience, or disclosure policy.
 
 ## Producer modules
 
@@ -388,6 +418,7 @@ See:
 - [Core v0.6 publication-ingestion architecture](docs/architecture/core-v0.6-publication-ingestion.md)
 - [Typed evidence inventory](docs/architecture/typed-evidence-inventory.md)
 - [Adapter interface and registry](docs/architecture/adapter-interface-and-registry.md)
+- [Catalog discovery and canonical verification](docs/architecture/catalog-discovery-and-canonical-verification.md)
 - [Architecture Decision Record index](docs/decisions/README.md)
 - [ADR 0001](docs/decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
 - [ADR 0002](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
@@ -414,6 +445,7 @@ than a silent rewrite.
 │   ├── adapters.py
 │   ├── cli.py
 │   ├── evidence.py
+│   ├── ingestion.py
 │   └── py.typed
 ├── pyproject.toml
 ├── run_tests.ps1

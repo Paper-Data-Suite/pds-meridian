@@ -6,28 +6,38 @@ Meridian defines an immutable, deterministic consumer-side producer adapter
 interface and exact-match registry for the `0.1.1.dev0` publication-ingestion
 foundation.
 
-The registry selects synthetic or later real Meridian-owned adapters from
-already validated Core publication context. It does not query the Core catalog,
-load canonical records, evaluate Core producer-profile compatibility, authorize
-access, open workspace files, or implement a real producer reader.
+`meridian.ingestion` now supplies the registry with canonically reloaded Core
+objects after bounded discovery, drift detection, producer-profile compatibility,
+reader readiness, and deployment authorization. It verifies and reads bounded
+manifest bytes through Core and constructs `AdapterProjectionRequest` without
+invoking the selected adapter.
+
+The registry still implements synthetic or later real Meridian-owned adapters.
+Real ScoreForm and Quillan parsing and projection remain later work.
 
 ## Placement in the ingestion sequence
 
 The executable boundary is:
 
 ```text
-Core candidate discovery and canonical reload
+bounded Core catalog discovery
+    -> canonical publication, registration, series, and withdrawal reload
+    -> candidate drift rejection
     -> Core producer-profile compatibility evaluation
     -> exact Meridian adapter selection
+    -> producer-reader readiness check
     -> deployment authorization
     -> Core manifest path and digest verification
-    -> AdapterProjectionRequest with verified immutable bytes
-    -> selected producer public reader
-    -> Meridian EvidenceInventory
+    -> bounded immutable byte read
+    -> AdapterProjectionRequest
+    -> final canonical-state recheck
+    -> later selected producer public reader
+    -> later Meridian EvidenceInventory
 ```
 
-Issue #8 owns the orchestration before the projection request. Issues #9 and #10
-will provide the first real ScoreForm and Quillan adapters.
+The preparation stages are implemented in `meridian.ingestion` and documented in
+[catalog discovery and canonical verification](catalog-discovery-and-canonical-verification.md).
+Issues #9 and #10 will provide the first real ScoreForm and Quillan adapters.
 
 ## Dependency direction
 
@@ -244,7 +254,7 @@ The request contains no catalog row, workspace root, absolute path, writable
 file object, authorization token, roster row, student display name, or arbitrary
 context mapping.
 
-Issue #8 is responsible for loading and verifying the bytes through Core. Request
+`meridian.ingestion` loads and verifies the bytes through Core. Request
 construction recomputes the declared SHA-256 digest as a pure handoff invariant;
 it does not reopen the filesystem or replace Core's canonical verification.
 
