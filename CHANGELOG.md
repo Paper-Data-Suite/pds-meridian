@@ -26,6 +26,23 @@
 - Synthetic adapter tests covering exact no-fallback selection, capability
   rejection, reader availability, controlled failures, and contract violations.
 
-The package does not yet implement real producer adapters, canonical publication
-verification, real producer projection, eligibility or selection policy,
-proficiency, Grades, or reports.
+- Immutable `meridian.ingestion` models for bounded discovery, canonical
+  publication context, publication-series observation, authorization, and
+  prepared adapter requests.
+- Core Academic Catalog candidate discovery that never promotes catalog rows to
+  canonical authority or rebuilds derived state automatically.
+- Exact canonical Publication Record, referenced/current registration, series,
+  and withdrawal reload with deterministic candidate-drift rejection.
+- Core-owned producer compatibility evaluation followed by exact Meridian
+  adapter selection and non-importing producer-reader readiness checks.
+- Explicit deployment authorization before manifest access, Core path/digest
+  verification, bounded immutable byte loading, and in-memory SHA-256 handoff.
+- Final canonical-state rechecking that rejects withdrawal, supersession,
+  registration, disappearance, or integrity changes during preparation.
+- Synthetic ingestion tests covering catalog failures, drift, registration,
+  historical and withdrawn series state, compatibility, authorization ordering,
+  manifest integrity and bounds, race detection, and no adapter invocation.
+
+The package does not yet implement real producer adapters, adapter invocation,
+real producer projection, eligibility or selection policy, proficiency,
+Grades, or reports.

@@ -16,6 +16,7 @@ import pytest
         "meridian.adapters",
         "meridian.cli",
         "meridian.evidence",
+        "meridian.ingestion",
         "meridian.__main__",
     ],
 )

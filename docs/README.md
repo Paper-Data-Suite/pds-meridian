@@ -1,10 +1,11 @@
 # Meridian documentation
 
-Meridian is in the v0.1.1 executable publication-ingestion foundation milestone.
-The installable `0.1.1.dev0` package, strict typing, tests, CI, validation
-tooling, immutable typed evidence inventory, and exact consumer adapter
-interface and registry are established. Real producer adapters, canonical
-ingestion, eligibility policy, grading, and reporting remain follow-on work.
+Meridian is in the v0.1.1 executable publication-ingestion foundation
+milestone. The installable `0.1.1.dev0` package, strict typing, tests, CI,
+validation tooling, immutable typed evidence inventory, exact consumer adapter
+registry, and bounded Core discovery and canonical-verification preparation
+layer are established. Real producer adapters, evidence projection, grading,
+and reporting remain follow-on work.
 
 ## Recommended reading order
 
@@ -13,11 +14,12 @@ ingestion, eligibility policy, grading, and reporting remain follow-on work.
 3. [Synthetic data policy](development/synthetic-data.md)
 4. [Typed evidence inventory](architecture/typed-evidence-inventory.md)
 5. [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
-6. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-7. [ADR index](decisions/README.md)
-8. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-9. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-10. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+6. [Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
+7. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+8. [ADR index](decisions/README.md)
+9. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+10. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+11. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -67,16 +69,36 @@ See
 for the exact-match, no-fallback, reader, projection, error, and security
 contracts.
 
+## Catalog discovery and canonical verification
+
+`meridian.ingestion` requires finite Core catalog queries, retains typed catalog
+rows only as candidate observations, and reloads exact canonical publication,
+registration, series, and withdrawal state. It fails closed on deterministic
+candidate drift.
+
+The layer delegates compatibility to Core, selects the exact Meridian adapter,
+checks reader readiness without producer import, and requires explicit
+deployment authorization before Core manifest verification or byte access. It
+then reads bounded immutable bytes, builds `AdapterProjectionRequest`, and
+rechecks canonical state before returning `PreparedPublicationInvocation`.
+
+The production service does not invoke an adapter or decode producer data.
+
+See
+[Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
+for the executable sequence and failure taxonomy.
+
 ## Active architecture
 
-The active ingestion architecture requires catalog candidate discovery followed
-by canonical reload, compatibility evaluation, authorization, exact manifest
-verification, producer-owned parsing, and Meridian-owned evidence projection.
+The active ingestion architecture requires bounded catalog discovery followed by
+canonical reload, drift detection, compatibility evaluation, exact adapter
+selection, authorization, exact manifest verification, producer-owned parsing,
+and Meridian-owned evidence projection.
 
-The typed inventory defines the projection destination and the adapter registry
-defines exact selection and invocation. The package does not yet implement
-canonical ingestion orchestration or real producer adapters that populate the
-inventory.
+The package now implements every preparation stage through a coherent hidden-byte
+`AdapterProjectionRequest` and `PreparedPublicationInvocation`. It does not yet
+invoke real producer adapters or populate the evidence inventory from producer
+records.
 
 ## Architecture decisions
 
@@ -97,7 +119,7 @@ The v0.1.1 milestone proceeds through:
 2. package, testing, typing, and CI foundation — complete;
 3. typed evidence inventory — implemented;
 4. adapter interface and registry — implemented;
-5. Core discovery and canonical verification;
+5. Core discovery and canonical verification — implemented;
 6. ScoreForm adapter;
 7. Quillan adapter;
 8. inventory and diagnostics commands;

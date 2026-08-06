@@ -12,11 +12,14 @@ and
 [ADR 0002](../decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
 with the released Core contract.
 
-This document defines architecture, not executable completeness. Meridian now
-implements the installable package, testing, typing, CI, validation foundation,
-typed evidence inventory, and exact consumer adapter interface and registry. It
-does not yet implement canonical discovery and verification orchestration, real
-producer adapters, cache, grading engine, or reporting engine described here.
+Meridian now implements the installable foundation, typed evidence inventory,
+exact consumer adapter registry, bounded Core catalog discovery, canonical
+publication/registration/series/withdrawal verification, candidate drift
+rejection, Core compatibility evaluation, authorization-before-access, bounded
+manifest-byte preparation, and final canonical-state rechecking.
+
+Real producer parsing, evidence projection, cache policy, grading, and reporting
+remain unimplemented.
 
 ## Goals
 
