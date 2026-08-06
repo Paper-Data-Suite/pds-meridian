@@ -120,8 +120,8 @@ def validate_wheel(path: str | Path) -> None:
     groups = frozenset(entry_points.sections())
     if groups != ALLOWED_ENTRY_POINT_GROUPS:
         raise PackageValidationError(
-            "Only the console_scripts entry-point group is permitted in the "
-            f"foundation package; found {sorted(groups)!r}."
+            "Only the console_scripts entry-point group is permitted; "
+            f"found {sorted(groups)!r}."
         )
     if entry_points.get("console_scripts", "meridian", fallback=None) != (
         "meridian.cli:main"
@@ -133,6 +133,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/__main__.py",
         "meridian/_version.py",
         "meridian/cli.py",
+        "meridian/evidence.py",
         "meridian/py.typed",
     }
     if not required.issubset(names):
@@ -153,7 +154,7 @@ def validate_wheel(path: str | Path) -> None:
             item.lower() for item in required
         }:
             raise PackageValidationError(
-                f"Foundation wheel contains an unexpected Meridian module: {name}"
+                f"Wheel contains an unexpected Meridian module: {name}"
             )
 
 

@@ -16,6 +16,7 @@ EXPECTED = (
     Path("docs/development/package-foundation.md"),
     Path("docs/development/synthetic-data.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
+    Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -34,11 +35,18 @@ REQUIRED_TEXT = {
         "Package installation alone does not enable publication ingestion.",
         "Discovery is not authorization.",
         "producer-owned public manifest contract or reader",
+        "meridian.evidence",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
         "Failure taxonomy",
         "Producer readiness matrix",
+    ),
+    Path("docs/architecture/typed-evidence-inventory.md"): (
+        "Validity, eligibility, and selection are separate questions.",
+        "NativeStateValue",
+        "do not flatten",
+        "returned_without_full_review",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",

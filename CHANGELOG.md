@@ -12,6 +12,13 @@
 - Exact authentication of the official Core v0.6.0 wheel used by baseline CI.
 - Synthetic-data policy and privacy-safe Core-contract fixtures.
 - Reusable documentation and repository validation tooling.
+- Immutable `meridian.evidence` inventory models with exact Core provenance,
+  producer-native targets, result kinds, scales, non-score states, projection
+  identity, and explicit eligibility status.
+- ScoreForm-shaped and Quillan-shaped synthetic inventory tests that preserve
+  attempts, question states, review dispositions, and native scale identity
+  without importing either producer package.
 
-The package foundation does not yet implement producer adapters, publication
-verification, evidence projection, proficiency, Grades, or reports.
+The package does not yet implement producer adapters, canonical publication
+verification, real producer projection, eligibility or selection policy,
+proficiency, Grades, or reports.

@@ -3,12 +3,13 @@
 PDS Meridian is the policy-driven grading and reporting layer for Paper Data
 Suite.
 
-Meridian now has an installable, strictly typed package foundation at development
-version `0.1.1.dev0`. This foundation provides package metadata, a read-only CLI,
-Core v0.6 contract probes, tests, CI, and release-validation tooling. It does not
-yet provide producer adapters, publication ingestion, evidence projection,
-proficiency calculation, Grade calculation, report generation, persistence, or
-delivery.
+Meridian now has an installable, strictly typed package foundation and immutable
+typed evidence inventory at development version `0.1.1.dev0`. The package
+provides metadata, a read-only CLI, Core v0.6 contract probes, tests, CI,
+release-validation tooling, and producer-neutral evidence models. It does not
+yet provide producer adapters, publication ingestion, real producer projection,
+eligibility or selection policy, proficiency calculation, Grade calculation,
+report generation, persistence, or delivery.
 
 ## Purpose
 
@@ -45,7 +46,11 @@ The current package provides:
 - side-effect-free help and version behavior;
 - strict mypy and Ruff configuration;
 - privacy-safe Core-contract fixtures;
-- package, CLI, import, metadata, and Core-baseline tests;
+- immutable `meridian.evidence` models;
+- exact Core and producer-native evidence provenance;
+- typed scalar, point, scaled, and non-score-state values;
+- explicit evidence eligibility status without selection or calculation;
+- package, CLI, import, metadata, Core-baseline, and evidence-model tests;
 - exact verification of the official Core v0.6.0 wheel;
 - wheel and source-distribution validation;
 - isolated installed-wheel smoke testing;
@@ -54,12 +59,13 @@ The current package provides:
 
 The package does **not** yet provide:
 
-- Meridian evidence-inventory models;
 - a producer-adapter protocol or registry;
+- real producer projection into the inventory;
 - Core catalog discovery;
 - canonical publication, registration, withdrawal, or manifest verification;
 - authorization enforcement;
 - ScoreForm, Quillan, Concord, or Portia adapters;
+- evidence eligibility or selection policy;
 - evidence diagnostics commands;
 - caches or snapshots;
 - standards proficiency or Grade calculations;
@@ -69,6 +75,23 @@ The package does **not** yet provide:
 - production-ready functionality.
 
 Package installation alone does not enable publication ingestion.
+
+## Typed evidence inventory
+
+`meridian.evidence` defines the immutable destination for later consumer-side
+producer adapters. Each item preserves exact Core publication context, projection
+identity, a privacy-minimal student subject, producer-native target and result
+kind, a closed typed native value, ordered native provenance, and explicit
+eligibility status.
+
+The inventory preserves points, exact native scales, explicit non-score states,
+and superficially similar values without assuming equivalence. It does not select
+attempts, map native scales, evaluate eligibility policy, calculate proficiency,
+calculate Grades, or ingest real producer manifests.
+
+See
+[`docs/architecture/typed-evidence-inventory.md`](docs/architecture/typed-evidence-inventory.md)
+for the complete model boundary and synthetic examples.
 
 ## Requirements
 
@@ -179,11 +202,13 @@ Core v0.6 owns shared canonical infrastructure, including:
 Core does not calculate standards proficiency, determine Grade-item membership,
 select attempts, calculate Grades, or compose final cross-module reports.
 
-This package-foundation issue verifies Core’s public contract constants and pure
-models only. It does not read or write a Core workspace.
+The package foundation and evidence inventory use Core's public contract constants
+and immutable models only. They do not read or write a Core workspace.
 
 The active ingestion architecture is documented in
 [`docs/architecture/core-v0.6-publication-ingestion.md`](docs/architecture/core-v0.6-publication-ingestion.md).
+The internal projection destination is documented in
+[`docs/architecture/typed-evidence-inventory.md`](docs/architecture/typed-evidence-inventory.md).
 
 ## Canonical ingestion sequence
 
