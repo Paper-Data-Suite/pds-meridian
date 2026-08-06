@@ -52,7 +52,9 @@ __all__ = [
     "ProducerReaderVersionUnsupportedError",
     "adapter_key_from_core",
     "installed_distribution_version",
+    "projection_identity_from_descriptor",
     "resolve_producer_reader_version",
+    "validate_projected_inventory",
 ]
 
 MERIDIAN_ADAPTER_INTERFACE_VERSION: Final[str] = "1"
@@ -631,6 +633,81 @@ def resolve_producer_reader_version(
     return version
 
 
+def projection_identity_from_descriptor(
+    descriptor: AdapterDescriptor,
+    producer_reader_version: str,
+) -> ProjectionIdentity:
+    """Return the exact evidence projection identity for one reader version."""
+    if not isinstance(descriptor, AdapterDescriptor):
+        raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
+    version = _single_line(
+        producer_reader_version, "producer_reader_version"
+    )
+    return ProjectionIdentity(
+        projection_id=descriptor.adapter_id,
+        projection_contract_version=descriptor.projection_contract_version,
+        producer_reader_distribution=descriptor.producer_reader_distribution,
+        producer_reader_version=version,
+    )
+
+
+def validate_projected_inventory(
+    inventory: EvidenceInventory,
+    request: AdapterProjectionRequest,
+    descriptor: AdapterDescriptor,
+    producer_reader_version: str,
+) -> EvidenceInventory:
+    """Require exact Core and projection provenance on every inventory item."""
+    if not isinstance(inventory, EvidenceInventory):
+        raise AdapterContractViolationError(
+            "adapter project must return an EvidenceInventory.",
+            adapter_id=(
+                descriptor.adapter_id
+                if isinstance(descriptor, AdapterDescriptor)
+                else None
+            ),
+            publication_id=(
+                request.publication.publication_id
+                if isinstance(request, AdapterProjectionRequest)
+                else None
+            ),
+        )
+    if not isinstance(request, AdapterProjectionRequest):
+        raise AdapterValidationError(
+            "request must be an AdapterProjectionRequest."
+        )
+    expected_projection = projection_identity_from_descriptor(
+        descriptor, producer_reader_version
+    )
+    for item in inventory.items:
+        provenance = item.provenance
+        if provenance.publication != request.publication:
+            raise AdapterContractViolationError(
+                "projected evidence uses a different Publication Record.",
+                adapter_id=descriptor.adapter_id,
+                publication_id=request.publication.publication_id,
+            )
+        if provenance.registration != request.registration:
+            raise AdapterContractViolationError(
+                "projected evidence uses a different registration revision.",
+                adapter_id=descriptor.adapter_id,
+                publication_id=request.publication.publication_id,
+            )
+        if provenance.withdrawal != request.withdrawal:
+            raise AdapterContractViolationError(
+                "projected evidence uses different withdrawal provenance.",
+                adapter_id=descriptor.adapter_id,
+                publication_id=request.publication.publication_id,
+            )
+        if provenance.projection != expected_projection:
+            raise AdapterContractViolationError(
+                "projected evidence uses the wrong projection identity.",
+                adapter_id=descriptor.adapter_id,
+                publication_id=request.publication.publication_id,
+            )
+    return inventory
+
+
 def _validated_adapter(value: object) -> ProducerAdapter:
     if not isinstance(value, ProducerAdapter):
         raise AdapterRegistryError(
@@ -811,13 +888,12 @@ class AdapterRegistry:
                 adapter_id=match.descriptor.adapter_id,
                 publication_id=request.publication.publication_id,
             )
-        self._validate_inventory(
-            inventory=inventory,
-            request=request,
-            descriptor=match.descriptor,
-            reader_version=reader_version,
+        return validate_projected_inventory(
+            inventory,
+            request,
+            match.descriptor,
+            reader_version,
         )
-        return inventory
 
     @staticmethod
     def _validate_inventory(

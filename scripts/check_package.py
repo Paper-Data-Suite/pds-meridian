@@ -135,7 +135,9 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/adapters.py",
         "meridian/cli.py",
         "meridian/evidence.py",
+        "meridian/evidence_serialization.py",
         "meridian/ingestion.py",
+        "meridian/projection_cache.py",
         "meridian/py.typed",
     }
     if not required.issubset(names):

@@ -19,6 +19,7 @@ EXPECTED = (
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
     Path("docs/architecture/catalog-discovery-and-canonical-verification.md"),
+    Path("docs/architecture/exact-projection-snapshots-and-cache.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -63,6 +64,12 @@ REQUIRED_TEXT = {
         "Authorization precedes manifest access.",
         "PreparedPublicationInvocation",
         "ingestion.canonical_state_changed",
+    ),
+    Path("docs/architecture/exact-projection-snapshots-and-cache.md"): (
+        "cache.projection_nondeterministic",
+        "read_projection_cache",
+        "Historical immutability",
+        "report snapshots",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",

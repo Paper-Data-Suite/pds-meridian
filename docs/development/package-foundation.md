@@ -70,3 +70,11 @@ selection and loading belong to issue #7.
 
 Importing `meridian` or running help/version commands must not discover a
 workspace, query Core, load producer packages, configure logging, or write files.
+
+## Projection-cache package boundary
+
+The built wheel includes `meridian.evidence_serialization` and
+`meridian.projection_cache`. Importing either module remains read-only and does
+not resolve a workspace, create cache directories, discover producers, import
+producer packages, invoke authorization, or write files. Core remains the only
+runtime dependency.

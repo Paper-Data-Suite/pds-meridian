@@ -116,6 +116,7 @@ __all__ = [
     "WithdrawalReadError",
     "compare_candidate_to_canonical",
     "discover_publication_candidates",
+    "load_canonical_publication_context",
     "prepare_publication_invocation",
 ]
 
@@ -127,7 +128,9 @@ CanonicalPublicationState: TypeAlias = Literal[
     "historical",
     "withdrawn_historical",
 ]
-AuthorizationOperation: TypeAlias = Literal["project_evidence"]
+AuthorizationOperation: TypeAlias = Literal[
+    "project_evidence", "read_projection_cache"
+]
 CandidateDriftField: TypeAlias = Literal[
     "work",
     "source_record",
@@ -687,7 +690,10 @@ class PublicationAuthorizationRequest:
             raise IngestionValidationError(
                 "authorization withdrawal must match the publication."
             )
-        if self.operation != "project_evidence":
+        if self.operation not in {
+            "project_evidence",
+            "read_projection_cache",
+        }:
             raise IngestionValidationError("authorization operation is invalid.")
         object.__setattr__(
             self,
@@ -784,6 +790,7 @@ class PreparedPublicationInvocation:
     compatibility: PublicationCompatibilityResult
     adapter_match: AdapterMatch
     producer_reader_version: str
+    authorization_request: PublicationAuthorizationRequest
     authorization: PublicationAuthorizationDecision
     projection_request: AdapterProjectionRequest = field(repr=False)
 
@@ -831,6 +838,29 @@ class PreparedPublicationInvocation:
             "producer_reader_version",
             _single_line(self.producer_reader_version, "producer_reader_version"),
         )
+        if not isinstance(
+            self.authorization_request, PublicationAuthorizationRequest
+        ):
+            raise IngestionValidationError(
+                "authorization_request must be a PublicationAuthorizationRequest."
+            )
+        expected_authorization_request = PublicationAuthorizationRequest(
+            publication=self.canonical_context.publication,
+            referenced_registration=(
+                self.canonical_context.referenced_registration
+            ),
+            withdrawal=self.canonical_context.withdrawal,
+            canonical_state=self.canonical_context.canonical_state,
+            operation="project_evidence",
+            purpose_id=self.authorization_request.purpose_id,
+            requested_student_ids=(
+                self.authorization_request.requested_student_ids
+            ),
+        )
+        if self.authorization_request != expected_authorization_request:
+            raise IngestionValidationError(
+                "authorization_request must preserve the canonical context exactly."
+            )
         if not isinstance(self.authorization, PublicationAuthorizationDecision):
             raise IngestionValidationError(
                 "authorization must be a PublicationAuthorizationDecision."
@@ -1017,7 +1047,9 @@ def prepare_publication_invocation(
     purpose_id = _identifier(authorization_purpose_id, "authorization_purpose_id")
     students = _student_ids(requested_student_ids)
 
-    initial_context = _load_canonical_context(workspace_root, candidate.publication_id)
+    initial_context = load_canonical_publication_context(
+        workspace_root, candidate.publication_id
+    )
     drift = compare_candidate_to_canonical(candidate, initial_context)
     if drift:
         raise CandidateDriftError(candidate.publication_id, drift)
@@ -1084,7 +1116,7 @@ def prepare_publication_invocation(
         ) from error
 
     try:
-        final_context = _load_canonical_context(
+        final_context = load_canonical_publication_context(
             workspace_root, candidate.publication_id
         )
     except PublicationVerificationError as error:
@@ -1105,12 +1137,13 @@ def prepare_publication_invocation(
         compatibility=compatibility,
         adapter_match=match,
         producer_reader_version=reader_version,
+        authorization_request=authorization_request,
         authorization=decision,
         projection_request=projection_request,
     )
 
 
-def _load_canonical_context(
+def load_canonical_publication_context(
     workspace_root: str | Path,
     publication_id: str,
 ) -> CanonicalPublicationContext:
@@ -1124,6 +1157,14 @@ def _load_canonical_context(
         series=series,
         withdrawal=series.target_member.withdrawal,
     )
+
+
+def _load_canonical_context(
+    workspace_root: str | Path,
+    publication_id: str,
+) -> CanonicalPublicationContext:
+    """Backward-compatible alias for the public canonical loader."""
+    return load_canonical_publication_context(workspace_root, publication_id)
 
 
 def _canonical_publication(
