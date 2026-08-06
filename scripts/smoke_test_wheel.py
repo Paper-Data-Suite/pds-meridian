@@ -59,9 +59,12 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 (
                     "import importlib.metadata as m, pathlib, sys; "
                     "before=set(sys.modules); "
-                    "import meridian, meridian.evidence, pds_core; "
+                    "import meridian, meridian.adapters, meridian.evidence, "
+                    "pds_core; "
                     "from meridian.evidence import EvidenceInventory; "
+                    "from meridian.adapters import AdapterRegistry; "
                     "assert EvidenceInventory(()).items == (); "
+                    "assert AdapterRegistry().keys == (); "
                     "assert meridian.__version__ == m.version('pds-meridian'); "
                     "assert m.version('pds-core') == '0.6.0'; "
                     "assert pathlib.Path(meridian.__file__).resolve().is_relative_to("

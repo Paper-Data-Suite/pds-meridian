@@ -132,6 +132,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/__init__.py",
         "meridian/__main__.py",
         "meridian/_version.py",
+        "meridian/adapters.py",
         "meridian/cli.py",
         "meridian/evidence.py",
         "meridian/py.typed",

@@ -18,7 +18,14 @@
 - ScoreForm-shaped and Quillan-shaped synthetic inventory tests that preserve
   attempts, question states, review dispositions, and native scale identity
   without importing either producer package.
+- Immutable `meridian.adapters` interface, exact contract key, descriptor,
+  projection request, explicit registry, and stable fail-closed errors.
+- Lazy producer-reader distribution checks and strict validation that projected
+  inventories retain the requested Core provenance and selected projection
+  identity.
+- Synthetic adapter tests covering exact no-fallback selection, capability
+  rejection, reader availability, controlled failures, and contract violations.
 
-The package does not yet implement producer adapters, canonical publication
+The package does not yet implement real producer adapters, canonical publication
 verification, real producer projection, eligibility or selection policy,
 proficiency, Grades, or reports.
