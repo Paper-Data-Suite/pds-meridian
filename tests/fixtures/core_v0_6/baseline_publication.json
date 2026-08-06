@@ -1,0 +1,29 @@
+{
+  "academic_work_registration_revision": 1,
+  "capabilities": [
+    "points"
+  ],
+  "manifest_contract_version": "fixture_manifest_1",
+  "manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "manifest_digest_algorithm": "sha256",
+  "manifest_path": "classes/synthetic_class_2026/modules/synthetic_producer/work/synthetic_assignment_alpha/publications/synthetic_record_set/1.json",
+  "publication_id": "pub_11111111111111111111111111111111",
+  "publication_kind": "academic_result_set",
+  "published_at": "2026-01-15T12:30:00+00:00",
+  "record_set_id": "synthetic_record_set",
+  "record_set_revision": 1,
+  "record_type": "publication_record",
+  "schema_version": "1",
+  "source_record": {
+    "contract_version": "fixture_contract_1",
+    "module_id": "synthetic_producer",
+    "record_id": "synthetic_assignment_alpha",
+    "record_kind": "assignment"
+  },
+  "supersedes_publication_id": null,
+  "work": {
+    "class_id": "synthetic_class_2026",
+    "module_id": "synthetic_producer",
+    "work_id": "synthetic_assignment_alpha"
+  }
+}

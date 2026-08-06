@@ -1,56 +1,71 @@
 # Meridian documentation
 
-Meridian is in its architecture and publication-ingestion foundation phase.
-These documents define responsibility, dependency direction, source authority,
-and provenance requirements before executable ingestion and grading work begins.
+Meridian is in the v0.1.1 executable publication-ingestion foundation milestone.
+The installable `0.1.1.dev0` package, strict typing, tests, CI, and validation
+tooling are established. Evidence models, adapters, canonical ingestion,
+grading, and reporting remain follow-on work.
+
+## Recommended reading order
+
+1. [Root README](../README)
+2. [Package and validation foundation](development/package-foundation.md)
+3. [Synthetic data policy](development/synthetic-data.md)
+4. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+5. [ADR index](decisions/README.md)
+6. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+7. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+8. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+
+## Development foundation
+
+The package foundation provides:
+
+- Python `>=3.11` support;
+- `pds-core>=0.6,<0.7` as the only runtime dependency;
+- exact authentication of the official Core v0.6.0 wheel in baseline CI;
+- a side-effect-free `meridian` help/version CLI;
+- strict mypy and Ruff checks;
+- privacy-safe fixtures and tests;
+- wheel and source-distribution checks;
+- isolated installed-wheel smoke testing; and
+- Ubuntu/Windows CI for Python 3.11 through 3.14.
+
+The package deliberately declares no PDS2 routing profile, publication producer
+profile, producer dependency, or adapter plugin group.
 
 ## Active architecture
 
-- [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-  defines candidate discovery, canonical verification, authorization, producer
-  compatibility, consumer adapters, native evidence projection, diagnostics,
-  and exact provenance binding.
+The active ingestion architecture requires catalog candidate discovery followed
+by canonical reload, compatibility evaluation, authorization, exact manifest
+verification, producer-owned parsing, and Meridian-owned evidence projection.
 
-## Architecture Decision Records
+The package foundation does not yet implement those stages.
 
-- [ADR index](decisions/README.md)
-- [ADR 0001: Policy-Driven Standards Proficiency and Grade Calculation](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-- [ADR 0002: Provenance-Bound Report Snapshots and Subscriptions](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-- [ADR 0003: Adopt Consumer-Side Producer Adapters for Core Publications](decisions/0003-consumer-side-producer-adapters.md)
+## Architecture decisions
 
-The accepted Core v0.6 reconciliation amendments are:
+Three accepted ADRs govern the repository:
 
-- [ADR 0001 amendment](decisions/amendments/0001-core-v0.6-ingestion-reconciliation.md)
-- [ADR 0002 amendment](decisions/amendments/0002-core-v0.6-ingestion-reconciliation.md)
+- ADR 0001 assigns policy-driven proficiency and Grade calculation to Meridian.
+- ADR 0002 adopts provenance-bound report snapshots and subscriptions.
+- ADR 0003 adopts consumer-side producer adapters and one-way dependencies.
 
-## Document authority
+The Core v0.6 reconciliation amendments remain part of the accepted context for
+ADRs 0001 and 0002.
 
-When documents disagree:
+## Current implementation sequence
 
-1. an accepted, later ADR governs the decision it explicitly addresses;
-2. an accepted amendment governs the narrow reconciliation it records;
-3. active architecture documents consolidate accepted decisions and current
-   external contracts;
-4. implementation documentation describes behavior that actually exists; and
-5. issue descriptions guide work but are not runtime contracts.
+The v0.1.1 milestone proceeds through:
 
-A document describing a planned ScoreForm, Quillan, Concord, or Portia feature
-must not be treated as proof that the producer contract, profile, reader, or
-publication workflow exists on the producer's default branch.
+1. architecture reconciliation — complete;
+2. package, testing, typing, and CI foundation — active;
+3. typed evidence inventory;
+4. adapter interface and registry;
+5. Core discovery and canonical verification;
+6. ScoreForm adapter;
+7. Quillan adapter;
+8. inventory and diagnostics commands;
+9. exact cache and snapshot rules;
+10. cross-producer scenarios;
+11. foundation audit and release.
 
-## External authoritative references
-
-Meridian depends on public contracts owned by sibling repositories. The active
-starting points are:
-
-- [Core v0.6 academic registry integration guide](https://github.com/Paper-Data-Suite/pds-core/blob/main/docs/academic_registry_integration.md)
-- [Core v0.6 recovery guide](https://github.com/Paper-Data-Suite/pds-core/blob/main/docs/academic_registry_recovery.md)
-- [Core v0.6 release notes](https://github.com/Paper-Data-Suite/pds-core/blob/main/docs/releases/v0.6.0.md)
-- [ScoreForm Academic Result Manifest v1](https://github.com/Paper-Data-Suite/pds-scoreform/blob/main/docs/academic_result_manifest_v1.md)
-- [ScoreForm publication revision policy](https://github.com/Paper-Data-Suite/pds-scoreform/blob/main/docs/publication_revision_policy.md)
-- [Quillan assignment contract](https://github.com/Paper-Data-Suite/pds-quillan/blob/main/docs/assignment_contract.md)
-- [Quillan review record contract](https://github.com/Paper-Data-Suite/pds-quillan/blob/main/docs/review_record_contract.md)
-- [Quillan v0.9.0 publication umbrella](https://github.com/Paper-Data-Suite/pds-quillan/issues/355)
-
-External links identify authority; they do not vendor or freeze sibling
-contracts. Meridian adapters must declare exact supported versions.
+No complete Grade or proficiency engine is part of this milestone.

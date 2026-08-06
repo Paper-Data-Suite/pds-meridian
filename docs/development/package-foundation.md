@@ -1,0 +1,72 @@
+# Package and validation foundation
+
+## Status
+
+Meridian has an installable development package at `0.1.1.dev0`. The package is
+an executable foundation only. It does not yet ingest producer manifests,
+project evidence, calculate proficiency or Grades, or generate reports.
+
+## Requirements
+
+- Python 3.11 or later
+- the authenticated `pds-core` v0.6 line
+- the exact Core v0.6.0 wheel for baseline CI and release-reproducibility checks
+
+The runtime dependency is:
+
+```text
+pds-core>=0.6,<0.7
+```
+
+## Development installation
+
+Core v0.6.0 is distributed through its GitHub Release artifacts rather than
+PyPI. Install the verified wheel before installing Meridian:
+
+```powershell
+python -m pip install .\pds_core-0.6.0-py3-none-any.whl
+python -m pip install -e ".[dev]"
+python -m pip check
+meridian --version
+meridian --help
+```
+
+## Local validation
+
+From an activated repository virtual environment:
+
+```powershell
+.\run_tests.ps1 -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl
+```
+
+The cross-platform authority is:
+
+```text
+python scripts/validate_repository.py --core-wheel <path-to-wheel>
+```
+
+Use `--allow-dirty` while developing. The default complete validation requires a
+clean working tree.
+
+The validator runs Core authentication, installed dependency checks, pytest,
+Ruff, strict mypy, documentation validation, package builds, Twine checks, wheel
+inspection, isolated wheel smoke testing, `git diff --check`, and repository
+cleanliness checks.
+
+## Entry-point boundary
+
+This package declares only the `meridian` console script. It deliberately does
+not declare:
+
+```text
+paper_data_suite.modules
+paper_data_suite.publication_producers
+```
+
+It also exposes no adapter plugin group in this foundation issue. Adapter
+selection and loading belong to issue #7.
+
+## Read-only baseline
+
+Importing `meridian` or running help/version commands must not discover a
+workspace, query Core, load producer packages, configure logging, or write files.

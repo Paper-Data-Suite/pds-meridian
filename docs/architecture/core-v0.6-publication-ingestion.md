@@ -12,10 +12,11 @@ and
 [ADR 0002](../decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
 with the released Core contract.
 
-This document defines architecture, not executable completeness. Meridian does
-not yet implement the package, adapter registry, evidence inventory, discovery
-service, producer adapters, cache, grading engine, or reporting engine described
-here.
+This document defines architecture, not executable completeness. Meridian now
+implements the installable package, testing, typing, CI, and validation
+foundation. It does not yet implement the adapter registry, evidence inventory,
+discovery service, producer adapters, cache, grading engine, or reporting engine
+described here.
 
 ## Goals
 
