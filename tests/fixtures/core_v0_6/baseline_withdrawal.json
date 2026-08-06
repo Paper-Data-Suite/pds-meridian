@@ -1,0 +1,7 @@
+{
+  "publication_id": "pub_11111111111111111111111111111111",
+  "reason": "Synthetic withdrawal for contract validation",
+  "record_type": "publication_withdrawal",
+  "schema_version": "1",
+  "withdrawn_at": "2026-01-16T12:30:00+00:00"
+}

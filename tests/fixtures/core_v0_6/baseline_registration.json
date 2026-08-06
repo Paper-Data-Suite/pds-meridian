@@ -1,0 +1,25 @@
+{
+  "academic_intent": "formative",
+  "created_at": "2026-01-15T12:00:00+00:00",
+  "lifecycle": "active",
+  "producer_contract_version": "fixture_contract_1",
+  "record_type": "academic_work_registration",
+  "registration_revision": 1,
+  "schema_version": "1",
+  "source_records": [
+    {
+      "contract_version": "fixture_contract_1",
+      "module_id": "synthetic_producer",
+      "record_id": "synthetic_assignment_alpha",
+      "record_kind": "assignment"
+    }
+  ],
+  "title": "Synthetic Assignment Alpha",
+  "updated_at": "2026-01-15T12:00:00+00:00",
+  "work": {
+    "class_id": "synthetic_class_2026",
+    "module_id": "synthetic_producer",
+    "work_id": "synthetic_assignment_alpha"
+  },
+  "work_kind": "assignment"
+}

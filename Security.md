@@ -1,218 +1,126 @@
 # Security Policy
 
-PDS Meridian is currently in its initial architecture and documentation phase. It does not yet contain a production application or supported release.
+PDS Meridian has an installable pre-release development package but no supported
+production release. The current package provides help/version CLI behavior and
+validation infrastructure; it does not yet ingest student manifests, calculate
+Grades, or generate reports.
 
-Even at this early stage, security reports should be handled privately because Meridian is expected to process sensitive educational information, Grade calculations, standards proficiency, report snapshots, and authorized cross-module data.
+Security reports should still be handled privately because Meridian is expected
+to process sensitive educational information in later implementation stages.
 
-## Supported Versions
+## Supported versions
 
-No production version of PDS Meridian is currently supported.
+No production version is currently supported.
 
-Once Meridian has released versions, this section will identify which versions receive security updates.
+The `0.1.1.dev0` package is a development foundation and does not establish a
+security-support lifecycle or service-level commitment.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
 Do not open a public GitHub issue for a suspected security vulnerability.
 
-Use GitHub’s private vulnerability-reporting feature or open a private GitHub Security Advisory for this repository.
+Use GitHub private vulnerability reporting or a private GitHub Security Advisory
+for this repository.
 
-When reporting a vulnerability, include as much of the following information as can be shared safely:
+Include only the minimum information needed to reproduce and assess the issue:
 
-* the affected component or document;
-* the relevant version, branch, or commit;
-* a clear description of the vulnerability;
-* reproduction steps;
-* expected and observed behavior;
-* potential impact;
-* known prerequisites;
-* suggested mitigation, when available;
-* and whether the issue has been disclosed elsewhere.
+- affected component, version, branch, or commit;
+- description and reproduction steps;
+- expected and observed behavior;
+- potential impact and prerequisites;
+- suggested mitigation, when available;
+- disclosure status.
 
-Do not include any of the following in public issues, pull requests, discussions, or screenshots:
+Do not include real educational data, credentials, private repository material,
+exploit secrets, confidential reports, or sensitive deployment information in
+public issues, pull requests, discussions, screenshots, or CI logs.
 
-* real student information;
-* credentials;
-* access tokens;
-* private keys;
-* session data;
-* private repository contents;
-* exploit details;
-* confidential report output;
-* or sensitive deployment information.
-
-Allow the maintainers a reasonable opportunity to investigate and coordinate remediation before public disclosure.
-
-The repository owner should enable GitHub private vulnerability reporting in the repository security settings.
-
-## Sensitive Educational Data
-
-Do not use real student data when demonstrating or reproducing a vulnerability.
+## Sensitive educational data
 
 Use synthetic data whenever possible.
 
-When synthetic data cannot reproduce the issue, thoroughly redact:
+Do not publish real:
 
-* names;
-* student identifiers;
-* email addresses;
-* dates of birth;
-* accommodations;
-* Grades;
-* standards-proficiency records;
-* intervention records;
-* report contents;
-* and any other identifying or sensitive information.
+- names or student identifiers;
+- email addresses or contact information;
+- dates of birth;
+- accommodations or intervention information;
+- Grades or standards-proficiency records;
+- scans, submissions, manifests, or report contents;
+- school or district identifiers;
+- workstation or network-share paths.
 
-A security report should include only the minimum data necessary to explain the vulnerability.
+See the [synthetic data policy](docs/development/synthetic-data.md).
 
-## Security-Sensitive Areas
+## Current security-sensitive surface
 
-Future Meridian implementations are expected to include security-sensitive behavior involving:
+The current development package includes:
 
-* authentication and authorization;
-* student-record access;
-* teacher and administrator permissions;
-* report audience selection;
-* source-Publication Record access;
-* Grade and standards-proficiency integrity;
-* grading-policy configuration;
-* teacher overrides;
-* override authorization and provenance;
-* report-definition authorization;
-* report snapshot provenance;
-* report delivery;
-* subscription triggers;
-* exported files;
-* cross-module integrations;
-* secrets used by integrations;
-* and protection against unauthorized recalculation or report generation.
+- Python package metadata and dependency declarations;
+- a console script and `python -m` entry point;
+- Core wheel authentication and installed-package verification;
+- repository, documentation, and package validators;
+- build and smoke-test automation;
+- GitHub Actions workflows.
 
-Particular care is required anywhere Meridian could:
+Reports are appropriate for demonstrated issues such as:
 
-* expose information to the wrong audience;
-* calculate a Grade from unauthorized or invalid evidence;
-* omit relevant withdrawal or supersession state;
-* accept an unauthorized override;
-* alter report provenance;
-* deliver a report more broadly than intended;
-* or combine academic and intervention information without preserving their separate meanings and access requirements.
+- dependency or artifact-verification bypass;
+- package-content substitution;
+- path traversal or unsafe temporary-file handling in validation tooling;
+- untrusted archive handling;
+- command injection in scripts or CI;
+- unintended filesystem mutation during import or baseline CLI use;
+- credential or private-data disclosure;
+- source-checkout shadowing that defeats dependency verification.
 
-## Response Process
+## Future security-sensitive areas
 
-The maintainers will attempt to:
+Later Meridian implementation will require particular care around:
 
-1. acknowledge the report privately;
-2. review the available reproduction information;
-3. assess severity and scope;
-4. request additional information when needed;
-5. identify affected versions or components;
-6. coordinate remediation;
-7. validate the correction;
-8. and communicate appropriate disclosure timing.
+- authentication and authorization;
+- student-record and source-publication access;
+- producer code loading;
+- manifest verification and parsing;
+- Grade and proficiency integrity;
+- grading-policy configuration;
+- teacher overrides;
+- report audiences and delivery;
+- snapshot provenance;
+- subscription triggers;
+- exports, retention, and backups;
+- integration secrets.
 
-Response and remediation times depend on the nature, severity, and reproducibility of the report.
+Discovery, package installation, profile compatibility, and filesystem
+readability must never be treated as authorization.
 
+## Coordinated disclosure
+
+Allow maintainers a reasonable opportunity to confirm, assess, correct, test,
+and communicate a vulnerability before public disclosure.
+
+Response and remediation time depends on severity, scope, and reproducibility.
 This policy does not establish a guaranteed service-level agreement.
 
-## Coordinated Disclosure
+## Out of scope
 
-Please avoid public disclosure until the maintainers have had a reasonable opportunity to:
+The following are not security vulnerabilities by themselves:
 
-* confirm the issue;
-* understand its impact;
-* develop a correction or mitigation;
-* test the correction;
-* and notify affected users or maintainers where necessary.
+- disagreement with an explicitly configured future grading policy;
+- expected differences among grading models;
+- missing features;
+- unsupported deployment configurations;
+- hypothetical behavior absent from the repository;
+- social-engineering claims without a demonstrated Meridian weakness.
 
-When public disclosure is appropriate, the maintainers may coordinate:
+Do not perform testing that accesses unauthorized data, disrupts service, alters
+or destroys data, targets users, or violates applicable law or policy.
 
-* the timing of disclosure;
-* the technical description;
-* affected-version information;
-* mitigation guidance;
-* and acknowledgement of the reporter.
+## Good-faith research
 
-## Scope
+Good-faith research should minimize access, stop when sensitive data is
+encountered, avoid persistence and destruction, report privately, and allow a
+reasonable remediation opportunity.
 
-Security reports are appropriate for issues such as:
-
-* unauthorized access to student or report data;
-* authentication or authorization bypass;
-* exposure of credentials or secrets;
-* Grade or proficiency manipulation;
-* unauthorized teacher overrides;
-* report-audience leakage;
-* report-delivery vulnerabilities;
-* provenance tampering;
-* unsafe file handling;
-* injection vulnerabilities;
-* path traversal;
-* insecure deserialization;
-* dependency vulnerabilities with a demonstrated Meridian impact;
-* and vulnerabilities in future APIs, command-line tools, exports, or integrations.
-
-The following should normally use a public GitHub issue, provided no sensitive information is included:
-
-* ordinary software defects;
-* documentation corrections;
-* feature requests;
-* user-interface problems;
-* grading-policy disagreements;
-* expected policy behavior questions;
-* calculation-rule proposals;
-* and problems that do not create a confidentiality, integrity, or availability risk.
-
-When uncertain whether a report is security-sensitive, use the private reporting channel.
-
-## Out of Scope
-
-The following are not, by themselves, security vulnerabilities:
-
-* disagreement with an explicitly configured grading policy;
-* expected differences between standards-based and conventional Grade calculations;
-* missing product features;
-* unsupported deployment configurations;
-* reports based entirely on hypothetical behavior that does not exist in the repository;
-* and social-engineering claims without a demonstrated Meridian weakness.
-
-Do not perform testing that:
-
-* accesses data without authorization;
-* disrupts services;
-* destroys or alters data;
-* sends unsolicited communications;
-* degrades availability;
-* targets users;
-* or violates applicable law or policy.
-
-## Good-Faith Security Research
-
-Good-faith security research should:
-
-* avoid harm;
-* respect privacy;
-* use the minimum access necessary;
-* stop when sensitive data is encountered;
-* avoid persistence;
-* avoid data destruction;
-* report findings privately;
-* and provide maintainers a reasonable opportunity to respond.
-
-The maintainers intend to work constructively with researchers who follow these principles.
-
-This statement reflects the repository’s intent and is not legal advice or a guarantee regarding third-party systems, organizations, or authorities.
-
-## Repository Status
-
-PDS Meridian currently contains architectural and repository documentation only.
-
-Future implementation work should update this policy as Meridian gains:
-
-* supported releases;
-* runtime services;
-* persistence;
-* APIs;
-* report-generation capabilities;
-* delivery integrations;
-* deployment guidance;
-* and a formal security-support lifecycle.
+This statement reflects repository intent and is not legal advice or a guarantee
+about third-party systems or authorities.

@@ -3,9 +3,12 @@
 PDS Meridian is the policy-driven grading and reporting layer for Paper Data
 Suite.
 
-Meridian is currently in its architecture and publication-ingestion foundation
-phase. It does not yet provide a production grading engine, report generator,
-persistence layer, or delivery system.
+Meridian now has an installable, strictly typed package foundation at development
+version `0.1.1.dev0`. This foundation provides package metadata, a read-only CLI,
+Core v0.6 contract probes, tests, CI, and release-validation tooling. It does not
+yet provide producer adapters, publication ingestion, evidence projection,
+proficiency calculation, Grade calculation, report generation, persistence, or
+delivery.
 
 ## Purpose
 
@@ -30,18 +33,136 @@ Its eventual responsibilities include:
 Meridian consumes Core-governed registrations and Publication Records while
 preserving the meaning and authority of producer-owned records.
 
-## Core v0.6 integration baseline
+## Package status
 
-Executable Meridian work targets:
+The current package provides:
+
+- the `pds-meridian` distribution;
+- the `meridian` import package;
+- one authoritative version declaration;
+- the required Core v0.6 dependency boundary;
+- the `meridian` console command;
+- side-effect-free help and version behavior;
+- strict mypy and Ruff configuration;
+- privacy-safe Core-contract fixtures;
+- package, CLI, import, metadata, and Core-baseline tests;
+- exact verification of the official Core v0.6.0 wheel;
+- wheel and source-distribution validation;
+- isolated installed-wheel smoke testing;
+- cross-platform GitHub Actions CI; and
+- reusable documentation and repository validation tooling.
+
+The package does **not** yet provide:
+
+- Meridian evidence-inventory models;
+- a producer-adapter protocol or registry;
+- Core catalog discovery;
+- canonical publication, registration, withdrawal, or manifest verification;
+- authorization enforcement;
+- ScoreForm, Quillan, Concord, or Portia adapters;
+- evidence diagnostics commands;
+- caches or snapshots;
+- standards proficiency or Grade calculations;
+- report generation;
+- report persistence;
+- subscriptions; or
+- production-ready functionality.
+
+Package installation alone does not enable publication ingestion.
+
+## Requirements
+
+Meridian requires:
 
 ```text
+Python >=3.11
 pds-core>=0.6,<0.7
 ```
 
-The dependency declaration will be introduced by the package-foundation issue.
-Declaring the dependency does not by itself implement discovery, authorization,
-manifest verification, producer adapters, evidence projection, grading, or
-reporting.
+Core v0.6.0 is the exact baseline authenticated by CI. Core v0.6.0 is distributed
+through its GitHub Release artifacts rather than PyPI.
+
+## Development installation
+
+Install the official Core wheel, then install Meridian in editable development
+mode:
+
+```powershell
+python -m pip install .\pds_core-0.6.0-py3-none-any.whl
+python -m pip install -e ".[dev]"
+python -m pip check
+meridian --version
+meridian --help
+```
+
+The official baseline artifact is:
+
+```text
+pds_core-0.6.0-py3-none-any.whl
+SHA-256: be28c061b38463ef59ebc328ed1aa443767fe7f2c626babb769c2d8e5932f308
+```
+
+Do not substitute a sibling Core checkout or locally rebuilt wheel when running
+the baseline artifact-authentication and installed-wheel checks.
+
+## Command line
+
+The baseline command supports only package help and version output:
+
+```text
+meridian
+meridian --help
+meridian --version
+python -m meridian
+python -m meridian --help
+python -m meridian --version
+```
+
+These operations are intentionally read-only. They do not discover a workspace,
+query a catalog, load producer packages, open manifests, configure global
+logging, or write files.
+
+Inventory, adapter, publication, diagnostics, grading, and reporting commands
+will be introduced only when their underlying behavior exists.
+
+## Local validation
+
+From an activated repository virtual environment, run:
+
+```powershell
+.\run_tests.ps1 -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl
+```
+
+The cross-platform validator is:
+
+```text
+python scripts/validate_repository.py --core-wheel <path-to-wheel>
+```
+
+Use `--allow-dirty` during development. The default complete validation requires
+a clean repository.
+
+The validator runs:
+
+- Core wheel authentication;
+- installed Core verification;
+- `pip check`;
+- pytest;
+- Ruff;
+- strict mypy;
+- documentation validation;
+- wheel and source-distribution builds;
+- Twine checks;
+- wheel-content validation;
+- isolated installed-wheel smoke testing;
+- `git diff --check`; and
+- working-tree cleanliness validation.
+
+See
+[`docs/development/package-foundation.md`](docs/development/package-foundation.md)
+for details.
+
+## Core v0.6 integration baseline
 
 Core v0.6 owns shared canonical infrastructure, including:
 
@@ -58,13 +179,15 @@ Core v0.6 owns shared canonical infrastructure, including:
 Core does not calculate standards proficiency, determine Grade-item membership,
 select attempts, calculate Grades, or compose final cross-module reports.
 
+This package-foundation issue verifies Core’s public contract constants and pure
+models only. It does not read or write a Core workspace.
+
 The active ingestion architecture is documented in
 [`docs/architecture/core-v0.6-publication-ingestion.md`](docs/architecture/core-v0.6-publication-ingestion.md).
 
 ## Canonical ingestion sequence
 
-Meridian must not treat a catalog row as academic authority. The required
-consumer sequence is:
+Later ingestion work must follow this sequence:
 
 ```text
 query the disposable Core catalog for bounded candidates
@@ -81,19 +204,12 @@ query the disposable Core catalog for bounded candidates
     -> apply Meridian-owned eligibility, grading, or reporting policy afterward
 ```
 
-`registry/catalog.sqlite` is rebuildable, disposable, and nonauthoritative. It
-may be missing, stale, incompatible, malformed, locked, or corrupt. Catalog rows
-cannot create, revise, select, supersede, withdraw, authorize, or validate a
-producer manifest. Core never chooses a publication merely because it has the
-greatest revision, newest timestamp, or lexically greatest filename.
-
-Capabilities are discovery and compatibility metadata. They may narrow
-candidate searches, but they do not define manifest structure, educational
-equivalence, evidence eligibility, attempt selection, or Grade policy.
+`registry/catalog.sqlite` is rebuildable, disposable, and nonauthoritative.
+Catalog rows do not authorize access or replace canonical verification.
 
 ## Routing profiles, producer profiles, and Meridian adapters
 
-Paper Data Suite exposes two independent Core discovery groups:
+Paper Data Suite exposes independent Core discovery groups:
 
 ```text
 paper_data_suite.modules
@@ -101,15 +217,11 @@ paper_data_suite.publication_producers
 ```
 
 A routing `ModuleProfile` supports PDS2 dispatch. A
-`PublicationProducerProfile` contains compatibility metadata for published
-records. A routing profile does not make a module a publication producer, and a
-publication profile does not make a module routable.
+`PublicationProducerProfile` contains producer compatibility metadata. Meridian
+is a consumer and declares neither group in this package foundation.
 
-A Core publication profile intentionally contains no parser or callback. It
-describes supported Core publication schemas, producer contracts, publication
-kinds, capabilities, manifest contracts, and source-record contracts.
-
-Meridian therefore owns a separate consumer-side adapter layer:
+A Core publication profile intentionally contains no parser or callback.
+Meridian will own a separate consumer-side adapter layer:
 
 ```text
 pds-meridian -> pds-core
@@ -126,33 +238,12 @@ pds-core
     -X-> Meridian grading policy
 ```
 
-The governing decision is
+The base package requires Core only. It does not require ScoreForm, Quillan,
+Concord, Portia, Vitrine, or another producer package. Adapter discovery and
+producer-reader dependencies are deferred to later reviewed issues.
+
+See
 [ADR 0003: Adopt Consumer-Side Producer Adapters for Core Publications](docs/decisions/0003-consumer-side-producer-adapters.md).
-
-Meridian owns adapter selection, adapter diagnostics, and projection into its
-internal evidence inventory. Producers own native records, manifest schemas,
-canonical serialization, validation, public readers, revision policy, and native
-semantic meaning.
-
-A Meridian adapter may call a producer's documented public reader. It must not:
-
-- duplicate the producer's validator;
-- import private producer models or test helpers;
-- inspect undocumented native files;
-- infer semantics from filenames or arbitrary JSON;
-- silently accept an unknown contract version; or
-- flatten unrelated producer outputs into one universal number.
-
-The Meridian base package will require Core. It must not require every producer
-package as an unconditional dependency. Producer readers are deployment-provided
-or adapter-specific optional dependencies and are loaded only when the matching
-adapter is selected. Exact optional-extra names and adapter-loading mechanics are
-deferred to the package and adapter-registry issues.
-
-A compatible producer profile does not prove that Meridian has an adapter. An
-installed adapter does not make an incompatible publication valid. Missing
-profiles, missing producer readers, missing adapters, and unsupported contracts
-must fail explicitly without a generic fallback parser.
 
 ## Authorization boundary
 
@@ -162,124 +253,27 @@ The existence of a catalog row, canonical Publication Record, installed producer
 package, compatible producer profile, or Meridian adapter does not authorize
 student-record access or use in a Grade or report.
 
-The application or deployment layer owns trusted package installation,
-filesystem permissions, enabled-producer policy, identity and authorization
-integration, backups, and retention. Meridian must enforce the applicable
-authorization decision before opening or exposing student-level manifest
-contents for the requested use.
-
-Canonical envelope inspection may establish what source would be accessed. It
-does not grant access.
+The current package foundation performs no student-level manifest access.
 
 ## Producer modules
 
-Producer modules own their native records and domain-specific interpretation.
-They may publish scores, rubric results, criterion ratings, standards-aligned
-observations, written feedback, intervention information, source-record
-references, and other native results through Core-governed contracts.
+Producer modules own their native records, public contracts, validation, revision
+policy, and domain-specific interpretation. Producer packages must not depend on
+Meridian.
 
-Producer modules do not determine Meridian's cumulative standards proficiency or
-course Grades. Producer packages must not depend on Meridian.
-
-### ScoreForm readiness
-
-ScoreForm owns the active pure contract:
-
-```text
-scoreform_academic_result_manifest_v1
-```
-
-The contract represents one immutable academic-result record-set revision for
-one ScoreForm assignment. Production uses the stable record-set ID
-`academic_results`.
-
-It preserves:
-
-- every published student attempt;
-- points earned and possible;
-- question-level response state and correctness;
-- question-to-standard alignment;
-- selected, blank, and ambiguous responses as distinct states; and
-- origin-specific scan or manual provenance.
-
-For this contract, the expected shared capabilities are `points`,
-`question_evidence`, and `multiple_attempts`. Question alignment is not a native
-standards rating, so the contract must not be interpreted as
-`standards_ratings`.
-
-ScoreForm does not identify an official, best, latest-for-grading, replacement,
-or Grade-bearing attempt. Meridian must preserve all attempts until an explicit
-consumer-owned policy selects evidence.
-
-The pure manifest reader and validation contract exist. That fact does not by
-itself prove that workspace manifest generation, a production publication
-profile, Core publication commands, or clean installed producer acceptance are
-complete. Meridian documentation and diagnostics must report producer readiness
-factually.
-
-### Quillan readiness
-
-Quillan currently owns authoritative schema-v2 assignment, submission, and
-review semantics, including:
-
-- assignment-defined Focus Standards;
-- native rating-scale definitions;
-- submission evidence and selection state;
-- review state;
-- minimum-requirement outcomes;
-- review-unit observations;
-- overall Focus Standard ratings;
-- feedback boundaries; and
-- explicit non-score dispositions such as returning work without full review.
-
-Quillan's Core v0.6 academic-result manifest and public consumer reader are
-producer-owned work in the Quillan v0.9.0 publication milestone. Meridian must
-not invent a Quillan manifest identifier, serialized shape, capability set,
-source-record contract, or field interpretation before Quillan accepts those
-contracts.
-
-A future Quillan adapter must bind to an exact accepted manifest and producer
-contract version and preserve Quillan's native scale and non-score states.
-
-### Future producers
-
-Concord and other future academic producers require explicit public contracts,
-compatible producer profiles, and Meridian adapters before ingestion.
-
-Portia or another intervention producer may publish
-`intervention_record_set` without Academic Work Registration. Intervention data
-may appear in authorized reports, but it does not automatically become:
-
-- a Grade item;
-- standards evidence;
-- an assessment attempt;
-- a proficiency observation; or
-- a conventional Grade component.
+ScoreForm, Quillan, Concord, Portia, and future producers have different native
+semantics. Meridian must not flatten their outputs into one universal numeric
+score.
 
 Unknown producers, known producers with unsupported contracts, and supported
-producers with incompatible publications are distinct diagnostic cases.
+producers with incompatible publications remain distinct future diagnostic
+cases.
 
 ## Evidence preservation obligations
 
-Every adapter must preserve producer-native meaning. A later typed evidence
-inventory must retain, as applicable:
-
-- producer module and adapter identity;
-- canonical `publication_id`;
-- complete `ModuleWorkRef`;
-- publication kind;
-- record-set ID and revision;
-- manifest contract, path, digest algorithm, and digest;
-- exact referenced Academic Work Registration revision;
-- producer contract version;
-- optional source-record reference and contract version;
-- supersession and withdrawal state;
-- student or target identity in producer-qualified context;
-- native result kind and native scale identity;
-- every represented attempt or observation;
-- contract-significant ordering;
-- native provenance; and
-- native non-score states and dispositions.
+Later adapters must preserve producer-native meaning, including exact source
+identity, attempts, observations, scales, dispositions, non-score states, and
+provenance.
 
 Meridian must not automatically convert missing, blank, ambiguous, incomplete,
 returned-without-review, excused, excluded, withdrawn, unavailable, or invalid
@@ -292,20 +286,6 @@ Meridian proficiency scale unless an explicit, versioned mapping policy says so.
 
 Standards-based grading is a first-class Meridian capability. It is not merely a
 presentation layer over a conventional points ledger.
-
-Meridian must eventually support:
-
-- one or more focus standards per work;
-- repeated observations of the same standard;
-- evidence from multiple authorized producers;
-- configurable proficiency scales;
-- multiple evidence-selection strategies;
-- reassessment and recency;
-- teacher-selected evidence;
-- teacher overrides;
-- insufficient-evidence states;
-- reporting-period and cumulative proficiency; and
-- optional explicit conversion to conventional Grades.
 
 A producer publication does not automatically become a Grade item. Grade-item
 membership, standards-evidence eligibility, attempt selection, Academic Period
@@ -329,137 +309,65 @@ registrations, Publication Records, withdrawals, producer manifests, or
 producer-native records.
 
 Issued reports must be provenance-bound snapshots rather than untraceable live
-views. A reproducible imported projection or report snapshot must bind to exact
-publication and manifest identity, not merely a producer, work ID, catalog row,
-or a path named `latest` or `current`.
-
-A refreshable view must repeat canonical verification against current authorized
-state. It must not trust a previously cached catalog row or silently rewrite an
-issued snapshot.
+views. A refreshable view must repeat canonical verification against current
+authorized state.
 
 See
 [ADR 0002: Provenance-Bound Report Snapshots and Subscriptions](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
 and its
 [Core v0.6 ingestion amendment](docs/decisions/amendments/0002-core-v0.6-ingestion-reconciliation.md).
 
-## Failure categories
+## Security and synthetic data
 
-Later implementation must distinguish integrity, compatibility, historical,
-authorization, and policy outcomes rather than reporting every problem as an
-"invalid publication."
+Meridian is expected to process sensitive educational information. Public tests,
+examples, fixtures, issue reproduction material, and CI artifacts must use only
+synthetic data.
 
-Architecture-level categories include:
+Do not commit real student records, rosters, Grades, scans, submissions,
+manifests, reports, credentials, private URLs, or workstation paths.
 
-- catalog unavailable, stale, incompatible, malformed, locked, or corrupt;
-- catalog candidate absent from canonical state;
-- canonical Publication Record missing, malformed, or contradictory;
-- referenced registration missing or incompatible;
-- publication historical, superseded, or withdrawn;
-- producer profile missing or incompatible;
-- Meridian adapter missing;
-- producer public reader unavailable;
-- manifest missing or failing path, file-type, or symlink checks;
-- manifest digest mismatch;
-- producer-contract decode or validation failure;
-- unsupported manifest, producer, or source-record contract version;
-- authorization denied; and
-- otherwise valid evidence excluded by a later Meridian eligibility policy.
+See:
 
-The detailed taxonomy and ingestion rules are in the Core v0.6 publication
-architecture document.
+- [`Security.md`](Security.md)
+- [Synthetic data policy](docs/development/synthetic-data.md)
 
-## Security and data minimization
-
-Meridian is expected to process sensitive educational information. Future
-implementation must account for authentication, authorization, student-record
-access, source-publication access, Grade integrity, override authorization,
-report audiences, exports, delivery, subscriptions, retention, backups, and
-integration secrets.
-
-Use synthetic data in public examples and tests. Do not commit real student
-records, Grades, scans, submissions, manifests, reports, credentials, or private
-workspace paths.
-
-See [`Security.md`](Security.md).
-
-## Architecture documentation
+## Documentation
 
 - [Documentation index](docs/README.md)
+- [Package and validation foundation](docs/development/package-foundation.md)
+- [Synthetic data policy](docs/development/synthetic-data.md)
 - [Core v0.6 publication-ingestion architecture](docs/architecture/core-v0.6-publication-ingestion.md)
 - [Architecture Decision Record index](docs/decisions/README.md)
-- [ADR 0001: Policy-Driven Standards Proficiency and Grade Calculation](docs/decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-- [ADR 0002: Provenance-Bound Report Snapshots and Subscriptions](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-- [ADR 0003: Adopt Consumer-Side Producer Adapters for Core Publications](docs/decisions/0003-consumer-side-producer-adapters.md)
+- [ADR 0001](docs/decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+- [ADR 0002](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+- [ADR 0003](docs/decisions/0003-consumer-side-producer-adapters.md)
+- [Changelog](CHANGELOG.md)
 
 Accepted ADRs record architectural decisions rather than implementation
 completeness. Material reversals require an explicit superseding decision rather
 than a silent rewrite.
 
-## Current repository scope
-
-The repository currently contains architecture and repository documentation. It
-does not yet contain:
-
-- a Meridian Python package;
-- runtime APIs;
-- an adapter registry;
-- evidence-inventory models;
-- catalog discovery or canonical verification code;
-- producer adapters;
-- database schemas;
-- grading-policy schemas;
-- calculation engines;
-- report schemas;
-- subscriptions;
-- delivery integrations; or
-- production-ready functionality.
-
-## Out of scope
-
-Meridian does not own:
-
-- raw scan ingestion or OCR;
-- producer-native record schemas;
-- producer manifest schemas or canonical validation;
-- canonical Core registry writes;
-- Core's Academic Period model;
-- Core's publication registry or disposable catalog;
-- arbitrary modification of producer records;
-- roster or institution-wide person authority;
-- intervention case management; or
-- arbitrary-file parsing that guesses producer semantics.
-
-Meridian does own consumer-side orchestration and producer adapters that call
-producer-owned public contracts. This is distinct from owning or duplicating the
-producer parser.
-
 ## Repository structure
 
 ```text
 .
+├── .github/workflows/ci.yml
+├── CHANGELOG.md
+├── LICENSE
 ├── README
 ├── Security.md
-└── docs
-    ├── README.md
-    ├── architecture
-    │   └── core-v0.6-publication-ingestion.md
-    └── decisions
-        ├── README.md
-        ├── 0001-policy-driven-standards-proficiency-and-grade-calculation.md
-        ├── 0002-provenance-bound-report-snapshots-and-subscriptions.md
-        ├── 0003-consumer-side-producer-adapters.md
-        └── amendments
-            ├── 0001-core-v0.6-ingestion-reconciliation.md
-            └── 0002-core-v0.6-ingestion-reconciliation.md
+├── meridian/
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── _version.py
+│   ├── cli.py
+│   └── py.typed
+├── pyproject.toml
+├── run_tests.ps1
+├── scripts/
+├── tests/
+└── docs/
 ```
-
-## Development
-
-Packaging, testing, typing, CI, schemas, and release processes will be
-introduced through reviewed implementation issues. Until then, documentation
-changes must be reviewed for factual consistency, exact repository-relative
-links, synthetic-data safety, and contradiction with active Core and producer
-contracts.
 
 ## License
 
