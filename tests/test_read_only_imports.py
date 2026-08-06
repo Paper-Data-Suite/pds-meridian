@@ -11,7 +11,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "module",
-    ["meridian", "meridian.cli", "meridian.__main__"],
+    ["meridian", "meridian.cli", "meridian.evidence", "meridian.__main__"],
 )
 def test_baseline_imports_are_read_only(tmp_path: Path, module: str) -> None:
     code = (
