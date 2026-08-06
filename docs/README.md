@@ -2,9 +2,9 @@
 
 Meridian is in the v0.1.1 executable publication-ingestion foundation milestone.
 The installable `0.1.1.dev0` package, strict typing, tests, CI, validation
-tooling, and immutable typed evidence inventory are established. Producer
-adapters, canonical ingestion, eligibility policy, grading, and reporting remain
-follow-on work.
+tooling, immutable typed evidence inventory, and exact consumer adapter
+interface and registry are established. Real producer adapters, canonical
+ingestion, eligibility policy, grading, and reporting remain follow-on work.
 
 ## Recommended reading order
 
@@ -12,11 +12,12 @@ follow-on work.
 2. [Package and validation foundation](development/package-foundation.md)
 3. [Synthetic data policy](development/synthetic-data.md)
 4. [Typed evidence inventory](architecture/typed-evidence-inventory.md)
-5. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-6. [ADR index](decisions/README.md)
-7. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-8. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-9. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+5. [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
+6. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+7. [ADR index](decisions/README.md)
+8. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+9. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+10. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -37,17 +38,10 @@ profile, producer dependency, or adapter plugin group.
 
 ## Typed evidence inventory
 
-`meridian.evidence` defines frozen, slotted, producer-neutral models for:
-
-- exact Core publication, registration, withdrawal, and manifest provenance;
-- explicit adapter projection and producer-reader identity;
-- privacy-minimal student subjects;
-- producer-native targets and standard alignment;
-- native result kinds;
-- exact scalar, point, scaled, and non-score-state values;
-- ordered native record, artifact, and timestamp provenance;
-- explicit `unevaluated`, `eligible`, and `ineligible` status; and
-- ordered inventories with pure, order-preserving filters.
+`meridian.evidence` defines frozen, slotted, producer-neutral models for exact
+Core provenance, projection identity, privacy-minimal student subjects,
+producer-native targets and values, non-score states, eligibility status, and
+ordered inventories with pure filters.
 
 The inventory does not normalize producer values into one score. It does not
 select attempts, evaluate eligibility policy, map native scales, calculate
@@ -57,15 +51,32 @@ See
 [Typed evidence inventory](architecture/typed-evidence-inventory.md)
 for the model boundary and synthetic examples.
 
+## Adapter interface and registry
+
+`meridian.adapters` defines exact keys, immutable descriptors and projection
+requests, an explicit deterministic registry, lazy distribution-version checks,
+and fail-closed invocation validation. Registry construction and selection do
+not discover entry points, import producer packages, open files, or authorize
+student-record access.
+
+The foundation uses synthetic adapters only. Real ScoreForm and Quillan readers
+and projections remain later work.
+
+See
+[Adapter interface and registry](architecture/adapter-interface-and-registry.md)
+for the exact-match, no-fallback, reader, projection, error, and security
+contracts.
+
 ## Active architecture
 
 The active ingestion architecture requires catalog candidate discovery followed
 by canonical reload, compatibility evaluation, authorization, exact manifest
 verification, producer-owned parsing, and Meridian-owned evidence projection.
 
-The typed inventory now defines the projection destination. The package does not
-yet implement the adapters or orchestration that populate it from real producer
-public contracts.
+The typed inventory defines the projection destination and the adapter registry
+defines exact selection and invocation. The package does not yet implement
+canonical ingestion orchestration or real producer adapters that populate the
+inventory.
 
 ## Architecture decisions
 
@@ -85,7 +96,7 @@ The v0.1.1 milestone proceeds through:
 1. architecture reconciliation — complete;
 2. package, testing, typing, and CI foundation — complete;
 3. typed evidence inventory — implemented;
-4. adapter interface and registry;
+4. adapter interface and registry — implemented;
 5. Core discovery and canonical verification;
 6. ScoreForm adapter;
 7. Quillan adapter;

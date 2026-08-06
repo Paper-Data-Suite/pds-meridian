@@ -13,10 +13,10 @@ and
 with the released Core contract.
 
 This document defines architecture, not executable completeness. Meridian now
-implements the installable package, testing, typing, CI, and validation
-foundation. It does not yet implement the adapter registry, evidence inventory,
-discovery service, producer adapters, cache, grading engine, or reporting engine
-described here.
+implements the installable package, testing, typing, CI, validation foundation,
+typed evidence inventory, and exact consumer adapter interface and registry. It
+does not yet implement canonical discovery and verification orchestration, real
+producer adapters, cache, grading engine, or reporting engine described here.
 
 ## Goals
 

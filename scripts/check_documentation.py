@@ -17,6 +17,7 @@ EXPECTED = (
     Path("docs/development/synthetic-data.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
+    Path("docs/architecture/adapter-interface-and-registry.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -36,6 +37,7 @@ REQUIRED_TEXT = {
         "Discovery is not authorization.",
         "producer-owned public manifest contract or reader",
         "meridian.evidence",
+        "meridian.adapters",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
@@ -47,6 +49,12 @@ REQUIRED_TEXT = {
         "NativeStateValue",
         "do not flatten",
         "returned_without_full_review",
+    ),
+    Path("docs/architecture/adapter-interface-and-registry.md"): (
+        "exact typed equality",
+        "adapters.reader_unavailable",
+        "adapters.projection_contract_violation",
+        "Discovery is not authorization.",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",

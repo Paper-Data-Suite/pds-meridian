@@ -3,13 +3,14 @@
 PDS Meridian is the policy-driven grading and reporting layer for Paper Data
 Suite.
 
-Meridian now has an installable, strictly typed package foundation and immutable
-typed evidence inventory at development version `0.1.1.dev0`. The package
-provides metadata, a read-only CLI, Core v0.6 contract probes, tests, CI,
-release-validation tooling, and producer-neutral evidence models. It does not
-yet provide producer adapters, publication ingestion, real producer projection,
-eligibility or selection policy, proficiency calculation, Grade calculation,
-report generation, persistence, or delivery.
+Meridian now has an installable, strictly typed package foundation, immutable
+typed evidence inventory, and deterministic consumer-side adapter interface and
+registry at development version `0.1.1.dev0`. The package provides metadata, a
+read-only CLI, Core v0.6 contract probes, tests, CI, release-validation tooling,
+producer-neutral evidence models, exact adapter selection, lazy reader checks,
+and projection-contract enforcement. It does not yet provide real producer
+adapters, publication ingestion, eligibility or selection policy, proficiency
+calculation, Grade calculation, report generation, persistence, or delivery.
 
 ## Purpose
 
@@ -50,7 +51,11 @@ The current package provides:
 - exact Core and producer-native evidence provenance;
 - typed scalar, point, scaled, and non-score-state values;
 - explicit evidence eligibility status without selection or calculation;
-- package, CLI, import, metadata, Core-baseline, and evidence-model tests;
+- immutable `meridian.adapters` keys, descriptors, requests, bindings, and registry;
+- exact fail-closed adapter and capability selection without fallback;
+- lazy producer-reader distribution-version checks without producer imports;
+- projection return-type, Core provenance, and projection-identity enforcement;
+- package, CLI, import, metadata, Core-baseline, evidence, and adapter tests;
 - exact verification of the official Core v0.6.0 wheel;
 - wheel and source-distribution validation;
 - isolated installed-wheel smoke testing;
@@ -59,8 +64,7 @@ The current package provides:
 
 The package does **not** yet provide:
 
-- a producer-adapter protocol or registry;
-- real producer projection into the inventory;
+- real producer adapters or projection into the inventory;
 - Core catalog discovery;
 - canonical publication, registration, withdrawal, or manifest verification;
 - authorization enforcement;
@@ -92,6 +96,25 @@ calculate Grades, or ingest real producer manifests.
 See
 [`docs/architecture/typed-evidence-inventory.md`](docs/architecture/typed-evidence-inventory.md)
 for the complete model boundary and synthetic examples.
+
+## Adapter interface and registry
+
+`meridian.adapters` defines the consumer-side adapter protocol and an immutable,
+explicit registry. Selection derives one exact key from validated Core
+Publication Record and Academic Work Registration models and matches producer,
+publication kind, manifest contract, producer contract, and source-record
+contract without nearest-version, newest-version, producer-only, capability-only,
+or generic fallback.
+
+Reader availability is checked lazily through distribution metadata only during
+explicit invocation. The selected adapter must return an `EvidenceInventory`
+whose Core provenance and `ProjectionIdentity` agree exactly with the request and
+descriptor. The foundation includes synthetic adapters only and declares no
+adapter entry-point group or producer runtime dependency.
+
+See
+[`docs/architecture/adapter-interface-and-registry.md`](docs/architecture/adapter-interface-and-registry.md)
+for the complete selection, invocation, error, and side-effect boundary.
 
 ## Requirements
 
@@ -242,11 +265,11 @@ paper_data_suite.publication_producers
 ```
 
 A routing `ModuleProfile` supports PDS2 dispatch. A
-`PublicationProducerProfile` contains producer compatibility metadata. Meridian
-is a consumer and declares neither group in this package foundation.
+`PublicationProducerProfile` contains compatibility metadata. Meridian is a
+consumer and declares neither group.
 
 A Core publication profile intentionally contains no parser or callback.
-Meridian will own a separate consumer-side adapter layer:
+Meridian owns the separate consumer-side adapter layer:
 
 ```text
 pds-meridian -> pds-core
@@ -264,8 +287,9 @@ pds-core
 ```
 
 The base package requires Core only. It does not require ScoreForm, Quillan,
-Concord, Portia, Vitrine, or another producer package. Adapter discovery and
-producer-reader dependencies are deferred to later reviewed issues.
+Concord, Portia, Vitrine, or another producer package. The registry is composed
+explicitly from trusted adapters and performs no entry-point discovery. Real
+producer-reader dependencies remain deferred to their adapter issues.
 
 See
 [ADR 0003: Adopt Consumer-Side Producer Adapters for Core Publications](docs/decisions/0003-consumer-side-producer-adapters.md).
@@ -362,6 +386,8 @@ See:
 - [Package and validation foundation](docs/development/package-foundation.md)
 - [Synthetic data policy](docs/development/synthetic-data.md)
 - [Core v0.6 publication-ingestion architecture](docs/architecture/core-v0.6-publication-ingestion.md)
+- [Typed evidence inventory](docs/architecture/typed-evidence-inventory.md)
+- [Adapter interface and registry](docs/architecture/adapter-interface-and-registry.md)
 - [Architecture Decision Record index](docs/decisions/README.md)
 - [ADR 0001](docs/decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
 - [ADR 0002](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
@@ -385,7 +411,9 @@ than a silent rewrite.
 │   ├── __init__.py
 │   ├── __main__.py
 │   ├── _version.py
+│   ├── adapters.py
 │   ├── cli.py
+│   ├── evidence.py
 │   └── py.typed
 ├── pyproject.toml
 ├── run_tests.ps1
