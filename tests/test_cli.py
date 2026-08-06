@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import sysconfig
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,11 @@ import pytest
 from meridian import __version__
 from meridian.cli import main
 
+
+def _console_script_path() -> Path:
+    """Return the installed console launcher using Python's install scheme."""
+    script_name = "meridian.exe" if os.name == "nt" else "meridian"
+    return Path(sysconfig.get_path("scripts")) / script_name
 
 def test_main_without_arguments_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(()) == 0
@@ -59,11 +65,23 @@ def test_python_module_cli_is_read_only(
     assert result.returncode == 0, result.stderr
     assert list(tmp_path.iterdir()) == before
 
+def test_console_script_path_uses_python_scripts_directory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scripts_directory = Path("synthetic-scripts")
+
+    def fake_get_path(name: str) -> str:
+        assert name == "scripts"
+        return str(scripts_directory)
+
+    monkeypatch.setattr(sysconfig, "get_path", fake_get_path)
+
+    expected_name = "meridian.exe" if os.name == "nt" else "meridian"
+    assert _console_script_path() == scripts_directory / expected_name
+
 
 def test_console_script_is_read_only(tmp_path: Path) -> None:
-    executable = Path(sys.executable).with_name(
-        "meridian.exe" if os.name == "nt" else "meridian"
-    )
+    executable = _console_script_path()
     assert executable.is_file()
     result = subprocess.run(
         [str(executable), "--version"],
