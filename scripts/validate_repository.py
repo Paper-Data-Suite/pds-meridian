@@ -62,11 +62,22 @@ def _require_clean_repository() -> None:
         raise RuntimeError("Repository validation found working-tree residue.")
 
 
-def validate(core_wheel: Path, *, allow_dirty: bool) -> None:
+def validate(
+    core_wheel: Path, scoreform_wheel: Path, *, allow_dirty: bool
+) -> None:
     """Run tests, static checks, builds, package checks, and smoke validation."""
     wheel = core_wheel.resolve()
+    scoreform = scoreform_wheel.resolve()
     python = sys.executable
     _run([python, "scripts/verify_core_wheel.py", str(wheel), "--installed"])
+    _run(
+        [
+            python,
+            "scripts/verify_scoreform_wheel.py",
+            str(scoreform),
+            "--installed",
+        ]
+    )
     _run([python, "-m", "pip", "check"])
 
     with tempfile.TemporaryDirectory(prefix="pds-meridian-validation-") as raw_temp:
@@ -77,6 +88,7 @@ def validate(core_wheel: Path, *, allow_dirty: bool) -> None:
             "TEMP": str(temp),
             "TMPDIR": str(temp),
             "PDS_CORE_WHEEL": str(wheel),
+            "SCOREFORM_WHEEL": str(scoreform),
             "PYTHONDONTWRITEBYTECODE": "1",
             "RUFF_CACHE_DIR": str(temp / "ruff-cache"),
             "MYPY_CACHE_DIR": str(temp / "mypy-cache"),
@@ -111,7 +123,13 @@ def validate(core_wheel: Path, *, allow_dirty: bool) -> None:
             raise RuntimeError("Expected exactly one built Meridian wheel.")
         _run([python, "scripts/check_package.py", str(wheels[0])], env=env)
         _run(
-            [python, "scripts/smoke_test_wheel.py", str(wheels[0]), str(wheel)],
+            [
+                python,
+                "scripts/smoke_test_wheel.py",
+                str(wheels[0]),
+                str(wheel),
+                str(scoreform),
+            ],
             env=env,
         )
 
@@ -124,9 +142,14 @@ def main(argv: list[str] | None = None) -> int:
     """Parse arguments and validate the repository."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core-wheel", required=True, type=Path)
+    parser.add_argument("--scoreform-wheel", required=True, type=Path)
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args(argv)
-    validate(args.core_wheel, allow_dirty=args.allow_dirty)
+    validate(
+        args.core_wheel,
+        args.scoreform_wheel,
+        allow_dirty=args.allow_dirty,
+    )
     return 0
 
 

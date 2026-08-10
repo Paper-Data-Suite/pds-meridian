@@ -3,14 +3,15 @@
 ## Status
 
 Meridian has an installable development package at `0.1.1.dev0`. The package is
-an executable foundation only. It does not yet ingest producer manifests,
-project evidence, calculate proficiency or Grades, or generate reports.
+an executable foundation with one exact optional ScoreForm adapter. It does not
+calculate proficiency or Grades or generate reports.
 
 ## Requirements
 
 - Python 3.11 or later
 - the authenticated `pds-core` v0.6 line
 - the exact Core v0.6.0 wheel for baseline CI and release-reproducibility checks
+- the exact authenticated ScoreForm v0.10.0 wheel for adapter validation
 
 The runtime dependency is:
 
@@ -25,7 +26,8 @@ PyPI. Install the verified wheel before installing Meridian:
 
 ```powershell
 python -m pip install .\pds_core-0.6.0-py3-none-any.whl
-python -m pip install -e ".[dev]"
+python -m pip install .\scoreform-0.10.0-py3-none-any.whl
+python -m pip install -e ".[dev,scoreform]"
 python -m pip check
 meridian --version
 meridian --help
@@ -42,7 +44,7 @@ From an activated repository virtual environment:
 The cross-platform authority is:
 
 ```text
-python scripts/validate_repository.py --core-wheel <path-to-wheel>
+python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-wheel <scoreform-wheel>
 ```
 
 Use `--allow-dirty` while developing. The default complete validation requires a
@@ -74,7 +76,8 @@ workspace, query Core, load producer packages, configure logging, or write files
 ## Projection-cache package boundary
 
 The built wheel includes `meridian.evidence_serialization` and
-`meridian.projection_cache`. Importing either module remains read-only and does
-not resolve a workspace, create cache directories, discover producers, import
-producer packages, invoke authorization, or write files. Core remains the only
-runtime dependency.
+`meridian.projection_cache` and `meridian.scoreform_adapter`. Importing these
+modules remains read-only and does not resolve a workspace, create cache
+directories, discover producers, import producer packages, invoke
+authorization, or write files. Core remains the only unconditional runtime
+dependency; ScoreForm is exact and optional.

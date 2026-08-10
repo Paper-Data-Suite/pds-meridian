@@ -5,7 +5,8 @@ milestone. The installable `0.1.1.dev0` package, strict typing, tests, CI,
 validation tooling, immutable typed evidence inventory, exact consumer adapter
 registry, bounded Core discovery and canonical-verification preparation, exact
 evidence serialization, and immutable projection-cache layers are established.
-Real producer adapters, grading, and reporting remain follow-on work.
+The exact optional ScoreForm v0.10.0 adapter is implemented. Additional
+producer adapters, grading, and reporting remain follow-on work.
 
 ## Recommended reading order
 
@@ -17,17 +18,19 @@ Real producer adapters, grading, and reporting remain follow-on work.
 6. [Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
 7. [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md)
 8. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-9. [ADR index](decisions/README.md)
-10. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-11. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-12. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+9. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
+10. [ADR index](decisions/README.md)
+11. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+12. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+13. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
 The package foundation provides:
 
 - Python `>=3.11` support;
-- `pds-core>=0.6,<0.7` as the only runtime dependency;
+- `pds-core>=0.6,<0.7` as the only unconditional runtime dependency;
+- exact optional `scoreform==0.10.0` adapter support;
 - exact authentication of the official Core v0.6.0 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;
 - strict mypy and Ruff checks;
@@ -37,7 +40,8 @@ The package foundation provides:
 - Ubuntu/Windows CI for Python 3.11 through 3.14.
 
 The package deliberately declares no PDS2 routing profile, publication producer
-profile, producer dependency, or adapter plugin group.
+profile, unconditional producer dependency, or adapter plugin group. ScoreForm
+is an exact optional dependency with explicit adapter composition.
 
 ## Typed evidence inventory
 
@@ -48,7 +52,7 @@ ordered inventories with pure filters.
 
 The inventory does not normalize producer values into one score. It does not
 select attempts, evaluate eligibility policy, map native scales, calculate
-proficiency, calculate Grades, or ingest real producer manifests.
+proficiency, calculate Grades, or select attempts.
 
 See
 [Typed evidence inventory](architecture/typed-evidence-inventory.md)
@@ -62,8 +66,8 @@ and fail-closed invocation validation. Registry construction and selection do
 not discover entry points, import producer packages, open files, or authorize
 student-record access.
 
-The foundation uses synthetic adapters only. Real ScoreForm and Quillan readers
-and projections remain later work.
+The registry has one real optional ScoreForm v0.10.0 adapter. Quillan and other
+producer projections remain later work.
 
 See
 [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
@@ -96,10 +100,9 @@ canonical reload, drift detection, compatibility evaluation, exact adapter
 selection, authorization, exact manifest verification, producer-owned parsing,
 and Meridian-owned evidence projection.
 
-The package now implements every preparation stage through a coherent hidden-byte
-`AdapterProjectionRequest` and `PreparedPublicationInvocation`. It does not yet
-invoke real producer adapters or populate the evidence inventory from producer
-records.
+The package implements every preparation stage through a coherent hidden-byte
+`AdapterProjectionRequest` and `PreparedPublicationInvocation`; explicit
+ScoreForm composition now populates the evidence inventory.
 
 ## Architecture decisions
 

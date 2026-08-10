@@ -35,13 +35,21 @@ jobs:
         shell: pwsh
         run: |
           $coreDirectory = Join-Path $env:RUNNER_TEMP "core"
+          $scoreformDirectory = Join-Path $env:RUNNER_TEMP "scoreform"
           New-Item -ItemType Directory -Force -Path $coreDirectory | Out-Null
+          New-Item -ItemType Directory -Force -Path $scoreformDirectory | Out-Null
 
           $coreWheel = Join-Path `
             $coreDirectory `
             "pds_core-0.6.0-py3-none-any.whl"
 
           "PDS_CORE_WHEEL=$coreWheel" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          $scoreformWheel = Join-Path `
+            $scoreformDirectory `
+            "scoreform-0.10.0-py3-none-any.whl"
+          "SCOREFORM_WHEEL=$scoreformWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           "RUFF_CACHE_DIR=$(Join-Path $env:RUNNER_TEMP 'ruff-cache')" |
@@ -68,8 +76,18 @@ jobs:
           python scripts/verify_core_wheel.py "$env:PDS_CORE_WHEEL"
           python -m pip install "$env:PDS_CORE_WHEEL"
 
+      - name: Download official ScoreForm release wheel
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://github.com/Paper-Data-Suite/pds-scoreform/releases/download/v0.10.0/scoreform-0.10.0-py3-none-any.whl" `
+            -OutFile $env:SCOREFORM_WHEEL `
+            -ErrorAction Stop
+          python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"
+          python -m pip install "$env:SCOREFORM_WHEEL"
+
       - name: Install Meridian development dependencies
-        run: python -m pip install -e ".[dev]"
+        run: python -m pip install -e ".[dev,scoreform]"
 
       - name: Remove editable-install residue
         shell: pwsh
@@ -89,3 +107,4 @@ jobs:
         run: >-
           python scripts/validate_repository.py
           --core-wheel "$env:PDS_CORE_WHEEL"
+          --scoreform-wheel "$env:SCOREFORM_WHEEL"

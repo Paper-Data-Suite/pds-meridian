@@ -13,8 +13,9 @@ Catalog rows are candidate observations only. They never become canonical
 Publication Records, registration records, withdrawal records, evidence, Grade
 items, or report sources.
 
-The production preparation service stops before producer parsing and adapter
-invocation. Real ScoreForm and Quillan projection remain later work.
+The generic preparation service still stops before parsing and invocation. A
+caller may pass its verified request to the explicit ScoreForm v0.10.0 adapter;
+Quillan projection remains later work.
 
 ## Implemented sequence
 
@@ -361,8 +362,8 @@ It retains no absolute path, open file, writable buffer, parsed producer model,
 evidence inventory, Grade policy, credential, or arbitrary context mapping.
 
 The production preparation function does not call `adapter.project(...)` or
-`AdapterRegistry.invoke(...)`. Issues #9 and #10 will add real producer adapters
-and use this prepared handoff.
+`AdapterRegistry.invoke(...)`. The ScoreForm v0.10.0 adapter now uses this
+prepared handoff; other producers remain follow-up work.
 
 ## Determinism
 

@@ -4,6 +4,12 @@
 
 ### Added
 
+- Exact optional `scoreform==0.10.0` adapter using the released public reader,
+  deterministic projection, explicit registry composition, and native
+  provenance for all three ScoreForm result origins.
+- ScoreForm wheel authentication, Core-to-cache integration coverage, installed
+  adapter smoke validation, and exact release-wheel CI setup.
+
 - Installable `pds-meridian` package at development version `0.1.1.dev0`.
 - Required `pds-core>=0.6,<0.7` runtime dependency.
 - Side-effect-free `meridian` command with help and version output.
@@ -51,6 +57,5 @@
   assessment for supersession, withdrawal, registration, profile, adapter,
   reader, manifest, and authorization changes.
 
-The package does not yet implement real producer adapters, adapter invocation,
-real producer projection, eligibility or selection policy, proficiency,
-Grades, or reports.
+The package does not yet implement additional producer adapters, eligibility or
+selection policy, proficiency, Grades, or reports.

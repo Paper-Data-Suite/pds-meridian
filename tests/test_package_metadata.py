@@ -23,6 +23,8 @@ def test_distribution_metadata() -> None:
         item.name not in {"scoreform", "quillan", "pds-concord", "pds-portia"}
         for item in runtime
     )
+    scoreform = [item for item in requirements if item.name == "scoreform"]
+    assert scoreform == [Requirement("scoreform==0.10.0; extra == 'scoreform'")]
 
 
 def test_console_and_plugin_entry_points() -> None:

@@ -1,5 +1,11 @@
 # Typed evidence inventory
 
+The first production population of this model is the exact ScoreForm v0.10.0
+adapter. It preserves every native attempt, point pair, response/state,
+correctness boolean, ordered standards alignment, Core provenance, and
+producer-native provenance without introducing attempt selection or policy.
+See [ScoreForm v0.10.0 adapter](scoreform-adapter.md).
+
 ## Status
 
 Meridian defines an immutable, producer-neutral evidence inventory for the
