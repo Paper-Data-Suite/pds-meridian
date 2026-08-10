@@ -1,5 +1,10 @@
 # Exact projection snapshots and cache
 
+ScoreForm v0.10.0 inventories use this unchanged generic boundary. Their cache
+execution identity records adapter `scoreform.academic_result`, projection
+contract `1`, distribution `scoreform`, and reader version `0.10.0`. The
+adapter itself never reads or writes cache state.
+
 ## Status
 
 Meridian defines immutable, digest-bound projection snapshots for the

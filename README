@@ -3,11 +3,12 @@
 Meridian now has an installable, strictly typed package foundation, immutable
 typed evidence inventory, deterministic consumer-side adapter registry, and
 bounded Core catalog discovery and canonical-verification preparation layer,
-exact evidence serialization, and immutable digest-bound projection cache at
-development version `0.1.1.dev0`. The package can prepare an authorized
+exact evidence serialization, an immutable digest-bound projection cache, and
+one real optional ScoreForm v0.10.0 adapter at development version
+`0.1.1.dev0`. The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, and
 assess current reuse without mutating historical snapshots. It does not yet
-provide real producer adapters, real producer parsing, eligibility or selection
+provide other producer adapters, eligibility or selection
 policy, proficiency calculation, Grade calculation, report snapshots, report
 generation, subscriptions, or delivery.
 
@@ -64,12 +65,12 @@ The current package provides:
 - exact verification of the official Core v0.6.0 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
+- an explicit, lazy adapter for exact ScoreForm v0.10.0 academic results.
 
 The package does **not** yet provide:
 
-- real ScoreForm, Quillan, Concord, Portia, or Vitrine adapters;
-- producer manifest decoding or semantic validation;
-- adapter invocation or evidence projection from real producer records;
+- Quillan, Concord, Portia, or Vitrine adapters;
+- duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - evidence eligibility, attempt selection, or reassessment policy;
 - diagnostics commands;
@@ -91,7 +92,7 @@ eligibility status.
 The inventory preserves points, exact native scales, explicit non-score states,
 and superficially similar values without assuming equivalence. It does not select
 attempts, map native scales, evaluate eligibility policy, calculate proficiency,
-calculate Grades, or ingest real producer manifests.
+calculate Grades, or select attempts.
 
 See
 [`docs/architecture/typed-evidence-inventory.md`](docs/architecture/typed-evidence-inventory.md)
@@ -109,8 +110,14 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. The foundation includes synthetic adapters only and declares no
-adapter entry-point group or producer runtime dependency.
+descriptor. One optional ScoreForm v0.10.0 adapter is available through explicit
+composition; there is no adapter entry-point group or unconditional producer
+runtime dependency.
+
+Install the authenticated ScoreForm release wheel first, then install Meridian's
+exact optional dependency with `python -m pip install ".[scoreform]"`. Installing
+ScoreForm does not register the adapter. See
+[`docs/architecture/scoreform-adapter.md`](docs/architecture/scoreform-adapter.md).
 
 See
 [`docs/architecture/adapter-interface-and-registry.md`](docs/architecture/adapter-interface-and-registry.md)

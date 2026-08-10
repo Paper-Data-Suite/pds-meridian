@@ -15,8 +15,8 @@ def build_parser() -> argparse.ArgumentParser:
         prog="meridian",
         description=(
             "Meridian is the Paper Data Suite publication-ingestion, grading-policy, "
-            "and reporting module. This package currently provides only the tested "
-            "ingestion foundation; evidence adapters, proficiency, Grades, and "
+            "and reporting module. The tested ingestion foundation includes one "
+            "exact optional ScoreForm evidence adapter; proficiency, Grades, and "
             "reports are not implemented yet."
         ),
     )

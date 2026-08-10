@@ -302,11 +302,16 @@ explicitly identified and versioned.
 
 ## Follow-up work
 
+Implementation status: issue #9 implements the first real adapter for the
+exact released ScoreForm v0.10.0 public reader. It uses lazy import, explicit
+registry composition, exact-version rejection, and the accepted one-way
+dependency. This clarification does not amend the decision.
+
 - Issue #5 establishes packaging, dependency, typing, and CI foundations.
 - Issue #6 defines the internal evidence inventory.
 - Issue #7 defines the adapter protocol and registry.
 - Issue #8 implements Core discovery and canonical verification.
-- Issues #9 and #10 implement ScoreForm and Quillan adapters against accepted
-  public contracts.
+- Issue #9 implements ScoreForm against its accepted public contract; issue #10
+  remains the Quillan adapter follow-up.
 - Later issues add diagnostics, cache identity, cross-producer scenarios, and
   release audit.

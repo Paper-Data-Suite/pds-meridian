@@ -25,6 +25,9 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+scoreform = [
+    "scoreform==0.10.0",
+]
 dev = [
     "build",
     "mypy",
@@ -70,3 +73,12 @@ files = ["meridian", "scripts"]
 [[tool.mypy.overrides]]
 module = ["pds_core", "pds_core.*"]
 follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["scoreform", "scoreform.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true

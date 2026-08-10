@@ -20,6 +20,7 @@ EXPECTED = (
     Path("docs/architecture/adapter-interface-and-registry.md"),
     Path("docs/architecture/catalog-discovery-and-canonical-verification.md"),
     Path("docs/architecture/exact-projection-snapshots-and-cache.md"),
+    Path("docs/architecture/scoreform-adapter.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"

@@ -15,6 +15,7 @@ from packaging.utils import canonicalize_name
 EXPECTED_DISTRIBUTION = "pds-meridian"
 EXPECTED_VERSION = "0.1.1.dev0"
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6,<0.7")
+EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.10.0; extra == 'scoreform'")
 ALLOWED_ENTRY_POINT_GROUPS = frozenset({"console_scripts"})
 FORBIDDEN_PREFIXES = (
     "tests/",
@@ -80,6 +81,16 @@ def _runtime_requirements(metadata: Message) -> list[Requirement]:
     return [requirement for requirement in requirements if requirement.marker is None]
 
 
+def _scoreform_requirements(metadata: Message) -> list[Requirement]:
+    requirements = [
+        Requirement(item) for item in (metadata.get_all("Requires-Dist") or [])
+    ]
+    return [
+        requirement for requirement in requirements
+        if requirement.name == "scoreform"
+    ]
+
+
 def validate_wheel(path: str | Path) -> None:
     """Validate metadata, intended files, and deliberately absent entry points."""
     wheel = Path(path)
@@ -116,6 +127,10 @@ def validate_wheel(path: str | Path) -> None:
         raise PackageValidationError(
             "The only runtime requirement must be pds-core>=0.6,<0.7."
         )
+    if _scoreform_requirements(metadata) != [EXPECTED_SCOREFORM_EXTRA]:
+        raise PackageValidationError(
+            "The scoreform extra must pin exactly scoreform==0.10.0."
+        )
 
     groups = frozenset(entry_points.sections())
     if groups != ALLOWED_ENTRY_POINT_GROUPS:
@@ -138,6 +153,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/evidence_serialization.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",
+        "meridian/scoreform_adapter.py",
         "meridian/py.typed",
     }
     if not required.issubset(names):

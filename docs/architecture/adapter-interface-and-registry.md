@@ -12,8 +12,12 @@ reader readiness, and deployment authorization. It verifies and reads bounded
 manifest bytes through Core and constructs `AdapterProjectionRequest` without
 invoking the selected adapter.
 
-The registry still implements synthetic or later real Meridian-owned adapters.
-Real ScoreForm and Quillan parsing and projection remain later work.
+The protocol remains generic. `meridian.scoreform_adapter` is its first real
+implementation for exact ScoreForm v0.10.0; Quillan remains later work.
+
+ScoreForm installation does not populate a registry. The caller explicitly
+constructs `AdapterRegistry((ScoreFormAcademicResultAdapter(),))`. Descriptor
+inspection and selection remain producer-import-free.
 
 ## Placement in the ingestion sequence
 
@@ -37,7 +41,7 @@ bounded Core catalog discovery
 
 The preparation stages are implemented in `meridian.ingestion` and documented in
 [catalog discovery and canonical verification](catalog-discovery-and-canonical-verification.md).
-Issues #9 and #10 will provide the first real ScoreForm and Quillan adapters.
+Issue #9 provides the first real ScoreForm adapter. Quillan remains issue #10.
 
 ## Dependency direction
 
