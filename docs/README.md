@@ -126,8 +126,8 @@ The v0.1.1 milestone proceeds through:
 3. typed evidence inventory — implemented;
 4. adapter interface and registry — implemented;
 5. Core discovery and canonical verification — implemented;
-6. ScoreForm adapter â€” implemented;
-7. Quillan adapter â€” implemented;
+6. ScoreForm adapter — implemented;
+7. Quillan adapter — implemented;
 8. inventory and diagnostics commands;
 9. exact cache and snapshot rules — implemented;
 10. cross-producer scenarios;

@@ -653,7 +653,7 @@ This architecture guides the remaining v0.1.1 issues:
 3. adapter interface and registry;
 4. Core catalog discovery and canonical verification;
 5. ScoreForm adapter;
-6. Quillan adapter â€” implemented against the accepted v0.9.0 contract;
+6. Quillan adapter — implemented against the accepted v0.9.0 contract;
 7. inventory and diagnostics commands;
 8. exact cache and snapshot rules;
 9. cross-producer synthetic scenarios; and
