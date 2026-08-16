@@ -63,11 +63,16 @@ def _require_clean_repository() -> None:
 
 
 def validate(
-    core_wheel: Path, scoreform_wheel: Path, *, allow_dirty: bool
+    core_wheel: Path,
+    scoreform_wheel: Path,
+    quillan_wheel: Path,
+    *,
+    allow_dirty: bool,
 ) -> None:
     """Run tests, static checks, builds, package checks, and smoke validation."""
     wheel = core_wheel.resolve()
     scoreform = scoreform_wheel.resolve()
+    quillan = quillan_wheel.resolve()
     python = sys.executable
     _run([python, "scripts/verify_core_wheel.py", str(wheel), "--installed"])
     _run(
@@ -75,6 +80,14 @@ def validate(
             python,
             "scripts/verify_scoreform_wheel.py",
             str(scoreform),
+            "--installed",
+        ]
+    )
+    _run(
+        [
+            python,
+            "scripts/verify_quillan_wheel.py",
+            str(quillan),
             "--installed",
         ]
     )
@@ -89,6 +102,7 @@ def validate(
             "TMPDIR": str(temp),
             "PDS_CORE_WHEEL": str(wheel),
             "SCOREFORM_WHEEL": str(scoreform),
+            "QUILLAN_WHEEL": str(quillan),
             "PYTHONDONTWRITEBYTECODE": "1",
             "RUFF_CACHE_DIR": str(temp / "ruff-cache"),
             "MYPY_CACHE_DIR": str(temp / "mypy-cache"),
@@ -129,6 +143,7 @@ def validate(
                 str(wheels[0]),
                 str(wheel),
                 str(scoreform),
+                str(quillan),
             ],
             env=env,
         )
@@ -143,11 +158,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core-wheel", required=True, type=Path)
     parser.add_argument("--scoreform-wheel", required=True, type=Path)
+    parser.add_argument("--quillan-wheel", required=True, type=Path)
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args(argv)
     validate(
         args.core_wheel,
         args.scoreform_wheel,
+        args.quillan_wheel,
         allow_dirty=args.allow_dirty,
     )
     return 0

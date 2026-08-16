@@ -5,6 +5,10 @@ execution identity records adapter `scoreform.academic_result`, projection
 contract `1`, distribution `scoreform`, and reader version `0.10.0`. The
 adapter itself never reads or writes cache state.
 
+Quillan v0.9.0 inventories use the same boundary. Their execution identity is
+adapter `quillan.academic_result`, projection contract `1`, distribution
+`quillan`, and reader version `0.9.0`; there is no producer-specific cache.
+
 ## Status
 
 Meridian defines immutable, digest-bound projection snapshots for the

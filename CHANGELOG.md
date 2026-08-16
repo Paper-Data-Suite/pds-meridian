@@ -4,6 +4,12 @@
 
 ### Added
 
+- Exact optional `quillan==0.9.0` adapter using the released public reader,
+  native writing-review states and scale, deterministic private IDs, public
+  producer provenance, explicit composition, and unchanged cache boundary.
+- Quillan wheel authentication, real-reader integration coverage, installed
+  adapter smoke validation, and exact release-wheel CI setup.
+
 - Exact optional `scoreform==0.10.0` adapter using the released public reader,
   deterministic projection, explicit registry composition, and native
   provenance for all three ScoreForm result origins.
@@ -57,5 +63,5 @@
   assessment for supersession, withdrawal, registration, profile, adapter,
   reader, manifest, and authorization changes.
 
-The package does not yet implement additional producer adapters, eligibility or
+The package does not yet implement the remaining producer adapters, eligibility or
 selection policy, proficiency, Grades, or reports.

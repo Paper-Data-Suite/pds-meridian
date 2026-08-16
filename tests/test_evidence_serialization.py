@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any
 
@@ -14,6 +15,7 @@ from meridian.evidence import (
     EvidenceItem,
     EvidenceProvenance,
     EvidenceTarget,
+    EvidenceTargetIdentity,
     NativePointValue,
     NativeProvenance,
     NativeReference,
@@ -102,6 +104,51 @@ def test_inventory_round_trip_preserves_exact_scalar_types(
     ]
     assert [type(value) for value in scalars] == [bool, int, float, str]
     assert scalars == [True, 1, 1.0, "1"]
+
+
+def test_producer_native_text_round_trips_without_normalization(
+    fixture_loader: Callable[[str], dict[str, Any]],
+) -> None:
+    original = inventory(fixture_loader)
+    scale_id = " synthetic / scale "
+    target_id = "Body / 1"
+    reference_id = "Observation / A"
+    standard_id = "Standard / A"
+    label = "Emerging / Developing"
+    description = "First line\nSecond line"
+    scale = NativeScale(
+        scale_id,
+        (NativeScaleLevel(0, label, description),),
+    )
+    source = original.items[5]
+    item = replace(
+        source,
+        target=EvidenceTarget(
+            "review_unit",
+            target_id,
+            parent_target=EvidenceTargetIdentity("submission", " Submission / A "),
+            standard_ids=(standard_id,),
+            sequence=1,
+        ),
+        value=NativeScaledValue(0, scale),
+        provenance=replace(
+            source.provenance,
+            native=NativeProvenance((NativeReference("observation", reference_id),)),
+        ),
+    )
+    expected = EvidenceInventory((item,))
+
+    restored = evidence_inventory_from_dict(evidence_inventory_to_dict(expected))
+
+    assert restored == expected
+    restored_item = restored.items[0]
+    assert restored_item.target.target_id == target_id
+    assert restored_item.target.standard_ids == (standard_id,)
+    assert restored_item.provenance.native.references[0].identifier == reference_id
+    assert isinstance(restored_item.value, NativeScaledValue)
+    assert restored_item.value.scale.scale_id == scale_id
+    assert restored_item.value.scale.levels[0].label == label
+    assert restored_item.value.scale.levels[0].description == description
 
 
 def test_mapping_uses_closed_evidence_value_discriminators(

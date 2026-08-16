@@ -3,7 +3,7 @@
 ## Status
 
 Meridian has an installable development package at `0.1.1.dev0`. The package is
-an executable foundation with one exact optional ScoreForm adapter. It does not
+an executable foundation with exact optional ScoreForm and Quillan adapters. It does not
 calculate proficiency or Grades or generate reports.
 
 ## Requirements
@@ -12,6 +12,7 @@ calculate proficiency or Grades or generate reports.
 - the authenticated `pds-core` v0.6 line
 - the exact Core v0.6.0 wheel for baseline CI and release-reproducibility checks
 - the exact authenticated ScoreForm v0.10.0 wheel for adapter validation
+- the exact authenticated Quillan v0.9.0 wheel for adapter validation
 
 The runtime dependency is:
 
@@ -27,7 +28,8 @@ PyPI. Install the verified wheel before installing Meridian:
 ```powershell
 python -m pip install .\pds_core-0.6.0-py3-none-any.whl
 python -m pip install .\scoreform-0.10.0-py3-none-any.whl
-python -m pip install -e ".[dev,scoreform]"
+python -m pip install .\quillan-0.9.0-py3-none-any.whl
+python -m pip install -e ".[dev,scoreform,quillan]"
 python -m pip check
 meridian --version
 meridian --help
@@ -38,19 +40,22 @@ meridian --help
 From an activated repository virtual environment:
 
 ```powershell
-.\run_tests.ps1 -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl
+.\run_tests.ps1 `
+  -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.10.0-py3-none-any.whl `
+  -QuillanWheel C:\path\to\quillan-0.9.0-py3-none-any.whl
 ```
 
 The cross-platform authority is:
 
 ```text
-python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-wheel <scoreform-wheel>
+python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-wheel <scoreform-wheel> --quillan-wheel <quillan-wheel>
 ```
 
 Use `--allow-dirty` while developing. The default complete validation requires a
 clean working tree.
 
-The validator runs Core authentication, installed dependency checks, pytest,
+The validator authenticates Core, ScoreForm, and Quillan before installed dependency checks, pytest,
 Ruff, strict mypy, documentation validation, package builds, Twine checks, wheel
 inspection, isolated wheel smoke testing, `git diff --check`, and repository
 cleanliness checks.
@@ -76,8 +81,9 @@ workspace, query Core, load producer packages, configure logging, or write files
 ## Projection-cache package boundary
 
 The built wheel includes `meridian.evidence_serialization` and
-`meridian.projection_cache` and `meridian.scoreform_adapter`. Importing these
+`meridian.projection_cache`, `meridian.scoreform_adapter`, and
+`meridian.quillan_adapter`. Importing these
 modules remains read-only and does not resolve a workspace, create cache
 directories, discover producers, import producer packages, invoke
 authorization, or write files. Core remains the only unconditional runtime
-dependency; ScoreForm is exact and optional.
+dependency; ScoreForm and Quillan are exact and optional.

@@ -16,6 +16,7 @@ EXPECTED_DISTRIBUTION = "pds-meridian"
 EXPECTED_VERSION = "0.1.1.dev0"
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.10.0; extra == 'scoreform'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.9.0; extra == 'quillan'")
 ALLOWED_ENTRY_POINT_GROUPS = frozenset({"console_scripts"})
 FORBIDDEN_PREFIXES = (
     "tests/",
@@ -86,8 +87,16 @@ def _scoreform_requirements(metadata: Message) -> list[Requirement]:
         Requirement(item) for item in (metadata.get_all("Requires-Dist") or [])
     ]
     return [
-        requirement for requirement in requirements
-        if requirement.name == "scoreform"
+        requirement for requirement in requirements if requirement.name == "scoreform"
+    ]
+
+
+def _quillan_requirements(metadata: Message) -> list[Requirement]:
+    requirements = [
+        Requirement(item) for item in (metadata.get_all("Requires-Dist") or [])
+    ]
+    return [
+        requirement for requirement in requirements if requirement.name == "quillan"
     ]
 
 
@@ -131,6 +140,10 @@ def validate_wheel(path: str | Path) -> None:
         raise PackageValidationError(
             "The scoreform extra must pin exactly scoreform==0.10.0."
         )
+    if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
+        raise PackageValidationError(
+            "The quillan extra must pin exactly quillan==0.9.0."
+        )
 
     groups = frozenset(entry_points.sections())
     if groups != ALLOWED_ENTRY_POINT_GROUPS:
@@ -153,6 +166,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/evidence_serialization.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",
+        "meridian/quillan_adapter.py",
         "meridian/scoreform_adapter.py",
         "meridian/py.typed",
     }

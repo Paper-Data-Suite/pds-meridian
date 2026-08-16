@@ -36,8 +36,10 @@ jobs:
         run: |
           $coreDirectory = Join-Path $env:RUNNER_TEMP "core"
           $scoreformDirectory = Join-Path $env:RUNNER_TEMP "scoreform"
+          $quillanDirectory = Join-Path $env:RUNNER_TEMP "quillan"
           New-Item -ItemType Directory -Force -Path $coreDirectory | Out-Null
           New-Item -ItemType Directory -Force -Path $scoreformDirectory | Out-Null
+          New-Item -ItemType Directory -Force -Path $quillanDirectory | Out-Null
 
           $coreWheel = Join-Path `
             $coreDirectory `
@@ -50,6 +52,12 @@ jobs:
             $scoreformDirectory `
             "scoreform-0.10.0-py3-none-any.whl"
           "SCOREFORM_WHEEL=$scoreformWheel" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          $quillanWheel = Join-Path `
+            $quillanDirectory `
+            "quillan-0.9.0-py3-none-any.whl"
+          "QUILLAN_WHEEL=$quillanWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           "RUFF_CACHE_DIR=$(Join-Path $env:RUNNER_TEMP 'ruff-cache')" |
@@ -86,8 +94,18 @@ jobs:
           python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"
           python -m pip install "$env:SCOREFORM_WHEEL"
 
+      - name: Download official Quillan release wheel
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://github.com/Paper-Data-Suite/pds-quillan/releases/download/v0.9.0/quillan-0.9.0-py3-none-any.whl" `
+            -OutFile $env:QUILLAN_WHEEL `
+            -ErrorAction Stop
+          python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"
+          python -m pip install "$env:QUILLAN_WHEEL"
+
       - name: Install Meridian development dependencies
-        run: python -m pip install -e ".[dev,scoreform]"
+        run: python -m pip install -e ".[dev,scoreform,quillan]"
 
       - name: Remove editable-install residue
         shell: pwsh
@@ -108,3 +126,4 @@ jobs:
           python scripts/validate_repository.py
           --core-wheel "$env:PDS_CORE_WHEEL"
           --scoreform-wheel "$env:SCOREFORM_WHEEL"
+          --quillan-wheel "$env:QUILLAN_WHEEL"

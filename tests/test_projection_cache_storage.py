@@ -23,9 +23,13 @@ from meridian.evidence import (
     EvidenceItem,
     EvidenceProvenance,
     EvidenceTarget,
+    EvidenceTargetIdentity,
     NativeProvenance,
     NativeReference,
     NativeScalarValue,
+    NativeScale,
+    NativeScaledValue,
+    NativeScaleLevel,
     ProjectionIdentity,
     StudentSubject,
 )
@@ -467,3 +471,93 @@ def test_authorized_load_assesses_exact_current_source_as_reusable(
     assert result.assessment.reason_codes == ()
     assert result.assessment.reusable_for_current_use is True
     assert created.stored.path.read_bytes() == created.stored.content
+
+
+def test_cache_storage_preserves_exact_producer_native_text(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    value, _, manifest = prepared(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        cache,
+        "load_canonical_publication_context",
+        lambda root, publication_id: value.canonical_context,
+    )
+    target_id = "Body / 1"
+    standard_id = " Standard / A "
+    reference_id = "Observation / A"
+    scale_id = " synthetic / scale "
+    label = "Emerging / Developing"
+    description = "First line\nSecond line"
+    descriptor = value.adapter_match.descriptor
+    provenance = EvidenceProvenance(
+        value.canonical_context.publication,
+        value.canonical_context.referenced_registration,
+        value.canonical_context.withdrawal,
+        ProjectionIdentity(
+            descriptor.adapter_id,
+            descriptor.projection_contract_version,
+            descriptor.producer_reader_distribution,
+            value.producer_reader_version,
+        ),
+        NativeProvenance((NativeReference("observation", reference_id),)),
+    )
+    inventory = EvidenceInventory(
+        (
+            EvidenceItem(
+                "evidence_native_text",
+                StudentSubject("student_1"),
+                EvidenceTarget(
+                    "review_unit",
+                    target_id,
+                    parent_target=EvidenceTargetIdentity(
+                        "submission", " Submission / A "
+                    ),
+                    standard_ids=(standard_id,),
+                    sequence=1,
+                ),
+                "native_rating",
+                NativeScaledValue(
+                    0,
+                    NativeScale(
+                        scale_id,
+                        (NativeScaleLevel(0, label, description),),
+                    ),
+                ),
+                provenance,
+            ),
+        )
+    )
+    created = cache.cache_projected_inventory(
+        tmp_path,
+        value,
+        inventory,
+        authorizer=RecordingAuthorizer(),
+        clock=lambda: NOW,
+    )
+    monkeypatch.setattr(
+        cache,
+        "verify_publication_manifest",
+        lambda root, publication: manifest,
+    )
+
+    loaded = cache.load_authorized_projection_snapshot(
+        tmp_path,
+        value.canonical_context.publication.publication_id,
+        created.stored.cache_key,
+        authorizer=RecordingAuthorizer(),
+        authorization_purpose_id="grading_import",
+        producer_registry=profile_registry(),
+        adapter_registry=AdapterRegistry((SyntheticAdapter(),)),
+        distribution_version_resolver=lambda name: "1.0.0",
+    )
+
+    assert loaded.stored.snapshot.inventory == inventory
+    restored = loaded.stored.snapshot.inventory.items[0]
+    assert restored.target.target_id == target_id
+    assert restored.target.standard_ids == (standard_id,)
+    assert restored.provenance.native.references[0].identifier == reference_id
+    assert isinstance(restored.value, NativeScaledValue)
+    assert restored.value.scale.scale_id == scale_id
+    assert restored.value.scale.levels[0].label == label
+    assert restored.value.scale.levels[0].description == description

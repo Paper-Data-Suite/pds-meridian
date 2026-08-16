@@ -11,6 +11,11 @@ from scripts.verify_core_wheel import (
     CoreVerificationError,
     verify_core_wheel,
 )
+from scripts.verify_quillan_wheel import (
+    EXPECTED_QUILLAN_WHEEL_FILENAME,
+    QuillanVerificationError,
+    verify_quillan_wheel,
+)
 from scripts.verify_scoreform_wheel import (
     EXPECTED_SCOREFORM_WHEEL_FILENAME,
     ScoreFormVerificationError,
@@ -46,6 +51,21 @@ def test_scoreform_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         archive.writestr("placeholder.txt", "synthetic")
     with pytest.raises(ScoreFormVerificationError, match="SHA-256 mismatch"):
         verify_scoreform_wheel(path)
+
+
+def test_quillan_verifier_rejects_wrong_filename(tmp_path: Path) -> None:
+    path = tmp_path / "renamed.whl"
+    path.write_bytes(b"not a wheel")
+    with pytest.raises(QuillanVerificationError, match="Expected"):
+        verify_quillan_wheel(path)
+
+
+def test_quillan_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
+    path = tmp_path / EXPECTED_QUILLAN_WHEEL_FILENAME
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("placeholder.txt", "synthetic")
+    with pytest.raises(QuillanVerificationError, match="SHA-256 mismatch"):
+        verify_quillan_wheel(path)
 
 
 def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:

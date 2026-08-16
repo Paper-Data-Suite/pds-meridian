@@ -470,11 +470,13 @@ later Meridian policy.
 | Native assignment contract | schema v2 |
 | Native review contract | schema v2 |
 | Native values | Focus Standards, native rating scale, review states, minimum-requirement outcomes, observations, overall ratings, feedback boundaries |
-| Academic-result manifest | owned by Quillan v0.9.0 work; not final at this architecture point |
-| Public consumer reader | planned and producer-owned |
-| Meridian obligation | do not invent contract identifiers, fields, capabilities, or source-record versions |
+| Academic-result manifest | `quillan_academic_result_manifest_v1` |
+| Academic Work producer contract | `quillan_academic_work_v1` |
+| Publication record set/capability | `academic_results`; `standards_ratings` only |
+| Public consumer reader | released in exact `quillan==0.9.0` |
+| Meridian adapter | explicit, lazy `quillan.academic_result`, projection contract `1` |
 
-A future adapter must preserve the exact Quillan scale and distinguish a native
+The adapter preserves the exact Quillan scale and distinguishes a native
 rating from a Meridian-derived proficiency level. `returned_without_full_review`
 and other non-score states must not become zero or the lowest rating.
 
@@ -651,7 +653,7 @@ This architecture guides the remaining v0.1.1 issues:
 3. adapter interface and registry;
 4. Core catalog discovery and canonical verification;
 5. ScoreForm adapter;
-6. Quillan adapter after an accepted producer contract exists;
+6. Quillan adapter — implemented against the accepted v0.9.0 contract;
 7. inventory and diagnostics commands;
 8. exact cache and snapshot rules;
 9. cross-producer synthetic scenarios; and

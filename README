@@ -4,11 +4,11 @@ Meridian now has an installable, strictly typed package foundation, immutable
 typed evidence inventory, deterministic consumer-side adapter registry, and
 bounded Core catalog discovery and canonical-verification preparation layer,
 exact evidence serialization, an immutable digest-bound projection cache, and
-one real optional ScoreForm v0.10.0 adapter at development version
+two real optional adapters for ScoreForm v0.10.0 and Quillan v0.9.0 at development version
 `0.1.1.dev0`. The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, and
 assess current reuse without mutating historical snapshots. It does not yet
-provide other producer adapters, eligibility or selection
+provide the remaining producer adapters, eligibility or selection
 policy, proficiency calculation, Grade calculation, report snapshots, report
 generation, subscriptions, or delivery.
 
@@ -65,11 +65,12 @@ The current package provides:
 - exact verification of the official Core v0.6.0 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
-- an explicit, lazy adapter for exact ScoreForm v0.10.0 academic results.
+- explicit, lazy adapters for exact ScoreForm v0.10.0 and Quillan v0.9.0
+  academic results.
 
 The package does **not** yet provide:
 
-- Quillan, Concord, Portia, or Vitrine adapters;
+- Concord, Portia, or Vitrine adapters;
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - evidence eligibility, attempt selection, or reassessment policy;
@@ -110,7 +111,7 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. One optional ScoreForm v0.10.0 adapter is available through explicit
+descriptor. Optional ScoreForm v0.10.0 and Quillan v0.9.0 adapters are available through explicit
 composition; there is no adapter entry-point group or unconditional producer
 runtime dependency.
 
@@ -118,6 +119,10 @@ Install the authenticated ScoreForm release wheel first, then install Meridian's
 exact optional dependency with `python -m pip install ".[scoreform]"`. Installing
 ScoreForm does not register the adapter. See
 [`docs/architecture/scoreform-adapter.md`](docs/architecture/scoreform-adapter.md).
+
+Likewise, install the authenticated Quillan release wheel and then use
+`python -m pip install ".[quillan]"`. Quillan does not auto-register its adapter.
+See [`docs/architecture/quillan-adapter.md`](docs/architecture/quillan-adapter.md).
 
 See
 [`docs/architecture/adapter-interface-and-registry.md`](docs/architecture/adapter-interface-and-registry.md)
@@ -208,13 +213,16 @@ will be introduced only when their underlying behavior exists.
 From an activated repository virtual environment, run:
 
 ```powershell
-.\run_tests.ps1 -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl
+.\run_tests.ps1 `
+  -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.10.0-py3-none-any.whl `
+  -QuillanWheel C:\path\to\quillan-0.9.0-py3-none-any.whl
 ```
 
 The cross-platform validator is:
 
 ```text
-python scripts/validate_repository.py --core-wheel <path-to-wheel>
+python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-wheel <scoreform-wheel> --quillan-wheel <quillan-wheel>
 ```
 
 Use `--allow-dirty` during development. The default complete validation requires
@@ -222,8 +230,8 @@ a clean repository.
 
 The validator runs:
 
-- Core wheel authentication;
-- installed Core verification;
+- Core, ScoreForm, and Quillan release-wheel authentication;
+- installed Core and producer-reader verification;
 - `pip check`;
 - pytest;
 - Ruff;
