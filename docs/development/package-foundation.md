@@ -3,8 +3,9 @@
 ## Status
 
 Meridian has an installable development package at `0.1.1.dev0`. The package is
-an executable foundation with exact optional ScoreForm and Quillan adapters. It does not
-calculate proficiency or Grades or generate reports.
+an executable foundation with exact optional ScoreForm and Quillan adapters and
+a read-only `meridian.diagnostics` publication/evidence command surface. It does
+not calculate proficiency or Grades or generate reports.
 
 ## Requirements
 
@@ -33,6 +34,8 @@ python -m pip install -e ".[dev,scoreform,quillan]"
 python -m pip check
 meridian --version
 meridian --help
+meridian publications --help
+meridian evidence --help
 ```
 
 ## Local validation
@@ -75,14 +78,16 @@ selection and loading belong to issue #7.
 
 ## Read-only baseline
 
-Importing `meridian` or running help/version commands must not discover a
-workspace, query Core, load producer packages, configure logging, or write files.
+Importing `meridian` or running help/version/group-help commands must not
+discover a workspace, query Core, load producer packages, configure logging, or
+write files. Publication metadata diagnostics are read-only. Persisted evidence
+diagnostics additionally require deployment authorization before cache access.
 
 ## Projection-cache package boundary
 
-The built wheel includes `meridian.evidence_serialization` and
-`meridian.projection_cache`, `meridian.scoreform_adapter`, and
-`meridian.quillan_adapter`. Importing these
+The built wheel includes `meridian.evidence_serialization`,
+`meridian.projection_cache`, `meridian.diagnostics`,
+`meridian.scoreform_adapter`, and `meridian.quillan_adapter`. Importing these
 modules remains read-only and does not resolve a workspace, create cache
 directories, discover producers, import producer packages, invoke
 authorization, or write files. Core remains the only unconditional runtime

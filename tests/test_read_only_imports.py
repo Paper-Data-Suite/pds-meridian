@@ -15,6 +15,7 @@ import pytest
         "meridian",
         "meridian.adapters",
         "meridian.cli",
+        "meridian.diagnostics",
         "meridian.evidence",
         "meridian.evidence_serialization",
         "meridian.ingestion",

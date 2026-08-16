@@ -64,8 +64,9 @@ def smoke_test(
                 (
                     "import importlib.metadata as m, pathlib, sys; "
                     "before=set(sys.modules); "
-                    "import meridian, meridian.adapters, meridian.evidence, "
-                    "meridian.evidence_serialization, meridian.ingestion, "
+                    "import meridian, meridian.adapters, meridian.diagnostics, "
+                    "meridian.evidence, meridian.evidence_serialization, "
+                    "meridian.ingestion, "
                     "meridian.projection_cache, meridian.scoreform_adapter, pds_core; "
                     "import meridian.quillan_adapter; "
                     "from meridian.evidence import EvidenceInventory; "
@@ -94,11 +95,70 @@ def smoke_test(
             [str(meridian)],
             [str(meridian), "--help"],
             [str(meridian), "--version"],
+            [str(meridian), "publications", "--help"],
+            [str(meridian), "evidence", "--help"],
             [str(python), "-m", "meridian"],
             [str(python), "-m", "meridian", "--help"],
             [str(python), "-m", "meridian", "--version"],
+            [str(python), "-m", "meridian", "publications", "--help"],
+            [str(python), "-m", "meridian", "evidence", "--help"],
         ):
             _run(command, outside)
+
+        workspace = root / "workspace"
+        publication_id_file = root / "publication_id.txt"
+        fixture_code = (
+            "import hashlib, pathlib, sys; "
+            "from pds_core.registry_services import "
+            "AcademicWorkRegistrationRequest, PublicationManifestRequest, "
+            "publish_manifest_revision, register_academic_work; "
+            "from pds_core.routes import module_work_dir; "
+            "from pds_core.routing_models import ModuleWorkRef; "
+            "workspace=pathlib.Path(sys.argv[1]); workspace.mkdir(); "
+            "work=ModuleWorkRef('synthetic','class_2026','work_1'); "
+            "module_work_dir(workspace,work).mkdir(parents=True); "
+            "register_academic_work(workspace, AcademicWorkRegistrationRequest("
+            "work=work, producer_contract_version='assignment_v1', "
+            "title='Synthetic Work', work_kind='assignment', "
+            "academic_intent='summative', lifecycle='active', source_records=())); "
+            "data=b'{\"schema_version\":\"synthetic_manifest_v1\"}\\n'; "
+            "relative='classes/class_2026/modules/synthetic/work/work_1/"
+            "exports/manifests/academic_results/1.json'; "
+            "manifest=workspace.joinpath(*relative.split('/')); "
+            "manifest.parent.mkdir(parents=True); manifest.write_bytes(data); "
+            "published=publish_manifest_revision(workspace, PublicationManifestRequest("
+            "work=work, source_record=None, publication_kind='academic_result_set', "
+            "capabilities=('points',), record_set_id='academic_results', "
+            "record_set_revision=1, manifest_contract_version='synthetic_manifest_v1', "
+            "manifest_path=relative, academic_work_registration_revision=1, "
+            "expected_manifest_digest=hashlib.sha256(data).hexdigest())); "
+            "pathlib.Path(sys.argv[2]).write_text("
+            "published.publication.publication_id, encoding='utf-8')"
+        )
+        _run(
+            [
+                str(python),
+                "-c",
+                fixture_code,
+                str(workspace),
+                str(publication_id_file),
+            ],
+            outside,
+        )
+        publication_id = publication_id_file.read_text(encoding="utf-8")
+        _run(
+            [
+                str(meridian),
+                "publications",
+                "verify",
+                publication_id,
+                "--workspace",
+                str(workspace),
+                "--format",
+                "json",
+            ],
+            outside,
+        )
         _assert_empty(outside)
 
     if scoreform_wheel is not None:

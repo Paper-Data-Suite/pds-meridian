@@ -4,6 +4,17 @@
 
 ### Added
 
+- Read-only `meridian publications list` and `meridian publications verify`
+  diagnostics with bounded Core discovery, canonical reload, exact producer
+  compatibility, adapter support, and reader readiness reporting.
+- Authorization-gated `meridian evidence inspect` and `meridian evidence explain`
+  diagnostics over exact immutable projection snapshots, including deterministic
+  filters, typed value output, existing `EvidenceEligibility`, and `cache.*`
+  current-use explanations without new grading policy.
+- Producer-neutral `meridian.diagnostics` runtime models, deterministic text/JSON
+  rendering, installed-wheel diagnostic smoke coverage, and security/package
+  validation for the new read-only command surface.
+
 - Exact optional `quillan==0.9.0` adapter using the released public reader,
   native writing-review states and scale, deterministic private IDs, public
   producer provenance, explicit composition, and unchanged cache boundary.
