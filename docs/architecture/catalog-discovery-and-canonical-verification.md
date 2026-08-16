@@ -14,8 +14,8 @@ Publication Records, registration records, withdrawal records, evidence, Grade
 items, or report sources.
 
 The generic preparation service still stops before parsing and invocation. A
-caller may pass its verified request to the explicit ScoreForm v0.10.0 adapter;
-Quillan projection remains later work.
+caller may pass its verified request to an explicitly composed ScoreForm v0.10.0
+or Quillan v0.9.0 adapter.
 
 ## Implemented sequence
 
@@ -362,8 +362,8 @@ It retains no absolute path, open file, writable buffer, parsed producer model,
 evidence inventory, Grade policy, credential, or arbitrary context mapping.
 
 The production preparation function does not call `adapter.project(...)` or
-`AdapterRegistry.invoke(...)`. The ScoreForm v0.10.0 adapter now uses this
-prepared handoff; other producers remain follow-up work.
+`AdapterRegistry.invoke(...)`. The ScoreForm v0.10.0 and Quillan v0.9.0 adapters
+use this prepared handoff; other producers remain follow-up work.
 
 ## Determinism
 

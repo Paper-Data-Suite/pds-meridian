@@ -608,6 +608,72 @@ def test_inventory_filters_preserve_relative_order(
     assert inventory.for_standard(standard) == (first, second)
 
 
+def test_producer_native_identity_and_display_text_are_preserved_exactly(
+    core_context: CoreContext,
+) -> None:
+    reference_id = "Observation / A"
+    parent_id = " Submission / A "
+    target_id = "Body / 1"
+    standard_id = " Standard / A "
+    scale_id = " synthetic / scale "
+    label = "Emerging / Developing \\ Δ"
+    description = "First line\nSecond line\twith formatting"
+    reference = NativeReference("observation", reference_id)
+    parent = EvidenceTargetIdentity("submission", parent_id)
+    target = EvidenceTarget(
+        "review_unit",
+        target_id,
+        parent_target=parent,
+        standard_ids=(standard_id,),
+        sequence=1,
+    )
+    scale = NativeScale(
+        scale_id,
+        (NativeScaleLevel(0, label, description),),
+    )
+    item = evidence_item(
+        core_context,
+        target=target,
+        result_kind="native_rating",
+        value=NativeScaledValue(0, scale),
+        native=NativeProvenance((reference,)),
+    )
+    inventory = EvidenceInventory((item,))
+
+    assert reference.identifier == reference_id
+    assert parent.target_id == parent_id
+    assert target.target_id == target_id
+    assert target.standard_ids == (standard_id,)
+    assert scale.scale_id == scale_id
+    assert scale.levels[0].label == label
+    assert scale.levels[0].description == description
+    assert inventory.for_standard(standard_id) == (item,)
+    assert inventory.for_standard(standard_id.strip()) == ()
+
+
+@pytest.mark.parametrize("invalid", [1, "", " \t\n", "native\x00identity"])
+def test_producer_native_text_rejects_nontext_empty_whitespace_and_nul(
+    core_context: CoreContext, invalid: object
+) -> None:
+    value = cast(Any, invalid)
+    constructors = (
+        lambda: NativeReference("observation", value),
+        lambda: EvidenceTargetIdentity("submission", value),
+        lambda: EvidenceTarget("review_unit", value),
+        lambda: EvidenceTarget("review_unit", standard_ids=(value,)),
+        lambda: NativeScale(value, (NativeScaleLevel(0),)),
+        lambda: NativeScaleLevel(0, value),
+        lambda: NativeScaleLevel(0, description=value),
+    )
+    for construct in constructors:
+        with pytest.raises(EvidenceValidationError):
+            construct()
+
+    inventory = EvidenceInventory((evidence_item(core_context),))
+    with pytest.raises(EvidenceValidationError):
+        inventory.for_standard(value)
+
+
 def test_inventory_rejects_duplicate_item_ids(
     core_context: CoreContext,
 ) -> None:

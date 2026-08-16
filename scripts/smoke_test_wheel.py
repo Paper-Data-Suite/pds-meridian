@@ -29,6 +29,7 @@ def smoke_test(
     meridian_wheel: Path,
     core_wheel: Path,
     scoreform_wheel: Path | None = None,
+    quillan_wheel: Path | None = None,
 ) -> None:
     """Install exact local wheels without indexes and exercise import and CLI."""
     with tempfile.TemporaryDirectory(prefix="pds-meridian-smoke-") as raw_temp:
@@ -66,6 +67,7 @@ def smoke_test(
                     "import meridian, meridian.adapters, meridian.evidence, "
                     "meridian.evidence_serialization, meridian.ingestion, "
                     "meridian.projection_cache, meridian.scoreform_adapter, pds_core; "
+                    "import meridian.quillan_adapter; "
                     "from meridian.evidence import EvidenceInventory; "
                     "from meridian.adapters import AdapterRegistry; "
                     "from meridian.ingestion import "
@@ -101,6 +103,8 @@ def smoke_test(
 
     if scoreform_wheel is not None:
         _scoreform_adapter_smoke(meridian_wheel, core_wheel, scoreform_wheel)
+    if quillan_wheel is not None:
+        _quillan_adapter_smoke(meridian_wheel, core_wheel, quillan_wheel)
 
 
 def _scoreform_adapter_smoke(
@@ -152,14 +156,75 @@ def _scoreform_adapter_smoke(
         _assert_empty(outside)
 
 
+def _quillan_adapter_smoke(
+    meridian_wheel: Path, core_wheel: Path, quillan_wheel: Path
+) -> None:
+    with tempfile.TemporaryDirectory(prefix="pds-meridian-quillan-smoke-") as raw_temp:
+        root = Path(raw_temp)
+        environment = root / "venv"
+        outside = root / "outside"
+        outside.mkdir()
+        venv.EnvBuilder(with_pip=True).create(environment)
+        scripts = environment / ("Scripts" if os.name == "nt" else "bin")
+        python = scripts / ("python.exe" if os.name == "nt" else "python")
+        _run(
+            [
+                str(python),
+                "-m",
+                "pip",
+                "install",
+                str(core_wheel.resolve()),
+                str(quillan_wheel.resolve()),
+                str(meridian_wheel.resolve()) + "[quillan]",
+            ],
+            outside,
+        )
+        _run([str(python), "-m", "pip", "check"], outside)
+        _run(
+            [
+                str(python),
+                "-c",
+                (
+                    "import importlib.metadata as m, pathlib, sys; "
+                    "from meridian.adapters import AdapterRegistry; "
+                    "from meridian.quillan_adapter import "
+                    "QuillanAcademicResultAdapter; "
+                    "from quillan.academic_result_reader import "
+                    "read_academic_result_manifest; "
+                    "registry=AdapterRegistry((QuillanAcademicResultAdapter(),)); "
+                    "assert registry.bindings[0].descriptor.adapter_id == "
+                    "'quillan.academic_result'; "
+                    "assert m.version('quillan') == '0.9.0'; "
+                    "assert callable(read_academic_result_manifest); "
+                    "import meridian, pds_core, quillan; "
+                    "root=pathlib.Path(sys.prefix).resolve(); "
+                    "assert pathlib.Path(meridian.__file__).resolve()"
+                    ".is_relative_to(root); "
+                    "assert pathlib.Path(pds_core.__file__).resolve()"
+                    ".is_relative_to(root); "
+                    "assert pathlib.Path(quillan.__file__).resolve()"
+                    ".is_relative_to(root)"
+                ),
+            ],
+            outside,
+        )
+        _assert_empty(outside)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run an isolated smoke test for local Meridian and Core wheels."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("meridian_wheel", type=Path)
     parser.add_argument("core_wheel", type=Path)
     parser.add_argument("scoreform_wheel", nargs="?", type=Path)
+    parser.add_argument("quillan_wheel", nargs="?", type=Path)
     args = parser.parse_args(argv)
-    smoke_test(args.meridian_wheel, args.core_wheel, args.scoreform_wheel)
+    smoke_test(
+        args.meridian_wheel,
+        args.core_wheel,
+        args.scoreform_wheel,
+        args.quillan_wheel,
+    )
     return 0
 
 

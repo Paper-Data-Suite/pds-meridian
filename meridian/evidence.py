@@ -128,6 +128,19 @@ def _single_line(
     return value
 
 
+def _producer_native_text(value: object, field_name: str) -> str:
+    """Validate nonempty producer-owned text without normalization."""
+    if not isinstance(value, str):
+        raise EvidenceValidationError(f"{field_name} must be a string.")
+    if not value or not value.strip():
+        raise EvidenceValidationError(
+            f"{field_name} must contain non-whitespace text."
+        )
+    if "\x00" in value:
+        raise EvidenceValidationError(f"{field_name} must not contain NUL.")
+    return value
+
+
 def _positive_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 1:
         raise EvidenceValidationError(f"{field_name} must be a positive integer.")
@@ -263,7 +276,7 @@ class NativeReference:
             object.__setattr__(
                 self,
                 "identifier",
-                _opaque_identifier(self.identifier, "identifier"),
+                _producer_native_text(self.identifier, "identifier"),
             )
         if self.sequence is not None:
             object.__setattr__(
@@ -511,7 +524,7 @@ class EvidenceTargetIdentity:
             object.__setattr__(
                 self,
                 "target_id",
-                _opaque_identifier(self.target_id, "target_id"),
+                _producer_native_text(self.target_id, "target_id"),
             )
 
 
@@ -535,7 +548,7 @@ class EvidenceTarget:
             object.__setattr__(
                 self,
                 "target_id",
-                _opaque_identifier(self.target_id, "target_id"),
+                _producer_native_text(self.target_id, "target_id"),
             )
         if self.parent_target is not None and not isinstance(
             self.parent_target, EvidenceTargetIdentity
@@ -550,7 +563,7 @@ class EvidenceTarget:
                 "standard_ids must be an iterable of strings."
             ) from error
         validated_standards = tuple(
-            _single_line(value, "standard_id") for value in standard_ids
+            _producer_native_text(value, "standard_id") for value in standard_ids
         )
         if len(set(validated_standards)) != len(validated_standards):
             raise EvidenceValidationError("standard_ids must not contain duplicates.")
@@ -574,12 +587,14 @@ class NativeScaleLevel:
     def __post_init__(self) -> None:
         object.__setattr__(self, "value", _native_scalar(self.value, "value"))
         if self.label is not None:
-            object.__setattr__(self, "label", _single_line(self.label, "label"))
+            object.__setattr__(
+                self, "label", _producer_native_text(self.label, "label")
+            )
         if self.description is not None:
             object.__setattr__(
                 self,
                 "description",
-                _single_line(self.description, "description"),
+                _producer_native_text(self.description, "description"),
             )
 
     def __eq__(self, other: object) -> bool:
@@ -608,7 +623,7 @@ class NativeScale:
         object.__setattr__(
             self,
             "scale_id",
-            _opaque_identifier(self.scale_id, "scale_id"),
+            _producer_native_text(self.scale_id, "scale_id"),
         )
         if self.contract_version is not None:
             object.__setattr__(
@@ -919,7 +934,7 @@ class EvidenceInventory:
 
     def for_standard(self, standard_id: str) -> tuple[EvidenceItem, ...]:
         """Return aligned items for one exact standard ID."""
-        validated = _single_line(standard_id, "standard_id")
+        validated = _producer_native_text(standard_id, "standard_id")
         return tuple(
             item for item in self.items if validated in item.target.standard_ids
         )

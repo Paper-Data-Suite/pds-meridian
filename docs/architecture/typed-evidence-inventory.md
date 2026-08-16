@@ -4,7 +4,11 @@ The first production population of this model is the exact ScoreForm v0.10.0
 adapter. It preserves every native attempt, point pair, response/state,
 correctness boolean, ordered standards alignment, Core provenance, and
 producer-native provenance without introducing attempt selection or policy.
-See [ScoreForm v0.10.0 adapter](scoreform-adapter.md).
+Quillan v0.9.0 is the second production population, preserving workflow states,
+minimum-requirement outcomes, observation missingness, Boolean applicability and
+evidence presence, native ratings, and teacher-entered overall ratings without
+grading inference. See [ScoreForm v0.10.0 adapter](scoreform-adapter.md) and
+[Quillan v0.9.0 adapter](quillan-adapter.md).
 
 ## Status
 
@@ -94,6 +98,26 @@ therefore a standards rating. A review-unit observation is not an overall
 standard rating. A whole-work point result is not retargeted to every Focus
 Standard on an assignment.
 
+### Producer-native identity and display text
+
+Meridian-owned contract identifiers remain under their strict Meridian/Core
+grammars. Producer-native identities carried by targets, standard alignment,
+native references, and native scale IDs are different: they are opaque data
+whose syntax and bounds belong to the validated producer contract.
+
+Meridian requires producer-native text to be a string with non-whitespace
+content and no NUL, then preserves the original string exactly. It performs no
+trimming, case conversion, slash replacement, whitespace collapse, Unicode
+normalization, or narrower consumer-side length restriction. Spaces, `/`, `\`,
+punctuation, Unicode, embedded formatting, and meaningful leading or trailing
+whitespace therefore remain intact when the producer contract permits them.
+
+A native target or reference identity containing `/` is not a filesystem path.
+It grants no artifact access and is never passed to a path resolver. Only
+`NativeArtifact.path` uses Meridian's strict workspace-relative path contract.
+Producer validation remains responsible for producer-specific identity grammar
+and bounds before projection.
+
 ## Native result kind
 
 Every `EvidenceItem` has an explicit producer-native `result_kind` independent
@@ -155,7 +179,9 @@ map points to proficiency, or declare the points to be a Grade.
 - ordered native levels.
 
 Each `NativeScaleLevel` retains an exact scalar value and optional producer label
-and description. Exact level values must be unique.
+and description. Scale IDs, labels, and descriptions use the same exact
+producer-native text boundary and are not normalized. Exact level values must be
+unique.
 
 A `NativeScaledValue` must match one declared level by both scalar type and
 value. Numeric `1` does not match string `"1"`.
@@ -212,6 +238,10 @@ attempt -> issuance -> page -> route -> scan -> source page
 
 Other adapters may retain submission, review, review-unit, observation,
 requirement, or intervention references.
+
+The reference kind remains a strict Meridian contract code. Its optional
+identifier is exact producer-native data, not an artifact path or authorization
+to inspect an underlying producer record.
 
 ### Native artifacts
 

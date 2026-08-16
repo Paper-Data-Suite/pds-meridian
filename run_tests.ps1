@@ -1,6 +1,10 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$CoreWheel,
+    [Parameter(Mandatory = $true)]
+    [string]$ScoreFormWheel,
+    [Parameter(Mandatory = $true)]
+    [string]$QuillanWheel,
     [switch]$AllowDirty
 )
 
@@ -13,7 +17,11 @@ if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
 $arguments = @(
     "scripts/validate_repository.py",
     "--core-wheel",
-    $CoreWheel
+    $CoreWheel,
+    "--scoreform-wheel",
+    $ScoreFormWheel,
+    "--quillan-wheel",
+    $QuillanWheel
 )
 if ($AllowDirty) {
     $arguments += "--allow-dirty"

@@ -19,6 +19,7 @@ import pytest
         "meridian.evidence_serialization",
         "meridian.ingestion",
         "meridian.projection_cache",
+        "meridian.quillan_adapter",
         "meridian.scoreform_adapter",
         "meridian.__main__",
     ],

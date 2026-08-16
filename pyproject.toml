@@ -28,6 +28,9 @@ classifiers = [
 scoreform = [
     "scoreform==0.10.0",
 ]
+quillan = [
+    "quillan==0.9.0",
+]
 dev = [
     "build",
     "mypy",
@@ -76,6 +79,10 @@ follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 module = ["scoreform", "scoreform.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["quillan", "quillan.*"]
 follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
