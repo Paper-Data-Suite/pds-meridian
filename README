@@ -3,8 +3,9 @@
 Meridian now has an installable, strictly typed package foundation, immutable
 typed evidence inventory, deterministic consumer-side adapter registry, and
 bounded Core catalog discovery and canonical-verification preparation layer,
-exact evidence serialization, an immutable digest-bound projection cache, and
-two real optional adapters for ScoreForm v0.10.0 and Quillan v0.9.0 at development version
+exact evidence serialization, an immutable digest-bound projection cache, a
+read-only publication/evidence diagnostics surface, and two real optional
+adapters for ScoreForm v0.10.0 and Quillan v0.9.0 at development version
 `0.1.1.dev0`. The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, and
 assess current reuse without mutating historical snapshots. It does not yet
@@ -41,7 +42,8 @@ The current package provides:
 
 - the `pds-meridian` distribution and `meridian` import package;
 - one authoritative version declaration and the Core v0.6 dependency boundary;
-- the side-effect-free `meridian` help/version command;
+- the side-effect-free `meridian` help/version command and read-only
+  publication/evidence diagnostics;
 - strict mypy, Ruff, pytest, package, and cross-platform CI validation;
 - immutable `meridian.evidence` models preserving exact native meaning;
 - immutable `meridian.adapters` exact keys, descriptors, requests, and registry;
@@ -60,6 +62,9 @@ The current package provides:
 - exact `EvidenceInventory` mapping conversion with closed value variants;
 - immutable projection snapshots with canonical JSON, cache keys, and digests;
 - authorization-before-cache-read and read-only current-state assessment;
+- producer-neutral `meridian.diagnostics` support/readiness models;
+- bounded publication listing and exact canonical compatibility verification;
+- authorization-gated inspection/explanation of persisted evidence snapshots;
 - privacy-safe stable `ingestion.*`, `contracts.*`, `adapters.*`, and `cache.*`
   outcomes;
 - exact verification of the official Core v0.6.0 wheel;
@@ -74,7 +79,6 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - evidence eligibility, attempt selection, or reassessment policy;
-- diagnostics commands;
 - report snapshots or issued-report persistence;
 - standards proficiency or Grade calculations;
 - report generation, persistence, subscriptions, or delivery; or
@@ -190,23 +194,39 @@ the baseline artifact-authentication and installed-wheel checks.
 
 ## Command line
 
-The baseline command supports only package help and version output:
+Meridian now exposes read-only publication and persisted-evidence diagnostics:
 
 ```text
 meridian
 meridian --help
 meridian --version
-python -m meridian
-python -m meridian --help
-python -m meridian --version
+
+meridian publications list --workspace <workspace> [filters]
+meridian publications verify <publication_id> --workspace <workspace>
+
+meridian evidence inspect <publication_id> <cache_key> --workspace <workspace> --purpose-id <purpose>
+meridian evidence explain <publication_id> <cache_key> --workspace <workspace> --purpose-id <purpose>
 ```
 
-These operations are intentionally read-only. They do not discover a workspace,
-query a catalog, load producer packages, open manifests, configure global
-logging, or write files.
+`publications list` uses a finite Core catalog query and reloads canonical state
+before reporting it. `publications verify` starts from exact canonical state and
+does not require the disposable catalog. Metadata diagnostics report producer
+compatibility, Meridian adapter support, and reader distribution/version
+readiness without opening producer manifests or invoking adapter projection.
 
-Inventory, adapter, publication, diagnostics, grading, and reporting commands
-will be introduced only when their underlying behavior exists.
+Persisted evidence commands are security-sensitive. They operate only on one
+exact immutable projection snapshot and require a deployment-provided
+`PublicationAuthorizer` through the existing `read_projection_cache` boundary.
+The stock console application intentionally provides no production authorizer,
+so evidence commands fail closed unless an embedding deployment injects one.
+There is no command-line authorization bypass.
+
+All new data commands support deterministic text and `--format json` output.
+These diagnostics do not select evidence, calculate proficiency, calculate
+Grades, or generate reports.
+
+See
+[`docs/architecture/evidence-inventory-and-diagnostics.md`](docs/architecture/evidence-inventory-and-diagnostics.md).
 
 ## Local validation
 
@@ -440,6 +460,7 @@ See:
 - [Typed evidence inventory](docs/architecture/typed-evidence-inventory.md)
 - [Adapter interface and registry](docs/architecture/adapter-interface-and-registry.md)
 - [Catalog discovery and canonical verification](docs/architecture/catalog-discovery-and-canonical-verification.md)
+- [Evidence inventory and diagnostics](docs/architecture/evidence-inventory-and-diagnostics.md)
 - [Architecture Decision Record index](docs/decisions/README.md)
 - [ADR 0001](docs/decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
 - [ADR 0002](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)

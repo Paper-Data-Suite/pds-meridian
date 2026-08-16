@@ -1,9 +1,9 @@
 # Security Policy
 
 PDS Meridian has an installable pre-release development package but no supported
-production release. The current package provides help/version CLI behavior and
-validation infrastructure; it does not yet ingest student manifests, calculate
-Grades, or generate reports.
+production release. The current package provides read-only publication
+diagnostics and authorization-gated inspection of existing Meridian projection
+snapshots; it does not calculate Grades or generate reports.
 
 Security reports should still be handled privately because Meridian is expected
 to process sensitive educational information in later implementation stages.
@@ -58,6 +58,8 @@ The current development package includes:
 
 - Python package metadata and dependency declarations;
 - a console script and `python -m` entry point;
+- privacy-minimized publication metadata diagnostics;
+- authorization-gated persisted-evidence inspection and cache assessment;
 - Core wheel authentication and installed-package verification;
 - repository, documentation, and package validators;
 - build and smoke-test automation;
@@ -73,6 +75,26 @@ Reports are appropriate for demonstrated issues such as:
 - unintended filesystem mutation during import or baseline CLI use;
 - credential or private-data disclosure;
 - source-checkout shadowing that defeats dependency verification.
+
+## Diagnostic authorization boundary
+
+Publication metadata access is not student evidence access.
+
+Commands that list or verify publication identity and compatibility use
+privacy-minimized Core/publication metadata and do not open producer manifests.
+Commands that inspect or explain an existing projection snapshot may expose
+student evidence and therefore require a deployment-provided
+`PublicationAuthorizer` through the existing `read_projection_cache` boundary
+before cache-file access.
+
+Possession of a cache key, filesystem access, package installation, a matching
+student ID, or a purpose string is not authorization. The stock Meridian console
+application ships no production allow-all authorizer and provides no unsafe
+bypass. A missing authorization provider fails closed.
+
+Meridian defines enforcement points and typed decisions but does not implement
+production authentication or institutional identity, role, legal, audience, or
+disclosure policy.
 
 ## Future security-sensitive areas
 

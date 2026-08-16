@@ -20,6 +20,7 @@ EXPECTED = (
     Path("docs/architecture/adapter-interface-and-registry.md"),
     Path("docs/architecture/catalog-discovery-and-canonical-verification.md"),
     Path("docs/architecture/exact-projection-snapshots-and-cache.md"),
+    Path("docs/architecture/evidence-inventory-and-diagnostics.md"),
     Path("docs/architecture/scoreform-adapter.md"),
     Path("docs/architecture/quillan-adapter.md"),
     Path("docs/decisions/README.md"),
@@ -43,6 +44,7 @@ REQUIRED_TEXT = {
         "meridian.evidence",
         "meridian.adapters",
         "meridian.ingestion",
+        "meridian.diagnostics",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
@@ -73,6 +75,12 @@ REQUIRED_TEXT = {
         "Historical immutability",
         "report snapshots",
     ),
+    Path("docs/architecture/evidence-inventory-and-diagnostics.md"): (
+        "Catalog rows remain observations rather than canonical authority.",
+        "diagnostics.authorization_provider_required",
+        "read_projection_cache",
+        "EvidenceEligibility",
+    ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",
         "Unsupported states fail closed",
@@ -82,6 +90,7 @@ REQUIRED_TEXT = {
         "0.1.1.dev0",
         "paper_data_suite.modules",
         "paper_data_suite.publication_producers",
+        "meridian.diagnostics",
     ),
     Path("docs/development/synthetic-data.md"): (
         "real student",

@@ -4,8 +4,9 @@ Meridian is in the v0.1.1 executable publication-ingestion foundation
 milestone. The installable `0.1.1.dev0` package, strict typing, tests, CI,
 validation tooling, immutable typed evidence inventory, exact consumer adapter
 registry, bounded Core discovery and canonical-verification preparation, exact
-evidence serialization, and immutable projection-cache layers are established.
-The exact optional ScoreForm v0.10.0 and Quillan v0.9.0 adapters are implemented.
+evidence serialization, immutable projection-cache layers, and the read-only
+publication/evidence diagnostics surface are established. The exact optional
+ScoreForm v0.10.0 and Quillan v0.9.0 adapters are implemented.
 Additional producer adapters, grading, and reporting remain follow-on work.
 
 ## Recommended reading order
@@ -17,13 +18,14 @@ Additional producer adapters, grading, and reporting remain follow-on work.
 5. [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
 6. [Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
 7. [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md)
-8. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-9. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
-10. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
-11. [ADR index](decisions/README.md)
-12. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-13. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-14. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+8. [Evidence inventory and diagnostics](architecture/evidence-inventory-and-diagnostics.md)
+9. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+10. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
+11. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
+12. [ADR index](decisions/README.md)
+13. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+14. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+15. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -95,6 +97,21 @@ See
 [Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
 for the executable sequence and failure taxonomy.
 
+## Evidence inventory and diagnostics
+
+`meridian.diagnostics` exposes bounded publication metadata diagnostics and
+freshly authorized inspection of existing immutable projection snapshots.
+Publication metadata does not require student-manifest authorization and never
+opens producer manifests. Persisted evidence access delegates to the existing
+`read_projection_cache` authorization boundary before cache-file access.
+
+Source/current-use cache state and `EvidenceEligibility` remain separate.
+Diagnostics explain existing state but do not create eligibility, selection,
+proficiency, Grade, or report policy.
+
+See
+[Evidence inventory and diagnostics](architecture/evidence-inventory-and-diagnostics.md).
+
 ## Active architecture
 
 The active ingestion architecture requires bounded catalog discovery followed by
@@ -128,7 +145,7 @@ The v0.1.1 milestone proceeds through:
 5. Core discovery and canonical verification — implemented;
 6. ScoreForm adapter — implemented;
 7. Quillan adapter — implemented;
-8. inventory and diagnostics commands;
+8. inventory and diagnostics commands — implemented;
 9. exact cache and snapshot rules — implemented;
 10. cross-producer scenarios;
 11. foundation audit and release.
