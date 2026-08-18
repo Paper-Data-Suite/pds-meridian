@@ -27,6 +27,9 @@ def scoreform_manifest_bytes(
     work_id: str = "synthetic_quiz_alpha",
     record_set_id: str = "academic_results",
     revision: int = 1,
+    primary_student_id: str = "student_synthetic_001",
+    secondary_student_id: str = "student_synthetic_002",
+    primary_standard_id: str = "standard_reading_1",
 ) -> bytes:
     """Build exact canonical bytes with the released producer model serializer."""
     from scoreform.academic_result_manifest import (
@@ -49,7 +52,7 @@ def scoreform_manifest_bytes(
     )
 
     questions = (
-        Question(1, 1, ("standard_reading_1", "standard_close_reading")),
+        Question(1, 1, (primary_standard_id, "standard_close_reading")),
         Question(2, 1, ("standard_reading_2",)),
         Question(3, 1, ()),
     )
@@ -126,9 +129,9 @@ def scoreform_manifest_bytes(
         ),
         (
             StudentResults(
-                "student_synthetic_001", (pds2_attempt, later_manual_attempt)
+                primary_student_id, (pds2_attempt, later_manual_attempt)
             ),
-            StudentResults("student_synthetic_002", (review_attempt,)),
+            StudentResults(secondary_student_id, (review_attempt,)),
         ),
     )
     return academic_result_manifest_to_canonical_json_bytes(manifest)

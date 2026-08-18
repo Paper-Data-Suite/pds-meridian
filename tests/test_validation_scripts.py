@@ -103,3 +103,14 @@ def test_ci_wires_exact_concord_release_artifact() -> None:
     assert 'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"' in workflow
     assert '".[dev,scoreform,quillan,concord]"' in workflow
     assert '--concord-wheel "$env:CONCORD_WHEEL"' in workflow
+
+
+def test_cross_producer_acceptance_document_is_validation_guarded() -> None:
+    checker = Path("scripts/check_documentation.py").read_text(encoding="utf-8")
+    assert "cross-producer-synthetic-ingestion.md" in checker
+    assert "producer-neutral != producer-semantic flattening" in checker
+    assert "ScoreForm attempt != Concord Score history" in checker
+    assert (
+        "Academic Period definition != ingestion-time Grade-period assignment"
+        in checker
+    )

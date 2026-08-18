@@ -35,6 +35,9 @@ def quillan_manifest_bytes(
     evidence_standard_id: str = "standard_evidence",
     minimum_scale_label: str = "Beginning",
     minimum_scale_description: str = "Initial native evidence.",
+    primary_student_id: str = "student_synthetic_001",
+    secondary_student_id: str = "student_synthetic_002",
+    rating_value: int = 0,
 ) -> bytes:
     """Build canonical bytes solely through the released producer contract."""
     from quillan.academic_result_manifest import (
@@ -88,8 +91,10 @@ def quillan_manifest_bytes(
         MinimumRequirementPolicy(True),
     )
 
-    def sources(student_number: int) -> StudentSourceSnapshot:
-        student_id = f"student_synthetic_00{student_number}"
+    def sources(
+        student_number: int,
+        student_id: str,
+    ) -> StudentSourceSnapshot:
         return StudentSourceSnapshot(
             SourceRecordSnapshot(
                 f"submissions/{student_id}/submission.json",
@@ -139,7 +144,7 @@ def quillan_manifest_bytes(
             evidence_standard_id,
             True,
             True,
-            0,
+            rating_value,
             absent,
             True,
             UPDATED_AT,
@@ -153,12 +158,12 @@ def quillan_manifest_bytes(
         (),
     )
     complete = StudentResult(
-        "student_synthetic_001",
-        sources(1),
+        primary_student_id,
+        sources(1, primary_student_id),
         SubmissionSnapshot(
             class_id,
             work_id,
-            "student_synthetic_001",
+            primary_student_id,
             "reviewed",
             "pds2_response_pages",
             1,
@@ -182,7 +187,11 @@ def quillan_manifest_bytes(
             ),
             (
                 OverallStandardRating(
-                    evidence_standard_id, 0, included, True, UPDATED_AT
+                    evidence_standard_id,
+                    rating_value,
+                    included,
+                    True,
+                    UPDATED_AT,
                 ),
             ),
             FeedbackComposition(
@@ -205,12 +214,12 @@ def quillan_manifest_bytes(
         ),
     )
     returned = StudentResult(
-        "student_synthetic_002",
-        sources(2),
+        secondary_student_id,
+        sources(2, secondary_student_id),
         SubmissionSnapshot(
             class_id,
             work_id,
-            "student_synthetic_002",
+            secondary_student_id,
             "reviewed",
             "plain_paper_manual",
             None,

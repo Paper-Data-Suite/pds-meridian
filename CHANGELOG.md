@@ -4,6 +4,13 @@
 
 ### Added
 
+- Cross-producer synthetic ingestion acceptance covering ScoreForm v0.10.0,
+  Quillan v0.9.0, and Concord v0.2.0 together in one Core workspace, including
+  semantic separation, cache isolation, multiple Academic Periods, diagnostics,
+  authorization isolation, deterministic replay, and failure privacy.
+- Cross-producer acceptance documentation confirming that no new runtime,
+  cache-schema, grading-policy, or producer-contract changes were required.
+
 - Exact optional `pds-concord==0.2.0` adapter using Concord's released
   consumer-neutral Academic Result reader, dynamic capability derivation,
   non-individualized Group Scores, exact target ownership/version, rich native
