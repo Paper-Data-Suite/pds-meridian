@@ -416,11 +416,19 @@ def _render_evidence_inspection(
         "eligibility"
     )
     for item in result.items:
+        subject_id = (
+            item.subject.student_id if item.subject is not None else "none"
+        )
         target_id = item.target.target_id or "none"
+        target_text = f"{item.target.target_kind}/{target_id}"
+        if item.target.owning_system is not None:
+            target_text = f"{item.target.owning_system}:{target_text}"
+        if item.target.contract_version is not None:
+            target_text += f"@{item.target.contract_version}"
         standards = ",".join(item.target.standard_ids) or "none"
         print(
-            f"{item.item_id} | {item.subject.student_id} | "
-            f"{item.target.target_kind}/{target_id} | {standards} | "
+            f"{item.item_id} | {subject_id} | "
+            f"{target_text} | {standards} | "
             f"{item.result_kind} | {_compact_value(item)} | "
             f"{item.eligibility.status}"
         )

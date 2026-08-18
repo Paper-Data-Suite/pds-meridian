@@ -44,15 +44,15 @@ eligible, an attempt was selected, or a Grade can be calculated.
 ## Explicit adapter composition
 
 The built-in diagnostic registry is ordinary explicit Meridian composition. At
-this milestone it contains the exact ScoreForm v0.10.0 and Quillan v0.9.0
-adapters. Installing a producer package does not register a Meridian adapter,
-and Meridian does not discover its adapters through entry points.
+this milestone it contains the exact ScoreForm v0.10.0, Quillan v0.9.0, and
+Concord v0.2.0 adapters. Installing a producer package does not register a
+Meridian adapter, and Meridian does not discover its adapters through entry
+points.
 
 Producer-reader readiness uses installed distribution metadata. Metadata-only
 publication diagnostics therefore do not import producer runtime packages.
-
-The command model is producer-neutral so a later Concord adapter can join the
-same explicit registry without redesigning diagnostics.
+Concord readiness reports its required Activity source-record contract and exact
+`pds-concord` reader version without parsing manifest bytes.
 
 ## Support stages
 
@@ -247,12 +247,10 @@ cache, or import producer packages.
 
 The diagnostics model does not assume that every source record is absent, every
 producer has the same evidence kinds, or every future publication is an academic
-result. This is required for the planned Concord adapter and for Core's existing
-`intervention_record_set` publication kind.
-
-Issue #11 does not preemptively widen Meridian evidence subjects or native scale
-metadata for Concord. Those changes, if genuinely required by Concord's released
-contract, belong to the Concord adapter issue.
+result. Concord v0.2.0 now exercises a required versioned source record,
+non-student evidence, and richer native scale metadata through the same generic
+diagnostic boundary. Core's existing `intervention_record_set` remains a
+separate future producer shape.
 
 ## Non-goals
 

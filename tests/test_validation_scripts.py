@@ -6,6 +6,11 @@ from pathlib import Path
 import pytest
 
 from scripts.check_package import PackageValidationError, validate_wheel
+from scripts.verify_concord_wheel import (
+    EXPECTED_CONCORD_WHEEL_FILENAME,
+    ConcordVerificationError,
+    verify_concord_wheel,
+)
 from scripts.verify_core_wheel import (
     EXPECTED_CORE_WHEEL_FILENAME,
     CoreVerificationError,
@@ -68,8 +73,33 @@ def test_quillan_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         verify_quillan_wheel(path)
 
 
+def test_concord_verifier_rejects_wrong_filename(tmp_path: Path) -> None:
+    path = tmp_path / "renamed.whl"
+    path.write_bytes(b"not a wheel")
+    with pytest.raises(ConcordVerificationError, match="Expected"):
+        verify_concord_wheel(path)
+
+
+def test_concord_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
+    path = tmp_path / EXPECTED_CONCORD_WHEEL_FILENAME
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("placeholder.txt", "synthetic")
+    with pytest.raises(ConcordVerificationError, match="SHA-256 mismatch"):
+        verify_concord_wheel(path)
+
+
 def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:
     path = tmp_path / "invalid.whl"
     path.write_bytes(b"not a zip archive")
     with pytest.raises(PackageValidationError, match="readable ZIP"):
         validate_wheel(path)
+
+def test_ci_wires_exact_concord_release_artifact() -> None:
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert (
+        "pds-concord/releases/download/v0.2.0/"
+        "pds_concord-0.2.0-py3-none-any.whl"
+    ) in workflow
+    assert 'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"' in workflow
+    assert '".[dev,scoreform,quillan,concord]"' in workflow
+    assert '--concord-wheel "$env:CONCORD_WHEEL"' in workflow

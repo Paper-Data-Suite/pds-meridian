@@ -274,7 +274,10 @@ def _load_authorized_evidence(
 def _matches_filters(item: EvidenceItem, filters: EvidenceFilters) -> bool:
     if filters.item_ids and item.item_id not in filters.item_ids:
         return False
-    if filters.student_ids and item.subject.student_id not in filters.student_ids:
+    if filters.student_ids and (
+        item.subject is None
+        or item.subject.student_id not in filters.student_ids
+    ):
         return False
     if filters.target_kinds and item.target.target_kind not in filters.target_kinds:
         return False
@@ -365,22 +368,52 @@ def _value_to_dict(item: EvidenceItem) -> dict[str, object]:
             "possible": _scalar_to_dict(value.possible),
         }
     if isinstance(value, NativeScaledValue):
+        scale: dict[str, object] = {
+            "scale_id": value.scale.scale_id,
+            "contract_version": value.scale.contract_version,
+            "order_is_meaningful": value.scale.order_is_meaningful,
+            "levels": [
+                {
+                    "value": _scalar_to_dict(level.value),
+                    "label": level.label,
+                    "description": level.description,
+                    **(
+                        {
+                            "meaning": level.meaning,
+                            "position": level.position,
+                        }
+                        if level.meaning is not None or level.position is not None
+                        else {}
+                    ),
+                }
+                for level in value.scale.levels
+            ],
+        }
+        if any(
+            field is not None
+            for field in (
+                value.scale.lineage_id,
+                value.scale.name,
+                value.scale.revision,
+                value.scale.scale_type,
+                value.scale.status,
+                value.scale.supersedes_scale_id,
+            )
+        ):
+            scale.update(
+                {
+                    "lineage_id": value.scale.lineage_id,
+                    "name": value.scale.name,
+                    "revision": value.scale.revision,
+                    "scale_type": value.scale.scale_type,
+                    "status": value.scale.status,
+                    "supersedes_scale_id": value.scale.supersedes_scale_id,
+                }
+            )
         return {
             "kind": "scaled",
             "value": _scalar_to_dict(value.value),
-            "scale": {
-                "scale_id": value.scale.scale_id,
-                "contract_version": value.scale.contract_version,
-                "order_is_meaningful": value.scale.order_is_meaningful,
-                "levels": [
-                    {
-                        "value": _scalar_to_dict(level.value),
-                        "label": level.label,
-                        "description": level.description,
-                    }
-                    for level in value.scale.levels
-                ],
-            },
+            "scale": scale,
         }
     if isinstance(value, NativeStateValue):
         return {
@@ -405,23 +438,36 @@ def _eligibility_to_dict(item: EvidenceItem) -> dict[str, object]:
 def _target_to_dict(item: EvidenceItem) -> dict[str, object]:
     target = item.target
     parent = target.parent_target
-    return {
+    if parent is None:
+        parent_mapping: dict[str, object] | None = None
+    else:
+        parent_mapping = {
+            "target_kind": parent.target_kind,
+            "target_id": parent.target_id,
+        }
+        if parent.owning_system is not None or parent.contract_version is not None:
+            parent_mapping["owning_system"] = parent.owning_system
+            parent_mapping["contract_version"] = parent.contract_version
+
+    result: dict[str, object] = {
         "target_kind": target.target_kind,
         "target_id": target.target_id,
-        "parent_target": (
-            None
-            if parent is None
-            else {"target_kind": parent.target_kind, "target_id": parent.target_id}
-        ),
+        "parent_target": parent_mapping,
         "standard_ids": list(target.standard_ids),
         "sequence": target.sequence,
     }
+    if target.owning_system is not None or target.contract_version is not None:
+        result["owning_system"] = target.owning_system
+        result["contract_version"] = target.contract_version
+    return result
 
 
 def _evidence_item_to_dict(item: EvidenceItem) -> dict[str, object]:
     return {
         "item_id": item.item_id,
-        "student_id": item.subject.student_id,
+        "student_id": (
+            item.subject.student_id if item.subject is not None else None
+        ),
         "target": _target_to_dict(item),
         "result_kind": item.result_kind,
         "value": _value_to_dict(item),
@@ -672,6 +718,7 @@ class PublicationVerificationDiagnostic:
 
 def build_builtin_adapter_registry() -> AdapterRegistry:
     """Construct the explicit built-in adapter registry without reader imports."""
+    from meridian.concord_adapter import ConcordAcademicResultAdapter
     from meridian.quillan_adapter import QuillanAcademicResultAdapter
     from meridian.scoreform_adapter import ScoreFormAcademicResultAdapter
 
@@ -679,6 +726,7 @@ def build_builtin_adapter_registry() -> AdapterRegistry:
         (
             ScoreFormAcademicResultAdapter(),
             QuillanAcademicResultAdapter(),
+            ConcordAcademicResultAdapter(),
         )
     )
 

@@ -31,6 +31,9 @@ scoreform = [
 quillan = [
     "quillan==0.9.0",
 ]
+concord = [
+    "pds-concord==0.2.0",
+]
 dev = [
     "build",
     "mypy",

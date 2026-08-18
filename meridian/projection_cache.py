@@ -1006,7 +1006,10 @@ def _validate_snapshot_inventory(
             raise ProjectionCacheValidationError(
                 "inventory item uses a different projection identity."
             )
-        if allowed_students and item.subject.student_id not in allowed_students:
+        if allowed_students and (
+            item.subject is None
+            or item.subject.student_id not in allowed_students
+        ):
             raise ProjectionCacheValidationError(
                 "inventory contains evidence outside the authorized student scope."
             )
@@ -1601,7 +1604,10 @@ def _scoped_inventory(
     allowed = set(student_ids)
     return EvidenceInventory(
         tuple(
-            item for item in inventory.items if item.subject.student_id in allowed
+            item
+            for item in inventory.items
+            if item.subject is not None
+            and item.subject.student_id in allowed
         )
     )
 

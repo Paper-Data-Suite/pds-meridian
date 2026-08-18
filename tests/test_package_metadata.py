@@ -27,6 +27,10 @@ def test_distribution_metadata() -> None:
     assert scoreform == [Requirement("scoreform==0.10.0; extra == 'scoreform'")]
     quillan = [item for item in requirements if item.name == "quillan"]
     assert quillan == [Requirement("quillan==0.9.0; extra == 'quillan'")]
+    concord = [item for item in requirements if item.name == "pds-concord"]
+    assert concord == [
+        Requirement("pds-concord==0.2.0; extra == 'concord'")
+    ]
 
 
 def test_console_and_plugin_entry_points() -> None:

@@ -80,14 +80,45 @@ _SUBJECT_KEYS: Final[frozenset[str]] = frozenset({"student_id"})
 _TARGET_IDENTITY_KEYS: Final[frozenset[str]] = frozenset(
     {"target_kind", "target_id"}
 )
+_TARGET_IDENTITY_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
+    {"target_kind", "target_id", "owning_system", "contract_version"}
+)
 _TARGET_KEYS: Final[frozenset[str]] = frozenset(
     {"target_kind", "target_id", "parent_target", "standard_ids", "sequence"}
+)
+_TARGET_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "target_kind",
+        "target_id",
+        "parent_target",
+        "standard_ids",
+        "sequence",
+        "owning_system",
+        "contract_version",
+    }
 )
 _SCALE_LEVEL_KEYS: Final[frozenset[str]] = frozenset(
     {"value", "label", "description"}
 )
+_SCALE_LEVEL_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
+    {"value", "label", "description", "meaning", "position"}
+)
 _SCALE_KEYS: Final[frozenset[str]] = frozenset(
     {"scale_id", "contract_version", "order_is_meaningful", "levels"}
+)
+_SCALE_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "scale_id",
+        "contract_version",
+        "order_is_meaningful",
+        "levels",
+        "lineage_id",
+        "name",
+        "revision",
+        "scale_type",
+        "status",
+        "supersedes_scale_id",
+    }
 )
 _VALUE_BASE_KEYS: Final[frozenset[str]] = frozenset({"kind"})
 _VALUE_SCALAR_KEYS: Final[frozenset[str]] = frozenset(
@@ -140,6 +171,24 @@ def _mapping(value: object, keys: frozenset[str], label: str) -> JsonMapping:
             details.append(f"unknown={unknown!r}")
         raise EvidenceSerializationError(
             f"{label} must use the exact key set ({', '.join(details)})."
+        )
+    return mapping
+
+
+def _variant_mapping(
+    value: object,
+    key_sets: tuple[frozenset[str], ...],
+    label: str,
+) -> JsonMapping:
+    if not isinstance(value, Mapping):
+        raise EvidenceSerializationError(f"{label} must be an object.")
+    if any(not isinstance(key, str) for key in value):
+        raise EvidenceSerializationError(f"{label} keys must be strings.")
+    mapping = cast(Mapping[str, object], value)
+    actual = frozenset(mapping)
+    if actual not in key_sets:
+        raise EvidenceSerializationError(
+            f"{label} must use one supported exact key set."
         )
     return mapping
 
@@ -386,29 +435,57 @@ def _evidence_provenance_from_dict(data: object) -> EvidenceProvenance:
     )
 
 
-def _subject_to_dict(value: StudentSubject) -> dict[str, object]:
+def _subject_to_dict(
+    value: StudentSubject | None,
+) -> dict[str, object] | None:
+    if value is None:
+        return None
     return {"student_id": value.student_id}
 
 
-def _subject_from_dict(data: object) -> StudentSubject:
+def _subject_from_dict(data: object) -> StudentSubject | None:
+    if data is None:
+        return None
     mapping = _mapping(data, _SUBJECT_KEYS, "student subject")
     return StudentSubject(_string(mapping["student_id"], "student_id"))
 
 
 def _target_identity_to_dict(value: EvidenceTargetIdentity) -> dict[str, object]:
-    return {"target_kind": value.target_kind, "target_id": value.target_id}
+    result: dict[str, object] = {
+        "target_kind": value.target_kind,
+        "target_id": value.target_id,
+    }
+    if value.owning_system is not None or value.contract_version is not None:
+        result["owning_system"] = value.owning_system
+        result["contract_version"] = value.contract_version
+    return result
 
 
 def _target_identity_from_dict(data: object) -> EvidenceTargetIdentity:
-    mapping = _mapping(data, _TARGET_IDENTITY_KEYS, "target identity")
+    mapping = _variant_mapping(
+        data,
+        (_TARGET_IDENTITY_KEYS, _TARGET_IDENTITY_EXTENDED_KEYS),
+        "target identity",
+    )
+    extended = frozenset(mapping) == _TARGET_IDENTITY_EXTENDED_KEYS
     return EvidenceTargetIdentity(
         target_kind=_string(mapping["target_kind"], "target_kind"),
         target_id=_optional_string(mapping["target_id"], "target_id"),
+        owning_system=(
+            _optional_string(mapping["owning_system"], "owning_system")
+            if extended
+            else None
+        ),
+        contract_version=(
+            _optional_string(mapping["contract_version"], "contract_version")
+            if extended
+            else None
+        ),
     )
 
 
 def _target_to_dict(value: EvidenceTarget) -> dict[str, object]:
-    return {
+    result: dict[str, object] = {
         "target_kind": value.target_kind,
         "target_id": value.target_id,
         "parent_target": (
@@ -419,10 +496,19 @@ def _target_to_dict(value: EvidenceTarget) -> dict[str, object]:
         "standard_ids": list(value.standard_ids),
         "sequence": value.sequence,
     }
+    if value.owning_system is not None or value.contract_version is not None:
+        result["owning_system"] = value.owning_system
+        result["contract_version"] = value.contract_version
+    return result
 
 
 def _target_from_dict(data: object) -> EvidenceTarget:
-    mapping = _mapping(data, _TARGET_KEYS, "evidence target")
+    mapping = _variant_mapping(
+        data,
+        (_TARGET_KEYS, _TARGET_EXTENDED_KEYS),
+        "evidence target",
+    )
+    extended = frozenset(mapping) == _TARGET_EXTENDED_KEYS
     parent = mapping["parent_target"]
     standards = _list(mapping["standard_ids"], "standard_ids")
     return EvidenceTarget(
@@ -433,37 +519,93 @@ def _target_from_dict(data: object) -> EvidenceTarget:
         ),
         standard_ids=tuple(_string(item, "standard_id") for item in standards),
         sequence=_optional_int(mapping["sequence"], "sequence"),
+        owning_system=(
+            _optional_string(mapping["owning_system"], "owning_system")
+            if extended
+            else None
+        ),
+        contract_version=(
+            _optional_string(mapping["contract_version"], "contract_version")
+            if extended
+            else None
+        ),
     )
 
 
 def _scale_level_to_dict(value: NativeScaleLevel) -> dict[str, object]:
-    return {
+    result: dict[str, object] = {
         "value": _scalar_to_dict(value.value),
         "label": value.label,
         "description": value.description,
     }
+    if value.meaning is not None or value.position is not None:
+        result["meaning"] = value.meaning
+        result["position"] = value.position
+    return result
 
 
 def _scale_level_from_dict(data: object) -> NativeScaleLevel:
-    mapping = _mapping(data, _SCALE_LEVEL_KEYS, "native scale level")
+    mapping = _variant_mapping(
+        data,
+        (_SCALE_LEVEL_KEYS, _SCALE_LEVEL_EXTENDED_KEYS),
+        "native scale level",
+    )
+    extended = frozenset(mapping) == _SCALE_LEVEL_EXTENDED_KEYS
     return NativeScaleLevel(
         value=_scalar_from_dict(mapping["value"], "level value"),
         label=_optional_string(mapping["label"], "label"),
         description=_optional_string(mapping["description"], "description"),
+        meaning=(
+            _optional_string(mapping["meaning"], "meaning")
+            if extended
+            else None
+        ),
+        position=(
+            _optional_int(mapping["position"], "position")
+            if extended
+            else None
+        ),
     )
 
 
 def _scale_to_dict(value: NativeScale) -> dict[str, object]:
-    return {
+    result: dict[str, object] = {
         "scale_id": value.scale_id,
         "contract_version": value.contract_version,
         "order_is_meaningful": value.order_is_meaningful,
         "levels": [_scale_level_to_dict(item) for item in value.levels],
     }
+    if any(
+        field is not None
+        for field in (
+            value.lineage_id,
+            value.name,
+            value.revision,
+            value.scale_type,
+            value.status,
+            value.supersedes_scale_id,
+        )
+    ):
+        result.update(
+            {
+                "lineage_id": value.lineage_id,
+                "name": value.name,
+                "revision": value.revision,
+                "scale_type": value.scale_type,
+                "status": value.status,
+                "supersedes_scale_id": value.supersedes_scale_id,
+            }
+        )
+    return result
 
 
 def _scale_from_dict(data: object) -> NativeScale:
-    mapping = _mapping(data, _SCALE_KEYS, "native scale")
+    mapping = _variant_mapping(
+        data,
+        (_SCALE_KEYS, _SCALE_EXTENDED_KEYS),
+        "native scale",
+    )
+    extended = frozenset(mapping) == _SCALE_EXTENDED_KEYS
     return NativeScale(
         scale_id=_string(mapping["scale_id"], "scale_id"),
         contract_version=_optional_string(
@@ -475,6 +617,39 @@ def _scale_from_dict(data: object) -> NativeScale:
         levels=tuple(
             _scale_level_from_dict(item)
             for item in _list(mapping["levels"], "levels")
+        ),
+        lineage_id=(
+            _optional_string(mapping["lineage_id"], "lineage_id")
+            if extended
+            else None
+        ),
+        name=(
+            _optional_string(mapping["name"], "name")
+            if extended
+            else None
+        ),
+        revision=(
+            _optional_int(mapping["revision"], "revision")
+            if extended
+            else None
+        ),
+        scale_type=(
+            _optional_string(mapping["scale_type"], "scale_type")
+            if extended
+            else None
+        ),
+        status=(
+            _optional_string(mapping["status"], "status")
+            if extended
+            else None
+        ),
+        supersedes_scale_id=(
+            _optional_string(
+                mapping["supersedes_scale_id"],
+                "supersedes_scale_id",
+            )
+            if extended
+            else None
         ),
     )
 

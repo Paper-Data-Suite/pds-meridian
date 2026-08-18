@@ -5,6 +5,8 @@ param(
     [string]$ScoreFormWheel,
     [Parameter(Mandatory = $true)]
     [string]$QuillanWheel,
+    [Parameter(Mandatory = $true)]
+    [string]$ConcordWheel,
     [switch]$AllowDirty
 )
 
@@ -21,7 +23,9 @@ $arguments = @(
     "--scoreform-wheel",
     $ScoreFormWheel,
     "--quillan-wheel",
-    $QuillanWheel
+    $QuillanWheel,
+    "--concord-wheel",
+    $ConcordWheel
 )
 if ($AllowDirty) {
     $arguments += "--allow-dirty"

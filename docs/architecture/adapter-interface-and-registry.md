@@ -12,9 +12,9 @@ reader readiness, and deployment authorization. It verifies and reads bounded
 manifest bytes through Core and constructs `AdapterProjectionRequest` without
 invoking the selected adapter.
 
-The protocol remains generic. `meridian.scoreform_adapter` and
-`meridian.quillan_adapter` implement exact ScoreForm v0.10.0 and Quillan v0.9.0
-consumer projections.
+The protocol remains generic. `meridian.scoreform_adapter`,
+`meridian.quillan_adapter`, and `meridian.concord_adapter` implement exact
+ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 consumer projections.
 
 Producer installation does not populate a registry. The caller explicitly
 constructs an `AdapterRegistry` with the desired adapters. Descriptor inspection
@@ -42,7 +42,8 @@ bounded Core catalog discovery
 
 The preparation stages are implemented in `meridian.ingestion` and documented in
 [catalog discovery and canonical verification](catalog-discovery-and-canonical-verification.md).
-Issues #9 and #10 provide the real ScoreForm and Quillan adapters.
+Issues #9, #10, and #23 provide the real ScoreForm, Quillan, and Concord
+adapters.
 
 ## Dependency direction
 
@@ -408,7 +409,7 @@ This foundation does not implement:
 - authorization;
 - filesystem manifest verification;
 - a real producer public reader;
-- ScoreForm, Quillan, Concord, Portia, or Vitrine projection;
+- Portia, Vitrine, or other future producer projection;
 - automatic adapter discovery or adapter entry points;
 - optional producer dependency extras;
 - evidence eligibility or attempt selection;

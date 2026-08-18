@@ -17,6 +17,7 @@ EXPECTED_VERSION = "0.1.1.dev0"
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.10.0; extra == 'scoreform'")
 EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.9.0; extra == 'quillan'")
+EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.2.0; extra == 'concord'")
 ALLOWED_ENTRY_POINT_GROUPS = frozenset({"console_scripts"})
 FORBIDDEN_PREFIXES = (
     "tests/",
@@ -100,6 +101,17 @@ def _quillan_requirements(metadata: Message) -> list[Requirement]:
     ]
 
 
+def _concord_requirements(metadata: Message) -> list[Requirement]:
+    requirements = [
+        Requirement(item) for item in (metadata.get_all("Requires-Dist") or [])
+    ]
+    return [
+        requirement
+        for requirement in requirements
+        if requirement.name == "pds-concord"
+    ]
+
+
 def validate_wheel(path: str | Path) -> None:
     """Validate metadata, intended files, and deliberately absent entry points."""
     wheel = Path(path)
@@ -144,6 +156,10 @@ def validate_wheel(path: str | Path) -> None:
         raise PackageValidationError(
             "The quillan extra must pin exactly quillan==0.9.0."
         )
+    if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
+        raise PackageValidationError(
+            "The concord extra must pin exactly pds-concord==0.2.0."
+        )
 
     groups = frozenset(entry_points.sections())
     if groups != ALLOWED_ENTRY_POINT_GROUPS:
@@ -162,6 +178,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/_version.py",
         "meridian/adapters.py",
         "meridian/cli.py",
+        "meridian/concord_adapter.py",
         "meridian/diagnostics.py",
         "meridian/evidence.py",
         "meridian/evidence_serialization.py",

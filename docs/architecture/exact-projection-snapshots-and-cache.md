@@ -9,6 +9,11 @@ Quillan v0.9.0 inventories use the same boundary. Their execution identity is
 adapter `quillan.academic_result`, projection contract `1`, distribution
 `quillan`, and reader version `0.9.0`; there is no producer-specific cache.
 
+Concord v0.2.0 inventories use the same boundary with adapter
+`concord.academic_result`, projection contract `1`, distribution `pds-concord`,
+and reader version `0.2.0`. Group/non-student evidence remains non-student; no
+Concord-specific cache path or ownership inference exists.
+
 ## Status
 
 Meridian defines immutable, digest-bound projection snapshots for the
@@ -69,9 +74,13 @@ The snapshot records the exact successful `project_evidence` purpose, requested
 student scope, authorization policy ID, and authorization policy version.
 
 A nonempty scope filters the inventory before persistence while preserving item
-order. Students with no evidence receive no manufactured placeholder. An empty
-scope preserves the complete inventory under the deployment's exact decision;
-Meridian does not reinterpret it as universal access.
+order. Only evidence with an exact matching `StudentSubject` is retained.
+Non-student Group/context evidence is excluded rather than individualized merely
+because a requested student appears in producer context. Students with no
+evidence receive no manufactured placeholder. An empty scope preserves the
+complete authorized inventory, including non-student evidence, under the
+deployment's exact decision; Meridian does not reinterpret it as universal
+access.
 
 The historical authorization observation does not authorize later cache reads.
 Every public cache load requires a fresh `read_projection_cache` decision before
@@ -245,9 +254,8 @@ configure logging, or write files.
 
 ## Non-goals
 
-This foundation does not implement producer adapters, producer parsing, evidence
-eligibility, attempt selection, Academic Period assignment, proficiency or Grade
-calculation, report snapshots, rendering, subscriptions, delivery, cache
-retention, deletion, eviction, repair, migration, encryption, automatic refresh,
-background monitoring, diagnostics commands, or Core publication of
-Meridian-derived state.
+This foundation does not implement evidence eligibility, attempt or Score
+selection, Academic Period assignment, proficiency or Grade calculation, report
+snapshots, rendering, subscriptions, delivery, cache retention, deletion,
+eviction, repair, migration, encryption, automatic refresh, background
+monitoring, or Core publication of Meridian-derived state.

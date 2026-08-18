@@ -509,10 +509,12 @@ class StudentSubject:
 
 @dataclass(frozen=True, slots=True)
 class EvidenceTargetIdentity:
-    """One producer-native target identity."""
+    """One exact producer-native target identity."""
 
     target_kind: str
     target_id: str | None = None
+    owning_system: str | None = None
+    contract_version: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -526,6 +528,18 @@ class EvidenceTargetIdentity:
                 "target_id",
                 _producer_native_text(self.target_id, "target_id"),
             )
+        if self.owning_system is not None:
+            object.__setattr__(
+                self,
+                "owning_system",
+                _contract_code(self.owning_system, "owning_system"),
+            )
+        if self.contract_version is not None:
+            object.__setattr__(
+                self,
+                "contract_version",
+                _producer_native_text(self.contract_version, "contract_version"),
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -537,6 +551,8 @@ class EvidenceTarget:
     parent_target: EvidenceTargetIdentity | None = None
     standard_ids: tuple[str, ...] = ()
     sequence: int | None = None
+    owning_system: str | None = None
+    contract_version: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -574,6 +590,18 @@ class EvidenceTarget:
                 "sequence",
                 _positive_int(self.sequence, "sequence"),
             )
+        if self.owning_system is not None:
+            object.__setattr__(
+                self,
+                "owning_system",
+                _contract_code(self.owning_system, "owning_system"),
+            )
+        if self.contract_version is not None:
+            object.__setattr__(
+                self,
+                "contract_version",
+                _producer_native_text(self.contract_version, "contract_version"),
+            )
 
 
 @dataclass(frozen=True, slots=True, eq=False)
@@ -583,6 +611,8 @@ class NativeScaleLevel:
     value: NativeScalar
     label: str | None = None
     description: str | None = None
+    meaning: str | None = None
+    position: int | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "value", _native_scalar(self.value, "value"))
@@ -596,6 +626,18 @@ class NativeScaleLevel:
                 "description",
                 _producer_native_text(self.description, "description"),
             )
+        if self.meaning is not None:
+            object.__setattr__(
+                self,
+                "meaning",
+                _producer_native_text(self.meaning, "meaning"),
+            )
+        if self.position is not None:
+            object.__setattr__(
+                self,
+                "position",
+                _positive_int(self.position, "position"),
+            )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, NativeScaleLevel):
@@ -604,20 +646,36 @@ class NativeScaleLevel:
             _scalar_key(self.value) == _scalar_key(other.value)
             and self.label == other.label
             and self.description == other.description
+            and self.meaning == other.meaning
+            and self.position == other.position
         )
 
     def __hash__(self) -> int:
-        return hash((_scalar_key(self.value), self.label, self.description))
+        return hash(
+            (
+                _scalar_key(self.value),
+                self.label,
+                self.description,
+                self.meaning,
+                self.position,
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class NativeScale:
-    """Exact identity and ordered levels of a producer-owned scale."""
+    """Exact identity, metadata, and ordered levels of a producer-owned scale."""
 
     scale_id: str
     levels: tuple[NativeScaleLevel, ...]
     contract_version: str | None = None
     order_is_meaningful: bool = True
+    lineage_id: str | None = None
+    name: str | None = None
+    revision: int | None = None
+    scale_type: str | None = None
+    status: str | None = None
+    supersedes_scale_id: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -633,6 +691,45 @@ class NativeScale:
             )
         if not isinstance(self.order_is_meaningful, bool):
             raise EvidenceValidationError("order_is_meaningful must be boolean.")
+        if self.lineage_id is not None:
+            object.__setattr__(
+                self,
+                "lineage_id",
+                _producer_native_text(self.lineage_id, "lineage_id"),
+            )
+        if self.name is not None:
+            object.__setattr__(
+                self,
+                "name",
+                _producer_native_text(self.name, "name"),
+            )
+        if self.revision is not None:
+            object.__setattr__(
+                self,
+                "revision",
+                _positive_int(self.revision, "revision"),
+            )
+        if self.scale_type is not None:
+            object.__setattr__(
+                self,
+                "scale_type",
+                _contract_code(self.scale_type, "scale_type"),
+            )
+        if self.status is not None:
+            object.__setattr__(
+                self,
+                "status",
+                _contract_code(self.status, "status"),
+            )
+        if self.supersedes_scale_id is not None:
+            object.__setattr__(
+                self,
+                "supersedes_scale_id",
+                _producer_native_text(
+                    self.supersedes_scale_id,
+                    "supersedes_scale_id",
+                ),
+            )
         levels = _typed_tuple(self.levels, NativeScaleLevel, "levels")
         if not levels:
             raise EvidenceValidationError("levels must not be empty.")
@@ -855,7 +952,7 @@ class EvidenceItem:
     """One immutable producer-native evidence item."""
 
     item_id: str
-    subject: StudentSubject
+    subject: StudentSubject | None
     target: EvidenceTarget
     result_kind: str
     value: EvidenceValue
@@ -864,8 +961,12 @@ class EvidenceItem:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "item_id", _core_identifier(self.item_id, "item_id"))
-        if not isinstance(self.subject, StudentSubject):
-            raise EvidenceValidationError("subject must be a StudentSubject.")
+        if self.subject is not None and not isinstance(
+            self.subject, StudentSubject
+        ):
+            raise EvidenceValidationError(
+                "subject must be a StudentSubject or None."
+            )
         if not isinstance(self.target, EvidenceTarget):
             raise EvidenceValidationError("target must be an EvidenceTarget.")
         object.__setattr__(
@@ -901,7 +1002,10 @@ class EvidenceInventory:
         """Return items for one exact student while preserving inventory order."""
         validated = _core_identifier(student_id, "student_id")
         return tuple(
-            item for item in self.items if item.subject.student_id == validated
+            item
+            for item in self.items
+            if item.subject is not None
+            and item.subject.student_id == validated
         )
 
     def for_work(self, work: ModuleWorkRef) -> tuple[EvidenceItem, ...]:

@@ -37,9 +37,11 @@ jobs:
           $coreDirectory = Join-Path $env:RUNNER_TEMP "core"
           $scoreformDirectory = Join-Path $env:RUNNER_TEMP "scoreform"
           $quillanDirectory = Join-Path $env:RUNNER_TEMP "quillan"
+          $concordDirectory = Join-Path $env:RUNNER_TEMP "concord"
           New-Item -ItemType Directory -Force -Path $coreDirectory | Out-Null
           New-Item -ItemType Directory -Force -Path $scoreformDirectory | Out-Null
           New-Item -ItemType Directory -Force -Path $quillanDirectory | Out-Null
+          New-Item -ItemType Directory -Force -Path $concordDirectory | Out-Null
 
           $coreWheel = Join-Path `
             $coreDirectory `
@@ -58,6 +60,12 @@ jobs:
             $quillanDirectory `
             "quillan-0.9.0-py3-none-any.whl"
           "QUILLAN_WHEEL=$quillanWheel" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          $concordWheel = Join-Path `
+            $concordDirectory `
+            "pds_concord-0.2.0-py3-none-any.whl"
+          "CONCORD_WHEEL=$concordWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           "RUFF_CACHE_DIR=$(Join-Path $env:RUNNER_TEMP 'ruff-cache')" |
@@ -104,8 +112,18 @@ jobs:
           python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"
           python -m pip install "$env:QUILLAN_WHEEL"
 
+      - name: Download official Concord release wheel
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://github.com/Paper-Data-Suite/pds-concord/releases/download/v0.2.0/pds_concord-0.2.0-py3-none-any.whl" `
+            -OutFile $env:CONCORD_WHEEL `
+            -ErrorAction Stop
+          python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"
+          python -m pip install "$env:CONCORD_WHEEL"
+
       - name: Install Meridian development dependencies
-        run: python -m pip install -e ".[dev,scoreform,quillan]"
+        run: python -m pip install -e ".[dev,scoreform,quillan,concord]"
 
       - name: Remove editable-install residue
         shell: pwsh
@@ -127,3 +145,4 @@ jobs:
           --core-wheel "$env:PDS_CORE_WHEEL"
           --scoreform-wheel "$env:SCOREFORM_WHEEL"
           --quillan-wheel "$env:QUILLAN_WHEEL"
+          --concord-wheel "$env:CONCORD_WHEEL"

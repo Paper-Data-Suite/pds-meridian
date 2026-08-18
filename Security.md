@@ -96,6 +96,24 @@ Meridian defines enforcement points and typed decisions but does not implement
 production authentication or institutional identity, role, legal, audience, or
 disclosure policy.
 
+## Concord Artifact boundary
+
+The Concord v0.2.0 Academic Result adapter reads only Core-verified immutable
+manifest bytes through Concord's public Academic Result reader. Public evidence
+and Artifact references in that manifest are provenance, not authorization to
+open the referenced Artifact.
+
+The adapter does not import or call Concord's separately authorization-gated
+Artifact reader. Preserve:
+
+```text
+manifest authorization != Artifact authorization
+evidence reference != permission to read Artifact bytes
+```
+
+Group Score targets are not copied to students merely because student identities
+appear in evidence subject context or Moderation provenance.
+
 ## Future security-sensitive areas
 
 Later Meridian implementation will require particular care around:
