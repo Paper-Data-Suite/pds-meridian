@@ -7,7 +7,9 @@ registry, bounded Core discovery and canonical-verification preparation, exact
 evidence serialization, immutable projection-cache layers, and the read-only
 publication/evidence diagnostics surface are established. The exact optional
 ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are implemented.
-Additional producer adapters, grading, and reporting remain follow-on work.
+The cross-producer synthetic ingestion acceptance suite is also implemented and
+documents the verified no-grading boundary. Additional producer adapters,
+grading, and reporting remain follow-on work.
 
 ## Recommended reading order
 
@@ -23,10 +25,11 @@ Additional producer adapters, grading, and reporting remain follow-on work.
 10. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
 11. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
 12. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
-13. [ADR index](decisions/README.md)
-14. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-15. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-16. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+13. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+14. [ADR index](decisions/README.md)
+15. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+16. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+17. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -151,7 +154,7 @@ The v0.1.1 milestone proceeds through:
 8. inventory and diagnostics commands — implemented;
 9. exact cache and snapshot rules — implemented;
 10. Concord adapter — implemented;
-11. cross-producer scenarios;
+11. cross-producer scenarios — implemented;
 12. foundation audit and release.
 
 No complete Grade or proficiency engine is part of this milestone.

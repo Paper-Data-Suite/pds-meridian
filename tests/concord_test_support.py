@@ -196,7 +196,11 @@ def _evidence_reference(
     )
 
 
-def _full_manifest() -> AcademicResultManifest:
+def _full_manifest(
+    *,
+    primary_student_id: str = "student_1",
+    secondary_student_id: str = "student_2",
+) -> AcademicResultManifest:
     evidence_1 = _evidence_reference(
         "artifact_instance_1",
         participant="Group",
@@ -262,7 +266,7 @@ def _full_manifest() -> AcademicResultManifest:
             session_id=None,
             target_reference=TargetReferenceProjection(
                 target_kind="core_student",
-                target_id="student_1",
+                target_id=primary_student_id,
                 owning_system="core",
                 contract_version=None,
             ),
@@ -286,7 +290,7 @@ def _full_manifest() -> AcademicResultManifest:
             session_id=None,
             target_reference=TargetReferenceProjection(
                 target_kind="core_student",
-                target_id="student_2",
+                target_id=secondary_student_id,
                 owning_system="core",
                 contract_version=None,
             ),
@@ -339,13 +343,13 @@ def _full_manifest() -> AcademicResultManifest:
             subject_context=(
                 SubjectReferenceProjection(
                     subject_kind="core_student",
-                    subject_id="student_1",
+                    subject_id=primary_student_id,
                     owning_system="core",
                     contract_version=None,
                 ),
                 SubjectReferenceProjection(
                     subject_kind="core_student",
-                    subject_id="student_2",
+                    subject_id=secondary_student_id,
                     owning_system="core",
                     contract_version=None,
                 ),
@@ -363,13 +367,13 @@ def _full_manifest() -> AcademicResultManifest:
         target_subject_references=(
             SubjectReferenceProjection(
                 subject_kind="core_student",
-                subject_id="student_1",
+                subject_id=primary_student_id,
                 owning_system="core",
                 contract_version=None,
             ),
             SubjectReferenceProjection(
                 subject_kind="core_student",
-                subject_id="student_2",
+                subject_id=secondary_student_id,
                 owning_system="core",
                 contract_version=None,
             ),
@@ -490,8 +494,15 @@ def _local_only_manifest() -> AcademicResultManifest:
     return with_semantic_projection_digest(manifest)
 
 
-def _standard_only_manifest() -> AcademicResultManifest:
-    manifest = _full_manifest()
+def _standard_only_manifest(
+    *,
+    primary_student_id: str,
+    secondary_student_id: str,
+) -> AcademicResultManifest:
+    manifest = _full_manifest(
+        primary_student_id=primary_student_id,
+        secondary_student_id=secondary_student_id,
+    )
     links = tuple(
         replace(
             link,
@@ -517,8 +528,15 @@ def _standard_only_manifest() -> AcademicResultManifest:
     )
 
 
-def _rejected_moderation_manifest() -> AcademicResultManifest:
-    manifest = _full_manifest()
+def _rejected_moderation_manifest(
+    *,
+    primary_student_id: str,
+    secondary_student_id: str,
+) -> AcademicResultManifest:
+    manifest = _full_manifest(
+        primary_student_id=primary_student_id,
+        secondary_student_id=secondary_student_id,
+    )
     moderation = manifest.moderation_records[0]
     rejected = replace(
         moderation,
@@ -544,6 +562,8 @@ def concord_manifest_bytes(
     local_only: bool = False,
     standard_only: bool = False,
     rejected_moderation: bool = False,
+    primary_student_id: str = "student_1",
+    secondary_student_id: str = "student_2",
 ) -> bytes:
     modes = sum((local_only, standard_only, rejected_moderation))
     if modes > 1:
@@ -551,11 +571,20 @@ def concord_manifest_bytes(
     if local_only:
         manifest = _local_only_manifest()
     elif standard_only:
-        manifest = _standard_only_manifest()
+        manifest = _standard_only_manifest(
+            primary_student_id=primary_student_id,
+            secondary_student_id=secondary_student_id,
+        )
     elif rejected_moderation:
-        manifest = _rejected_moderation_manifest()
+        manifest = _rejected_moderation_manifest(
+            primary_student_id=primary_student_id,
+            secondary_student_id=secondary_student_id,
+        )
     else:
-        manifest = _full_manifest()
+        manifest = _full_manifest(
+            primary_student_id=primary_student_id,
+            secondary_student_id=secondary_student_id,
+        )
     return academic_result_manifest_to_bytes(manifest)
 
 

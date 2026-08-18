@@ -24,6 +24,7 @@ EXPECTED = (
     Path("docs/architecture/scoreform-adapter.md"),
     Path("docs/architecture/quillan-adapter.md"),
     Path("docs/architecture/concord-adapter.md"),
+    Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -91,6 +92,14 @@ REQUIRED_TEXT = {
         "Group versus student evidence",
         "manifest authorization != Artifact authorization",
         "EvidenceEligibility(status=\"unevaluated\")",
+    ),
+    Path("docs/architecture/cross-producer-synthetic-ingestion.md"): (
+        "producer-neutral != producer-semantic flattening",
+        "ScoreForm attempt != Concord Score history",
+        "native zero != non-score state",
+        "Academic Period definition != ingestion-time Grade-period assignment",
+        "Authorization isolation",
+        "verified producer-neutral ingestion foundation",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",
