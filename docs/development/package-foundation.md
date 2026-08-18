@@ -3,8 +3,8 @@
 ## Status
 
 Meridian has an installable development package at `0.1.1.dev0`. The package is
-an executable foundation with exact optional ScoreForm and Quillan adapters and
-a read-only `meridian.diagnostics` publication/evidence command surface. It does
+an executable foundation with exact optional ScoreForm, Quillan, and Concord
+adapters and a read-only `meridian.diagnostics` publication/evidence command surface. It does
 not calculate proficiency or Grades or generate reports.
 
 ## Requirements
@@ -14,6 +14,7 @@ not calculate proficiency or Grades or generate reports.
 - the exact Core v0.6.0 wheel for baseline CI and release-reproducibility checks
 - the exact authenticated ScoreForm v0.10.0 wheel for adapter validation
 - the exact authenticated Quillan v0.9.0 wheel for adapter validation
+- the exact authenticated Concord v0.2.0 wheel for adapter validation
 
 The runtime dependency is:
 
@@ -30,7 +31,8 @@ PyPI. Install the verified wheel before installing Meridian:
 python -m pip install .\pds_core-0.6.0-py3-none-any.whl
 python -m pip install .\scoreform-0.10.0-py3-none-any.whl
 python -m pip install .\quillan-0.9.0-py3-none-any.whl
-python -m pip install -e ".[dev,scoreform,quillan]"
+python -m pip install .\pds_concord-0.2.0-py3-none-any.whl
+python -m pip install -e ".[dev,scoreform,quillan,concord]"
 python -m pip check
 meridian --version
 meridian --help
@@ -46,20 +48,22 @@ From an activated repository virtual environment:
 .\run_tests.ps1 `
   -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl `
   -ScoreFormWheel C:\path\to\scoreform-0.10.0-py3-none-any.whl `
-  -QuillanWheel C:\path\to\quillan-0.9.0-py3-none-any.whl
+  -QuillanWheel C:\path\to\quillan-0.9.0-py3-none-any.whl `
+  -ConcordWheel C:\path\to\pds_concord-0.2.0-py3-none-any.whl
 ```
 
 The cross-platform authority is:
 
 ```text
-python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-wheel <scoreform-wheel> --quillan-wheel <quillan-wheel>
+python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-wheel <scoreform-wheel> --quillan-wheel <quillan-wheel> --concord-wheel <concord-wheel>
 ```
 
 Use `--allow-dirty` while developing. The default complete validation requires a
 clean working tree.
 
-The validator authenticates Core, ScoreForm, and Quillan before installed dependency checks, pytest,
-Ruff, strict mypy, documentation validation, package builds, Twine checks, wheel
+The validator authenticates Core, ScoreForm, Quillan, and Concord before installed
+dependency checks, pytest, Ruff, strict mypy, documentation validation, package
+builds, Twine checks, wheel
 inspection, isolated wheel smoke testing, `git diff --check`, and repository
 cleanliness checks.
 
@@ -87,8 +91,9 @@ diagnostics additionally require deployment authorization before cache access.
 
 The built wheel includes `meridian.evidence_serialization`,
 `meridian.projection_cache`, `meridian.diagnostics`,
-`meridian.scoreform_adapter`, and `meridian.quillan_adapter`. Importing these
-modules remains read-only and does not resolve a workspace, create cache
-directories, discover producers, import producer packages, invoke
-authorization, or write files. Core remains the only unconditional runtime
-dependency; ScoreForm and Quillan are exact and optional.
+`meridian.scoreform_adapter`, `meridian.quillan_adapter`, and
+`meridian.concord_adapter`. Importing these modules remains read-only and does
+not resolve a workspace, create cache directories, discover producers, import
+producer packages, invoke authorization, or write files. Core remains the only
+unconditional runtime dependency; ScoreForm, Quillan, and Concord are exact and
+optional.

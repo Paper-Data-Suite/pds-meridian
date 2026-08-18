@@ -23,6 +23,7 @@ EXPECTED = (
     Path("docs/architecture/evidence-inventory-and-diagnostics.md"),
     Path("docs/architecture/scoreform-adapter.md"),
     Path("docs/architecture/quillan-adapter.md"),
+    Path("docs/architecture/concord-adapter.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -50,6 +51,7 @@ REQUIRED_TEXT = {
         "Canonical verification precedes producer parsing",
         "Failure taxonomy",
         "Producer readiness matrix",
+        "Concord v0.2.0",
     ),
     Path("docs/architecture/typed-evidence-inventory.md"): (
         "Validity, eligibility, and selection are separate questions.",
@@ -74,12 +76,21 @@ REQUIRED_TEXT = {
         "read_projection_cache",
         "Historical immutability",
         "report snapshots",
+        "Concord v0.2.0",
     ),
     Path("docs/architecture/evidence-inventory-and-diagnostics.md"): (
         "Catalog rows remain observations rather than canonical authority.",
         "diagnostics.authorization_provider_required",
         "read_projection_cache",
         "EvidenceEligibility",
+        "Concord v0.2.0",
+    ),
+    Path("docs/architecture/concord-adapter.md"): (
+        "concord.academic_result",
+        "pds-concord==0.2.0",
+        "Group versus student evidence",
+        "manifest authorization != Artifact authorization",
+        "EvidenceEligibility(status=\"unevaluated\")",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",

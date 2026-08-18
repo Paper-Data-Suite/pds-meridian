@@ -6,7 +6,7 @@ validation tooling, immutable typed evidence inventory, exact consumer adapter
 registry, bounded Core discovery and canonical-verification preparation, exact
 evidence serialization, immutable projection-cache layers, and the read-only
 publication/evidence diagnostics surface are established. The exact optional
-ScoreForm v0.10.0 and Quillan v0.9.0 adapters are implemented.
+ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are implemented.
 Additional producer adapters, grading, and reporting remain follow-on work.
 
 ## Recommended reading order
@@ -22,10 +22,11 @@ Additional producer adapters, grading, and reporting remain follow-on work.
 9. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
 10. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
 11. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
-12. [ADR index](decisions/README.md)
-13. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-14. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-15. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+12. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+13. [ADR index](decisions/README.md)
+14. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+15. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+16. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -35,6 +36,7 @@ The package foundation provides:
 - `pds-core>=0.6,<0.7` as the only unconditional runtime dependency;
 - exact optional `scoreform==0.10.0` adapter support;
 - exact optional `quillan==0.9.0` adapter support;
+- exact optional `pds-concord==0.2.0` adapter support;
 - exact authentication of the official Core v0.6.0 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;
 - strict mypy and Ruff checks;
@@ -44,8 +46,9 @@ The package foundation provides:
 - Ubuntu/Windows CI for Python 3.11 through 3.14.
 
 The package deliberately declares no PDS2 routing profile, publication producer
-profile, unconditional producer dependency, or adapter plugin group. ScoreForm
-and Quillan are exact optional dependencies with explicit adapter composition.
+profile, unconditional producer dependency, or adapter plugin group. ScoreForm,
+Quillan, and Concord are exact optional dependencies with explicit adapter
+composition.
 
 ## Typed evidence inventory
 
@@ -70,8 +73,8 @@ and fail-closed invocation validation. Registry construction and selection do
 not discover entry points, import producer packages, open files, or authorize
 student-record access.
 
-The registry has real optional ScoreForm v0.10.0 and Quillan v0.9.0 adapters.
-Other producer projections remain later work.
+The registry has real optional ScoreForm v0.10.0, Quillan v0.9.0, and
+Concord v0.2.0 adapters. Other producer projections remain later work.
 
 See
 [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
@@ -121,7 +124,7 @@ and Meridian-owned evidence projection.
 
 The package implements every preparation stage through a coherent hidden-byte
 `AdapterProjectionRequest` and `PreparedPublicationInvocation`; explicit
-ScoreForm or Quillan composition now populates the evidence inventory.
+ScoreForm, Quillan, or Concord composition now populates the evidence inventory.
 
 ## Architecture decisions
 
@@ -147,8 +150,9 @@ The v0.1.1 milestone proceeds through:
 7. Quillan adapter — implemented;
 8. inventory and diagnostics commands — implemented;
 9. exact cache and snapshot rules — implemented;
-10. cross-producer scenarios;
-11. foundation audit and release.
+10. Concord adapter — implemented;
+11. cross-producer scenarios;
+12. foundation audit and release.
 
 No complete Grade or proficiency engine is part of this milestone.
 

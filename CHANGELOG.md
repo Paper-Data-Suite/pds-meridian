@@ -4,6 +4,14 @@
 
 ### Added
 
+- Exact optional `pds-concord==0.2.0` adapter using Concord's released
+  consumer-neutral Academic Result reader, dynamic capability derivation,
+  non-individualized Group Scores, exact target ownership/version, rich native
+  Scoring Scales, Score history, Evidence Link and Moderation provenance, and
+  explicit unevaluated eligibility.
+- Concord release-wheel authentication, installed adapter smoke validation,
+  exact package-extra validation, and producer-neutral evidence/cache/diagnostic
+  support for non-student evidence.
 - Read-only `meridian publications list` and `meridian publications verify`
   diagnostics with bounded Core discovery, canonical reload, exact producer
   compatibility, adapter support, and reader readiness reporting.
@@ -74,5 +82,5 @@
   assessment for supersession, withdrawal, registration, profile, adapter,
   reader, manifest, and authorization changes.
 
-The package does not yet implement the remaining producer adapters, eligibility or
-selection policy, proficiency, Grades, or reports.
+The package does not yet implement the remaining Portia/Vitrine producer adapters,
+eligibility or selection policy, proficiency, Grades, or reports.

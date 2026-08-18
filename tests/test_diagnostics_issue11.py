@@ -327,9 +327,10 @@ def test_exact_verification_does_not_consult_catalog(
     assert adapter.calls == 0
 
 
-def test_builtin_registry_is_explicit_scoreform_and_quillan() -> None:
+def test_builtin_registry_is_explicit_academic_producers() -> None:
     registry = diagnostics.build_builtin_adapter_registry()
     assert tuple(binding.descriptor.adapter_id for binding in registry.bindings) == (
+        "concord.academic_result",
         "quillan.academic_result",
         "scoreform.academic_result",
     )

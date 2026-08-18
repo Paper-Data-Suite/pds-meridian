@@ -18,8 +18,10 @@ publication/registration/series/withdrawal verification, candidate drift
 rejection, Core compatibility evaluation, authorization-before-access, bounded
 manifest-byte preparation, and final canonical-state rechecking.
 
-Real producer parsing, evidence projection, cache policy, grading, and reporting
-remain unimplemented.
+Exact ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 producer
+parsing/evidence projection are implemented, together with immutable projection
+cache persistence and authorized reload/assessment. Evidence eligibility,
+selection, grading, and reporting remain unimplemented.
 
 ## Goals
 
@@ -49,7 +51,7 @@ This architecture does not:
 - map producer scales into a Meridian proficiency scale;
 - calculate standards proficiency or Grades;
 - make intervention information academic evidence;
-- define Quillan's future publication contract; or
+- change a released producer publication contract; or
 - require producer packages to depend on Meridian.
 
 ## Dependency baseline
@@ -221,8 +223,8 @@ verifies exact manifest bytes before producer parsing begins.
 
 ## Ingestion state machine
 
-The later implementation should model ingestion as ordered stages rather than a
-single `load()` operation.
+The implementation models ingestion as ordered stages rather than a single
+`load()` operation.
 
 ### Stage 1: candidate discovery
 
@@ -480,7 +482,27 @@ The adapter preserves the exact Quillan scale and distinguishes a native
 rating from a Meridian-derived proficiency level. `returned_without_full_review`
 and other non-score states must not become zero or the lowest rating.
 
-### Concord and future academic producers
+### Concord
+
+| Concern | Current architectural fact |
+| --- | --- |
+| Producer module | `concord` |
+| Academic Work producer contract | `concord_academic_work_v1` |
+| Work kind | `collaborative_activity` |
+| Required source record | `activity` / `concord_activity_v1` |
+| Academic-result manifest | `concord_academic_result_manifest_v1` |
+| Record set | `academic_results` |
+| Capabilities | content-derived `criterion_scores`, `standards_ratings`, `moderated_scores` |
+| Public consumer reader | released in exact `pds-concord==0.2.0` |
+| Meridian adapter | explicit, lazy `concord.academic_result`, projection contract `1` |
+
+Concord proves that the generic evidence/cache boundary can preserve a Group
+Score without fabricating a student subject, exact target ownership/version,
+richer native Scoring Scales, explicit Score history, non-score dispositions,
+Score Evidence Links, and Moderation provenance. Concord Artifact access remains
+a separate authorization boundary.
+
+### Future academic producers
 
 A future academic producer is ingestible only after it supplies:
 

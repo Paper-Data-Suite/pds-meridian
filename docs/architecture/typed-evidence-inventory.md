@@ -7,8 +7,12 @@ producer-native provenance without introducing attempt selection or policy.
 Quillan v0.9.0 is the second production population, preserving workflow states,
 minimum-requirement outcomes, observation missingness, Boolean applicability and
 evidence presence, native ratings, and teacher-entered overall ratings without
-grading inference. See [ScoreForm v0.10.0 adapter](scoreform-adapter.md) and
-[Quillan v0.9.0 adapter](quillan-adapter.md).
+grading inference. Concord v0.2.0 is the third production population, adding
+truthful non-student Score targets, richer native Scoring Scale metadata, Score
+history, and Moderation/evidence-link provenance. See
+[ScoreForm v0.10.0 adapter](scoreform-adapter.md),
+[Quillan v0.9.0 adapter](quillan-adapter.md), and
+[Concord v0.2.0 adapter](concord-adapter.md).
 
 ## Status
 
@@ -75,6 +79,11 @@ version.
 
 `StudentSubject` contains only `student_id`.
 
+An `EvidenceItem` may instead carry `subject=None` when the producer result does
+not assert an individual student subject. This is required for exact Group and
+other non-student academic evidence and must not be interpreted as missing
+evidence or copied to students.
+
 The identifier follows Core's shared identifier policy and remains a string so
 leading zeros are preserved. The inventory does not copy names, email addresses,
 accommodations, roster rows, or other student display fields.
@@ -86,8 +95,10 @@ accommodations, roster rows, or other student display fields.
 - a target kind;
 - an optional target identifier;
 - an optional parent-target identity;
-- ordered, duplicate-free aligned standard IDs; and
-- an optional positive sequence.
+- ordered, duplicate-free aligned standard IDs;
+- an optional positive sequence;
+- optional exact producer owning-system identity; and
+- optional exact producer target contract version.
 
 Target examples include a whole work, attempt, question, standard, review unit,
 criterion, requirement, submission, or intervention goal. The model does not
@@ -175,13 +186,15 @@ map points to proficiency, or declare the points to be a Grade.
 
 - exact scale ID;
 - optional scale contract version;
-- whether producer order is meaningful; and
+- whether producer order is meaningful;
+- optional lineage ID, name, revision, scale type, status, and superseded scale
+  identity; and
 - ordered native levels.
 
-Each `NativeScaleLevel` retains an exact scalar value and optional producer label
-and description. Scale IDs, labels, and descriptions use the same exact
-producer-native text boundary and are not normalized. Exact level values must be
-unique.
+Each `NativeScaleLevel` retains an exact scalar value and optional producer label,
+description, meaning, and position. Scale IDs, labels, descriptions, and meanings
+use the same exact producer-native text boundary and are not normalized. Exact
+level values must be unique.
 
 A `NativeScaledValue` must match one declared level by both scalar type and
 value. Numeric `1` does not match string `"1"`.
@@ -297,7 +310,7 @@ Validity, eligibility, and selection are separate questions.
 An `EvidenceItem` combines:
 
 - one opaque inventory item ID;
-- one student subject;
+- an optional privacy-minimal student subject;
 - one native target;
 - one native result kind;
 - one typed native value;
@@ -430,7 +443,7 @@ This foundation does not implement:
 - canonical workspace retrieval;
 - authorization;
 - manifest verification or decoding;
-- ScoreForm, Quillan, or intervention adapters;
+- Portia, Vitrine, or other future intervention adapters;
 - eligibility evaluation;
 - attempt or evidence selection;
 - proficiency or Grade calculation;

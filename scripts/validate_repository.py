@@ -66,6 +66,7 @@ def validate(
     core_wheel: Path,
     scoreform_wheel: Path,
     quillan_wheel: Path,
+    concord_wheel: Path,
     *,
     allow_dirty: bool,
 ) -> None:
@@ -73,6 +74,7 @@ def validate(
     wheel = core_wheel.resolve()
     scoreform = scoreform_wheel.resolve()
     quillan = quillan_wheel.resolve()
+    concord = concord_wheel.resolve()
     python = sys.executable
     _run([python, "scripts/verify_core_wheel.py", str(wheel), "--installed"])
     _run(
@@ -91,6 +93,14 @@ def validate(
             "--installed",
         ]
     )
+    _run(
+        [
+            python,
+            "scripts/verify_concord_wheel.py",
+            str(concord),
+            "--installed",
+        ]
+    )
     _run([python, "-m", "pip", "check"])
 
     with tempfile.TemporaryDirectory(prefix="pds-meridian-validation-") as raw_temp:
@@ -103,6 +113,7 @@ def validate(
             "PDS_CORE_WHEEL": str(wheel),
             "SCOREFORM_WHEEL": str(scoreform),
             "QUILLAN_WHEEL": str(quillan),
+            "CONCORD_WHEEL": str(concord),
             "PYTHONDONTWRITEBYTECODE": "1",
             "RUFF_CACHE_DIR": str(temp / "ruff-cache"),
             "MYPY_CACHE_DIR": str(temp / "mypy-cache"),
@@ -144,6 +155,7 @@ def validate(
                 str(wheel),
                 str(scoreform),
                 str(quillan),
+                str(concord),
             ],
             env=env,
         )
@@ -159,12 +171,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--core-wheel", required=True, type=Path)
     parser.add_argument("--scoreform-wheel", required=True, type=Path)
     parser.add_argument("--quillan-wheel", required=True, type=Path)
+    parser.add_argument("--concord-wheel", required=True, type=Path)
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args(argv)
     validate(
         args.core_wheel,
         args.scoreform_wheel,
         args.quillan_wheel,
+        args.concord_wheel,
         allow_dirty=args.allow_dirty,
     )
     return 0
