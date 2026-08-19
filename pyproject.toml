@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pds-meridian"
 dynamic = ["version"]
-description = "Policy-driven grading, evidence aggregation, and reporting for Paper Data Suite"
+description = "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
 readme = { file = "README", content-type = "text/markdown" }
 requires-python = ">=3.11"
 license = "MIT"

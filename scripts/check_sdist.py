@@ -10,6 +10,9 @@ from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
 EXPECTED_VERSION = "0.1.1.dev0"
+EXPECTED_SUMMARY = (
+    "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
+)
 EXPECTED_SDIST_FILENAME = f"pds_meridian-{EXPECTED_VERSION}.tar.gz"
 EXPECTED_ROOT = f"pds_meridian-{EXPECTED_VERSION}"
 
@@ -138,6 +141,11 @@ def validate_sdist(path: str | Path) -> None:
     if metadata["Version"] != EXPECTED_VERSION:
         raise SdistValidationError(
             f"Source distribution version must be {EXPECTED_VERSION}."
+        )
+    if metadata["Summary"] != EXPECTED_SUMMARY:
+        raise SdistValidationError(
+            "Source distribution summary must describe only the implemented "
+            "release surface."
         )
 
     missing = sorted(REQUIRED_MEMBERS - relative_files)

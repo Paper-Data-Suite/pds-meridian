@@ -239,3 +239,20 @@ def test_cache_purpose_mismatch_fails_before_protected_bytes(
         )
 
     assert opened_paths == []
+
+def test_release_facing_descriptions_do_not_claim_unimplemented_grading() -> None:
+    pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
+    cli = Path("meridian/cli.py").read_text(encoding="utf-8")
+    readme = Path("README").read_text(encoding="utf-8")
+
+    expected = (
+        "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
+    )
+    assert f'description = "{expected}"' in pyproject
+    assert "Policy-driven grading, evidence aggregation, and reporting" not in pyproject
+    assert "publication-ingestion and typed-evidence" in cli
+    assert "grading-policy" not in cli
+    assert (
+        "ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters"
+        in readme
+    )

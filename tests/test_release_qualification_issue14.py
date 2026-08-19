@@ -10,6 +10,7 @@ import pytest
 from scripts.check_sdist import (
     EXPECTED_ROOT,
     EXPECTED_SDIST_FILENAME,
+    EXPECTED_SUMMARY,
     SdistValidationError,
     validate_sdist,
 )
@@ -41,7 +42,12 @@ def _add_tar_file(archive: tarfile.TarFile, name: str, content: bytes) -> None:
     archive.addfile(info, io.BytesIO(content))
 
 
-def _write_minimal_sdist(path: Path, *, extra_member: str | None = None) -> None:
+def _write_minimal_sdist(
+    path: Path,
+    *,
+    extra_member: str | None = None,
+    summary: str = EXPECTED_SUMMARY,
+) -> None:
     required = {
         "CHANGELOG.md": b"# Changelog\n",
         "LICENSE": b"synthetic license\n",
@@ -59,7 +65,8 @@ def _write_minimal_sdist(path: Path, *, extra_member: str | None = None) -> None
     pkg_info = (
         "Metadata-Version: 2.4\n"
         "Name: pds-meridian\n"
-        "Version: 0.1.1.dev0\n\n"
+        "Version: 0.1.1.dev0\n"
+        f"Summary: {summary}\n\n"
     ).encode()
     with tarfile.open(path, "w:gz") as archive:
         _add_tar_file(archive, f"{EXPECTED_ROOT}/PKG-INFO", pkg_info)
@@ -147,3 +154,12 @@ def test_release_qualification_documentation_is_validation_guarded() -> None:
     ):
         assert phrase in checker
         assert phrase in package_doc
+
+def test_sdist_checker_rejects_overclaimed_release_summary(tmp_path: Path) -> None:
+    sdist = tmp_path / EXPECTED_SDIST_FILENAME
+    _write_minimal_sdist(
+        sdist,
+        summary="Policy-driven grading, evidence aggregation, and reporting",
+    )
+    with pytest.raises(SdistValidationError, match="implemented release surface"):
+        validate_sdist(sdist)

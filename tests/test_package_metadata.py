@@ -10,6 +10,9 @@ def test_distribution_metadata() -> None:
     metadata = distribution.metadata
     assert metadata["Name"] == "pds-meridian"
     assert metadata["Version"] == "0.1.1.dev0"
+    assert metadata["Summary"] == (
+        "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
+    )
     assert metadata["Requires-Python"] == ">=3.11"
     assert metadata["Description-Content-Type"] == "text/markdown"
     assert metadata["License-Expression"] == "MIT"

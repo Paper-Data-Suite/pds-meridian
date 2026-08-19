@@ -115,9 +115,9 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. Optional ScoreForm v0.10.0 and Quillan v0.9.0 adapters are available through explicit
-composition; there is no adapter entry-point group or unconditional producer
-runtime dependency.
+descriptor. Optional ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are
+available through explicit composition; there is no adapter entry-point group or
+unconditional producer runtime dependency.
 
 Install the authenticated ScoreForm release wheel first, then install Meridian's
 exact optional dependency with `python -m pip install ".[scoreform]"`. Installing
