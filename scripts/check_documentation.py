@@ -137,6 +137,9 @@ REQUIRED_TEXT = {
         "275/275",
         "release blocker",
         "Release-candidate version: `0.1.1`",
+        "Clean committed release-candidate qualification",
+        "f19f5149ca6d700c27c085abff985669be1cc418",
+        "277/277",
         "all eight GitHub Actions matrix jobs",
     ),
 }
