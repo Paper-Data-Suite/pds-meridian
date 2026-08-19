@@ -15,6 +15,7 @@ EXPECTED = (
     Path("docs/README.md"),
     Path("docs/development/package-foundation.md"),
     Path("docs/development/synthetic-data.md"),
+    Path("docs/development/v0.1.1-release-audit.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
@@ -122,6 +123,15 @@ REQUIRED_TEXT = {
         "real student",
         "synthetic_class_2026",
         "Producer-contract fixtures",
+    ),
+    Path("docs/development/v0.1.1-release-audit.md"): (
+        "Substantive audit: **passed**",
+        "643608680e7ae7f3da2bc34a53e6923b568a76e7",
+        "b3715a2be0d3ddbefe5c0fb489417f407fbf4dc9",
+        "275/275",
+        "release blocker",
+        "version promotion",
+        "all eight GitHub Actions matrix jobs",
     ),
 }
 STALE_ACTIVE_PHRASES = (

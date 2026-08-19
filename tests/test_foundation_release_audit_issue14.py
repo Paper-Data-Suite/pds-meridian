@@ -256,3 +256,16 @@ def test_release_facing_descriptions_do_not_claim_unimplemented_grading() -> Non
         "ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters"
         in readme
     )
+
+def test_durable_release_audit_is_indexed_and_validation_guarded() -> None:
+    audit = Path("docs/development/v0.1.1-release-audit.md").read_text(
+        encoding="utf-8"
+    )
+    index = Path("docs/README.md").read_text(encoding="utf-8")
+    checker = Path("scripts/check_documentation.py").read_text(encoding="utf-8")
+
+    assert "Substantive audit: **passed**" in audit
+    assert "275/275" in audit
+    assert "v0.1.1-release-audit.md" in index
+    assert "v0.1.1-release-audit.md" in checker
+    assert "all eight GitHub Actions matrix jobs" in checker
