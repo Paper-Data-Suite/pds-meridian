@@ -10,12 +10,24 @@ import venv
 from pathlib import Path
 
 
+def _isolated_environment() -> dict[str, str]:
+    """Return a subprocess environment that cannot inherit source-tree hooks."""
+    environment = {
+        **os.environ,
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+    }
+    for variable in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP"):
+        environment.pop(variable, None)
+    return environment
+
+
 def _run(command: list[str], cwd: Path) -> None:
     subprocess.run(
         command,
         cwd=cwd,
         check=True,
-        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+        env=_isolated_environment(),
     )
 
 
@@ -168,6 +180,18 @@ def smoke_test(
         _quillan_adapter_smoke(meridian_wheel, core_wheel, quillan_wheel)
     if concord_wheel is not None:
         _concord_adapter_smoke(meridian_wheel, core_wheel, concord_wheel)
+    if (
+        scoreform_wheel is not None
+        and quillan_wheel is not None
+        and concord_wheel is not None
+    ):
+        _all_adapters_smoke(
+            meridian_wheel,
+            core_wheel,
+            scoreform_wheel,
+            quillan_wheel,
+            concord_wheel,
+        )
 
 
 def _scoreform_adapter_smoke(
@@ -211,7 +235,15 @@ def _scoreform_adapter_smoke(
                     "assert registry.bindings[0].descriptor.adapter_id == "
                     "'scoreform.academic_result'; "
                     "assert m.version('scoreform') == '0.10.0'; "
-                    "assert callable(read_academic_result_manifest)"
+                    "assert callable(read_academic_result_manifest); "
+                    "import meridian, pathlib, pds_core, scoreform, sys; "
+                    "root=pathlib.Path(sys.prefix).resolve(); "
+                    "assert pathlib.Path(meridian.__file__).resolve()"
+                    ".is_relative_to(root); "
+                    "assert pathlib.Path(pds_core.__file__).resolve()"
+                    ".is_relative_to(root); "
+                    "assert pathlib.Path(scoreform.__file__).resolve()"
+                    ".is_relative_to(root)"
                 ),
             ],
             outside,
@@ -331,6 +363,88 @@ def _concord_adapter_smoke(
                     ".is_relative_to(root); "
                     "assert pathlib.Path(concord.__file__).resolve()"
                     ".is_relative_to(root)"
+                ),
+            ],
+            outside,
+        )
+        _assert_empty(outside)
+
+
+def _all_adapters_smoke(
+    meridian_wheel: Path,
+    core_wheel: Path,
+    scoreform_wheel: Path,
+    quillan_wheel: Path,
+    concord_wheel: Path,
+) -> None:
+    """Prove all frozen producer adapters coexist in one installed environment."""
+    with tempfile.TemporaryDirectory(
+        prefix="pds-meridian-all-adapters-smoke-"
+    ) as raw_temp:
+        root = Path(raw_temp)
+        environment = root / "venv"
+        outside = root / "outside"
+        outside.mkdir()
+        venv.EnvBuilder(with_pip=True).create(environment)
+        scripts = environment / ("Scripts" if os.name == "nt" else "bin")
+        python = scripts / ("python.exe" if os.name == "nt" else "python")
+        _run(
+            [
+                str(python),
+                "-m",
+                "pip",
+                "install",
+                str(core_wheel.resolve()),
+                str(scoreform_wheel.resolve()),
+                str(quillan_wheel.resolve()),
+                str(concord_wheel.resolve()),
+                str(meridian_wheel.resolve()) + "[scoreform,quillan,concord]",
+            ],
+            outside,
+        )
+        _run([str(python), "-m", "pip", "check"], outside)
+        _run(
+            [
+                str(python),
+                "-c",
+                (
+                    "import importlib.metadata as m, pathlib, sys; "
+                    "from meridian.diagnostics import "
+                    "build_builtin_adapter_registry; "
+                    "from scoreform.academic_result_reader import "
+                    "read_academic_result_manifest as read_scoreform; "
+                    "from quillan.academic_result_reader import "
+                    "read_academic_result_manifest as read_quillan; "
+                    "from concord.academic_result_reader import "
+                    "read_academic_result_manifest as read_concord; "
+                    "registry=build_builtin_adapter_registry(); "
+                    "adapter_ids={binding.descriptor.adapter_id "
+                    "for binding in registry.bindings}; "
+                    "assert adapter_ids == {"
+                    "'scoreform.academic_result', "
+                    "'quillan.academic_result', "
+                    "'concord.academic_result'}; "
+                    "assert len(registry.bindings) == 3; "
+                    "assert m.version('pds-core') == '0.6.0'; "
+                    "assert m.version('scoreform') == '0.10.0'; "
+                    "assert m.version('quillan') == '0.9.0'; "
+                    "assert m.version('pds-concord') == '0.2.0'; "
+                    "assert callable(read_scoreform); "
+                    "assert callable(read_quillan); "
+                    "assert callable(read_concord); "
+                    "import concord, meridian, pds_core, quillan, scoreform; "
+                    "installed_root=pathlib.Path(sys.prefix).resolve(); "
+                    "assert pathlib.Path(meridian.__file__).resolve()"
+                    ".is_relative_to(installed_root); "
+                    "assert pathlib.Path(pds_core.__file__).resolve()"
+                    ".is_relative_to(installed_root); "
+                    "assert pathlib.Path(scoreform.__file__).resolve()"
+                    ".is_relative_to(installed_root); "
+                    "assert pathlib.Path(quillan.__file__).resolve()"
+                    ".is_relative_to(installed_root); "
+                    "assert pathlib.Path(concord.__file__).resolve()"
+                    ".is_relative_to(installed_root); "
+                    "assert 'concord.academic_result_artifacts' not in sys.modules"
                 ),
             ],
             outside,

@@ -87,6 +87,15 @@ Every public cache load requires a fresh `read_projection_cache` decision before
 the snapshot file is opened and a fresh `project_evidence` decision before
 current reuse is assessed.
 
+Each cache-key directory also contains a zero-byte
+`.scope-<authorization_scope_digest>` marker. The digest is SHA-256 of canonical
+JSON containing only the projection purpose ID and ordered requested student IDs.
+The marker therefore exposes no student ID or purpose text. After the fresh cache
+read authorization succeeds, Meridian requires the caller's exact purpose/student
+scope digest to match this marker **before opening snapshot bytes**. A caller
+authorized for one student scope cannot use another scope's known cache key to
+cause those protected evidence bytes to be read.
+
 ## Exact evidence serialization
 
 `meridian.evidence_serialization` converts every evidence model through exact,
@@ -150,11 +159,14 @@ to UTC. Duplicate object keys and noncanonical equivalent byte encodings fail.
 cache/meridian/projections/
   <publication_id>/
     <cache_key>/
+      .scope-<authorization_scope_digest>
       <snapshot_digest>.json
 ```
 
-`snapshot_digest` is SHA-256 of exact canonical snapshot bytes. The cache-key
-write lock is `.write.lock` in the same directory.
+`snapshot_digest` is SHA-256 of exact canonical snapshot bytes.
+`authorization_scope_digest` is the privacy-safe purpose/student-scope digest
+checked before protected snapshot access. The cache-key write lock is
+`.write.lock` in the same directory.
 
 There is no `latest.json`, `current.json`, mutable pointer, SQLite index, or
 selection by timestamp, modification time, lexical digest, revision, or directory
@@ -173,9 +185,12 @@ A cache-key lock covers directory inspection, replay validation, and exclusive
 creation. Exact replay returns the existing bytes and original capture time,
 does not call the clock, and does not touch the file.
 
-A differing inventory under the same identity fails as projection
-nondeterminism. Meridian does not overwrite, add a second snapshot, or choose a
-newer result.
+A difference in canonical serialized inventory bytes under the same identity
+fails as projection nondeterminism. Replay comparison deliberately uses the
+canonical persistence encoding rather than Python object equality, so
+serialization-significant distinctions such as `0.0` versus `-0.0` or differing
+timezone-offset representations cannot silently collapse. Meridian does not
+overwrite, add a second snapshot, or choose a newer result.
 
 Before confirmed durability, only an incomplete file created by the current
 operation may be removed. After durability, the immutable snapshot is preserved.

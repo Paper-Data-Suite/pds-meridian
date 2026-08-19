@@ -13,7 +13,10 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.1.1.dev0"
+EXPECTED_VERSION = "0.1.1"
+EXPECTED_SUMMARY = (
+    "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
+)
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.10.0; extra == 'scoreform'")
 EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.9.0; extra == 'quillan'")
@@ -135,6 +138,10 @@ def validate_wheel(path: str | Path) -> None:
     if metadata["Version"] != EXPECTED_VERSION:
         raise PackageValidationError(
             f"Distribution version must be {EXPECTED_VERSION}."
+        )
+    if metadata["Summary"] != EXPECTED_SUMMARY:
+        raise PackageValidationError(
+            "Distribution summary must describe only the implemented release surface."
         )
     if metadata["Requires-Python"] != ">=3.11":
         raise PackageValidationError("Requires-Python must be >=3.11.")

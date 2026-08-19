@@ -21,9 +21,10 @@ def test_main_without_arguments_prints_help(capsys: pytest.CaptureFixture[str]) 
     assert main(()) == 0
     output = capsys.readouterr().out
     assert "usage: meridian" in output
-    assert "publication-ingestion" in output
-    assert "are not" in output
+    assert "publication-ingestion and typed-evidence" in output
+    assert "Grading, proficiency, and reporting policy stages" in output
     assert "implemented yet." in output
+    assert "grading-policy" not in output
 
 
 def test_main_help_returns_zero(capsys: pytest.CaptureFixture[str]) -> None:

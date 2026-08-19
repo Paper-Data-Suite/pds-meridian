@@ -7,7 +7,7 @@ from meridian._version import __version__
 
 
 def test_version_has_one_authoritative_value() -> None:
-    assert __version__ == "0.1.1.dev0"
+    assert __version__ == "0.1.1"
     assert meridian.__version__ is __version__
 
 

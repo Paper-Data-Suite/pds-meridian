@@ -1,7 +1,7 @@
 # Meridian documentation
 
 Meridian is in the v0.1.1 executable publication-ingestion foundation
-milestone. The installable `0.1.1.dev0` package, strict typing, tests, CI,
+milestone. The installable `0.1.1` package, strict typing, tests, CI,
 validation tooling, immutable typed evidence inventory, exact consumer adapter
 registry, bounded Core discovery and canonical-verification preparation, exact
 evidence serialization, immutable projection-cache layers, and the read-only
@@ -26,10 +26,11 @@ grading, and reporting remain follow-on work.
 11. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
 12. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
 13. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-14. [ADR index](decisions/README.md)
-15. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-16. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-17. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+14. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+15. [ADR index](decisions/README.md)
+16. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+17. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+18. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 
 ## Development foundation
 
@@ -155,7 +156,7 @@ The v0.1.1 milestone proceeds through:
 9. exact cache and snapshot rules — implemented;
 10. Concord adapter — implemented;
 11. cross-producer scenarios — implemented;
-12. foundation audit and release.
+12. foundation audit — PR candidate validated; final merge gate pending.
 
 No complete Grade or proficiency engine is part of this milestone.
 

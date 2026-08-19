@@ -15,6 +15,7 @@ EXPECTED = (
     Path("docs/README.md"),
     Path("docs/development/package-foundation.md"),
     Path("docs/development/synthetic-data.md"),
+    Path("docs/development/v0.1.1-release-audit.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
@@ -37,8 +38,14 @@ EXPECTED = (
 )
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
+    Path("CHANGELOG.md"): (
+        "## 0.1.1 — 2026-08-18",
+        "canonical serialized",
+        "before protected snapshot bytes are opened",
+        "Release qualification",
+    ),
     Path("README"): (
-        "0.1.1.dev0",
+        "0.1.1",
         "pds-core>=0.6,<0.7",
         "Package installation alone does not enable publication ingestion.",
         "Discovery is not authorization.",
@@ -75,6 +82,9 @@ REQUIRED_TEXT = {
     Path("docs/architecture/exact-projection-snapshots-and-cache.md"): (
         "cache.projection_nondeterministic",
         "read_projection_cache",
+        "authorization_scope_digest",
+        "before opening snapshot bytes",
+        "canonical serialized inventory bytes",
         "Historical immutability",
         "report snapshots",
         "Concord v0.2.0",
@@ -107,15 +117,35 @@ REQUIRED_TEXT = {
         "producer package -X-> pds-meridian",
     ),
     Path("docs/development/package-foundation.md"): (
-        "0.1.1.dev0",
+        "0.1.1",
         "paper_data_suite.modules",
         "paper_data_suite.publication_producers",
         "meridian.diagnostics",
+        "upstream dependency-direction audit",
+        "source-distribution boundary",
+        "all-adapter coexistence",
     ),
     Path("docs/development/synthetic-data.md"): (
         "real student",
         "synthetic_class_2026",
         "Producer-contract fixtures",
+    ),
+    Path("docs/development/v0.1.1-release-audit.md"): (
+        "Substantive audit: **passed**",
+        "643608680e7ae7f3da2bc34a53e6923b568a76e7",
+        "b3715a2be0d3ddbefe5c0fb489417f407fbf4dc9",
+        "275/275",
+        "release blocker",
+        "Release-candidate version: `0.1.1`",
+        "Clean committed release-candidate qualification",
+        "f19f5149ca6d700c27c085abff985669be1cc418",
+        "277/277",
+        "Pull request and GitHub Actions qualification",
+        "PR #64",
+        "32212895904",
+        "905addfdfa4a8cdc874b6263929b2ac99360bad7",
+        "all eight GitHub Actions matrix jobs",
+        "final docs-only PR",
     ),
 }
 STALE_ACTIVE_PHRASES = (

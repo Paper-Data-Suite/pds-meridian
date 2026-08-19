@@ -17,7 +17,7 @@ history, and Moderation/evidence-link provenance. See
 ## Status
 
 Meridian defines an immutable, producer-neutral evidence inventory for the
-`0.1.1.dev0` publication-ingestion foundation.
+`0.1.1` publication-ingestion foundation.
 
 The inventory is a typed projection boundary. It does not discover publications,
 open manifests, load producer readers, evaluate eligibility policy, select

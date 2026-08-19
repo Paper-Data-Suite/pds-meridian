@@ -2,7 +2,7 @@
 
 ## Status
 
-Meridian has an installable development package at `0.1.1.dev0`. The package is
+Meridian has an installable package at `0.1.1`. The package is
 an executable foundation with exact optional ScoreForm, Quillan, and Concord
 adapters and a read-only `meridian.diagnostics` publication/evidence command surface. It does
 not calculate proficiency or Grades or generate reports.
@@ -61,11 +61,13 @@ python scripts/validate_repository.py --core-wheel <core-wheel> --scoreform-whee
 Use `--allow-dirty` while developing. The default complete validation requires a
 clean working tree.
 
-The validator authenticates Core, ScoreForm, Quillan, and Concord before installed
-dependency checks, pytest, Ruff, strict mypy, documentation validation, package
-builds, Twine checks, wheel
-inspection, isolated wheel smoke testing, `git diff --check`, and repository
-cleanliness checks.
+The validator authenticates Core, ScoreForm, Quillan, and Concord, runs an
+upstream dependency-direction audit proving those frozen distributions do not
+depend on Meridian, and then performs installed dependency checks, pytest, Ruff,
+strict mypy, documentation validation, package builds, and Twine checks. It
+validates both the wheel boundary and source-distribution boundary, then runs
+isolated base, per-producer, and all-adapter coexistence wheel smoke tests before
+`git diff --check` and the final repository-cleanliness check.
 
 ## Entry-point boundary
 
