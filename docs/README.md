@@ -1,7 +1,7 @@
 # Meridian documentation
 
 Meridian is in the v0.1.1 executable publication-ingestion foundation
-milestone. The installable `0.1.1.dev0` package, strict typing, tests, CI,
+milestone. The installable `0.1.1` package, strict typing, tests, CI,
 validation tooling, immutable typed evidence inventory, exact consumer adapter
 registry, bounded Core discovery and canonical-verification preparation, exact
 evidence serialization, immutable projection-cache layers, and the read-only
@@ -156,7 +156,7 @@ The v0.1.1 milestone proceeds through:
 9. exact cache and snapshot rules — implemented;
 10. Concord adapter — implemented;
 11. cross-producer scenarios — implemented;
-12. foundation audit — substantive audit passed; release preparation pending.
+12. foundation audit — release candidate prepared; final validation pending.
 
 No complete Grade or proficiency engine is part of this milestone.
 

@@ -38,8 +38,14 @@ EXPECTED = (
 )
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
+    Path("CHANGELOG.md"): (
+        "## 0.1.1 — 2026-08-18",
+        "canonical serialized",
+        "before protected snapshot bytes are opened",
+        "Release qualification",
+    ),
     Path("README"): (
-        "0.1.1.dev0",
+        "0.1.1",
         "pds-core>=0.6,<0.7",
         "Package installation alone does not enable publication ingestion.",
         "Discovery is not authorization.",
@@ -111,7 +117,7 @@ REQUIRED_TEXT = {
         "producer package -X-> pds-meridian",
     ),
     Path("docs/development/package-foundation.md"): (
-        "0.1.1.dev0",
+        "0.1.1",
         "paper_data_suite.modules",
         "paper_data_suite.publication_producers",
         "meridian.diagnostics",
@@ -130,7 +136,7 @@ REQUIRED_TEXT = {
         "b3715a2be0d3ddbefe5c0fb489417f407fbf4dc9",
         "275/275",
         "release blocker",
-        "version promotion",
+        "Release-candidate version: `0.1.1`",
         "all eight GitHub Actions matrix jobs",
     ),
 }

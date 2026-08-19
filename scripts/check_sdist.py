@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.1.1.dev0"
+EXPECTED_VERSION = "0.1.1"
 EXPECTED_SUMMARY = (
     "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
 )

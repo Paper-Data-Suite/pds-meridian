@@ -57,7 +57,7 @@ def _write_minimal_sdist(
         "pyproject.toml": b"[build-system]\n",
         "docs/README.md": b"# Documentation\n",
         "meridian/__init__.py": b"",
-        "meridian/_version.py": b'__version__ = "0.1.1.dev0"\n',
+        "meridian/_version.py": b'__version__ = "0.1.1"\n',
         "meridian/py.typed": b"",
         "scripts/validate_repository.py": b"",
         "tests/test_validation_scripts.py": b"",
@@ -65,7 +65,7 @@ def _write_minimal_sdist(
     pkg_info = (
         "Metadata-Version: 2.4\n"
         "Name: pds-meridian\n"
-        "Version: 0.1.1.dev0\n"
+        "Version: 0.1.1\n"
         f"Summary: {summary}\n\n"
     ).encode()
     with tarfile.open(path, "w:gz") as archive:

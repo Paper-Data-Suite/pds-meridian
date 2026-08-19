@@ -2,7 +2,7 @@
 
 ## Status
 
-Meridian has an installable development package at `0.1.1.dev0`. The package is
+Meridian has an installable package at `0.1.1`. The package is
 an executable foundation with exact optional ScoreForm, Quillan, and Concord
 adapters and a read-only `meridian.diagnostics` publication/evidence command surface. It does
 not calculate proficiency or Grades or generate reports.

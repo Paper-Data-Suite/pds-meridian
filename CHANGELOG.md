@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-08-18
 
 ### Added
 
@@ -42,7 +42,7 @@
 - ScoreForm wheel authentication, Core-to-cache integration coverage, installed
   adapter smoke validation, and exact release-wheel CI setup.
 
-- Installable `pds-meridian` package at development version `0.1.1.dev0`.
+- Installable `pds-meridian` package at version `0.1.1`.
 - Required `pds-core>=0.6,<0.7` runtime dependency.
 - Side-effect-free `meridian` command with help and version output.
 - Strict typing, linting, tests, cross-platform CI, package checks, and isolated
@@ -88,6 +88,26 @@
 - Fresh authorization before persisted cache reads and read-only current-state
   assessment for supersession, withdrawal, registration, profile, adapter,
   reader, manifest, and authorization changes.
+
+### Fixed
+
+- Projection-cache replay nondeterminism now compares canonical serialized
+  inventory bytes rather than Python object equality, preserving
+  serialization-significant distinctions such as signed zero and timezone-offset
+  representation.
+- Projection-cache reads now bind the freshly authorized purpose/student scope
+  before protected snapshot bytes are opened.
+- Release-facing package and CLI descriptions now state only the implemented
+  publication-ingestion and typed-evidence diagnostics surface.
+
+### Release qualification
+
+- Added frozen-upstream dependency-direction verification, explicit
+  source-distribution boundary validation, source-tree-isolated installed-wheel
+  smoke environments, and one-environment ScoreForm/Quillan/Concord coexistence
+  qualification.
+- Added the durable v0.1.1 foundation release-audit record and direct regressions
+  for audit-discovered release blockers.
 
 The package does not yet implement the remaining Portia/Vitrine producer adapters,
 eligibility or selection policy, proficiency, Grades, or reports.

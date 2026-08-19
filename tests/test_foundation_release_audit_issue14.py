@@ -269,3 +269,33 @@ def test_durable_release_audit_is_indexed_and_validation_guarded() -> None:
     assert "v0.1.1-release-audit.md" in index
     assert "v0.1.1-release-audit.md" in checker
     assert "all eight GitHub Actions matrix jobs" in checker
+
+def test_release_candidate_version_and_changelog_are_finalized() -> None:
+    version_source = Path("meridian/_version.py").read_text(encoding="utf-8")
+    package_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+    audit = Path("docs/development/v0.1.1-release-audit.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert '__version__: Final[str] = "0.1.1"' in version_source
+    assert 'EXPECTED_VERSION = "0.1.1"' in package_checker
+    assert 'EXPECTED_VERSION = "0.1.1"' in sdist_checker
+    assert "## 0.1.1 — 2026-08-18" in changelog
+    assert "## Unreleased" not in changelog
+    assert "canonical serialized" in changelog
+    assert "before protected snapshot bytes are opened" in changelog
+
+    for relative in (
+        "README",
+        "docs/README.md",
+        "docs/development/package-foundation.md",
+        "docs/architecture/typed-evidence-inventory.md",
+    ):
+        assert "0.1.1.dev0" not in Path(relative).read_text(encoding="utf-8")
+
+    assert "Starting package version: `0.1.1.dev0`" in audit
+    assert "Release-candidate version: `0.1.1`" in audit
+    assert "- [x] promote version metadata" in audit
+    assert "- [x] finalize the changelog" in audit
