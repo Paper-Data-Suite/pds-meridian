@@ -1255,6 +1255,15 @@ def projection_snapshot_to_json_bytes(snapshot: ProjectionSnapshot) -> bytes:
     return _canonical_json_bytes(projection_snapshot_to_dict(snapshot))
 
 
+def _canonical_inventory_bytes(inventory: EvidenceInventory) -> bytes:
+    """Return the exact canonical persistence bytes used for replay comparison."""
+    if not isinstance(inventory, EvidenceInventory):
+        raise ProjectionCacheValidationError(
+            "inventory must be an EvidenceInventory."
+        )
+    return _canonical_json_bytes(evidence_inventory_to_dict(inventory))
+
+
 def _reject_constant(value: str) -> object:
     raise ProjectionCacheValidationError(f"nonfinite JSON number is invalid: {value}.")
 
@@ -1781,7 +1790,9 @@ def cache_projected_inventory(
                     publication_id=publication_id,
                     cache_key=key,
                 )
-            if stored.snapshot.inventory != scoped:
+            if _canonical_inventory_bytes(stored.snapshot.inventory) != (
+                _canonical_inventory_bytes(scoped)
+            ):
                 raise ProjectionCacheNondeterminismError(
                     "Identical projection inputs produced different evidence output.",
                     publication_id=publication_id,

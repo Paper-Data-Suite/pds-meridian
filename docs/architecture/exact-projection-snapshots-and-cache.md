@@ -173,9 +173,12 @@ A cache-key lock covers directory inspection, replay validation, and exclusive
 creation. Exact replay returns the existing bytes and original capture time,
 does not call the clock, and does not touch the file.
 
-A differing inventory under the same identity fails as projection
-nondeterminism. Meridian does not overwrite, add a second snapshot, or choose a
-newer result.
+A difference in canonical serialized inventory bytes under the same identity
+fails as projection nondeterminism. Replay comparison deliberately uses the
+canonical persistence encoding rather than Python object equality, so
+serialization-significant distinctions such as `0.0` versus `-0.0` or differing
+timezone-offset representations cannot silently collapse. Meridian does not
+overwrite, add a second snapshot, or choose a newer result.
 
 Before confirmed durability, only an incomplete file created by the current
 operation may be removed. After durability, the immutable snapshot is preserved.
