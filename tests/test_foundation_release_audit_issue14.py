@@ -6,13 +6,22 @@ from pathlib import Path
 
 import pytest
 
+import meridian.projection_cache as cache
 from meridian.evidence import EvidenceInventory, NativeScalarValue
 from meridian.projection_cache import (
     ProjectionCacheNondeterminismError,
     cache_projected_inventory,
 )
-from tests.cross_producer_test_support import exact_reader_version
-from tests.cross_producer_workspace_support import build_mixed_workspace, prepare_all
+from tests.cross_producer_test_support import (
+    SECONDARY_STUDENT_ID,
+    SHARED_STUDENT_ID,
+    exact_reader_version,
+)
+from tests.cross_producer_workspace_support import (
+    build_mixed_workspace,
+    prepare_all,
+    project_and_cache_all,
+)
 
 
 def _scoreform_projection(tmp_path: Path):
@@ -129,3 +138,104 @@ def test_cache_documentation_guards_canonical_replay_rule() -> None:
     assert "canonical serialized inventory bytes" in checker
     assert "canonical serialized inventory bytes" in architecture
     assert "Python object equality" in architecture
+
+def test_cache_scope_mismatch_fails_before_protected_bytes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    mixed = build_mixed_workspace(tmp_path)
+    prepared = prepare_all(
+        mixed,
+        requested_student_ids=(SECONDARY_STUDENT_ID,),
+    )
+    projected = project_and_cache_all(mixed, prepared)
+
+    marker_names: list[str] = []
+    for value in projected.values():
+        markers = tuple(value.cached.stored.path.parent.glob(".scope-*"))
+        assert len(markers) == 1
+        marker_names.append(markers[0].name)
+
+    assert all(SHARED_STUDENT_ID not in name for name in marker_names)
+    assert all(SECONDARY_STUDENT_ID not in name for name in marker_names)
+
+    opened_paths: list[Path] = []
+    original = cache._read_bounded
+
+    def tracked(path: Path, **kwargs: object) -> bytes:
+        opened_paths.append(path)
+        return original(path, **kwargs)
+
+    monkeypatch.setattr(cache, "_read_bounded", tracked)
+
+    for module_id, value in projected.items():
+        with pytest.raises(cache.ProjectionCacheAuthorizationError) as caught:
+            cache.load_authorized_projection_snapshot(
+                mixed.root,
+                mixed.publications[module_id].publication_id,
+                value.cached.stored.cache_key,
+                authorizer=mixed.authorizer,
+                authorization_purpose_id="grading_import",
+                requested_student_ids=(SHARED_STUDENT_ID,),
+                producer_registry=mixed.producer_registry,
+                adapter_registry=mixed.adapter_registry,
+                distribution_version_resolver=exact_reader_version,
+            )
+        assert caught.value.cache_key == value.cached.stored.cache_key
+        assert caught.value.publication_id == (
+            mixed.publications[module_id].publication_id
+        )
+
+    assert opened_paths == []
+
+
+def test_cache_scope_authorization_rule_is_documentation_guarded() -> None:
+    checker = Path("scripts/check_documentation.py").read_text(encoding="utf-8")
+    architecture = Path(
+        "docs/architecture/exact-projection-snapshots-and-cache.md"
+    ).read_text(encoding="utf-8")
+
+    assert "authorization_scope_digest" in checker
+    assert "authorization_scope_digest" in architecture
+    assert "before opening snapshot bytes" in checker
+    assert "before opening snapshot bytes" in architecture
+
+def test_cache_purpose_mismatch_fails_before_protected_bytes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    mixed = build_mixed_workspace(tmp_path)
+    prepared = prepare_all(
+        mixed,
+        requested_student_ids=(SHARED_STUDENT_ID,),
+    )
+    projected = project_and_cache_all(mixed, prepared)
+
+    opened_paths: list[Path] = []
+    original = cache._read_bounded
+
+    def tracked(path: Path, **kwargs: object) -> bytes:
+        opened_paths.append(path)
+        return original(path, **kwargs)
+
+    monkeypatch.setattr(cache, "_read_bounded", tracked)
+
+    for module_id, value in projected.items():
+        with pytest.raises(cache.ProjectionCacheAuthorizationError) as caught:
+            cache.load_authorized_projection_snapshot(
+                mixed.root,
+                mixed.publications[module_id].publication_id,
+                value.cached.stored.cache_key,
+                authorizer=mixed.authorizer,
+                authorization_purpose_id="reporting_preview",
+                requested_student_ids=(SHARED_STUDENT_ID,),
+                producer_registry=mixed.producer_registry,
+                adapter_registry=mixed.adapter_registry,
+                distribution_version_resolver=exact_reader_version,
+            )
+        assert caught.value.cache_key == value.cached.stored.cache_key
+        assert caught.value.publication_id == (
+            mixed.publications[module_id].publication_id
+        )
+
+    assert opened_paths == []

@@ -1433,9 +1433,12 @@ def _validate_existing_directory_chain(root: Path, target: Path) -> None:
             )
 
 
-def _inspect_cache_directory(directory: Path) -> tuple[Path | None, Path]:
+def _inspect_cache_directory(
+    directory: Path,
+) -> tuple[Path | None, Path, str | None]:
     lock = directory / ".write.lock"
     snapshot: Path | None = None
+    scope_digest: str | None = None
     try:
         entries = tuple(directory.iterdir())
     except OSError as error:
@@ -1457,6 +1460,14 @@ def _inspect_cache_directory(directory: Path) -> tuple[Path | None, Path]:
             raise ProjectionCacheIntegrityError(
                 "projection cache contains a nonregular entry."
             )
+        scope_match = re.fullmatch(r"\.scope-([0-9a-f]{64})", entry.name)
+        if scope_match is not None:
+            if scope_digest is not None:
+                raise ProjectionCacheIntegrityError(
+                    "projection cache contains multiple authorization-scope markers."
+                )
+            scope_digest = scope_match.group(1)
+            continue
         match = re.fullmatch(r"([0-9a-f]{64})\.json", entry.name)
         if match is None:
             raise ProjectionCacheIntegrityError(
@@ -1467,7 +1478,7 @@ def _inspect_cache_directory(directory: Path) -> tuple[Path | None, Path]:
                 "projection cache contains multiple completed snapshots."
             )
         snapshot = entry
-    return snapshot, lock
+    return snapshot, lock, scope_digest
 
 
 def _acquire_lock(lock: Path, publication_id: str, cache_key: str) -> None:
@@ -1678,6 +1689,46 @@ def _authorization_request(
     )
 
 
+def _authorization_scope_digest(
+    purpose_id: str,
+    student_ids: tuple[str, ...],
+) -> str:
+    """Return a privacy-safe digest for one exact purpose/student cache scope."""
+    purpose = _identifier(purpose_id, "purpose_id")
+    students = _student_ids(student_ids)
+    return hashlib.sha256(
+        _canonical_json_bytes(
+            {
+                "purpose_id": purpose,
+                "requested_student_ids": list(students),
+            }
+        )
+    ).hexdigest()
+
+
+def _create_scope_marker(
+    directory: Path,
+    scope_digest: str,
+    *,
+    publication_id: str,
+    cache_key: str,
+) -> None:
+    digest = _sha256(scope_digest, "authorization_scope_digest")
+    marker = directory / f".scope-{digest}"
+    try:
+        with marker.open("xb") as stream:
+            stream.flush()
+            os.fsync(stream.fileno())
+    except FileExistsError:
+        return
+    except OSError as error:
+        raise ProjectionCacheWriteError(
+            "The projection cache authorization-scope marker could not be created.",
+            publication_id=publication_id,
+            cache_key=cache_key,
+        ) from error
+
+
 def cache_projected_inventory(
     workspace_root: str | Path,
     prepared: PreparedPublicationInvocation,
@@ -1756,14 +1807,24 @@ def cache_projected_inventory(
         authorization=authorization,
     )
     key = projection_cache_key(identity)
+    scope_digest = _authorization_scope_digest(
+        authorization.purpose_id,
+        authorization.requested_student_ids,
+    )
     publication_id = source.publication.publication_id
     root = Path(workspace_root)
     directory = projection_cache_directory(root, publication_id, key)
     _ensure_directory_chain(root, directory)
-    existing, lock = _inspect_cache_directory(directory)
+    existing, lock, existing_scope = _inspect_cache_directory(directory)
     if lock.exists():
         raise ProjectionCacheLockError(
             "A projection cache writer already owns this exact cache key.",
+            publication_id=publication_id,
+            cache_key=key,
+        )
+    if existing_scope is not None and existing_scope != scope_digest:
+        raise ProjectionCacheIntegrityError(
+            "projection cache authorization scope contradicts its cache key.",
             publication_id=publication_id,
             cache_key=key,
         )
@@ -1775,7 +1836,26 @@ def cache_projected_inventory(
     result: ProjectionCacheWriteResult | None = None
     active_error: BaseException | None = None
     try:
-        existing, _ = _inspect_cache_directory(directory)
+        existing, _, existing_scope = _inspect_cache_directory(directory)
+        if existing_scope is None:
+            if existing is not None:
+                raise ProjectionCacheIntegrityError(
+                    "projection cache is missing its authorization-scope marker.",
+                    publication_id=publication_id,
+                    cache_key=key,
+                )
+            _create_scope_marker(
+                directory,
+                scope_digest,
+                publication_id=publication_id,
+                cache_key=key,
+            )
+        elif existing_scope != scope_digest:
+            raise ProjectionCacheIntegrityError(
+                "projection cache authorization scope contradicts its cache key.",
+                publication_id=publication_id,
+                cache_key=key,
+            )
         if existing is not None:
             stored = _stored_from_path(
                 root,
@@ -1925,7 +2005,13 @@ def cache_projected_inventory(
     return result
 
 
-def _find_snapshot_path(directory: Path, publication_id: str, key: str) -> Path:
+def _find_snapshot_path(
+    directory: Path,
+    publication_id: str,
+    key: str,
+    *,
+    expected_scope_digest: str,
+) -> Path:
     if not directory.exists():
         raise ProjectionCacheNotFoundError(
             "No projection cache exists for the exact key.",
@@ -1938,10 +2024,22 @@ def _find_snapshot_path(directory: Path, publication_id: str, key: str) -> Path:
             publication_id=publication_id,
             cache_key=key,
         )
-    snapshot, lock = _inspect_cache_directory(directory)
+    snapshot, lock, scope_digest = _inspect_cache_directory(directory)
     if lock.exists():
         raise ProjectionCacheLockError(
             "Projection cache entry is currently being written.",
+            publication_id=publication_id,
+            cache_key=key,
+        )
+    if scope_digest is None:
+        raise ProjectionCacheIntegrityError(
+            "projection cache is missing its authorization-scope marker.",
+            publication_id=publication_id,
+            cache_key=key,
+        )
+    if scope_digest != expected_scope_digest:
+        raise ProjectionCacheAuthorizationError(
+            "Requested authorization scope does not match this projection cache.",
             publication_id=publication_id,
             cache_key=key,
         )
@@ -1989,9 +2087,15 @@ def load_authorized_projection_snapshot(
         student_ids=students,
     )
     read_decision = _authorize(authorizer, read_request, cache_read=True)
+    scope_digest = _authorization_scope_digest(purpose, students)
     directory = projection_cache_directory(workspace_root, publication, key)
     _validate_existing_directory_chain(Path(workspace_root), directory)
-    path = _find_snapshot_path(directory, publication, key)
+    path = _find_snapshot_path(
+        directory,
+        publication,
+        key,
+        expected_scope_digest=scope_digest,
+    )
     stored = _stored_from_path(
         workspace_root,
         path,

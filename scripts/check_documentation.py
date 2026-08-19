@@ -75,6 +75,8 @@ REQUIRED_TEXT = {
     Path("docs/architecture/exact-projection-snapshots-and-cache.md"): (
         "cache.projection_nondeterministic",
         "read_projection_cache",
+        "authorization_scope_digest",
+        "before opening snapshot bytes",
         "canonical serialized inventory bytes",
         "Historical immutability",
         "report snapshots",
