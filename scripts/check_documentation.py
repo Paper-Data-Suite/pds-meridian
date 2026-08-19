@@ -140,7 +140,12 @@ REQUIRED_TEXT = {
         "Clean committed release-candidate qualification",
         "f19f5149ca6d700c27c085abff985669be1cc418",
         "277/277",
+        "Pull request and GitHub Actions qualification",
+        "PR #64",
+        "32212895904",
+        "905addfdfa4a8cdc874b6263929b2ac99360bad7",
         "all eight GitHub Actions matrix jobs",
+        "final docs-only PR",
     ),
 }
 STALE_ACTIVE_PHRASES = (

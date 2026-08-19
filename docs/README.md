@@ -156,7 +156,7 @@ The v0.1.1 milestone proceeds through:
 9. exact cache and snapshot rules — implemented;
 10. Concord adapter — implemented;
 11. cross-producer scenarios — implemented;
-12. foundation audit — release candidate qualified locally; CI/PR pending.
+12. foundation audit — PR candidate validated; final merge gate pending.
 
 No complete Grade or proficiency engine is part of this milestone.
 
