@@ -101,6 +101,16 @@ def validate(
             "--installed",
         ]
     )
+    _run(
+        [
+            python,
+            "scripts/verify_dependency_direction.py",
+            str(wheel),
+            str(scoreform),
+            str(quillan),
+            str(concord),
+        ]
+    )
     _run([python, "-m", "pip", "check"])
 
     with tempfile.TemporaryDirectory(prefix="pds-meridian-validation-") as raw_temp:
@@ -146,7 +156,13 @@ def validate(
         wheels = list(dist.glob("*.whl"))
         if len(wheels) != 1:
             raise RuntimeError("Expected exactly one built Meridian wheel.")
+        sdists = list(dist.glob("*.tar.gz"))
+        if len(sdists) != 1:
+            raise RuntimeError(
+                "Expected exactly one built Meridian source distribution."
+            )
         _run([python, "scripts/check_package.py", str(wheels[0])], env=env)
+        _run([python, "scripts/check_sdist.py", str(sdists[0])], env=env)
         _run(
             [
                 python,

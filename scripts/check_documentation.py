@@ -111,6 +111,9 @@ REQUIRED_TEXT = {
         "paper_data_suite.modules",
         "paper_data_suite.publication_producers",
         "meridian.diagnostics",
+        "upstream dependency-direction audit",
+        "source-distribution boundary",
+        "all-adapter coexistence",
     ),
     Path("docs/development/synthetic-data.md"): (
         "real student",
