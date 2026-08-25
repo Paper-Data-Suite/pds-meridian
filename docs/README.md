@@ -1,15 +1,21 @@
 # Meridian documentation
 
-Meridian is in the v0.1.1 executable publication-ingestion foundation
-milestone. The installable `0.1.1` package, strict typing, tests, CI,
+Meridian v0.1.1 is the released executable publication-ingestion and typed-evidence
+diagnostics foundation. The installable `0.1.1` package, strict typing, tests, CI,
 validation tooling, immutable typed evidence inventory, exact consumer adapter
-registry, bounded Core discovery and canonical-verification preparation, exact
-evidence serialization, immutable projection-cache layers, and the read-only
+registry, bounded Core discovery and canonical verification, exact evidence
+serialization, immutable projection-cache layers, and the read-only
 publication/evidence diagnostics surface are established. The exact optional
-ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are implemented.
-The cross-producer synthetic ingestion acceptance suite is also implemented and
-documents the verified no-grading boundary. Additional producer adapters,
-grading, and reporting remain follow-on work.
+ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are implemented,
+and the cross-producer synthetic ingestion acceptance suite documents the
+verified no-grading boundary.
+
+Phase 2 now begins from that released foundation. ADR 0004 adopts the v0.2
+evidence-policy, proficiency, and planning-export architecture, but the executable
+package remains version `0.1.1` until the later v0.2 implementation and release
+issues are completed. Grade Items, evidence decisions, proficiency calculation,
+and planning-signal export therefore remain implementation work rather than
+current runtime capability.
 
 ## Recommended reading order
 
@@ -31,6 +37,7 @@ grading, and reporting remain follow-on work.
 16. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
 17. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
 18. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+19. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -53,6 +60,10 @@ The package deliberately declares no PDS2 routing profile, publication producer
 profile, unconditional producer dependency, or adapter plugin group. ScoreForm,
 Quillan, and Concord are exact optional dependencies with explicit adapter
 composition.
+
+ADR 0004 records that the later grouping-signal integration will require
+`pds-core>=0.6.1,<0.7`. Issue #26 does not change package metadata; the dedicated
+Core-adoption issue owns that runtime dependency-floor change.
 
 ## Typed evidence inventory
 
@@ -128,37 +139,59 @@ and Meridian-owned evidence projection.
 
 The package implements every preparation stage through a coherent hidden-byte
 `AdapterProjectionRequest` and `PreparedPublicationInvocation`; explicit
-ScoreForm, Quillan, or Concord composition now populates the evidence inventory.
+ScoreForm, Quillan, or Concord composition populates the evidence inventory.
+
+ADR 0004 adds the governing architecture for the next layer. Valid typed evidence
+does not automatically become Grade Item membership, eligible standards evidence,
+a selected attempt, proficiency, or a grouping signal. Those are explicit
+Meridian policy/decision stages implemented after v0.1.1.
 
 ## Architecture decisions
 
-Three accepted ADRs govern the repository:
+Four accepted ADRs govern the repository:
 
 - ADR 0001 assigns policy-driven proficiency and Grade calculation to Meridian.
 - ADR 0002 adopts provenance-bound report snapshots and subscriptions.
 - ADR 0003 adopts consumer-side producer adapters and one-way dependencies.
+- ADR 0004 adopts the v0.2 evidence-policy, proficiency, and planning-export
+  architecture, including immutable revision history, pure deterministic
+  proficiency calculation, and the Meridian -> Core -> optional Concord
+  planning boundary.
 
-The Core v0.6 reconciliation amendments remain part of the accepted context for
+ADR 0004 specializes ADRs 0001 and 0003; it does not supersede either one. The
+Core v0.6 reconciliation amendments remain part of the accepted context for
 ADRs 0001 and 0002.
 
-## Current implementation sequence
+## Implementation sequence
 
-The v0.1.1 milestone proceeds through:
+The v0.1.1 foundation is complete and released:
 
 1. architecture reconciliation — complete;
 2. package, testing, typing, and CI foundation — complete;
-3. typed evidence inventory — implemented;
-4. adapter interface and registry — implemented;
-5. Core discovery and canonical verification — implemented;
-6. ScoreForm adapter — implemented;
-7. Quillan adapter — implemented;
-8. inventory and diagnostics commands — implemented;
-9. exact cache and snapshot rules — implemented;
-10. Concord adapter — implemented;
-11. cross-producer scenarios — implemented;
-12. foundation audit — PR candidate validated; final merge gate pending.
+3. typed evidence inventory — complete;
+4. adapter interface and registry — complete;
+5. Core discovery and canonical verification — complete;
+6. ScoreForm adapter — complete;
+7. Quillan adapter — complete;
+8. inventory and diagnostics commands — complete;
+9. exact cache and snapshot rules — complete;
+10. Concord adapter — complete;
+11. cross-producer scenarios — complete; and
+12. foundation audit and v0.1.1 release — complete.
 
-No complete Grade or proficiency engine is part of this milestone.
+The v0.2.0 implementation sequence begins with:
+
+1. evidence-policy, proficiency, and planning-export architecture — ADR 0004;
+2. immutable Grade Items and membership;
+3. evidence eligibility, attempt, and reassessment decisions;
+4. proficiency scales, mappings, standards evidence, and calculations;
+5. Core grouping-signal adoption and teacher-controlled derivation/export;
+6. teacher workflows, explanations, and attention summaries;
+7. cross-producer and installed acceptance; and
+8. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+
+ADR adoption does not itself make any of those runtime v0.2 capabilities
+available.
 
 ## Exact projection snapshots and cache
 

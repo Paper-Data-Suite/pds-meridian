@@ -33,6 +33,10 @@ EXPECTED = (
     ),
     Path("docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md"),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"),
+    Path(
+        "docs/decisions/"
+        "0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md"
+    ),
     Path("docs/decisions/amendments/0001-core-v0.6-ingestion-reconciliation.md"),
     Path("docs/decisions/amendments/0002-core-v0.6-ingestion-reconciliation.md"),
 )
@@ -54,6 +58,13 @@ REQUIRED_TEXT = {
         "meridian.adapters",
         "meridian.ingestion",
         "meridian.diagnostics",
+    ),
+    Path("docs/README.md"): (
+        "Four accepted ADRs govern the repository:",
+        "ADR 0004",
+        "pds-core>=0.6.1,<0.7",
+        "foundation audit and v0.1.1 release — complete",
+        "ADR adoption does not itself make any of those runtime v0.2 capabilities",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
@@ -101,7 +112,7 @@ REQUIRED_TEXT = {
         "pds-concord==0.2.0",
         "Group versus student evidence",
         "manifest authorization != Artifact authorization",
-        "EvidenceEligibility(status=\"unevaluated\")",
+        'EvidenceEligibility(status="unevaluated")',
     ),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"): (
         "producer-neutral != producer-semantic flattening",
@@ -115,6 +126,20 @@ REQUIRED_TEXT = {
         "Status:** Accepted",
         "Unsupported states fail closed",
         "producer package -X-> pds-meridian",
+    ),
+    Path(
+        "docs/decisions/"
+        "0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md"
+    ): (
+        "Status:** Accepted",
+        "publication validity != evidence eligibility",
+        "producer-native result != Meridian proficiency category",
+        "absence != zero",
+        "pds-core>=0.6.1,<0.7",
+        "Meridian planning export -X-> Concord runtime",
+        "No automatic signal export is permitted.",
+        "One Meridian v0.2 derivation/export uses one explicitly selected academic",
+        "v0.2 stops before Grade preview and issued reporting",
     ),
     Path("docs/development/package-foundation.md"): (
         "0.1.1",
@@ -227,6 +252,7 @@ def check_decisions() -> None:
         "0001-policy-driven-standards-proficiency-and-grade-calculation.md",
         "0002-provenance-bound-report-snapshots-and-subscriptions.md",
         "0003-consumer-side-producer-adapters.md",
+        "0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md",
     )
     for filename in decisions:
         if filename not in index:
