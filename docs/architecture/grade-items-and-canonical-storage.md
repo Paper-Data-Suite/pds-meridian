@@ -177,7 +177,7 @@ GradeItemRevision
         |
         | referenced by later state
         v
-GradeItemMembershipDecision   # issue #28
+GradeItemMembershipDecision   # implemented by issue #28
         |
         +--> ModuleWorkRef
         +--> exact registration_revision
@@ -351,9 +351,20 @@ a copied source of truth.
 
 ## Explicit issue boundaries
 
-Issue #27 does not implement:
+Issue #27 did not implement Grade Item membership or Academic Period assignment;
+issue #28 now implements that separate record/storage family. The Grade Item
+revision itself still does not contain an authoritative work-membership
+collection.
 
-- Grade Item membership or Academic Period assignment (#28);
+The Grade Item storage root now permits the issue #28 `memberships/` subtree,
+which is independently validated by `meridian.grade_item_membership_storage`.
+
+See
+[Grade Item membership and Academic Period assignment](grade-item-membership-and-academic-period-assignment.md)
+for that separate runtime contract.
+
+Issue #27 itself does not implement:
+
 - evidence eligibility;
 - attempt selection;
 - reassessment/replacement policy;

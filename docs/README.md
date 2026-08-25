@@ -11,10 +11,11 @@ and the cross-producer synthetic ingestion acceptance suite documents the
 verified no-grading boundary.
 
 Phase 2 now builds on that released foundation. ADR 0004 adopts the v0.2
-evidence-policy, proficiency, and planning-export architecture. Issue #27 adds
-the first executable v0.2 interpretation records: immutable Grade Item revisions,
-canonical digest-bound Grade Item storage, and explicit current-revision
-selection. Grade Item membership, Academic Period assignment, evidence decisions,
+evidence-policy, proficiency, and planning-export architecture. Issues #27 and
+#28 add the first executable v0.2 interpretation records: immutable Grade Item
+revisions, canonical digest-bound Grade Item storage, explicit current-revision
+selection, and revisioned Grade Item membership with exact Core
+Academic Period assignment. Evidence eligibility, attempt/reassessment policy,
 proficiency calculation, and planning-signal export remain later implementation
 work. The package version remains `0.1.1` until the v0.2 release sequence reaches
 its release issue.
@@ -30,17 +31,18 @@ its release issue.
 7. [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md)
 8. [Evidence inventory and diagnostics](architecture/evidence-inventory-and-diagnostics.md)
 9. [Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
-10. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-11. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
-12. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
-13. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
-14. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-15. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-16. [ADR index](decisions/README.md)
-17. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-18. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-19. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-20. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+10. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
+11. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+12. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
+13. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
+14. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+15. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+16. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+17. [ADR index](decisions/README.md)
+18. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+19. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+20. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+21. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -65,8 +67,8 @@ Quillan, and Concord are exact optional dependencies with explicit adapter
 composition.
 
 ADR 0004 records that the later grouping-signal integration will require
-`pds-core>=0.6.1,<0.7`. Issue #27 does not change package metadata; the dedicated
-Core-adoption issue owns that runtime dependency-floor change.
+`pds-core>=0.6.1,<0.7`. Issues #27 and #28 do not change package metadata; the
+dedicated Core-adoption issue owns that runtime dependency-floor change.
 
 ## Typed evidence inventory
 
@@ -99,8 +101,9 @@ compare-and-swap semantics and may deliberately select an older valid revision.
 
 A reusable `GradeItemWorkReference` identifies a Core `ModuleWorkRef` plus exact
 Academic Work Registration revision. It is intentionally not embedded as a
-membership collection on `GradeItemRevision`. Issue #28 owns Grade Item membership
-and Academic Period assignment, preserving the boundary:
+membership collection on `GradeItemRevision`. Issue #28 now implements the
+separate Grade Item membership and Academic Period assignment family, preserving
+the boundary:
 
 ```text
 Grade Item creation != membership
@@ -109,7 +112,35 @@ membership != evidence eligibility
 
 See
 [Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
-for the complete model, storage, integrity, path-safety, privacy, and #28 boundary.
+for the complete Grade Item model, storage, integrity, path-safety, and privacy
+boundary.
+
+## Grade Item membership and Academic Period assignment
+
+`meridian.grade_item_memberships` defines explicit immutable membership decisions
+between one Grade Item and one exact Core-registered work. A decision is
+`included` or `excluded`; no decision remains distinct from explicit exclusion.
+Included decisions bind an exact Core `AcademicPeriodRef` plus immutable Academic
+Period Calendar revision rather than inferring period meaning from dates or the
+currently active calendar.
+
+`meridian.grade_item_membership_storage` persists contiguous SHA-256-bound
+membership history beneath the Grade Item's `memberships/` subtree and uses a
+separate `current.json` pointer with compare-and-swap selection. Exact Grade Item,
+Academic Work Registration, class school-year, and Academic Period dependencies
+are validated through Core before a decision is selected. Publication availability
+does not create membership, and period hierarchy does not propagate membership.
+
+The runtime boundary remains:
+
+```text
+Grade Item creation != membership
+membership != evidence eligibility
+```
+
+See
+[Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
+for the exact decision, provenance, storage, and conflict contracts.
 
 ## Adapter interface and registry
 
@@ -174,9 +205,10 @@ ScoreForm, Quillan, or Concord composition populates the evidence inventory.
 
 ADR 0004 adds the governing architecture for the interpretation layer. Valid typed
 evidence does not automatically become Grade Item membership, eligible standards
-evidence, a selected attempt, proficiency, or a grouping signal. Issue #27 now
-implements Grade Item definition/storage only; all of those downstream policy and
-decision stages remain explicit later work.
+evidence, a selected attempt, proficiency, or a grouping signal. Issues #27 and
+#28 now implement Grade Item definition/storage plus explicit work membership and
+Academic Period assignment. Evidence eligibility and every downstream selection,
+calculation, and export stage remain explicit later work.
 
 ## Architecture decisions
 
@@ -215,16 +247,18 @@ The v0.2.0 implementation sequence now begins:
 
 1. evidence-policy, proficiency, and planning-export architecture — ADR 0004 — complete;
 2. immutable Grade Item models and canonical storage — issue #27 — implemented;
-3. Grade Item membership and Academic Period assignment — issue #28 — next;
-4. evidence eligibility, attempt, and reassessment decisions;
-5. proficiency scales, mappings, standards evidence, and calculations;
-6. Core grouping-signal adoption and teacher-controlled derivation/export;
-7. teacher workflows, explanations, and attention summaries;
-8. cross-producer and installed acceptance; and
-9. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+3. Grade Item membership and Academic Period assignment — issue #28 — implemented;
+4. evidence eligibility decision records — issue #29 — next;
+5. attempt and reassessment decisions;
+6. proficiency scales, mappings, standards evidence, and calculations;
+7. Core grouping-signal adoption and teacher-controlled derivation/export;
+8. teacher workflows, explanations, and attention summaries;
+9. cross-producer and installed acceptance; and
+10. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
 
-Implementing Grade Item storage does not make membership, evidence eligibility,
-proficiency, Grade calculation, or planning export runtime capabilities.
+Implementing Grade Item membership does not make evidence eligibility, attempt
+selection, reassessment, proficiency, Grade calculation, or planning export
+runtime capabilities.
 
 ## Exact projection snapshots and cache
 

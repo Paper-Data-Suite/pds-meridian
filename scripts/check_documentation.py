@@ -27,6 +27,10 @@ EXPECTED = (
     Path("docs/architecture/concord-adapter.md"),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
+    Path(
+        "docs/architecture/"
+        "grade-item-membership-and-academic-period-assignment.md"
+    ),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -68,8 +72,10 @@ REQUIRED_TEXT = {
         "pds-core>=0.6.1,<0.7",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
+        "membership != evidence eligibility",
         "issue #27 — implemented",
-        "membership, evidence eligibility",
+        "issue #28 — implemented",
+        "issue #29 — next",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
@@ -130,11 +136,23 @@ REQUIRED_TEXT = {
     Path("docs/architecture/grade-items-and-canonical-storage.md"): (
         "stable grade_item_id",
         "GradeItemWorkReference",
-        "GradeItemMembershipDecision   # issue #28",
+        "issue #28 now implements that separate record/storage family",
         "relative_weight: Decimal | null",
         "current.json",
         "revision_sha256",
         "Grade Item creation != membership",
+    ),
+    Path(
+        "docs/architecture/"
+        "grade-item-membership-and-academic-period-assignment.md"
+    ): (
+        "GradeItemAcademicPeriodAssignment",
+        "GradeItemMembershipDecision",
+        "no decision != excluded",
+        "publication appears -X-> Grade Item membership",
+        "highest membership revision -X-> current membership",
+        "pds-core>=0.6,<0.7",
+        "membership != evidence eligibility",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",

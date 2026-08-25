@@ -4,9 +4,21 @@
 
 ### Added
 
+- Immutable Grade Item membership decisions with explicit `included`/`excluded`
+  state, exact Grade Item revision/digest provenance, exact Core Academic Work
+  Registration revisions, exact Academic Period Calendar revisions, teacher
+  attribution, and historical supersession.
+- Canonical membership storage beneath each Grade Item with SHA-256-bound
+  revisions, explicit compare-and-swap `current.json` selection, deterministic
+  relationship queries, Core-backed dependency validation, and fail-closed path
+  and integrity checks.
+- Academic Period assignment that binds Core `AcademicPeriodRef` plus exact
+  calendar revision without date-based inference, hierarchy propagation, or
+  publication-driven membership.
+
 - Immutable Meridian Grade Item revisions with stable logical identity, closed
   purpose/status contracts, exact reserved weighting metadata, and reusable
-  Core registered-work revision references for the later membership layer.
+  Core registered-work revision references used by the separate membership layer.
 - Canonical Grade Item persistence under each Core class with contiguous
   immutable revision history, SHA-256 sidecars, bounded integrity-checked reads,
   explicit `current.json` selection, compare-and-swap updates, and fail-closed
