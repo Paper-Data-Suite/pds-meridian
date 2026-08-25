@@ -905,7 +905,7 @@ def _validate_item_directory_entries(item_dir: Path) -> None:
         raise GradeItemStorageIntegrityError(
             "Grade Item canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
+    allowed = {"revisions", "memberships", "current.json", ".write.lock"}
     try:
         entries = tuple(item_dir.iterdir())
     except OSError as error:
@@ -917,10 +917,11 @@ def _validate_item_directory_entries(item_dir: Path) -> None:
             raise GradeItemStorageIntegrityError(
                 "Grade Item canonical root contains an unexpected entry."
             )
-        if entry.name == "revisions":
+        if entry.name in {"revisions", "memberships"}:
             if entry.is_symlink() or not entry.is_dir():
+                label = "revisions" if entry.name == "revisions" else "memberships"
                 raise GradeItemStorageIntegrityError(
-                    "Grade Item revisions entry must be a real directory."
+                    f"Grade Item {label} entry must be a real directory."
                 )
         elif entry.name == "current.json":
             if entry.is_symlink() or not entry.is_file():

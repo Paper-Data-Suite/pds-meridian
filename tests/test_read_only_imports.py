@@ -19,6 +19,8 @@ import pytest
         "meridian.diagnostics",
         "meridian.evidence",
         "meridian.evidence_serialization",
+        "meridian.grade_item_membership_storage",
+        "meridian.grade_item_memberships",
         "meridian.grade_item_storage",
         "meridian.grade_items",
         "meridian.ingestion",
