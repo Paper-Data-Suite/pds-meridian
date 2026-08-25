@@ -25,10 +25,16 @@ REQUIRED_MEMBERS = frozenset(
         "Security.md",
         "pyproject.toml",
         "docs/README.md",
+        "docs/architecture/grade-items-and-canonical-storage.md",
         "meridian/__init__.py",
         "meridian/_version.py",
+        "meridian/grade_item_storage.py",
+        "meridian/grade_items.py",
         "meridian/py.typed",
+        "scripts/smoke_test_grade_items_wheel.py",
         "scripts/validate_repository.py",
+        "tests/test_grade_item_storage.py",
+        "tests/test_grade_items.py",
         "tests/test_validation_scripts.py",
     }
 )

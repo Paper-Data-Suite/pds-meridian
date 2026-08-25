@@ -139,6 +139,7 @@ def test_cache_documentation_guards_canonical_replay_rule() -> None:
     assert "canonical serialized inventory bytes" in architecture
     assert "Python object equality" in architecture
 
+
 def test_cache_scope_mismatch_fails_before_protected_bytes(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -200,6 +201,7 @@ def test_cache_scope_authorization_rule_is_documentation_guarded() -> None:
     assert "before opening snapshot bytes" in checker
     assert "before opening snapshot bytes" in architecture
 
+
 def test_cache_purpose_mismatch_fails_before_protected_bytes(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -240,6 +242,7 @@ def test_cache_purpose_mismatch_fails_before_protected_bytes(
 
     assert opened_paths == []
 
+
 def test_release_facing_descriptions_do_not_claim_unimplemented_grading() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     cli = Path("meridian/cli.py").read_text(encoding="utf-8")
@@ -257,6 +260,7 @@ def test_release_facing_descriptions_do_not_claim_unimplemented_grading() -> Non
         in readme
     )
 
+
 def test_durable_release_audit_is_indexed_and_validation_guarded() -> None:
     audit = Path("docs/development/v0.1.1-release-audit.md").read_text(
         encoding="utf-8"
@@ -270,7 +274,8 @@ def test_durable_release_audit_is_indexed_and_validation_guarded() -> None:
     assert "v0.1.1-release-audit.md" in checker
     assert "all eight GitHub Actions matrix jobs" in checker
 
-def test_release_candidate_version_and_changelog_are_finalized() -> None:
+
+def test_release_candidate_version_and_changelog_history_remain_finalized() -> None:
     version_source = Path("meridian/_version.py").read_text(encoding="utf-8")
     package_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
@@ -283,7 +288,10 @@ def test_release_candidate_version_and_changelog_are_finalized() -> None:
     assert 'EXPECTED_VERSION = "0.1.1"' in package_checker
     assert 'EXPECTED_VERSION = "0.1.1"' in sdist_checker
     assert "## 0.1.1 — 2026-08-18" in changelog
-    assert "## Unreleased" not in changelog
+    if "## Unreleased" in changelog:
+        assert changelog.index("## Unreleased") < changelog.index(
+            "## 0.1.1 — 2026-08-18"
+        )
     assert "canonical serialized" in changelog
     assert "before protected snapshot bytes are opened" in changelog
 

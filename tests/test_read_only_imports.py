@@ -19,6 +19,8 @@ import pytest
         "meridian.diagnostics",
         "meridian.evidence",
         "meridian.evidence_serialization",
+        "meridian.grade_item_storage",
+        "meridian.grade_items",
         "meridian.ingestion",
         "meridian.projection_cache",
         "meridian.quillan_adapter",
@@ -31,7 +33,7 @@ def test_baseline_imports_are_read_only(tmp_path: Path, module: str) -> None:
         "import importlib, json, logging, os, pathlib, sys; "
         "root=pathlib.Path.cwd(); "
         "before_env=dict(os.environ); before_handlers=tuple(logging.root.handlers); "
-        "before_modules=set(sys.modules); importlib.import_module(sys.argv[1]); "
+        "importlib.import_module(sys.argv[1]); "
         "producer_roots={'scoreform','quillan','concord','portia','vitrine'}; "
         "loaded={name.split('.',1)[0] for name in sys.modules}; "
         "assert not (producer_roots & loaded); "
