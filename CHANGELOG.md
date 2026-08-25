@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Immutable Meridian Grade Item revisions with stable logical identity, closed
+  purpose/status contracts, exact reserved weighting metadata, and reusable
+  Core registered-work revision references for the later membership layer.
+- Canonical Grade Item persistence under each Core class with contiguous
+  immutable revision history, SHA-256 sidecars, bounded integrity-checked reads,
+  explicit `current.json` selection, compare-and-swap updates, and fail-closed
+  path/symlink/storage validation.
+- Grade Item model/storage documentation and focused regression coverage that
+  preserves the boundary between Grade Item definition, membership, evidence
+  eligibility, proficiency, and later Grade calculation.
+
 ## 0.1.1 — 2026-08-18
 
 ### Added

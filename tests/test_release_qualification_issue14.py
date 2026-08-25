@@ -11,6 +11,7 @@ from scripts.check_sdist import (
     EXPECTED_ROOT,
     EXPECTED_SDIST_FILENAME,
     EXPECTED_SUMMARY,
+    REQUIRED_MEMBERS,
     SdistValidationError,
     validate_sdist,
 )
@@ -48,20 +49,19 @@ def _write_minimal_sdist(
     extra_member: str | None = None,
     summary: str = EXPECTED_SUMMARY,
 ) -> None:
-    required = {
-        "CHANGELOG.md": b"# Changelog\n",
-        "LICENSE": b"synthetic license\n",
-        "MANIFEST.in": b"include README\n",
-        "README": b"# Meridian\n",
-        "Security.md": b"# Security\n",
-        "pyproject.toml": b"[build-system]\n",
-        "docs/README.md": b"# Documentation\n",
-        "meridian/__init__.py": b"",
-        "meridian/_version.py": b'__version__ = "0.1.1"\n',
-        "meridian/py.typed": b"",
-        "scripts/validate_repository.py": b"",
-        "tests/test_validation_scripts.py": b"",
-    }
+    required = {relative: b"" for relative in REQUIRED_MEMBERS}
+    required.update(
+        {
+            "CHANGELOG.md": b"# Changelog\n",
+            "LICENSE": b"synthetic license\n",
+            "MANIFEST.in": b"include README\n",
+            "README": b"# Meridian\n",
+            "Security.md": b"# Security\n",
+            "pyproject.toml": b"[build-system]\n",
+            "docs/README.md": b"# Documentation\n",
+            "meridian/_version.py": b'__version__ = "0.1.1"\n',
+        }
+    )
     pkg_info = (
         "Metadata-Version: 2.4\n"
         "Name: pds-meridian\n"
@@ -154,6 +154,7 @@ def test_release_qualification_documentation_is_validation_guarded() -> None:
     ):
         assert phrase in checker
         assert phrase in package_doc
+
 
 def test_sdist_checker_rejects_overclaimed_release_summary(tmp_path: Path) -> None:
     sdist = tmp_path / EXPECTED_SDIST_FILENAME

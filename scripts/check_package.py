@@ -150,8 +150,7 @@ def validate_wheel(path: str | Path) -> None:
             "README description content type must be Markdown."
         )
 
-    runtime = _runtime_requirements(metadata)
-    if runtime != [EXPECTED_CORE_REQUIREMENT]:
+    if _runtime_requirements(metadata) != [EXPECTED_CORE_REQUIREMENT]:
         raise PackageValidationError(
             "The only runtime requirement must be pds-core>=0.6,<0.7."
         )
@@ -189,29 +188,31 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/diagnostics.py",
         "meridian/evidence.py",
         "meridian/evidence_serialization.py",
+        "meridian/grade_item_storage.py",
+        "meridian/grade_items.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",
         "meridian/quillan_adapter.py",
         "meridian/scoreform_adapter.py",
         "meridian/py.typed",
     }
-    if not required.issubset(names):
-        missing = sorted(required - set(names))
+    name_set = set(names)
+    if not required.issubset(name_set):
+        missing = sorted(required - name_set)
         raise PackageValidationError(
             f"Wheel is missing intended Meridian package files: {missing!r}."
         )
     if not any(name.endswith(".dist-info/licenses/LICENSE") for name in names):
         raise PackageValidationError("Wheel does not include the MIT license file.")
 
+    allowed_meridian = {item.lower() for item in required}
     for name in names:
         normalized = PurePosixPath(name).as_posix().lower()
         if normalized.startswith(FORBIDDEN_PREFIXES) or any(
             part in normalized for part in FORBIDDEN_PARTS
         ):
             raise PackageValidationError(f"Wheel contains forbidden content: {name}")
-        if normalized.startswith("meridian/") and normalized not in {
-            item.lower() for item in required
-        }:
+        if normalized.startswith("meridian/") and normalized not in allowed_meridian:
             raise PackageValidationError(
                 f"Wheel contains an unexpected Meridian module: {name}"
             )

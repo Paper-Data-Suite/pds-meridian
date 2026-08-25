@@ -10,12 +10,14 @@ ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are implemented,
 and the cross-producer synthetic ingestion acceptance suite documents the
 verified no-grading boundary.
 
-Phase 2 now begins from that released foundation. ADR 0004 adopts the v0.2
-evidence-policy, proficiency, and planning-export architecture, but the executable
-package remains version `0.1.1` until the later v0.2 implementation and release
-issues are completed. Grade Items, evidence decisions, proficiency calculation,
-and planning-signal export therefore remain implementation work rather than
-current runtime capability.
+Phase 2 now builds on that released foundation. ADR 0004 adopts the v0.2
+evidence-policy, proficiency, and planning-export architecture. Issue #27 adds
+the first executable v0.2 interpretation records: immutable Grade Item revisions,
+canonical digest-bound Grade Item storage, and explicit current-revision
+selection. Grade Item membership, Academic Period assignment, evidence decisions,
+proficiency calculation, and planning-signal export remain later implementation
+work. The package version remains `0.1.1` until the v0.2 release sequence reaches
+its release issue.
 
 ## Recommended reading order
 
@@ -27,17 +29,18 @@ current runtime capability.
 6. [Catalog discovery and canonical verification](architecture/catalog-discovery-and-canonical-verification.md)
 7. [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md)
 8. [Evidence inventory and diagnostics](architecture/evidence-inventory-and-diagnostics.md)
-9. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-10. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
-11. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
-12. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
-13. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-14. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-15. [ADR index](decisions/README.md)
-16. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-17. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-18. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-19. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+9. [Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
+10. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+11. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
+12. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
+13. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+14. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+15. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+16. [ADR index](decisions/README.md)
+17. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+18. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+19. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+20. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -62,7 +65,7 @@ Quillan, and Concord are exact optional dependencies with explicit adapter
 composition.
 
 ADR 0004 records that the later grouping-signal integration will require
-`pds-core>=0.6.1,<0.7`. Issue #26 does not change package metadata; the dedicated
+`pds-core>=0.6.1,<0.7`. Issue #27 does not change package metadata; the dedicated
 Core-adoption issue owns that runtime dependency-floor change.
 
 ## Typed evidence inventory
@@ -79,6 +82,34 @@ proficiency, calculate Grades, or select attempts.
 See
 [Typed evidence inventory](architecture/typed-evidence-inventory.md)
 for the model boundary and synthetic examples.
+
+## Grade Items and canonical storage
+
+`meridian.grade_items` defines the first executable v0.2 academic-interpretation
+record family. A Grade Item has a stable `grade_item_id` and immutable integer
+revisions. Title, purpose, lifecycle status, and reserved future weighting
+metadata belong to an exact revision. Weighting is stored with exact `Decimal`
+semantics and is not executed as conventional or hybrid Grade policy.
+
+`meridian.grade_item_storage` persists Grade Item revisions beneath the existing
+Core class's Meridian module directory. Historical revisions use canonical JSON
+and SHA-256 sidecars. `current.json` is a separate identity-and-digest pointer;
+creating a newer revision never silently selects it. Selection uses explicit
+compare-and-swap semantics and may deliberately select an older valid revision.
+
+A reusable `GradeItemWorkReference` identifies a Core `ModuleWorkRef` plus exact
+Academic Work Registration revision. It is intentionally not embedded as a
+membership collection on `GradeItemRevision`. Issue #28 owns Grade Item membership
+and Academic Period assignment, preserving the boundary:
+
+```text
+Grade Item creation != membership
+membership != evidence eligibility
+```
+
+See
+[Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
+for the complete model, storage, integrity, path-safety, privacy, and #28 boundary.
 
 ## Adapter interface and registry
 
@@ -141,10 +172,11 @@ The package implements every preparation stage through a coherent hidden-byte
 `AdapterProjectionRequest` and `PreparedPublicationInvocation`; explicit
 ScoreForm, Quillan, or Concord composition populates the evidence inventory.
 
-ADR 0004 adds the governing architecture for the next layer. Valid typed evidence
-does not automatically become Grade Item membership, eligible standards evidence,
-a selected attempt, proficiency, or a grouping signal. Those are explicit
-Meridian policy/decision stages implemented after v0.1.1.
+ADR 0004 adds the governing architecture for the interpretation layer. Valid typed
+evidence does not automatically become Grade Item membership, eligible standards
+evidence, a selected attempt, proficiency, or a grouping signal. Issue #27 now
+implements Grade Item definition/storage only; all of those downstream policy and
+decision stages remain explicit later work.
 
 ## Architecture decisions
 
@@ -179,19 +211,20 @@ The v0.1.1 foundation is complete and released:
 11. cross-producer scenarios — complete; and
 12. foundation audit and v0.1.1 release — complete.
 
-The v0.2.0 implementation sequence begins with:
+The v0.2.0 implementation sequence now begins:
 
-1. evidence-policy, proficiency, and planning-export architecture — ADR 0004;
-2. immutable Grade Items and membership;
-3. evidence eligibility, attempt, and reassessment decisions;
-4. proficiency scales, mappings, standards evidence, and calculations;
-5. Core grouping-signal adoption and teacher-controlled derivation/export;
-6. teacher workflows, explanations, and attention summaries;
-7. cross-producer and installed acceptance; and
-8. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+1. evidence-policy, proficiency, and planning-export architecture — ADR 0004 — complete;
+2. immutable Grade Item models and canonical storage — issue #27 — implemented;
+3. Grade Item membership and Academic Period assignment — issue #28 — next;
+4. evidence eligibility, attempt, and reassessment decisions;
+5. proficiency scales, mappings, standards evidence, and calculations;
+6. Core grouping-signal adoption and teacher-controlled derivation/export;
+7. teacher workflows, explanations, and attention summaries;
+8. cross-producer and installed acceptance; and
+9. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
 
-ADR adoption does not itself make any of those runtime v0.2 capabilities
-available.
+Implementing Grade Item storage does not make membership, evidence eligibility,
+proficiency, Grade calculation, or planning export runtime capabilities.
 
 ## Exact projection snapshots and cache
 
