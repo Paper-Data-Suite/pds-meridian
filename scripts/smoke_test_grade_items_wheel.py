@@ -1269,7 +1269,9 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             )
             """
         )
-        _run([str(python), "-c", code], outside)
+        smoke_program = root / "installed_interpretation_smoke.py"
+        smoke_program.write_bytes(code.encode("utf-8"))
+        _run([str(python), str(smoke_program)], outside)
         if list(outside.iterdir()):
             raise RuntimeError(
                 "Grade Item/eligibility smoke test left working-directory residue."

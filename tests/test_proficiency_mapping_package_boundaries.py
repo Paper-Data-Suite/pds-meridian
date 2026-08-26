@@ -54,6 +54,12 @@ def test_installed_wheel_smoke_covers_mapping_flow() -> None:
         assert token in smoke
 
 
+def test_installed_wheel_smoke_uses_script_file_for_large_payload() -> None:
+    smoke = Path("scripts/smoke_test_grade_items_wheel.py").read_text(encoding="utf-8")
+    assert 'smoke_program.write_bytes(code.encode("utf-8"))' in smoke
+    assert '_run([str(python), "-c", code], outside)' not in smoke
+
+
 def test_runtime_mapping_modules_do_not_import_producers() -> None:
     for filename in (
         "meridian/proficiency_mapping.py",
