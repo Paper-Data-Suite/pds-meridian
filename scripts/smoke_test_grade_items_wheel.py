@@ -1,4 +1,4 @@
-"""Smoke-test Grade Item, eligibility, and attempt selection from an installed wheel."""
+"""Smoke-test v0.2 interpretation layers from an installed Meridian wheel."""
 
 from __future__ import annotations
 
@@ -104,6 +104,27 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 select_attempt_selection_policy_revision,
                 write_attempt_selection_decision_revision,
                 write_attempt_selection_policy_revision,
+            )
+            from meridian.reassessment import (
+                REASSESSMENT_DECISION_RECORD_TYPE,
+                REASSESSMENT_DECISION_SCHEMA_VERSION,
+                REASSESSMENT_POLICY_RECORD_TYPE,
+                REASSESSMENT_POLICY_SCHEMA_VERSION,
+                AttemptSelectionDecisionReference,
+                ReassessmentActor,
+                ReassessmentDecision,
+                ReassessmentPolicy,
+                ReassessmentPolicyReference,
+                ReplacementRelationship,
+            )
+            from meridian.reassessment_storage import (
+                get_current_reassessment_decision_revision,
+                get_current_reassessment_policy_revision,
+                resolve_current_reassessment,
+                select_reassessment_decision_revision,
+                select_reassessment_policy_revision,
+                write_reassessment_decision_revision,
+                write_reassessment_policy_revision,
             )
             from meridian.evidence import (
                 EvidenceInventory,
@@ -552,7 +573,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     supersedes_revision=None,
                     selection_basis="explicit",
                     minimum_selected=0,
-                    maximum_selected=1,
+                    maximum_selected=2,
                     actor=AttemptSelectionActor("teacher", "teacher_local"),
                     rationale=None,
                     revised_at=now,
@@ -595,7 +616,10 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     ),
                     source_snapshot=derived.source_snapshot,
                     candidates=derived.candidates,
-                    selected_attempts=(derived.candidates[0].attempt,),
+                    selected_attempts=(
+                        derived.candidates[0].attempt,
+                        derived.candidates[1].attempt,
+                    ),
                     decision_revision=1,
                     supersedes_revision=None,
                     actor=AttemptSelectionActor("teacher", "teacher_local"),
@@ -634,12 +658,238 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 )
                 assert selection_resolution.status == "selected"
                 assert selection_resolution.operative_selection is True
-                assert (
-                    selection_resolution.selected.decision.selected_attempts[
-                        0
-                    ].native.sequence
-                    == 1
+                assert selection_resolution.selected is not None
+                assert tuple(
+                    selected.native.sequence
+                    for selected in (
+                        selection_resolution.selected.decision.selected_attempts
+                    )
+                ) == (1, 2)
+
+                before_reassessment = resolve_current_reassessment(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    authorized_snapshot=authorized,
                 )
+                assert before_reassessment.status == "no_decision"
+                assert before_reassessment.operative_reassessment is False
+
+                reassessment_policy = ReassessmentPolicy(
+                    schema_version=REASSESSMENT_POLICY_SCHEMA_VERSION,
+                    record_type=REASSESSMENT_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    work=work,
+                    policy_id="explicit_reassessment",
+                    policy_revision=1,
+                    supersedes_revision=None,
+                    relationship_basis="explicit",
+                    allowed_modes=("replace",),
+                    actor=ReassessmentActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                reassessment_policy_write = write_reassessment_policy_revision(
+                    workspace, reassessment_policy
+                )
+                assert reassessment_policy_write.disposition == "created"
+                assert get_current_reassessment_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    reassessment_policy.policy_id,
+                ) is None
+                reassessment_policy_select = select_reassessment_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    reassessment_policy.policy_id,
+                    1,
+                    expected_current_policy_revision=None,
+                )
+                assert reassessment_policy_select.disposition == "created"
+
+                # Deliberately let the lower-valued/lower-sequence attempt replace
+                # the 99-valued later attempt. #31 must not rank by value or number.
+                reassessment_decision = ReassessmentDecision(
+                    schema_version=REASSESSMENT_DECISION_SCHEMA_VERSION,
+                    record_type=REASSESSMENT_DECISION_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    work=work,
+                    student_id="student_1",
+                    attempt_selection=AttemptSelectionDecisionReference(
+                        decision_revision=1,
+                        decision_sha256=decision_write.stored.decision_sha256,
+                    ),
+                    policy=ReassessmentPolicyReference(
+                        policy_id=reassessment_policy.policy_id,
+                        policy_revision=1,
+                        policy_revision_sha256=(
+                            reassessment_policy_write.stored.policy_sha256
+                        ),
+                    ),
+                    mode="replace",
+                    contributing_attempts=(derived.candidates[0].attempt,),
+                    replacement_relationships=(
+                        ReplacementRelationship(
+                            replacement_attempt=derived.candidates[0].attempt,
+                            replaced_attempts=(derived.candidates[1].attempt,),
+                        ),
+                    ),
+                    combinations=(),
+                    recency_order=(),
+                    decision_revision=1,
+                    supersedes_revision=None,
+                    actor=ReassessmentActor("teacher", "teacher_local"),
+                    rationale=None,
+                    decided_at=now,
+                )
+                reassessment_write = write_reassessment_decision_revision(
+                    workspace,
+                    reassessment_decision,
+                    authorized_snapshot=authorized,
+                )
+                assert reassessment_write.disposition == "created"
+                assert get_current_reassessment_decision_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                ) is None
+                reassessment_select = select_reassessment_decision_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    1,
+                    authorized_snapshot=authorized,
+                    expected_current_decision_revision=None,
+                )
+                assert reassessment_select.disposition == "created"
+                reassessment_resolution = resolve_current_reassessment(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    authorized_snapshot=authorized,
+                )
+                assert reassessment_resolution.status == "resolved"
+                assert reassessment_resolution.operative_reassessment is True
+                assert tuple(
+                    selected.native.sequence
+                    for selected in reassessment_resolution.contributing_attempts
+                ) == (1,)
+                assert (
+                    reassessment_resolution.replacement_relationships[
+                        0
+                    ].replaced_attempts[0].native.sequence
+                    == 2
+                )
+
+                reassessment_policy_v2 = ReassessmentPolicy(
+                    schema_version=REASSESSMENT_POLICY_SCHEMA_VERSION,
+                    record_type=REASSESSMENT_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    work=work,
+                    policy_id=reassessment_policy.policy_id,
+                    policy_revision=2,
+                    supersedes_revision=1,
+                    relationship_basis="explicit",
+                    allowed_modes=("retain", "replace"),
+                    actor=ReassessmentActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                write_reassessment_policy_revision(
+                    workspace, reassessment_policy_v2
+                )
+                select_reassessment_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    reassessment_policy.policy_id,
+                    2,
+                    expected_current_policy_revision=1,
+                )
+                reassessment_policy_stale = resolve_current_reassessment(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    authorized_snapshot=authorized,
+                )
+                assert reassessment_policy_stale.status == "policy_stale"
+                assert reassessment_policy_stale.operative_reassessment is False
+                select_reassessment_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    reassessment_policy.policy_id,
+                    1,
+                    expected_current_policy_revision=2,
+                )
+
+                attempt_decision_v2 = AttemptSelectionDecision(
+                    schema_version=ATTEMPT_SELECTION_DECISION_SCHEMA_VERSION,
+                    record_type=ATTEMPT_SELECTION_DECISION_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    work=work,
+                    student_id="student_1",
+                    membership_revision=1,
+                    membership_revision_sha256=written.stored.decision_sha256,
+                    policy=AttemptSelectionPolicyReference(
+                        policy_id=selection_policy.policy_id,
+                        policy_revision=1,
+                        policy_revision_sha256=policy_write.stored.policy_sha256,
+                    ),
+                    source_snapshot=derived.source_snapshot,
+                    candidates=derived.candidates,
+                    selected_attempts=(derived.candidates[1].attempt,),
+                    decision_revision=2,
+                    supersedes_revision=1,
+                    actor=AttemptSelectionActor("teacher", "teacher_local"),
+                    rationale=None,
+                    decided_at=now,
+                )
+                write_attempt_selection_decision_revision(
+                    workspace,
+                    attempt_decision_v2,
+                    authorized_snapshot=authorized,
+                )
+                select_attempt_selection_decision_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    2,
+                    authorized_snapshot=authorized,
+                    expected_current_decision_revision=1,
+                )
+                reassessment_attempt_stale = resolve_current_reassessment(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    authorized_snapshot=authorized,
+                )
+                assert reassessment_attempt_stale.status == "attempt_selection_stale"
+                assert reassessment_attempt_stale.operative_reassessment is False
 
                 policy_v2 = AttemptSelectionPolicy(
                     schema_version=ATTEMPT_SELECTION_POLICY_SCHEMA_VERSION,

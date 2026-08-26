@@ -29,6 +29,7 @@ REQUIRED_MEMBERS = frozenset(
         "docs/architecture/evidence-eligibility-decisions.md",
         "docs/architecture/grade-item-membership-and-academic-period-assignment.md",
         "docs/architecture/grade-items-and-canonical-storage.md",
+        "docs/architecture/reassessment-and-replacement-relationships.md",
         "meridian/__init__.py",
         "meridian/attempt_selection.py",
         "meridian/attempt_selection_storage.py",
@@ -40,6 +41,8 @@ REQUIRED_MEMBERS = frozenset(
         "meridian/grade_item_storage.py",
         "meridian/grade_items.py",
         "meridian/py.typed",
+        "meridian/reassessment.py",
+        "meridian/reassessment_storage.py",
         "scripts/smoke_test_grade_items_wheel.py",
         "scripts/validate_repository.py",
         "tests/test_attempt_selection.py",
@@ -53,6 +56,10 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_grade_item_memberships.py",
         "tests/test_grade_item_storage.py",
         "tests/test_grade_items.py",
+        "tests/test_reassessment.py",
+        "tests/test_reassessment_storage.py",
+        "tests/test_reassessment_integration.py",
+        "tests/test_reassessment_package_boundaries.py",
         "tests/test_validation_scripts.py",
     }
 )

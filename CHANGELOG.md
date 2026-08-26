@@ -4,6 +4,17 @@
 
 ### Added
 
+- Canonical immutable reassessment policy and student relationship decision
+  records over one exact operative #30 attempt-selection decision, with explicit
+  `retain`, directed `replace`, semantic `combine`, and explicit `recency` modes.
+- Exact contributing-attempt provenance, preserved replaced history, deterministic
+  combination groups, explicit recency order, and fail-closed multi-attempt
+  `no_decision` behavior without numeric ranking or reduction.
+- SHA-256-bound reassessment policy/decision history with explicit compare-and-swap
+  current selectors, #30 and #31 policy staleness resolution, single/none
+  pass-through states, and Quillan/Concord non-applicability that preserves
+  producer-native correction and supersession semantics.
+
 - Canonical immutable attempt-selection policy and student decision records with
   explicit-only selection semantics, bounded zero/one/set cardinality, and
   independent SHA-256-bound policy/decision revision history.

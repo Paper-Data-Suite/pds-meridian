@@ -27,6 +27,7 @@ EXPECTED = (
     Path("docs/architecture/concord-adapter.md"),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
     Path("docs/architecture/attempt-selection-policy-and-decisions.md"),
+    Path("docs/architecture/reassessment-and-replacement-relationships.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -51,6 +52,7 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "Canonical immutable reassessment policy and student relationship decision",
         "Canonical immutable attempt-selection policy and student decision records",
         "Canonical immutable evidence-eligibility decision records",
         "Immutable Meridian Grade Item",
@@ -81,7 +83,8 @@ REQUIRED_TEXT = {
         "issue #28 — implemented",
         "issue #29 — implemented",
         "issue #30 — implemented",
-        "issue #31 — next",
+        "issue #31 — implemented",
+        "issue #32 — next",
         "projection != canonical eligibility decision",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
@@ -182,6 +185,19 @@ REQUIRED_TEXT = {
         "Concord v0.2.0   -> not_applicable",
         "higher score -X-> preferred attempt",
         "attempt selection != reassessment",
+        "pds-core>=0.6,<0.7",
+    ),
+    Path("docs/architecture/reassessment-and-replacement-relationships.md"): (
+        "AttemptSelectionDecisionReference",
+        'relationship_basis = "explicit"',
+        "attempt selection != reassessment",
+        "reassessment != native-value mapping",
+        "selected_none",
+        "single_selected",
+        "no_decision",
+        "score_supersedes",
+        "Quillan v0.9.0",
+        "Concord v0.2.0",
         "pds-core>=0.6,<0.7",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (

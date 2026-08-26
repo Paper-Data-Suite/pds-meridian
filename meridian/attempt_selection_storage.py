@@ -1695,7 +1695,7 @@ def _validate_attempt_selection_collections(
         raise AttemptSelectionStorageReadError(
             "Could not inspect attempt-selection collection root."
         ) from error
-    allowed = {"policies", "students"}
+    allowed = {"policies", "reassessment", "students"}
     for entry in entries:
         if entry.name not in allowed:
             raise AttemptSelectionStorageIntegrityError(
