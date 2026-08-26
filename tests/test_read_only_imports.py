@@ -18,6 +18,8 @@ import pytest
         "meridian.concord_adapter",
         "meridian.diagnostics",
         "meridian.evidence",
+        "meridian.evidence_eligibility",
+        "meridian.evidence_eligibility_storage",
         "meridian.evidence_serialization",
         "meridian.grade_item_membership_storage",
         "meridian.grade_item_memberships",

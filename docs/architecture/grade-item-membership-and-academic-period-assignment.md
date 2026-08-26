@@ -420,8 +420,8 @@ Similarly, publication compatibility, numeric evidence, rubric evidence, an
 active producer work, or a newly discovered result does not create or select a
 membership decision.
 
-Issue #29 and later evidence-policy work decide which student evidence is
-eligible after work membership exists.
+Issue #29 now implements the separate canonical evidence-eligibility decision
+family over exact authorized projection sources after work membership exists.
 
 ## Filesystem safety
 
@@ -471,7 +471,7 @@ Issue #28 implements registered-work membership and exact Academic Period
 assignment only. It does not implement:
 
 - publication-driven membership discovery;
-- evidence eligibility (#29);
+- evidence eligibility (implemented by #29);
 - attempt selection;
 - reassessment/replacement;
 - proficiency scales or native-value mapping;
@@ -491,3 +491,13 @@ publication ingestion != Grade Item creation
 Grade Item creation != membership
 membership != evidence eligibility
 ```
+
+
+## Next interpretation boundary
+
+Issue #29 adds canonical eligibility records without changing this membership
+contract. Exact eligibility history binds one included membership revision and
+one exact projection snapshot/item source. Membership remains work-level state;
+it does not become student evidence state.
+
+See [Evidence eligibility decisions](evidence-eligibility-decisions.md).

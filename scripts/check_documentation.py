@@ -26,6 +26,7 @@ EXPECTED = (
     Path("docs/architecture/quillan-adapter.md"),
     Path("docs/architecture/concord-adapter.md"),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
+    Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
         "docs/architecture/"
@@ -49,6 +50,7 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "Canonical immutable evidence-eligibility decision records",
         "Immutable Meridian Grade Item",
         "## 0.1.1 — 2026-08-18",
         "canonical serialized",
@@ -75,7 +77,9 @@ REQUIRED_TEXT = {
         "membership != evidence eligibility",
         "issue #27 — implemented",
         "issue #28 — implemented",
-        "issue #29 — next",
+        "issue #29 — implemented",
+        "issue #30 — next",
+        "projection != canonical eligibility decision",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",
@@ -153,6 +157,17 @@ REQUIRED_TEXT = {
         "highest membership revision -X-> current membership",
         "pds-core>=0.6,<0.7",
         "membership != evidence eligibility",
+        "Issue #29 now implements the separate canonical evidence-eligibility",
+    ),
+    Path("docs/architecture/evidence-eligibility-decisions.md"): (
+        "EvidenceSourceReference",
+        "`item_id` alone is not immutable source identity",
+        "projection != canonical eligibility decision",
+        "membership != evidence eligibility",
+        "eligibility != attempt selection",
+        "included_source_withdrawn",
+        "pds-core>=0.6,<0.7",
+        "Possession of a cache key, digest, path, or item ID is not authorization.",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",
