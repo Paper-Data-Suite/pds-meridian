@@ -1275,7 +1275,13 @@ def _validate_membership_directory_entries(relation: Path) -> None:
         raise GradeItemMembershipStorageIntegrityError(
             "Membership relationship root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock", "evidence_eligibility"}
+    allowed = {
+        "revisions",
+        "current.json",
+        ".write.lock",
+        "evidence_eligibility",
+        "attempt_selection",
+    }
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1287,13 +1293,13 @@ def _validate_membership_directory_entries(relation: Path) -> None:
             raise GradeItemMembershipStorageIntegrityError(
                 "Membership relationship root contains an unexpected entry."
             )
-        if entry.name in {"revisions", "evidence_eligibility"}:
+        if entry.name in {"revisions", "evidence_eligibility", "attempt_selection"}:
             if entry.is_symlink() or not entry.is_dir():
-                label = (
-                    "Membership revisions"
-                    if entry.name == "revisions"
-                    else "Evidence eligibility"
-                )
+                label = {
+                    "revisions": "Membership revisions",
+                    "evidence_eligibility": "Evidence eligibility",
+                    "attempt_selection": "Attempt selection",
+                }[entry.name]
                 raise GradeItemMembershipStorageIntegrityError(
                     f"{label} entry must be a real directory."
                 )

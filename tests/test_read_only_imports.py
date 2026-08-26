@@ -14,6 +14,8 @@ import pytest
     [
         "meridian",
         "meridian.adapters",
+        "meridian.attempt_selection",
+        "meridian.attempt_selection_storage",
         "meridian.cli",
         "meridian.concord_adapter",
         "meridian.diagnostics",

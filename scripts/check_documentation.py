@@ -26,6 +26,7 @@ EXPECTED = (
     Path("docs/architecture/quillan-adapter.md"),
     Path("docs/architecture/concord-adapter.md"),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
+    Path("docs/architecture/attempt-selection-policy-and-decisions.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -50,6 +51,7 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "Canonical immutable attempt-selection policy and student decision records",
         "Canonical immutable evidence-eligibility decision records",
         "Immutable Meridian Grade Item",
         "## 0.1.1 — 2026-08-18",
@@ -78,7 +80,8 @@ REQUIRED_TEXT = {
         "issue #27 — implemented",
         "issue #28 — implemented",
         "issue #29 — implemented",
-        "issue #30 — next",
+        "issue #30 — implemented",
+        "issue #31 — next",
         "projection != canonical eligibility decision",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
@@ -168,6 +171,18 @@ REQUIRED_TEXT = {
         "included_source_withdrawn",
         "pds-core>=0.6,<0.7",
         "Possession of a cache key, digest, path, or item ID is not authorization.",
+        "attempt selection != reassessment",
+    ),
+    Path("docs/architecture/attempt-selection-policy-and-decisions.md"): (
+        "AttemptObservationReference",
+        "selection_basis = \"explicit\"",
+        "operative_included == true",
+        "ScoreForm v0.10.0 -> applicable",
+        "Quillan v0.9.0   -> not_applicable",
+        "Concord v0.2.0   -> not_applicable",
+        "higher score -X-> preferred attempt",
+        "attempt selection != reassessment",
+        "pds-core>=0.6,<0.7",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",

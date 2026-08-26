@@ -1,4 +1,4 @@
-"""Smoke-test Grade Item, membership, and eligibility from an installed wheel."""
+"""Smoke-test Grade Item, eligibility, and attempt selection from an installed wheel."""
 
 from __future__ import annotations
 
@@ -85,6 +85,26 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             from pds_core.routing_models import ModuleWorkRef
 
             from meridian.adapters import AdapterKey
+            from meridian.attempt_selection import (
+                ATTEMPT_SELECTION_DECISION_RECORD_TYPE,
+                ATTEMPT_SELECTION_DECISION_SCHEMA_VERSION,
+                ATTEMPT_SELECTION_POLICY_RECORD_TYPE,
+                ATTEMPT_SELECTION_POLICY_SCHEMA_VERSION,
+                AttemptSelectionActor,
+                AttemptSelectionDecision,
+                AttemptSelectionPolicy,
+                AttemptSelectionPolicyReference,
+            )
+            from meridian.attempt_selection_storage import (
+                derive_attempt_candidates,
+                get_current_attempt_selection_decision_revision,
+                get_current_attempt_selection_policy_revision,
+                resolve_current_attempt_selection,
+                select_attempt_selection_decision_revision,
+                select_attempt_selection_policy_revision,
+                write_attempt_selection_decision_revision,
+                write_attempt_selection_policy_revision,
+            )
             from meridian.evidence import (
                 EvidenceInventory,
                 EvidenceItem,
@@ -304,7 +324,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     work=work,
                     source_record=None,
                     publication_kind="academic_result_set",
-                    capabilities=("points",),
+                    capabilities=("points", "multiple_attempts"),
                     record_set_id="academic_results",
                     record_set_revision=1,
                     manifest_contract_version="synthetic_manifest_v1",
@@ -362,7 +382,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     authorization=projection_authorization,
                 )
                 cache_key = projection_cache_key(cache_identity)
-                evidence = EvidenceItem(
+                evidence_1 = EvidenceItem(
                     item_id="evidence_1",
                     subject=StudentSubject("student_1"),
                     target=EvidenceTarget("attempt", "attempt_1"),
@@ -378,6 +398,22 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                         ),
                     ),
                 )
+                evidence_2 = EvidenceItem(
+                    item_id="evidence_2",
+                    subject=StudentSubject("student_1"),
+                    target=EvidenceTarget("attempt", "attempt_2"),
+                    result_kind="synthetic_result",
+                    value=NativeScalarValue(99),
+                    provenance=EvidenceProvenance(
+                        publication=publication,
+                        registration=registration,
+                        withdrawal=None,
+                        projection=projection.evidence_projection_identity,
+                        native=NativeProvenance(
+                            (NativeReference("attempt", sequence=2),)
+                        ),
+                    ),
+                )
                 snapshot = ProjectionSnapshot(
                     schema_version=PROJECTION_SNAPSHOT_SCHEMA_VERSION,
                     record_type=PROJECTION_SNAPSHOT_RECORD_TYPE,
@@ -386,7 +422,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     source=projection_source,
                     projection=projection,
                     authorization=projection_authorization,
-                    inventory=EvidenceInventory((evidence,)),
+                    inventory=EvidenceInventory((evidence_1, evidence_2)),
                 )
                 snapshot_content = projection_snapshot_to_json_bytes(snapshot)
                 snapshot_digest = hashlib.sha256(snapshot_content).hexdigest()
@@ -426,67 +462,221 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                         current_registration_revision=1,
                     ),
                 )
-                source = EvidenceSourceReference(
-                    work=work,
-                    publication_id=publication_id,
-                    cache_key=cache_key,
-                    snapshot_digest=snapshot_digest,
-                    item_id=evidence.item_id,
+                sources = tuple(
+                    EvidenceSourceReference(
+                        work=work,
+                        publication_id=publication_id,
+                        cache_key=cache_key,
+                        snapshot_digest=snapshot_digest,
+                        item_id=evidence.item_id,
+                    )
+                    for evidence in (evidence_1, evidence_2)
                 )
-                source_state = observe_evidence_source_state(workspace, source)
+                source_state = observe_evidence_source_state(workspace, sources[0])
                 assert source_state.state == "current"
 
-                eligibility = EvidenceEligibilityDecision(
-                    schema_version=EVIDENCE_ELIGIBILITY_SCHEMA_VERSION,
-                    record_type=EVIDENCE_ELIGIBILITY_RECORD_TYPE,
+                for source in sources:
+                    eligibility = EvidenceEligibilityDecision(
+                        schema_version=EVIDENCE_ELIGIBILITY_SCHEMA_VERSION,
+                        record_type=EVIDENCE_ELIGIBILITY_RECORD_TYPE,
+                        class_id=class_id,
+                        grade_item_id=item.grade_item_id,
+                        source=source,
+                        membership_revision=1,
+                        membership_revision_sha256=written.stored.decision_sha256,
+                        eligibility_revision=1,
+                        supersedes_revision=None,
+                        disposition="included",
+                        actor=EvidenceDecisionActor("teacher", "teacher_local"),
+                        policy=EvidenceEligibilityPolicyReference(
+                            "eligibility_policy", "1"
+                        ),
+                        reason_codes=(),
+                        rationale=None,
+                        source_state=source_state,
+                        decided_at=now,
+                    )
+                    eligibility_write = write_evidence_eligibility_revision(
+                        workspace, eligibility, authorized_snapshot=authorized
+                    )
+                    assert eligibility_write.disposition == "created"
+                    assert get_current_evidence_eligibility_revision(
+                        workspace, class_id, item.grade_item_id, source
+                    ) is None
+                    eligibility_select = select_evidence_eligibility_revision(
+                        workspace,
+                        class_id,
+                        item.grade_item_id,
+                        source,
+                        1,
+                        authorized_snapshot=authorized,
+                        expected_current_eligibility_revision=None,
+                    )
+                    assert eligibility_select.disposition == "created"
+                    eligibility_current = load_current_evidence_eligibility_decision(
+                        workspace, class_id, item.grade_item_id, source
+                    )
+                    assert eligibility_current is not None
+                    assert eligibility_current.decision == eligibility
+                    resolution = resolve_current_evidence_eligibility(
+                        workspace,
+                        class_id,
+                        item.grade_item_id,
+                        source,
+                        authorized_snapshot=authorized,
+                    )
+                    assert resolution.status == "included"
+                    assert resolution.operative_included is True
+
+                derived = derive_attempt_candidates(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    "student_1",
+                    authorized,
+                )
+                assert derived.status == "applicable"
+                assert tuple(
+                    candidate.attempt.native.sequence
+                    for candidate in derived.candidates
+                ) == (1, 2)
+
+                selection_policy = AttemptSelectionPolicy(
+                    schema_version=ATTEMPT_SELECTION_POLICY_SCHEMA_VERSION,
+                    record_type=ATTEMPT_SELECTION_POLICY_RECORD_TYPE,
                     class_id=class_id,
                     grade_item_id=item.grade_item_id,
-                    source=source,
+                    work=work,
+                    policy_id="explicit_attempts",
+                    policy_revision=1,
+                    supersedes_revision=None,
+                    selection_basis="explicit",
+                    minimum_selected=0,
+                    maximum_selected=1,
+                    actor=AttemptSelectionActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                policy_write = write_attempt_selection_policy_revision(
+                    workspace, selection_policy
+                )
+                assert policy_write.disposition == "created"
+                assert get_current_attempt_selection_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    selection_policy.policy_id,
+                ) is None
+                policy_select = select_attempt_selection_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    selection_policy.policy_id,
+                    1,
+                    expected_current_policy_revision=None,
+                )
+                assert policy_select.disposition == "created"
+
+                attempt_decision = AttemptSelectionDecision(
+                    schema_version=ATTEMPT_SELECTION_DECISION_SCHEMA_VERSION,
+                    record_type=ATTEMPT_SELECTION_DECISION_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    work=work,
+                    student_id="student_1",
                     membership_revision=1,
                     membership_revision_sha256=written.stored.decision_sha256,
-                    eligibility_revision=1,
-                    supersedes_revision=None,
-                    disposition="included",
-                    actor=EvidenceDecisionActor("teacher", "teacher_local"),
-                    policy=EvidenceEligibilityPolicyReference(
-                        "eligibility_policy", "1"
+                    policy=AttemptSelectionPolicyReference(
+                        policy_id=selection_policy.policy_id,
+                        policy_revision=1,
+                        policy_revision_sha256=policy_write.stored.policy_sha256,
                     ),
-                    reason_codes=(),
+                    source_snapshot=derived.source_snapshot,
+                    candidates=derived.candidates,
+                    selected_attempts=(derived.candidates[0].attempt,),
+                    decision_revision=1,
+                    supersedes_revision=None,
+                    actor=AttemptSelectionActor("teacher", "teacher_local"),
                     rationale=None,
-                    source_state=source_state,
                     decided_at=now,
                 )
-                eligibility_write = write_evidence_eligibility_revision(
-                    workspace, eligibility, authorized_snapshot=authorized
+                decision_write = write_attempt_selection_decision_revision(
+                    workspace, attempt_decision, authorized_snapshot=authorized
                 )
-                assert eligibility_write.disposition == "created"
-                assert get_current_evidence_eligibility_revision(
-                    workspace, class_id, item.grade_item_id, source
-                ) is None
-                eligibility_select = select_evidence_eligibility_revision(
+                assert decision_write.disposition == "created"
+                assert get_current_attempt_selection_decision_revision(
                     workspace,
                     class_id,
                     item.grade_item_id,
-                    source,
+                    work,
+                    "student_1",
+                ) is None
+                decision_select = select_attempt_selection_decision_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
                     1,
                     authorized_snapshot=authorized,
-                    expected_current_eligibility_revision=None,
+                    expected_current_decision_revision=None,
                 )
-                assert eligibility_select.disposition == "created"
-                eligibility_current = load_current_evidence_eligibility_decision(
-                    workspace, class_id, item.grade_item_id, source
-                )
-                assert eligibility_current is not None
-                assert eligibility_current.decision == eligibility
-                resolution = resolve_current_evidence_eligibility(
+                assert decision_select.disposition == "created"
+                selection_resolution = resolve_current_attempt_selection(
                     workspace,
                     class_id,
                     item.grade_item_id,
-                    source,
+                    work,
+                    "student_1",
                     authorized_snapshot=authorized,
                 )
-                assert resolution.status == "included"
-                assert resolution.operative_included is True
+                assert selection_resolution.status == "selected"
+                assert selection_resolution.operative_selection is True
+                assert (
+                    selection_resolution.selected.decision.selected_attempts[
+                        0
+                    ].native.sequence
+                    == 1
+                )
+
+                policy_v2 = AttemptSelectionPolicy(
+                    schema_version=ATTEMPT_SELECTION_POLICY_SCHEMA_VERSION,
+                    record_type=ATTEMPT_SELECTION_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    work=work,
+                    policy_id=selection_policy.policy_id,
+                    policy_revision=2,
+                    supersedes_revision=1,
+                    selection_basis="explicit",
+                    minimum_selected=0,
+                    maximum_selected=2,
+                    actor=AttemptSelectionActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                write_attempt_selection_policy_revision(workspace, policy_v2)
+                select_attempt_selection_policy_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    selection_policy.policy_id,
+                    2,
+                    expected_current_policy_revision=1,
+                )
+                stale = resolve_current_attempt_selection(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    work,
+                    "student_1",
+                    authorized_snapshot=authorized,
+                )
+                assert stale.status == "policy_stale"
+                assert stale.operative_selection is False
             finally:
                 shutil.rmtree(workspace)
 
