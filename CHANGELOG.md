@@ -4,6 +4,16 @@
 
 ### Added
 
+- Canonical immutable evidence-eligibility decision records scoped to one exact
+  Grade Item and projection-snapshot evidence source, with distinct `included`,
+  `excluded`, `pending`, `unsupported`, `superseded`, and `withdrawn` semantics.
+- Exact source provenance binding Core work/publication identity, projection
+  `cache_key`, snapshot SHA-256, and evidence `item_id`, plus exact included
+  Grade Item membership revision/digest provenance.
+- SHA-256-bound eligibility history with deterministic source keys, explicit
+  compare-and-swap `current.json` selection, source-lifecycle resolution,
+  authorization-gated evidence validation, and fail-closed storage safety.
+
 - Immutable Grade Item membership decisions with explicit `included`/`excluded`
   state, exact Grade Item revision/digest provenance, exact Core Academic Work
   Registration revisions, exact Academic Period Calendar revisions, teacher

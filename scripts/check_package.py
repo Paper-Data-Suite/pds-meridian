@@ -187,6 +187,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/concord_adapter.py",
         "meridian/diagnostics.py",
         "meridian/evidence.py",
+        "meridian/evidence_eligibility.py",
+        "meridian/evidence_eligibility_storage.py",
         "meridian/evidence_serialization.py",
         "meridian/grade_item_membership_storage.py",
         "meridian/grade_item_memberships.py",

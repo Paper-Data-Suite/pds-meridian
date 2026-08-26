@@ -1,4 +1,4 @@
-"""Smoke-test Grade Item and membership modules from an installed wheel."""
+"""Smoke-test Grade Item, membership, and eligibility from an installed wheel."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def _run(command: list[str], cwd: Path) -> None:
 
 
 def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
-    """Install only Core and Meridian, then exercise Grade Item membership."""
+    """Install only Core and Meridian, then exercise v0.2 interpretation state."""
     with tempfile.TemporaryDirectory(
         prefix="pds-meridian-grade-item-smoke-"
     ) as raw_temp:
@@ -60,6 +60,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
         _run([str(python), "-m", "pip", "check"], outside)
         code = textwrap.dedent(
             """
+            import hashlib
             import pathlib
             import shutil
             import sys
@@ -78,9 +79,38 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             )
             from pds_core.academic_work_registrations import AcademicWorkRegistration
             from pds_core.class_metadata import ClassMetadata, write_class_metadata
+            from pds_core.publication_records import PublicationRecord
+            from pds_core.publication_storage import write_publication_record
             from pds_core.routes import class_metadata_path, module_work_dir
             from pds_core.routing_models import ModuleWorkRef
 
+            from meridian.adapters import AdapterKey
+            from meridian.evidence import (
+                EvidenceInventory,
+                EvidenceItem,
+                EvidenceProvenance,
+                EvidenceTarget,
+                NativeProvenance,
+                NativeReference,
+                NativeScalarValue,
+                StudentSubject,
+            )
+            from meridian.evidence_eligibility import (
+                EVIDENCE_ELIGIBILITY_RECORD_TYPE,
+                EVIDENCE_ELIGIBILITY_SCHEMA_VERSION,
+                EvidenceDecisionActor,
+                EvidenceEligibilityDecision,
+                EvidenceEligibilityPolicyReference,
+                EvidenceSourceReference,
+            )
+            from meridian.evidence_eligibility_storage import (
+                get_current_evidence_eligibility_revision,
+                load_current_evidence_eligibility_decision,
+                observe_evidence_source_state,
+                resolve_current_evidence_eligibility,
+                select_evidence_eligibility_revision,
+                write_evidence_eligibility_revision,
+            )
             from meridian.grade_item_membership_storage import (
                 load_current_grade_item_membership_decision,
                 select_grade_item_membership_revision,
@@ -101,6 +131,28 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 GradeItemWorkReference,
                 grade_item_revision_from_json_bytes,
                 grade_item_revision_to_json_bytes,
+            )
+            from meridian.ingestion import (
+                CanonicalPublicationContext,
+                PublicationAuthorizationDecision,
+                PublicationSeriesMember,
+                PublicationSeriesObservation,
+            )
+            from meridian.projection_cache import (
+                PROJECTION_SNAPSHOT_RECORD_TYPE,
+                PROJECTION_SNAPSHOT_SCHEMA_VERSION,
+                AuthorizedProjectionSnapshot,
+                ProjectionAuthorizationObservation,
+                ProjectionCacheAssessment,
+                ProjectionCacheIdentity,
+                ProjectionExecutionIdentity,
+                ProjectionSnapshot,
+                ProjectionSourceObservation,
+                StoredProjectionSnapshot,
+                projection_cache_key,
+                projection_cache_path,
+                projection_cache_relative_path,
+                projection_snapshot_to_json_bytes,
             )
 
             workspace = pathlib.Path(tempfile.mkdtemp(prefix="meridian-membership-"))
@@ -235,6 +287,206 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 )
                 assert current is not None
                 assert current.decision == membership
+
+                manifest_bytes = b'{"schema_version":"synthetic_manifest_v1"}\\n'
+                manifest_relative = (
+                    f"classes/{class_id}/modules/{work.module_id}/work/"
+                    f"{work.work_id}/exports/manifests/academic_results/1.json"
+                )
+                manifest_path = workspace.joinpath(*manifest_relative.split("/"))
+                manifest_path.parent.mkdir(parents=True, exist_ok=True)
+                manifest_path.write_bytes(manifest_bytes)
+                publication_id = "pub_11111111111111111111111111111111"
+                publication = PublicationRecord(
+                    schema_version="1",
+                    record_type="publication_record",
+                    publication_id=publication_id,
+                    work=work,
+                    source_record=None,
+                    publication_kind="academic_result_set",
+                    capabilities=("points",),
+                    record_set_id="academic_results",
+                    record_set_revision=1,
+                    manifest_contract_version="synthetic_manifest_v1",
+                    manifest_path=manifest_relative,
+                    manifest_digest_algorithm="sha256",
+                    manifest_digest=hashlib.sha256(manifest_bytes).hexdigest(),
+                    published_at=now,
+                    academic_work_registration_revision=1,
+                    supersedes_publication_id=None,
+                )
+                write_publication_record(workspace, publication)
+
+                series = PublicationSeriesObservation(
+                    members=(PublicationSeriesMember(publication, None),),
+                    target_publication_id=publication_id,
+                    target_index=0,
+                    head_publication_id=publication_id,
+                    target_state="current_selectable",
+                    successor_publication_id=None,
+                )
+                context = CanonicalPublicationContext(
+                    publication=publication,
+                    referenced_registration=registration,
+                    current_registration=registration,
+                    series=series,
+                    withdrawal=None,
+                )
+                projection_source = ProjectionSourceObservation.from_context(context)
+                projection = ProjectionExecutionIdentity(
+                    adapter_key=AdapterKey(
+                        producer_module_id=work.module_id,
+                        publication_kind="academic_result_set",
+                        manifest_contract_version="synthetic_manifest_v1",
+                        producer_contract_version="v1",
+                        source_record_kind=None,
+                        source_record_contract_version=None,
+                    ),
+                    adapter_id="synthetic.eligibility",
+                    adapter_interface_version="1",
+                    projection_contract_version="1",
+                    producer_reader_distribution="synthetic-reader",
+                    producer_reader_version="1.0.0",
+                )
+                projection_authorization = ProjectionAuthorizationObservation(
+                    operation="project_evidence",
+                    purpose_id="grading_import",
+                    requested_student_ids=("student_1",),
+                    policy_id="district_policy",
+                    policy_version="1",
+                )
+                cache_identity = ProjectionCacheIdentity(
+                    schema_version=PROJECTION_SNAPSHOT_SCHEMA_VERSION,
+                    source=projection_source,
+                    projection=projection,
+                    authorization=projection_authorization,
+                )
+                cache_key = projection_cache_key(cache_identity)
+                evidence = EvidenceItem(
+                    item_id="evidence_1",
+                    subject=StudentSubject("student_1"),
+                    target=EvidenceTarget("attempt", "attempt_1"),
+                    result_kind="synthetic_result",
+                    value=NativeScalarValue(1),
+                    provenance=EvidenceProvenance(
+                        publication=publication,
+                        registration=registration,
+                        withdrawal=None,
+                        projection=projection.evidence_projection_identity,
+                        native=NativeProvenance(
+                            (NativeReference("attempt", sequence=1),)
+                        ),
+                    ),
+                )
+                snapshot = ProjectionSnapshot(
+                    schema_version=PROJECTION_SNAPSHOT_SCHEMA_VERSION,
+                    record_type=PROJECTION_SNAPSHOT_RECORD_TYPE,
+                    cache_key=cache_key,
+                    captured_at=now,
+                    source=projection_source,
+                    projection=projection,
+                    authorization=projection_authorization,
+                    inventory=EvidenceInventory((evidence,)),
+                )
+                snapshot_content = projection_snapshot_to_json_bytes(snapshot)
+                snapshot_digest = hashlib.sha256(snapshot_content).hexdigest()
+                snapshot_relative = projection_cache_relative_path(
+                    publication_id, cache_key, snapshot_digest
+                )
+                stored_snapshot = StoredProjectionSnapshot(
+                    snapshot=snapshot,
+                    cache_key=cache_key,
+                    snapshot_digest=snapshot_digest,
+                    path=projection_cache_path(
+                        workspace, publication_id, cache_key, snapshot_digest
+                    ),
+                    relative_path=snapshot_relative,
+                    content=snapshot_content,
+                )
+                allowed = PublicationAuthorizationDecision(
+                    allowed=True,
+                    policy_id="district_policy",
+                    policy_version="1",
+                    reason_codes=(),
+                )
+                authorized = AuthorizedProjectionSnapshot(
+                    stored=stored_snapshot,
+                    current_context=context,
+                    cache_read_authorization=allowed,
+                    current_projection_authorization=allowed,
+                    assessment=ProjectionCacheAssessment(
+                        source_status="current",
+                        reuse_status="reusable",
+                        reason_codes=(),
+                        observed_canonical_state="current_selectable",
+                        current_canonical_state="current_selectable",
+                        observed_head_publication_id=publication_id,
+                        current_head_publication_id=publication_id,
+                        observed_current_registration_revision=1,
+                        current_registration_revision=1,
+                    ),
+                )
+                source = EvidenceSourceReference(
+                    work=work,
+                    publication_id=publication_id,
+                    cache_key=cache_key,
+                    snapshot_digest=snapshot_digest,
+                    item_id=evidence.item_id,
+                )
+                source_state = observe_evidence_source_state(workspace, source)
+                assert source_state.state == "current"
+
+                eligibility = EvidenceEligibilityDecision(
+                    schema_version=EVIDENCE_ELIGIBILITY_SCHEMA_VERSION,
+                    record_type=EVIDENCE_ELIGIBILITY_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    source=source,
+                    membership_revision=1,
+                    membership_revision_sha256=written.stored.decision_sha256,
+                    eligibility_revision=1,
+                    supersedes_revision=None,
+                    disposition="included",
+                    actor=EvidenceDecisionActor("teacher", "teacher_local"),
+                    policy=EvidenceEligibilityPolicyReference(
+                        "eligibility_policy", "1"
+                    ),
+                    reason_codes=(),
+                    rationale=None,
+                    source_state=source_state,
+                    decided_at=now,
+                )
+                eligibility_write = write_evidence_eligibility_revision(
+                    workspace, eligibility, authorized_snapshot=authorized
+                )
+                assert eligibility_write.disposition == "created"
+                assert get_current_evidence_eligibility_revision(
+                    workspace, class_id, item.grade_item_id, source
+                ) is None
+                eligibility_select = select_evidence_eligibility_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    source,
+                    1,
+                    authorized_snapshot=authorized,
+                    expected_current_eligibility_revision=None,
+                )
+                assert eligibility_select.disposition == "created"
+                eligibility_current = load_current_evidence_eligibility_decision(
+                    workspace, class_id, item.grade_item_id, source
+                )
+                assert eligibility_current is not None
+                assert eligibility_current.decision == eligibility
+                resolution = resolve_current_evidence_eligibility(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    source,
+                    authorized_snapshot=authorized,
+                )
+                assert resolution.status == "included"
+                assert resolution.operative_included is True
             finally:
                 shutil.rmtree(workspace)
 
@@ -252,11 +504,13 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
         )
         _run([str(python), "-c", code], outside)
         if list(outside.iterdir()):
-            raise RuntimeError("Grade Item smoke test left working-directory residue.")
+            raise RuntimeError(
+                "Grade Item/eligibility smoke test left working-directory residue."
+            )
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Parse wheel paths and run the installed Grade Item smoke test."""
+    """Parse wheel paths and run the installed interpretation smoke test."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("meridian_wheel", type=Path)
     parser.add_argument("core_wheel", type=Path)
