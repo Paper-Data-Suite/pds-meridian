@@ -183,6 +183,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/__main__.py",
         "meridian/_version.py",
         "meridian/adapters.py",
+        "meridian/attempt_selection.py",
+        "meridian/attempt_selection_storage.py",
         "meridian/cli.py",
         "meridian/concord_adapter.py",
         "meridian/diagnostics.py",

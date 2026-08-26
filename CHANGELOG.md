@@ -4,6 +4,17 @@
 
 ### Added
 
+- Canonical immutable attempt-selection policy and student decision records with
+  explicit-only selection semantics, bounded zero/one/set cardinality, and
+  independent SHA-256-bound policy/decision revision history.
+- Producer-neutral exact attempt observation identity over one immutable
+  projection snapshot, plus deterministic candidate derivation from exact #29
+  `operative_included` eligibility revisions without score or recency ranking.
+- Explicit compare-and-swap policy/decision selection, stale
+  membership/policy/eligibility/candidate resolution, ScoreForm
+  `multiple_attempts` applicability, and explicit Quillan/Concord
+  non-applicability without fabricated attempts.
+
 - Canonical immutable evidence-eligibility decision records scoped to one exact
   Grade Item and projection-snapshot evidence source, with distinct `included`,
   `excluded`, `pending`, `unsupported`, `superseded`, and `withdrawn` semantics.

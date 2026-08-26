@@ -539,7 +539,7 @@ Issue #29 does not implement:
 - automatic eligibility from publication availability;
 - a universal eligibility policy engine;
 - mutation/migration of v0.1 `EvidenceEligibility` annotations;
-- attempt selection (#30);
+- attempt selection (now implemented separately by #30);
 - reassessment/replacement (#31);
 - native-value mapping;
 - Meridian proficiency scales;
@@ -551,10 +551,17 @@ Issue #29 does not implement:
 - reports or SIS synchronization;
 - producer or Core record mutation.
 
+Issue #30 now implements the separate canonical attempt-selection policy and
+decision layer. #29 remains its authoritative eligibility input and is not
+rewritten by attempt selection.
+
 The resulting sequence remains explicit:
 
 ```text
 projection != canonical eligibility decision
 membership != evidence eligibility
 eligibility != attempt selection
+attempt selection != reassessment
 ```
+
+See [Attempt-selection policy and decisions](attempt-selection-policy-and-decisions.md).

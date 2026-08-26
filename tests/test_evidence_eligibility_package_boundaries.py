@@ -37,7 +37,8 @@ def test_documentation_validation_guards_issue29_boundaries() -> None:
     assert "membership != evidence eligibility" in checker
     assert "eligibility != attempt selection" in checker
     assert "issue #29 — implemented" in checker
-    assert "issue #30 — next" in checker
+    assert "issue #30 — implemented" in checker
+    assert "issue #31 — next" in checker
 
 
 def test_installed_wheel_smoke_covers_core_only_eligibility_flow() -> None:
