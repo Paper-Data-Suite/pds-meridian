@@ -38,7 +38,8 @@ def test_documentation_validation_guards_issue30_boundaries() -> None:
     assert "attempt selection != reassessment" in checker
     assert "issue #30 — implemented" in checker
     assert "issue #31 — implemented" in checker
-    assert "issue #32 — next" in checker
+    assert "issue #32 — implemented" in checker
+    assert "issue #33 — next" in checker
 
 
 def test_installed_wheel_smoke_covers_core_only_attempt_selection_flow() -> None:

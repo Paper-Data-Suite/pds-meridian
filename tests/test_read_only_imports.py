@@ -29,6 +29,8 @@ import pytest
         "meridian.grade_items",
         "meridian.ingestion",
         "meridian.projection_cache",
+        "meridian.proficiency_mapping",
+        "meridian.proficiency_mapping_storage",
         "meridian.quillan_adapter",
         "meridian.reassessment",
         "meridian.reassessment_storage",
