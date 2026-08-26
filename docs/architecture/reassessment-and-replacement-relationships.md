@@ -582,9 +582,11 @@ pds-core>=0.6,<0.7
 The later grouping-signal adoption issue remains responsible for raising the Core
 minimum.
 
-## Boundary to #32
+## Native-value mapping boundary
 
-Issue #31 deliberately stops before native-value/proficiency mapping.
+Issue #31 deliberately does not interpret producer-native values. Issue #32 now
+implements that separate policy layer in `meridian.proficiency_mapping` and
+`meridian.proficiency_mapping_storage`.
 
 It can answer:
 
@@ -603,4 +605,12 @@ how should a combination be calculated?
 what is the student's proficiency?
 ```
 
-That next interpretation boundary belongs to issue #32.
+Issue #32 maps one exact producer-native value through one exact teacher-defined
+profile/scale revision while preserving unmapped, unsupported, and native-state
+outcomes. It still does not associate that mapped value with a standard or
+calculate student proficiency; issue #33 owns the next boundary.
+
+```text
+reassessment != native-value mapping
+native-value mapping != standards evidence association
+```

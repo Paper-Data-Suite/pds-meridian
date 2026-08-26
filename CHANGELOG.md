@@ -4,6 +4,16 @@
 
 ### Added
 
+- Canonical immutable teacher-defined proficiency scales with ordered criterion-referenced
+  levels, explicit proficiency thresholds, SHA-256-bound revision history, and
+  compare-and-swap current selectors without fixed four-level semantics.
+- Producer-neutral native-value mapping profiles with exact source signatures and
+  explicit `exact_scalar`, `exact_native_scale`, and `raw_points` modes; mapped,
+  unmapped, unsupported, and native-state outcomes remain distinct.
+- Exact native-scale snapshot binding, non-inverting ordered mappings, denominator-bound
+  raw-point ranges without percentage normalization, and package/installed-smoke
+  coverage preserving ScoreForm, Quillan, and Concord semantic separation.
+
 - Canonical immutable reassessment policy and student relationship decision
   records over one exact operative #30 attempt-selection decision, with explicit
   `retain`, directed `replace`, semantic `combine`, and explicit `recency` modes.

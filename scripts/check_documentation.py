@@ -28,6 +28,7 @@ EXPECTED = (
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
     Path("docs/architecture/attempt-selection-policy-and-decisions.md"),
     Path("docs/architecture/reassessment-and-replacement-relationships.md"),
+    Path("docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -52,6 +53,8 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "Canonical immutable teacher-defined proficiency scales",
+        "Producer-neutral native-value mapping profiles",
         "Canonical immutable reassessment policy and student relationship decision",
         "Canonical immutable attempt-selection policy and student decision records",
         "Canonical immutable evidence-eligibility decision records",
@@ -84,7 +87,8 @@ REQUIRED_TEXT = {
         "issue #29 — implemented",
         "issue #30 — implemented",
         "issue #31 — implemented",
-        "issue #32 — next",
+        "issue #32 — implemented",
+        "issue #33 — next",
         "projection != canonical eligibility decision",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
@@ -198,6 +202,22 @@ REQUIRED_TEXT = {
         "score_supersedes",
         "Quillan v0.9.0",
         "Concord v0.2.0",
+        "pds-core>=0.6,<0.7",
+    ),
+    Path("docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md"): (
+        "producer-native result",
+        "Meridian proficiency category",
+        "NativeValueSourceSignature",
+        "exact_scalar",
+        "exact_native_scale",
+        "raw_points",
+        "No percentage normalization",
+        "mapped",
+        "unmapped",
+        "unsupported",
+        "native_state",
+        "reassessment != native-value mapping",
+        "native-value mapping != standards evidence association",
         "pds-core>=0.6,<0.7",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (

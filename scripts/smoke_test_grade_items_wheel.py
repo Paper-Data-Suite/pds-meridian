@@ -131,9 +131,14 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 EvidenceItem,
                 EvidenceProvenance,
                 EvidenceTarget,
+                NativePointValue,
                 NativeProvenance,
                 NativeReference,
                 NativeScalarValue,
+                NativeScale,
+                NativeScaledValue,
+                NativeScaleLevel,
+                NativeStateValue,
                 StudentSubject,
             )
             from meridian.evidence_eligibility import (
@@ -179,6 +184,31 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 PublicationSeriesMember,
                 PublicationSeriesObservation,
             )
+            from meridian.proficiency_mapping import (
+                NATIVE_VALUE_MAPPING_PROFILE_RECORD_TYPE,
+                NATIVE_VALUE_MAPPING_PROFILE_SCHEMA_VERSION,
+                PROFICIENCY_SCALE_RECORD_TYPE,
+                PROFICIENCY_SCALE_SCHEMA_VERSION,
+                MappingActor,
+                NativeValueMappingProfile,
+                NativeValueSourceSignature,
+                PointRangeMappingRule,
+                ProficiencyLevel,
+                ProficiencyScale,
+                ScalarMappingRule,
+                ScaledLevelMappingRule,
+                map_native_value,
+                proficiency_scale_reference,
+            )
+            from meridian.proficiency_mapping_storage import (
+                get_current_mapping_profile_revision,
+                get_current_proficiency_scale_revision,
+                load_mapping_profile_revision,
+                select_mapping_profile_revision,
+                select_proficiency_scale_revision,
+                write_mapping_profile_revision,
+                write_proficiency_scale_revision,
+            )
             from meridian.projection_cache import (
                 PROJECTION_SNAPSHOT_RECORD_TYPE,
                 PROJECTION_SNAPSHOT_SCHEMA_VERSION,
@@ -209,6 +239,303 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     module_details={},
                 )
                 write_class_metadata(class_metadata_path(workspace, class_id), metadata)
+
+                # #32: define teacher-owned ordinal proficiency policy first.
+                proficiency_scale = ProficiencyScale(
+                    schema_version=PROFICIENCY_SCALE_SCHEMA_VERSION,
+                    record_type=PROFICIENCY_SCALE_RECORD_TYPE,
+                    class_id=class_id,
+                    scale_id="teacher_proficiency",
+                    scale_revision=1,
+                    supersedes_revision=None,
+                    title="Teacher proficiency",
+                    description="Synthetic criterion-referenced scale.",
+                    levels=(
+                        ProficiencyLevel(
+                            "starting", 1, "Starting", "Initial evidence."
+                        ),
+                        ProficiencyLevel(
+                            "growing", 2, "Growing", "Partial evidence."
+                        ),
+                        ProficiencyLevel(
+                            "ready", 3, "Ready", "Meets the criterion."
+                        ),
+                        ProficiencyLevel(
+                            "extending", 4, "Extending", "Extends criterion."
+                        ),
+                    ),
+                    proficiency_threshold_level_id="ready",
+                    actor=MappingActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                scale_write = write_proficiency_scale_revision(
+                    workspace, proficiency_scale
+                )
+                assert scale_write.disposition == "created"
+                assert (
+                    get_current_proficiency_scale_revision(
+                        workspace, class_id, proficiency_scale.scale_id
+                    )
+                    is None
+                )
+                select_proficiency_scale_revision(
+                    workspace,
+                    class_id,
+                    proficiency_scale.scale_id,
+                    1,
+                    expected_current_scale_revision=None,
+                )
+
+                # Exact nonconsecutive producer-native scale; 2 is intentionally
+                # unmapped to prove there is no ordinal interpolation.
+                native_024 = NativeScale(
+                    scale_id="synthetic_024",
+                    levels=(
+                        NativeScaleLevel(0, "Low", "Limited evidence"),
+                        NativeScaleLevel(2, "Middle", "Developing evidence"),
+                        NativeScaleLevel(4, "High", "Strong evidence"),
+                    ),
+                )
+                native_signature = NativeValueSourceSignature(
+                    producer_module_id="syntheticproducer",
+                    publication_kind="academic_result_set",
+                    manifest_contract_version="synthetic_manifest_v1",
+                    producer_contract_version="synthetic_work_v1",
+                    projection_id="synthetic.academic_result",
+                    projection_contract_version="1",
+                    producer_reader_distribution="synthetic-producer",
+                    producer_reader_version="1.0.0",
+                    result_kind="native_rating",
+                    target_kind="standard",
+                )
+                native_profile = NativeValueMappingProfile(
+                    schema_version=NATIVE_VALUE_MAPPING_PROFILE_SCHEMA_VERSION,
+                    record_type=NATIVE_VALUE_MAPPING_PROFILE_RECORD_TYPE,
+                    class_id=class_id,
+                    scale_id=proficiency_scale.scale_id,
+                    profile_id="native_024",
+                    profile_revision=1,
+                    supersedes_revision=None,
+                    target_scale=proficiency_scale_reference(proficiency_scale),
+                    source_signature=native_signature,
+                    mapping_kind="exact_native_scale",
+                    native_scale=native_024,
+                    points_possible=None,
+                    mapping_rules=(
+                        ScaledLevelMappingRule(0, "starting"),
+                        ScaledLevelMappingRule(4, "extending"),
+                    ),
+                    actor=MappingActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                native_profile_write = write_mapping_profile_revision(
+                    workspace, native_profile
+                )
+                assert native_profile_write.disposition == "created"
+                assert (
+                    get_current_mapping_profile_revision(
+                        workspace,
+                        class_id,
+                        proficiency_scale.scale_id,
+                        native_profile.profile_id,
+                    )
+                    is None
+                )
+                select_mapping_profile_revision(
+                    workspace,
+                    class_id,
+                    proficiency_scale.scale_id,
+                    native_profile.profile_id,
+                    1,
+                    expected_current_profile_revision=None,
+                )
+                assert map_native_value(
+                    NativeScaledValue(0, native_024),
+                    native_signature,
+                    native_profile,
+                    proficiency_scale,
+                ).proficiency_level_id == "starting"
+                assert (
+                    map_native_value(
+                        NativeScaledValue(2, native_024),
+                        native_signature,
+                        native_profile,
+                        proficiency_scale,
+                    ).status
+                    == "unmapped"
+                )
+                changed_native = NativeScale(
+                    scale_id=native_024.scale_id,
+                    levels=(
+                        NativeScaleLevel(0, "LOW", "Different meaning"),
+                        native_024.levels[1],
+                        native_024.levels[2],
+                    ),
+                )
+                assert (
+                    map_native_value(
+                        NativeScaledValue(0, changed_native),
+                        native_signature,
+                        native_profile,
+                        proficiency_scale,
+                    ).status
+                    == "unsupported"
+                )
+                assert (
+                    map_native_value(
+                        NativeStateValue("unrated"),
+                        native_signature,
+                        native_profile,
+                        proficiency_scale,
+                    ).status
+                    == "native_state"
+                )
+
+                points_signature = NativeValueSourceSignature(
+                    producer_module_id="syntheticproducer",
+                    publication_kind="academic_result_set",
+                    manifest_contract_version="synthetic_manifest_v1",
+                    producer_contract_version="synthetic_work_v1",
+                    projection_id="synthetic.academic_result",
+                    projection_contract_version="1",
+                    producer_reader_distribution="synthetic-producer",
+                    producer_reader_version="1.0.0",
+                    result_kind="attempt_points",
+                    target_kind="attempt",
+                )
+                points_profile = NativeValueMappingProfile(
+                    schema_version=NATIVE_VALUE_MAPPING_PROFILE_SCHEMA_VERSION,
+                    record_type=NATIVE_VALUE_MAPPING_PROFILE_RECORD_TYPE,
+                    class_id=class_id,
+                    scale_id=proficiency_scale.scale_id,
+                    profile_id="points_10",
+                    profile_revision=1,
+                    supersedes_revision=None,
+                    target_scale=proficiency_scale_reference(proficiency_scale),
+                    source_signature=points_signature,
+                    mapping_kind="raw_points",
+                    native_scale=None,
+                    points_possible=10,
+                    mapping_rules=(
+                        PointRangeMappingRule(
+                            0, True, 8, False, "growing"
+                        ),
+                        PointRangeMappingRule(
+                            8, True, 10, True, "ready"
+                        ),
+                    ),
+                    actor=MappingActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                write_mapping_profile_revision(workspace, points_profile)
+                assert map_native_value(
+                    NativePointValue(8, 10),
+                    points_signature,
+                    points_profile,
+                    proficiency_scale,
+                ).proficiency_level_id == "ready"
+                assert (
+                    map_native_value(
+                        NativePointValue(8, 12),
+                        points_signature,
+                        points_profile,
+                        proficiency_scale,
+                    ).status
+                    == "unsupported"
+                )
+
+                scalar_signature = NativeValueSourceSignature(
+                    producer_module_id="syntheticproducer",
+                    publication_kind="academic_result_set",
+                    manifest_contract_version="synthetic_manifest_v1",
+                    producer_contract_version="synthetic_work_v1",
+                    projection_id="synthetic.academic_result",
+                    projection_contract_version="1",
+                    producer_reader_distribution="synthetic-producer",
+                    producer_reader_version="1.0.0",
+                    result_kind="question_correctness",
+                    target_kind="question",
+                )
+                scalar_profile = NativeValueMappingProfile(
+                    schema_version=NATIVE_VALUE_MAPPING_PROFILE_SCHEMA_VERSION,
+                    record_type=NATIVE_VALUE_MAPPING_PROFILE_RECORD_TYPE,
+                    class_id=class_id,
+                    scale_id=proficiency_scale.scale_id,
+                    profile_id="boolean_correctness",
+                    profile_revision=1,
+                    supersedes_revision=None,
+                    target_scale=proficiency_scale_reference(proficiency_scale),
+                    source_signature=scalar_signature,
+                    mapping_kind="exact_scalar",
+                    native_scale=None,
+                    points_possible=None,
+                    mapping_rules=(ScalarMappingRule(True, "ready"),),
+                    actor=MappingActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                write_mapping_profile_revision(workspace, scalar_profile)
+                assert map_native_value(
+                    NativeScalarValue(True),
+                    scalar_signature,
+                    scalar_profile,
+                    proficiency_scale,
+                ).status == "mapped"
+                assert map_native_value(
+                    NativeScalarValue(1),
+                    scalar_signature,
+                    scalar_profile,
+                    proficiency_scale,
+                ).status == "unmapped"
+
+                native_profile_v2 = NativeValueMappingProfile(
+                    schema_version=NATIVE_VALUE_MAPPING_PROFILE_SCHEMA_VERSION,
+                    record_type=NATIVE_VALUE_MAPPING_PROFILE_RECORD_TYPE,
+                    class_id=class_id,
+                    scale_id=proficiency_scale.scale_id,
+                    profile_id=native_profile.profile_id,
+                    profile_revision=2,
+                    supersedes_revision=1,
+                    target_scale=proficiency_scale_reference(proficiency_scale),
+                    source_signature=native_signature,
+                    mapping_kind="exact_native_scale",
+                    native_scale=native_024,
+                    points_possible=None,
+                    mapping_rules=(
+                        ScaledLevelMappingRule(0, "starting"),
+                        ScaledLevelMappingRule(2, "ready"),
+                        ScaledLevelMappingRule(4, "extending"),
+                    ),
+                    actor=MappingActor("teacher", "teacher_local"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                write_mapping_profile_revision(workspace, native_profile_v2)
+                assert (
+                    get_current_mapping_profile_revision(
+                        workspace,
+                        class_id,
+                        proficiency_scale.scale_id,
+                        native_profile.profile_id,
+                    )
+                    == 1
+                )
+                historic = load_mapping_profile_revision(
+                    workspace,
+                    class_id,
+                    proficiency_scale.scale_id,
+                    native_profile.profile_id,
+                    1,
+                ).profile
+                assert map_native_value(
+                    NativeScaledValue(2, native_024),
+                    native_signature,
+                    historic,
+                    proficiency_scale,
+                ).status == "unmapped"
 
                 work = ModuleWorkRef(
                     module_id="scoreform",
@@ -942,7 +1269,9 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             )
             """
         )
-        _run([str(python), "-c", code], outside)
+        smoke_program = root / "installed_interpretation_smoke.py"
+        smoke_program.write_bytes(code.encode("utf-8"))
+        _run([str(python), str(smoke_program)], outside)
         if list(outside.iterdir()):
             raise RuntimeError(
                 "Grade Item/eligibility smoke test left working-directory residue."
