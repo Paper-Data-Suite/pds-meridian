@@ -569,6 +569,21 @@ def test_attempt_selection_collection_rejects_invalid_subject_directory(
         storage.write_attempt_selection_policy_revision(workspace, policy())
 
 
+def test_attempt_selection_collection_allows_reassessment_child(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    allow_policy_root(monkeypatch)
+    workspace = root(tmp_path)
+    reassessment = storage.attempt_selection_directory(
+        workspace, CLASS_ID, GRADE_ITEM_ID, WORK
+    ) / "reassessment"
+    reassessment.mkdir(parents=True)
+    result = storage.write_attempt_selection_policy_revision(workspace, policy())
+    assert result.disposition == "created"
+
+
+
 def fake_membership() -> SimpleNamespace:
     return SimpleNamespace(
         decision=SimpleNamespace(

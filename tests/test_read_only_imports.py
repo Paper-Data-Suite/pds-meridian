@@ -30,6 +30,8 @@ import pytest
         "meridian.ingestion",
         "meridian.projection_cache",
         "meridian.quillan_adapter",
+        "meridian.reassessment",
+        "meridian.reassessment_storage",
         "meridian.scoreform_adapter",
         "meridian.__main__",
     ],

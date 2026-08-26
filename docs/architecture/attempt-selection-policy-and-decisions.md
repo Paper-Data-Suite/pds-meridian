@@ -373,26 +373,32 @@ No stale decision is rewritten. No replacement decision is created implicitly.
 
 ## Reassessment boundary
 
-Issue #30 deliberately stops before #31.
+Issue #30 deliberately does not encode reassessment semantics. Issue #31 now
+implements that separate canonical layer in `meridian.reassessment` and
+`meridian.reassessment_storage`.
 
-It does not encode:
-
-```text
-replaces
-replaced_by
-combine
-average
-recency
-highest
-retained_prior
-```
+#31 binds one exact immutable #30 decision revision/digest and represents only
+explicit `retain`, directed `replace`, semantic `combine`, or explicit `recency`
+relationships. Zero selected attempts and one selected attempt pass through
+without fabricated reassessment records; two or more selected attempts require an
+explicit #31 decision.
 
 A ScoreForm correction is a later producer-native attempt and may appear as
 another candidate. #30 does not assume that the later number replaces the older
-attempt. Core publication supersession likewise remains source lifecycle rather
-than attempt preference.
+attempt, and #31 creates no relationship until the exact attempt is explicitly
+selected by #30 and explicitly related by #31. Core publication supersession
+likewise remains source lifecycle rather than attempt preference.
 
-Issue #31 owns reassessment/replacement/combination/retained-history semantics.
+Current Quillan and Concord projections remain `not_applicable` to #30/#31 rather
+than having producer correction or Score-supersession history renamed as
+reassessment attempts.
+
+```text
+attempt selection != reassessment
+reassessment != native-value mapping
+```
+
+See [Reassessment and replacement relationships](reassessment-and-replacement-relationships.md).
 
 ## Authorization and privacy
 
