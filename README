@@ -5,13 +5,14 @@ typed evidence inventory, deterministic consumer-side adapter registry, and
 bounded Core catalog discovery and canonical-verification preparation layer,
 exact evidence serialization, an immutable digest-bound projection cache, a
 read-only publication/evidence diagnostics surface, and three real optional
-adapters for ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 at version
-`0.1.1`. The package can prepare an authorized
-`AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, and
-assess current reuse without mutating historical snapshots. It does not yet
-provide the remaining producer adapters, eligibility or selection
-policy, proficiency calculation, Grade calculation, report snapshots, report
-generation, subscriptions, or delivery.
+ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters in the
+released `0.1.1` baseline. The current unreleased v0.2 development tree
+qualifies Quillan v0.10.0 and adds the explicit #27-#33 interpretation layers.
+The package can prepare an authorized
+`AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
+the explicit #27-#33 interpretation layers, and construct bounded standards
+aggregation inputs without mutating historical state. It does not yet calculate
+standards proficiency, Grades, reports, subscriptions, or delivery.
 
 ## Purpose
 
@@ -67,18 +68,21 @@ The current package provides:
 - authorization-gated inspection/explanation of persisted evidence snapshots;
 - privacy-safe stable `ingestion.*`, `contracts.*`, `adapters.*`, and `cache.*`
   outcomes;
-- exact verification of the official Core v0.6.0 wheel;
+- exact verification of the official Core v0.6.3 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
-- explicit, lazy adapters for exact ScoreForm v0.10.0, Quillan v0.9.0, and
+- explicit, lazy adapters for exact ScoreForm v0.10.0, Quillan v0.10.0, and
   Concord v0.2.0 academic results.
+- immutable standards-evidence association decisions with explicit SHA-bound
+  current selection and Core durable-standard resolution; and
+- deterministic, bounded Grade Item/student/standard/scale aggregation inputs
+  preserving mapped observations, native states, and exact exclusion causes.
 
 The package does **not** yet provide:
 
 - Portia or Vitrine adapters;
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
-- evidence eligibility, attempt selection, or reassessment policy;
 - report snapshots or issued-report persistence;
 - standards proficiency or Grade calculations;
 - report generation, persistence, subscriptions, or delivery; or
@@ -103,6 +107,19 @@ See
 [`docs/architecture/typed-evidence-inventory.md`](docs/architecture/typed-evidence-inventory.md)
 for the complete model boundary and synthetic examples.
 
+## Standards evidence and aggregation inputs
+
+`meridian.standards_evidence` separates producer-declared alignment from an
+explicit teacher/policy association and from a later calculation. Its pure
+builder consumes only a caller-supplied bounded candidate set, preserves the
+exact Grade Item revision, student, durable Core standard, target scale, and
+upstream decision/profile provenance, and performs no arithmetic.
+
+`meridian.standards_evidence_storage` persists immutable association revisions
+beneath exact work membership, hashes the full logical association identity for
+Windows-safe paths, and uses an explicit SHA-bound compare-and-swap
+`current.json`. See [standards-evidence association and aggregation inputs](docs/architecture/standards-evidence-association-and-aggregation-inputs.md).
+
 ## Adapter interface and registry
 
 `meridian.adapters` defines the consumer-side adapter protocol and an immutable,
@@ -115,7 +132,7 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. Optional ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are
+descriptor. Optional ScoreForm v0.10.0, Quillan v0.10.0, and Concord v0.2.0 adapters are
 available through explicit composition; there is no adapter entry-point group or
 unconditional producer runtime dependency.
 
@@ -164,15 +181,18 @@ manifest, race, error, and privacy boundary.
 
 ## Requirements
 
-Meridian requires:
+Current unreleased Meridian development requires:
 
 ```text
 Python >=3.11
-pds-core>=0.6,<0.7
+pds-core>=0.6.3,<0.7
 ```
 
-Core v0.6.0 is the exact baseline authenticated by CI. Core v0.6.0 is distributed
-through its GitHub Release artifacts rather than PyPI.
+Current development and CI qualification use the exact completed Core v0.6.3,
+ScoreForm v0.10.0, Quillan v0.10.0, and Concord v0.2.0 releases. The released
+Meridian v0.1.1 history remains Core v0.6.0 and Quillan v0.9.0; the active #33
+floor/qualification update does not rewrite that release fact. Core is
+distributed through GitHub Release artifacts rather than PyPI.
 
 ## Development installation
 
@@ -180,18 +200,18 @@ Install the official Core wheel, then install Meridian in editable development
 mode:
 
 ```powershell
-python -m pip install .\pds_core-0.6.0-py3-none-any.whl
-python -m pip install -e ".[dev]"
+python -m pip install .\pds_core-0.6.3-py3-none-any.whl
+python -m pip install -e ".[dev,scoreform,quillan,concord]"
 python -m pip check
 meridian --version
 meridian --help
 ```
 
-The official baseline artifact is:
+The current official Core qualification artifact is:
 
 ```text
-pds_core-0.6.0-py3-none-any.whl
-SHA-256: be28c061b38463ef59ebc328ed1aa443767fe7f2c626babb769c2d8e5932f308
+pds_core-0.6.3-py3-none-any.whl
+SHA-256: 98d7596ce0eed26e4d56a17bbbbd644db3014259b56a45783a173fe8237af5e5
 ```
 
 Do not substitute a sibling Core checkout or locally rebuilt wheel when running
@@ -239,9 +259,9 @@ From an activated repository virtual environment, run:
 
 ```powershell
 .\run_tests.ps1 `
-  -CoreWheel C:\path\to\pds_core-0.6.0-py3-none-any.whl `
+  -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
   -ScoreFormWheel C:\path\to\scoreform-0.10.0-py3-none-any.whl `
-  -QuillanWheel C:\path\to\quillan-0.9.0-py3-none-any.whl `
+  -QuillanWheel C:\path\to\quillan-0.10.0-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.2.0-py3-none-any.whl
 ```
 

@@ -53,7 +53,7 @@ def test_descriptor_is_exact_released_contract() -> None:
     assert QUILLAN_ADAPTER_ID == "quillan.academic_result"
     assert QUILLAN_PROJECTION_CONTRACT_VERSION == "1"
     assert QUILLAN_READER_DISTRIBUTION == "quillan"
-    assert QUILLAN_READER_VERSION == "0.9.0"
+    assert QUILLAN_READER_VERSION == "0.10.0"
     assert descriptor.key == QUILLAN_ADAPTER_KEY
     assert descriptor.key.producer_module_id == "quillan"
     assert descriptor.key.publication_kind == "academic_result_set"
@@ -64,7 +64,7 @@ def test_descriptor_is_exact_released_contract() -> None:
     assert descriptor.key.source_record_kind is None
     assert descriptor.key.source_record_contract_version is None
     assert descriptor.supported_capabilities == frozenset({"standards_ratings"})
-    assert descriptor.supported_producer_reader_versions == frozenset({"0.9.0"})
+    assert descriptor.supported_producer_reader_versions == frozenset({"0.10.0"})
 
 
 def test_import_descriptor_registry_and_selection_are_lazy() -> None:
@@ -84,7 +84,7 @@ assert not any(n == 'quillan' or n.startswith('quillan.') for n in sys.modules)
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize("version", ["0.8.9", "0.9.1"])
+@pytest.mark.parametrize("version", ["0.9.0", "0.10.1"])
 def test_unsupported_reader_versions_fail_before_projection(version: str) -> None:
     registry = AdapterRegistry((QuillanAcademicResultAdapter(),))
     with pytest.raises(ProducerReaderVersionUnsupportedError):
@@ -145,8 +145,8 @@ def test_wrong_exact_contract_keys_are_not_selected() -> None:
 def test_projection_preserves_order_states_scale_and_missingness() -> None:
     request = projection_request(withdrawal=True)
     registry = AdapterRegistry((QuillanAcademicResultAdapter(),))
-    first = registry.invoke(request, lambda _: "0.9.0")
-    second = registry.invoke(request, lambda _: "0.9.0")
+    first = registry.invoke(request, lambda _: "0.10.0")
+    second = registry.invoke(request, lambda _: "0.10.0")
     assert first == second
     assert len(first.items) == 17
     assert len({item.item_id for item in first.items}) == 17
@@ -242,7 +242,7 @@ def test_released_reader_and_adapter_preserve_broad_native_text_exactly() -> Non
         quillan_publication(manifest), quillan_registration(), None, manifest
     )
     inventory = AdapterRegistry((QuillanAcademicResultAdapter(),)).invoke(
-        request, lambda _: "0.9.0"
+        request, lambda _: "0.10.0"
     )
     observation = next(
         item
@@ -302,7 +302,7 @@ def test_review_and_minimum_states_remain_exact_nonnumeric_values(
         quillan_publication(manifest), quillan_registration(), None, manifest
     )
     inventory = AdapterRegistry((QuillanAcademicResultAdapter(),)).invoke(
-        request, lambda _: "0.9.0"
+        request, lambda _: "0.10.0"
     )
     student_items = [
         item
@@ -322,7 +322,7 @@ def test_review_and_minimum_states_remain_exact_nonnumeric_values(
 
 def test_targets_and_provenance_preserve_native_semantics_without_text() -> None:
     inventory = AdapterRegistry((QuillanAcademicResultAdapter(),)).invoke(
-        projection_request(), lambda _: "0.9.0"
+        projection_request(), lambda _: "0.10.0"
     )
     observation = next(
         item
@@ -397,7 +397,7 @@ def test_cross_contract_mismatches_fail_privately(
     )
     with pytest.raises(AdapterProjectionError) as raised:
         AdapterRegistry((QuillanAcademicResultAdapter(),)).invoke(
-            request, lambda _: "0.9.0"
+            request, lambda _: "0.10.0"
         )
     assert "student_synthetic" not in str(raised.value)
     assert "Synthetic public feedback" not in str(raised.value)
@@ -413,7 +413,7 @@ def test_noncanonical_bytes_and_reader_import_failure_are_wrapped(
     )
     with pytest.raises(AdapterProjectionError) as raised:
         AdapterRegistry((QuillanAcademicResultAdapter(),)).invoke(
-            request, lambda _: "0.9.0"
+            request, lambda _: "0.10.0"
         )
     assert raised.value.__cause__ is not None
     assert malformed.decode() not in str(raised.value)

@@ -83,6 +83,12 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             from pds_core.publication_storage import write_publication_record
             from pds_core.routes import class_metadata_path, module_work_dir
             from pds_core.routing_models import ModuleWorkRef
+            from pds_core.standards import (
+                StandardDefinition,
+                StandardsFrameworkMetadata,
+                StandardsLibrary,
+                write_workspace_standards_library,
+            )
 
             from meridian.adapters import AdapterKey
             from meridian.attempt_selection import (
@@ -168,7 +174,10 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 GradeItemAcademicPeriodAssignment,
                 GradeItemMembershipDecision,
             )
-            from meridian.grade_item_storage import write_grade_item_revision
+            from meridian.grade_item_storage import (
+                select_grade_item_revision,
+                write_grade_item_revision,
+            )
             from meridian.grade_items import (
                 GRADE_ITEM_RECORD_TYPE,
                 GRADE_ITEM_SCHEMA_VERSION,
@@ -225,6 +234,26 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 projection_cache_relative_path,
                 projection_snapshot_to_json_bytes,
             )
+            from meridian.standards_evidence import (
+                STANDARD_EVIDENCE_ASSOCIATION_RECORD_TYPE,
+                STANDARD_EVIDENCE_ASSOCIATION_SCHEMA_VERSION,
+                GradeItemAggregationBasis,
+                ResolvedStandardAggregationCandidate,
+                StandardEvidenceActor,
+                StandardEvidenceAssociationDecision,
+                build_standard_aggregation_inputs,
+                standard_aggregation_inputs_from_json_bytes,
+                standard_aggregation_inputs_to_json_bytes,
+            )
+            from meridian.standards_evidence_storage import (
+                StandardAggregationCandidateBinding,
+                get_current_standard_evidence_association_revision,
+                load_standard_evidence_association_revision,
+                resolve_current_standard_evidence_association,
+                resolve_standard_aggregation_inputs,
+                select_standard_evidence_association_revision,
+                write_standard_evidence_association_revision,
+            )
 
             workspace = pathlib.Path(tempfile.mkdtemp(prefix="meridian-membership-"))
             try:
@@ -239,6 +268,43 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     module_details={},
                 )
                 write_class_metadata(class_metadata_path(workspace, class_id), metadata)
+
+                standard_id = "urn:state:ELA/9-10:RL.1?edition=2026"
+                second_standard_id = "urn:state:ELA/9-10:RL.2?edition=2026"
+                standards_library = StandardsLibrary(
+                    standards=(
+                        StandardDefinition(
+                            standard_id=standard_id,
+                            code="RL.1",
+                            source="state-ela-2026",
+                            short_name="Cite evidence",
+                            description="Cite strong and thorough textual evidence.",
+                            subject="ELA",
+                            grade_band="9-10",
+                            active=True,
+                        ),
+                        StandardDefinition(
+                            standard_id=second_standard_id,
+                            code="RL.2",
+                            source="state-ela-2026",
+                            short_name="Determine theme",
+                            description="Determine a theme or central idea.",
+                            subject="ELA",
+                            grade_band="9-10",
+                            active=True,
+                        ),
+                    ),
+                    frameworks=(
+                        StandardsFrameworkMetadata(
+                            framework_id="state-ela-2026",
+                            source="state-ela-2026",
+                            title="State ELA Standards 2026",
+                            authority="Synthetic State Education Agency",
+                            version="2026",
+                        ),
+                    ),
+                )
+                write_workspace_standards_library(workspace, standards_library)
 
                 # #32: define teacher-owned ordinal proficiency policy first.
                 proficiency_scale = ProficiencyScale(
@@ -608,6 +674,13 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 data = grade_item_revision_to_json_bytes(item)
                 assert grade_item_revision_from_json_bytes(data) == item
                 stored_item = write_grade_item_revision(workspace, item).stored
+                select_grade_item_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    item.grade_item_revision,
+                    expected_current_revision=None,
+                )
 
                 membership = GradeItemMembershipDecision(
                     schema_version=GRADE_ITEM_MEMBERSHIP_SCHEMA_VERSION,
@@ -733,7 +806,9 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 evidence_1 = EvidenceItem(
                     item_id="evidence_1",
                     subject=StudentSubject("student_1"),
-                    target=EvidenceTarget("attempt", "attempt_1"),
+                    target=EvidenceTarget(
+                        "attempt", "attempt_1", standard_ids=(standard_id,)
+                    ),
                     result_kind="synthetic_result",
                     value=NativeScalarValue(1),
                     provenance=EvidenceProvenance(
@@ -749,7 +824,9 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 evidence_2 = EvidenceItem(
                     item_id="evidence_2",
                     subject=StudentSubject("student_1"),
-                    target=EvidenceTarget("attempt", "attempt_2"),
+                    target=EvidenceTarget(
+                        "attempt", "attempt_2", standard_ids=(standard_id,)
+                    ),
                     result_kind="synthetic_result",
                     value=NativeScalarValue(99),
                     provenance=EvidenceProvenance(
@@ -822,6 +899,116 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 )
                 source_state = observe_evidence_source_state(workspace, sources[0])
                 assert source_state.state == "current"
+
+                unresolved_inputs = resolve_standard_aggregation_inputs(
+                    workspace,
+                    GradeItemAggregationBasis(
+                        class_id,
+                        item.grade_item_id,
+                        item.grade_item_revision,
+                        stored_item.revision_sha256,
+                    ),
+                    "student_1",
+                    standard_id,
+                    proficiency_scale_reference(proficiency_scale),
+                    (StandardAggregationCandidateBinding(sources[0], authorized),),
+                    standards_library=standards_library,
+                )
+                assert unresolved_inputs.entries[0].exclusion_reason == (
+                    "association_unresolved"
+                )
+
+                association = StandardEvidenceAssociationDecision(
+                    schema_version=STANDARD_EVIDENCE_ASSOCIATION_SCHEMA_VERSION,
+                    record_type=STANDARD_EVIDENCE_ASSOCIATION_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    source=sources[0],
+                    standard_id=standard_id,
+                    association_revision=1,
+                    supersedes_revision=None,
+                    disposition="associated",
+                    basis="producer_declared",
+                    actor=StandardEvidenceActor("teacher", "teacher_local"),
+                    rationale="Honor the producer-declared durable standard ID.",
+                    decided_at=now,
+                )
+                association_write = write_standard_evidence_association_revision(
+                    workspace,
+                    association,
+                    authorized_snapshot=authorized,
+                    standards_library=standards_library,
+                )
+                assert association_write.disposition == "created"
+                assert get_current_standard_evidence_association_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    sources[0],
+                    standard_id,
+                ) is None
+                association_select = select_standard_evidence_association_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    sources[0],
+                    standard_id,
+                    1,
+                    expected_current_association_revision=None,
+                )
+                assert association_select.disposition == "created"
+                association_resolution = (
+                    resolve_current_standard_evidence_association(
+                        workspace,
+                        class_id,
+                        item.grade_item_id,
+                        sources[0],
+                        standard_id,
+                        authorized_snapshot=authorized,
+                        standards_library=standards_library,
+                    )
+                )
+                assert association_resolution.status == "associated"
+                assert association_resolution.operative_associated is True
+                assert association_resolution.standard_resolution.active is True
+                assert (
+                    association_resolution.standard_resolution.frameworks[0].version
+                    == "2026"
+                )
+
+                original_standard_ids = evidence_1.target.standard_ids
+                explicit_association = StandardEvidenceAssociationDecision(
+                    schema_version=STANDARD_EVIDENCE_ASSOCIATION_SCHEMA_VERSION,
+                    record_type=STANDARD_EVIDENCE_ASSOCIATION_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    source=sources[0],
+                    standard_id=second_standard_id,
+                    association_revision=1,
+                    supersedes_revision=None,
+                    disposition="associated",
+                    basis="explicit",
+                    actor=StandardEvidenceActor("policy", "curriculum_policy"),
+                    rationale="A separate teacher-approved relationship.",
+                    decided_at=now,
+                )
+                write_standard_evidence_association_revision(
+                    workspace,
+                    explicit_association,
+                    authorized_snapshot=authorized,
+                    standards_library=standards_library,
+                )
+                select_standard_evidence_association_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    sources[0],
+                    second_standard_id,
+                    1,
+                    expected_current_association_revision=None,
+                )
+                assert evidence_1.target.standard_ids == original_standard_ids
+                assert second_standard_id not in evidence_1.target.standard_ids
 
                 for source in sources:
                     eligibility = EvidenceEligibilityDecision(
@@ -1121,6 +1308,211 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                     ].replaced_attempts[0].native.sequence
                     == 2
                 )
+
+                aggregation_inputs = resolve_standard_aggregation_inputs(
+                    workspace,
+                    GradeItemAggregationBasis(
+                        class_id,
+                        item.grade_item_id,
+                        item.grade_item_revision,
+                        stored_item.revision_sha256,
+                    ),
+                    "student_1",
+                    standard_id,
+                    proficiency_scale_reference(proficiency_scale),
+                    (
+                        StandardAggregationCandidateBinding(
+                            sources[0], authorized, mapping_profile=None
+                        ),
+                    ),
+                    standards_library=standards_library,
+                )
+                assert len(aggregation_inputs.entries) == 1
+                assert aggregation_inputs.entries[0].status == "excluded"
+                assert (
+                    aggregation_inputs.entries[0].exclusion_reason
+                    == "mapping_not_supplied"
+                )
+                aggregation_bytes = standard_aggregation_inputs_to_json_bytes(
+                    aggregation_inputs
+                )
+                assert standard_aggregation_inputs_from_json_bytes(
+                    aggregation_bytes
+                ) == aggregation_inputs
+                assert aggregation_inputs.sha256 == hashlib.sha256(
+                    aggregation_bytes
+                ).hexdigest()
+
+                mapped_outcome = map_native_value(
+                    NativePointValue(8, 10),
+                    points_signature,
+                    points_profile,
+                    proficiency_scale,
+                )
+
+                def resolved_candidate(
+                    outcome,
+                    *,
+                    eligibility="included",
+                    attempt="selected",
+                    reassessment="contributing",
+                    subject_kind="student",
+                    student_id="student_1",
+                ):
+                    return ResolvedStandardAggregationCandidate(
+                        source=sources[0],
+                        standard_id=standard_id,
+                        result_kind="attempt_points",
+                        target_kind="attempt",
+                        subject_kind=subject_kind,
+                        subject_student_id=student_id,
+                        association_state="associated",
+                        eligibility_state=eligibility,
+                        attempt_state=attempt,
+                        reassessment_state=reassessment,
+                        membership_reference=(
+                            aggregation_inputs.entries[0].membership_reference
+                        ),
+                        eligibility_reference=(
+                            aggregation_inputs.entries[0].eligibility_reference
+                        ),
+                        attempt_selection_reference=(
+                            aggregation_inputs.entries[0].attempt_selection_reference
+                            if attempt in {"selected", "not_selected"}
+                            else None
+                        ),
+                        reassessment_reference=(
+                            aggregation_inputs.entries[0].reassessment_reference
+                            if reassessment in {"contributing", "noncontributing"}
+                            else None
+                        ),
+                        association_reference=association_resolution.reference,
+                        mapping_outcome=outcome,
+                    )
+
+                def pure_inputs(candidate):
+                    return build_standard_aggregation_inputs(
+                        GradeItemAggregationBasis(
+                            class_id,
+                            item.grade_item_id,
+                            item.grade_item_revision,
+                            stored_item.revision_sha256,
+                        ),
+                        "student_1",
+                        standard_id,
+                        proficiency_scale_reference(proficiency_scale),
+                        (candidate,),
+                    )
+
+                mapped_entry = pure_inputs(
+                    resolved_candidate(mapped_outcome)
+                ).entries[0]
+                assert mapped_entry.status == "performance"
+                assert mapped_entry.proficiency_level_id == "ready"
+                assert not hasattr(
+                    pure_inputs(resolved_candidate(mapped_outcome)), "proficiency"
+                )
+
+                native_outcome = type(mapped_outcome)(
+                    "native_state",
+                    mapped_outcome.profile,
+                    mapped_outcome.target_scale,
+                    native_state=NativeStateValue("unrated"),
+                )
+                native_entry = pure_inputs(
+                    resolved_candidate(native_outcome)
+                ).entries[0]
+                assert native_entry.status == "native_state"
+                assert native_entry.native_state == NativeStateValue("unrated")
+
+                unmapped_outcome = type(mapped_outcome)(
+                    "unmapped", mapped_outcome.profile, mapped_outcome.target_scale
+                )
+                assert pure_inputs(
+                    resolved_candidate(unmapped_outcome)
+                ).entries[0].exclusion_reason == "mapping_unmapped"
+                unsupported_outcome = type(mapped_outcome)(
+                    "unsupported",
+                    mapped_outcome.profile,
+                    mapped_outcome.target_scale,
+                    unsupported_reason="value_kind_mismatch",
+                )
+                assert pure_inputs(
+                    resolved_candidate(unsupported_outcome)
+                ).entries[0].exclusion_reason == "mapping_unsupported"
+                mismatched_scale = type(mapped_outcome.target_scale)(
+                    class_id,
+                    proficiency_scale.scale_id,
+                    1,
+                    "f" * 64,
+                )
+                mismatch_outcome = type(mapped_outcome)(
+                    "mapped",
+                    mapped_outcome.profile,
+                    mismatched_scale,
+                    proficiency_level_id="ready",
+                )
+                assert pure_inputs(
+                    resolved_candidate(mismatch_outcome)
+                ).entries[0].exclusion_reason == "scale_mismatch"
+                assert pure_inputs(
+                    resolved_candidate(None)
+                ).entries[0].exclusion_reason == "mapping_not_supplied"
+                assert pure_inputs(
+                    resolved_candidate(mapped_outcome, eligibility="not_included")
+                ).entries[0].exclusion_reason == "eligibility_not_included"
+                assert pure_inputs(
+                    resolved_candidate(mapped_outcome, attempt="not_selected")
+                ).entries[0].exclusion_reason == "attempt_not_selected"
+                assert pure_inputs(
+                    resolved_candidate(
+                        mapped_outcome, reassessment="noncontributing"
+                    )
+                ).entries[0].exclusion_reason == "reassessment_noncontributing"
+                assert pure_inputs(
+                    resolved_candidate(
+                        mapped_outcome,
+                        subject_kind="nonstudent",
+                        student_id=None,
+                    )
+                ).entries[0].exclusion_reason == "nonstudent_target"
+
+                association_v2 = StandardEvidenceAssociationDecision(
+                    schema_version=STANDARD_EVIDENCE_ASSOCIATION_SCHEMA_VERSION,
+                    record_type=STANDARD_EVIDENCE_ASSOCIATION_RECORD_TYPE,
+                    class_id=class_id,
+                    grade_item_id=item.grade_item_id,
+                    source=sources[0],
+                    standard_id=standard_id,
+                    association_revision=2,
+                    supersedes_revision=1,
+                    disposition="not_associated",
+                    basis="producer_declared",
+                    actor=StandardEvidenceActor("teacher", "teacher_local"),
+                    rationale="Synthetic historical revision.",
+                    decided_at=now,
+                )
+                write_standard_evidence_association_revision(
+                    workspace,
+                    association_v2,
+                    authorized_snapshot=authorized,
+                    standards_library=standards_library,
+                )
+                assert get_current_standard_evidence_association_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    sources[0],
+                    standard_id,
+                ) == 1
+                assert load_standard_evidence_association_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    sources[0],
+                    standard_id,
+                    1,
+                ).decision == association
 
                 reassessment_policy_v2 = ReassessmentPolicy(
                     schema_version=REASSESSMENT_POLICY_SCHEMA_VERSION,

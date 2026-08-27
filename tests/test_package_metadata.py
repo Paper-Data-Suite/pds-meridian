@@ -21,7 +21,7 @@ def test_distribution_metadata() -> None:
         Requirement(value) for value in (metadata.get_all("Requires-Dist") or [])
     ]
     runtime = [item for item in requirements if item.marker is None]
-    assert runtime == [Requirement("pds-core>=0.6,<0.7")]
+    assert runtime == [Requirement("pds-core>=0.6.3,<0.7")]
     assert all(
         item.name not in {"scoreform", "quillan", "pds-concord", "pds-portia"}
         for item in runtime
@@ -29,7 +29,7 @@ def test_distribution_metadata() -> None:
     scoreform = [item for item in requirements if item.name == "scoreform"]
     assert scoreform == [Requirement("scoreform==0.10.0; extra == 'scoreform'")]
     quillan = [item for item in requirements if item.name == "quillan"]
-    assert quillan == [Requirement("quillan==0.9.0; extra == 'quillan'")]
+    assert quillan == [Requirement("quillan==0.10.0; extra == 'quillan'")]
     concord = [item for item in requirements if item.name == "pds-concord"]
     assert concord == [
         Requirement("pds-concord==0.2.0; extra == 'concord'")

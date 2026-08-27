@@ -463,6 +463,10 @@ pds-core>=0.6,<0.7
 It uses only public Core APIs present in the Core v0.6.0 baseline. The later
 neutral grouping-signal issue owns the minimum-Core change to 0.6.1.
 
+Issue #33 subsequently raises Meridian's active development/runtime floor to
+`pds-core>=0.6.3,<0.7`; that package-level change does not alter #28's persisted
+schema or historical implementation baseline.
+
 No producer package is required to import or use membership support.
 
 ## Explicit issue boundary

@@ -97,7 +97,7 @@ def test_real_reader_core_ingestion_projection_and_cache(tmp_path: Path) -> None
         authorizer=authorizer,
         authorization_purpose_id="grading_import",
     )
-    assert prepared.producer_reader_version == "0.9.0"
+    assert prepared.producer_reader_version == "0.10.0"
     assert prepared.projection_request.manifest_bytes == manifest_bytes
 
     inventory = registry.invoke(prepared.projection_request)
@@ -118,4 +118,4 @@ def test_real_reader_core_ingestion_projection_and_cache(tmp_path: Path) -> None
     assert snapshot.projection.adapter_id == "quillan.academic_result"
     assert snapshot.projection.projection_contract_version == "1"
     assert snapshot.projection.producer_reader_distribution == "quillan"
-    assert snapshot.projection.producer_reader_version == "0.9.0"
+    assert snapshot.projection.producer_reader_version == "0.10.0"

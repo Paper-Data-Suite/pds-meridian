@@ -1,4 +1,4 @@
-"""Authenticate the exact released Quillan v0.9.0 wheel and installation."""
+"""Authenticate the exact released Quillan v0.10.0 wheel and installation."""
 
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ from pathlib import Path, PurePosixPath
 
 QUILLAN_DISTRIBUTION_NAME = "quillan"
 QUILLAN_IMPORT_NAME = "quillan"
-EXPECTED_QUILLAN_VERSION = "0.9.0"
-EXPECTED_QUILLAN_WHEEL_FILENAME = "quillan-0.9.0-py3-none-any.whl"
+EXPECTED_QUILLAN_VERSION = "0.10.0"
+EXPECTED_QUILLAN_WHEEL_FILENAME = "quillan-0.10.0-py3-none-any.whl"
 EXPECTED_QUILLAN_WHEEL_SHA256 = (
-    "4e3bf92287d1a140a6edc062abcb759c02eb811c9ba4e2212e9c4878d3a07f1c"
+    "5dd4ed62b8bf39f7e11e6538d1c094929c6428dba81b254fe80d03c60d5114e9"
 )
 EXPECTED_READER_MEMBER = "quillan/academic_result_reader.py"
 
@@ -82,7 +82,7 @@ def verify_quillan_wheel(path: str | Path) -> None:
             "Quillan wheel distribution name is not quillan."
         )
     if metadata["Version"] != EXPECTED_QUILLAN_VERSION:
-        raise QuillanVerificationError("Quillan wheel version is not exactly 0.9.0.")
+        raise QuillanVerificationError("Quillan wheel version is not exactly 0.10.0.")
     if EXPECTED_READER_MEMBER not in names:
         raise QuillanVerificationError(
             "Quillan wheel does not contain the public academic-result reader."
@@ -98,7 +98,7 @@ def verify_installed_quillan() -> None:
         ) from error
     if version != EXPECTED_QUILLAN_VERSION:
         raise QuillanVerificationError(
-            f"Installed quillan must be exactly 0.9.0; found {version}."
+            f"Installed quillan must be exactly 0.10.0; found {version}."
         )
     import quillan
     from quillan import academic_result_reader

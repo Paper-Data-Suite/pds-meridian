@@ -6,21 +6,22 @@ validation tooling, immutable typed evidence inventory, exact consumer adapter
 registry, bounded Core discovery and canonical verification, exact evidence
 serialization, immutable projection-cache layers, and the read-only
 publication/evidence diagnostics surface are established. The exact optional
-ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters are implemented,
+ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters were implemented
+in the released v0.1.1 foundation,
 and the cross-producer synthetic ingestion acceptance suite documents the
 verified no-grading boundary.
 
 Phase 2 now builds on that released foundation. ADR 0004 adopts the v0.2
 evidence-policy, proficiency, and planning-export architecture. Issues #27
-through #32 add the first executable v0.2 interpretation records: immutable
+through #33 add the executable v0.2 interpretation records: immutable
 Grade Item revisions, canonical digest-bound Grade Item storage,
 revisioned Grade Item membership with exact Core Academic Period assignment,
 canonical evidence-eligibility decision history over exact authorized projection
 sources, explicit versioned attempt-selection policy/decisions, explicit
 reassessment/replacement relationships over exact #30 selections, and
-teacher-defined proficiency scales/native-value mapping profiles. Standards
-evidence association, proficiency calculation, and planning-signal export remain
-later implementation work. The package version
+teacher-defined proficiency scales/native-value mapping profiles, explicit
+standards-evidence association, and bounded aggregation inputs. Pure proficiency
+calculation and planning-signal export remain later implementation work. The package version
 remains `0.1.1` until the v0.2 release sequence reaches its release issue.
 
 ## Recommended reading order
@@ -39,28 +40,29 @@ remains `0.1.1` until the v0.2 release sequence reaches its release issue.
 12. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
 13. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
 14. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
-15. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-16. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
-17. [Quillan v0.9.0 adapter](architecture/quillan-adapter.md)
-18. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
-19. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-20. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-21. [ADR index](decisions/README.md)
-22. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-23. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-24. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-25. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+15. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
+16. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+17. [ScoreForm v0.10.0 adapter](architecture/scoreform-adapter.md)
+18. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+19. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+20. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+21. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+22. [ADR index](decisions/README.md)
+23. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+24. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+25. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+26. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
 The package foundation provides:
 
 - Python `>=3.11` support;
-- `pds-core>=0.6,<0.7` as the only unconditional runtime dependency;
+- `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
 - exact optional `scoreform==0.10.0` adapter support;
-- exact optional `quillan==0.9.0` adapter support;
+- exact optional `quillan==0.10.0` adapter support;
 - exact optional `pds-concord==0.2.0` adapter support;
-- exact authentication of the official Core v0.6.0 wheel in baseline CI;
+- exact authentication of the official Core v0.6.3 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;
 - strict mypy and Ruff checks;
 - privacy-safe fixtures and tests;
@@ -73,9 +75,8 @@ profile, unconditional producer dependency, or adapter plugin group. ScoreForm,
 Quillan, and Concord are exact optional dependencies with explicit adapter
 composition.
 
-ADR 0004 records that the later grouping-signal integration will require
-`pds-core>=0.6.1,<0.7`. Issues #27 through #32 do not change package metadata; the
-dedicated Core-adoption issue owns that runtime dependency-floor change.
+Issue #33 raises the supported Core floor to `pds-core>=0.6.3,<0.7` so current
+standards-framework metadata and durable standard resolution are available.
 
 ## Typed evidence inventory
 
@@ -256,7 +257,7 @@ and fail-closed invocation validation. Registry construction and selection do
 not discover entry points, import producer packages, open files, or authorize
 student-record access.
 
-The registry has real optional ScoreForm v0.10.0, Quillan v0.9.0, and
+The registry has real optional ScoreForm v0.10.0, Quillan v0.10.0, and
 Concord v0.2.0 adapters. Other producer projections remain later work.
 
 See
@@ -312,12 +313,12 @@ ScoreForm, Quillan, or Concord composition populates the evidence inventory.
 ADR 0004 adds the governing architecture for the interpretation layer. Valid typed
 evidence does not automatically become Grade Item membership, eligible standards
 evidence, a selected attempt, proficiency, or a grouping signal. Issues #27
-through #32 now implement Grade Item definition/storage, explicit work membership
+through #33 now implement Grade Item definition/storage, explicit work membership
 and Academic Period assignment, canonical eligibility decisions over exact
 projection sources, explicit attempt-selection policy/decisions, explicit
 reassessment/replacement relationships, and teacher-defined proficiency
-scales/native-value mappings. Every downstream standards association, calculation,
-and export stage remains explicit later work.
+scales/native-value mappings, standards-evidence association, and bounded
+aggregation inputs. Calculation and export remain explicit later work.
 
 ## Architecture decisions
 
@@ -361,8 +362,8 @@ The v0.2.0 implementation sequence now begins:
 5. explicit attempt selection — issue #30 — implemented;
 6. reassessment and replacement relationships — issue #31 — implemented;
 7. proficiency/native-value mapping — issue #32 — implemented;
-8. standards evidence association and aggregation inputs — issue #33 — next;
-9. proficiency calculation and Academic Period aggregation;
+8. standards evidence association and aggregation inputs — issue #33 — implemented;
+9. pure standards-proficiency calculation — issue #34 — next;
 10. Core grouping-signal adoption and teacher-controlled derivation/export;
 11. teacher workflows, explanations, and attention summaries;
 12. cross-producer and installed acceptance; and

@@ -102,7 +102,7 @@ def profile(
             projection_id="quillan.academic_result",
             projection_contract_version="1",
             producer_reader_distribution="quillan",
-            producer_reader_version="0.9.0",
+            producer_reader_version="0.10.0",
             result_kind="overall_standard_rating",
             target_kind="standard",
         ),

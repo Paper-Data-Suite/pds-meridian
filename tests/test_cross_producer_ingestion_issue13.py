@@ -223,7 +223,7 @@ def test_unsupported_reader_version_is_local_to_selected_producer() -> None:
 
     versions = {
         "scoreform": "0.10.0",
-        "quillan": "0.9.1",
+        "quillan": "0.10.1",
         "pds-concord": "0.2.0",
     }
 
@@ -232,7 +232,7 @@ def test_unsupported_reader_version_is_local_to_selected_producer() -> None:
 
     assert caught.value.adapter_id == "quillan.academic_result"
     assert caught.value.distribution_name == "quillan"
-    assert caught.value.installed_version == "0.9.1"
+    assert caught.value.installed_version == "0.10.1"
 
     assert registry.invoke(requests.scoreform, versions.__getitem__).items
     assert registry.invoke(requests.concord, versions.__getitem__).items

@@ -70,7 +70,7 @@ def sig(
         ),
         producer_reader_version={
             "scoreform": "0.10.0",
-            "quillan": "0.9.0",
+            "quillan": "0.10.0",
             "concord": "0.2.0",
         }[producer],
         result_kind=result_kind,

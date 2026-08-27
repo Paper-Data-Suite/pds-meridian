@@ -140,7 +140,7 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
 
     versions = {
         "scoreform": "0.10.0",
-        "quillan": "0.9.1",
+        "quillan": "0.10.1",
         "pds-concord": "0.2.0",
     }
     dependencies = diagnostics.DiagnosticsDependencies(
@@ -180,7 +180,7 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
 
     assert quillan.overall_state == "support_unsupported"
     assert quillan.reader_state == "version_unsupported"
-    assert quillan.installed_reader_version == "0.9.1"
+    assert quillan.installed_reader_version == "0.10.1"
     assert quillan.reason_codes == ("adapters.reader_version_unsupported",)
 
     assert concord.overall_state == "support_ready"

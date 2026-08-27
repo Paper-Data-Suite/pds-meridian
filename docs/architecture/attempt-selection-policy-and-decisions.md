@@ -424,6 +424,10 @@ pds-core>=0.6,<0.7
 The later grouping-signal adoption issue remains responsible for raising the Core
 minimum to 0.6.1.
 
+Issue #33 subsequently raises Meridian's active development/runtime floor to
+`pds-core>=0.6.3,<0.7` and qualifies Quillan v0.10.0. That current package
+baseline does not change the historical #30 contract recorded above.
+
 ## Explicit non-goals
 
 Issue #30 does not implement:

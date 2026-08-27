@@ -643,6 +643,14 @@ def test_membership_storage_allows_attempt_selection_child(tmp_path: Path) -> No
     assert list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK) == (1,)
 
 
+def test_membership_storage_allows_standards_evidence_child(tmp_path: Path) -> None:
+    root, digest = prepared(tmp_path)
+    write_grade_item_membership_revision(root, membership(digest))
+    relation = grade_item_membership_directory(root, CLASS_ID, ITEM_ID, WORK)
+    (relation / "standards_evidence").mkdir()
+    assert list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK) == (1,)
+
+
 def test_unexpected_visible_entry_and_lock_conflict_fail_closed(tmp_path: Path) -> None:
     root, digest = prepared(tmp_path)
     write_grade_item_membership_revision(root, membership(digest))
