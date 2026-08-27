@@ -4,6 +4,17 @@
 
 ### Added
 
+- Canonical teacher/policy standards-evidence association decisions over exact
+  projection sources and durable Core standard IDs, with explicit
+  producer-declared/explicit bases, immutable SHA-256-bound revision history,
+  and compare-and-swap current selection.
+- Deterministic bounded Grade Item/student/standard/scale aggregation inputs
+  preserving exact upstream references, mapped performance, native non-score
+  states, and closed explainable exclusions without proficiency arithmetic.
+- Core v0.6.3 standards-framework resolution and current release qualification,
+  plus Quillan v0.10.0 exact-reader qualification with unchanged adapter
+  projection semantics.
+
 - Canonical immutable teacher-defined proficiency scales with ordered criterion-referenced
   levels, explicit proficiency thresholds, SHA-256-bound revision history, and
   compare-and-swap current selectors without fixed four-level semantics.

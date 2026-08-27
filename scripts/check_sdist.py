@@ -31,6 +31,7 @@ REQUIRED_MEMBERS = frozenset(
         "docs/architecture/grade-items-and-canonical-storage.md",
         "docs/architecture/reassessment-and-replacement-relationships.md",
         "docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md",
+        "docs/architecture/standards-evidence-association-and-aggregation-inputs.md",
         "meridian/__init__.py",
         "meridian/attempt_selection.py",
         "meridian/attempt_selection_storage.py",
@@ -46,6 +47,8 @@ REQUIRED_MEMBERS = frozenset(
         "meridian/proficiency_mapping_storage.py",
         "meridian/reassessment.py",
         "meridian/reassessment_storage.py",
+        "meridian/standards_evidence.py",
+        "meridian/standards_evidence_storage.py",
         "scripts/smoke_test_grade_items_wheel.py",
         "scripts/validate_repository.py",
         "tests/test_attempt_selection.py",
@@ -67,6 +70,10 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_proficiency_mapping_storage.py",
         "tests/test_proficiency_mapping_integration.py",
         "tests/test_proficiency_mapping_package_boundaries.py",
+        "tests/test_standards_evidence.py",
+        "tests/test_standards_evidence_storage.py",
+        "tests/test_standards_evidence_integration.py",
+        "tests/test_standards_evidence_package_boundaries.py",
         "tests/test_validation_scripts.py",
     }
 )

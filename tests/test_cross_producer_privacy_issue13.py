@@ -23,7 +23,7 @@ def test_cross_producer_failures_do_not_dump_manifest_or_student_data() -> None:
         registry.invoke(
             requests.quillan,
             lambda distribution: (
-                "0.9.1" if distribution == "quillan" else "unreachable"
+                "0.10.1" if distribution == "quillan" else "unreachable"
             ),
         )
 

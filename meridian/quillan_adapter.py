@@ -1,4 +1,4 @@
-"""Exact Quillan v0.9.0 academic-result evidence projection."""
+"""Exact Quillan v0.10.0 academic-result evidence projection."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ __all__ = [
 QUILLAN_ADAPTER_ID: Final = "quillan.academic_result"
 QUILLAN_PROJECTION_CONTRACT_VERSION: Final = "1"
 QUILLAN_READER_DISTRIBUTION: Final = "quillan"
-QUILLAN_READER_VERSION: Final = "0.9.0"
+QUILLAN_READER_VERSION: Final = "0.10.0"
 _QUILLAN_RECORD_SET_ID: Final = "academic_results"
 _QUILLAN_CAPABILITIES: Final[frozenset[PublicationCapability]] = frozenset(
     {"standards_ratings"}

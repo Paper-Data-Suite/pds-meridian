@@ -17,9 +17,9 @@ EXPECTED_VERSION = "0.1.1"
 EXPECTED_SUMMARY = (
     "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
 )
-EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6,<0.7")
+EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.10.0; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.9.0; extra == 'quillan'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.0; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.2.0; extra == 'concord'")
 ALLOWED_ENTRY_POINT_GROUPS = frozenset({"console_scripts"})
 FORBIDDEN_PREFIXES = (
@@ -152,7 +152,7 @@ def validate_wheel(path: str | Path) -> None:
 
     if _runtime_requirements(metadata) != [EXPECTED_CORE_REQUIREMENT]:
         raise PackageValidationError(
-            "The only runtime requirement must be pds-core>=0.6,<0.7."
+            "The only runtime requirement must be pds-core>=0.6.3,<0.7."
         )
     if _scoreform_requirements(metadata) != [EXPECTED_SCOREFORM_EXTRA]:
         raise PackageValidationError(
@@ -160,7 +160,7 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.9.0."
+            "The quillan extra must pin exactly quillan==0.10.0."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
@@ -202,6 +202,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/proficiency_mapping_storage.py",
         "meridian/reassessment.py",
         "meridian/reassessment_storage.py",
+        "meridian/standards_evidence.py",
+        "meridian/standards_evidence_storage.py",
         "meridian/quillan_adapter.py",
         "meridian/scoreform_adapter.py",
         "meridian/py.typed",

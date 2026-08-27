@@ -367,10 +367,11 @@ Meridian academic replacement
 
 ### Quillan
 
-Current Quillan v0.9.0 review/rating correction produces new immutable producer
-publication history rather than ScoreForm-style attempt identity.
+At the #31 baseline, Quillan v0.9.0 review/rating correction produces new
+immutable producer publication history rather than ScoreForm-style attempt
+identity.
 
-Therefore current Quillan behavior remains:
+Therefore the #31 Quillan behavior remains:
 
 ```text
 #30 not_applicable
@@ -608,7 +609,7 @@ what is the student's proficiency?
 Issue #32 maps one exact producer-native value through one exact teacher-defined
 profile/scale revision while preserving unmapped, unsupported, and native-state
 outcomes. It still does not associate that mapped value with a standard or
-calculate student proficiency; issue #33 owns the next boundary.
+calculate student proficiency; issue #34 owns the next calculation boundary.
 
 ```text
 reassessment != native-value mapping

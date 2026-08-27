@@ -12,7 +12,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Stephen Severino" }]
 dependencies = [
-    "pds-core>=0.6,<0.7",
+    "pds-core>=0.6.3,<0.7",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -29,7 +29,7 @@ scoreform = [
     "scoreform==0.10.0",
 ]
 quillan = [
-    "quillan==0.9.0",
+    "quillan==0.10.0",
 ]
 concord = [
     "pds-concord==0.2.0",

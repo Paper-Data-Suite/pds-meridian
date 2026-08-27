@@ -1,4 +1,4 @@
-"""Privacy-safe Quillan v0.9.0 publication builders."""
+"""Privacy-safe Quillan v0.10.0 publication builders."""
 
 from __future__ import annotations
 

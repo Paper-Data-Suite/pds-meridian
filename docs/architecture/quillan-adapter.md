@@ -1,14 +1,14 @@
-# Quillan v0.9.0 adapter
+# Quillan v0.10.0 adapter
 
 ## Exact boundary
 
-`meridian.quillan_adapter` supports only the released `quillan==0.9.0` public
+`meridian.quillan_adapter` supports only the released `quillan==0.10.0` public
 reader. Its authenticated GitHub Release wheel is
-`quillan-0.9.0-py3-none-any.whl`, SHA-256
-`4e3bf92287d1a140a6edc062abcb759c02eb811c9ba4e2212e9c4878d3a07f1c`.
-The release tag is `v0.9.0`; its authorized commit is
-`268fe0ab6f3d74848bf71f1aa1b939adbe242452`.
-The base Meridian dependency remains `pds-core>=0.6,<0.7`; the `quillan` extra
+`quillan-0.10.0-py3-none-any.whl`, SHA-256
+`5dd4ed62b8bf39f7e11e6538d1c094929c6428dba81b254fe80d03c60d5114e9`.
+The release tag is `v0.10.0`; its authorized commit is
+`28bfb764cc092a5842789b04f290c7698b0d2db8`.
+The base Meridian dependency is `pds-core>=0.6.3,<0.7`; the `quillan` extra
 pins the producer exactly and is independent of the ScoreForm extra.
 
 The exact adapter key is:
@@ -24,8 +24,8 @@ capabilities:             standards_ratings
 ```
 
 The adapter ID is `quillan.academic_result`, projection contract is `1`, reader
-distribution is `quillan`, and reader version is `0.9.0`. Quillan 0.8.9 and all
-future versions are unsupported until an explicit compatibility decision.
+distribution is `quillan`, and reader version is `0.10.0`. Quillan 0.9.0 and all
+other versions are unsupported until an explicit compatibility decision.
 Missing and unsupported readers use Meridian's controlled reader errors.
 
 Installing Quillan does not register anything. A deployment composes the
@@ -119,7 +119,7 @@ projection.
 
 The existing generic projection cache accepts the inventory unchanged. Its
 execution identity records adapter `quillan.academic_result`, contract `1`,
-distribution `quillan`, and reader `0.9.0`; the adapter never reads or writes
+distribution `quillan`, and reader `0.10.0`; the adapter never reads or writes
 cache state.
 
 This adapter does not calculate proficiency, percentages, Grades, Grade-item or

@@ -36,7 +36,8 @@ def test_documentation_validation_guards_issue32_boundaries() -> None:
     assert "reassessment != native-value mapping" in checker
     assert "native-value mapping != standards evidence association" in checker
     assert "issue #32 — implemented" in checker
-    assert "issue #33 — next" in checker
+    assert "issue #33 — implemented" in checker
+    assert "issue #34 — next" in checker
 
 
 def test_installed_wheel_smoke_covers_mapping_flow() -> None:

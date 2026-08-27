@@ -29,6 +29,7 @@ EXPECTED = (
     Path("docs/architecture/attempt-selection-policy-and-decisions.md"),
     Path("docs/architecture/reassessment-and-replacement-relationships.md"),
     Path("docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md"),
+    Path("docs/architecture/standards-evidence-association-and-aggregation-inputs.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -66,7 +67,11 @@ REQUIRED_TEXT = {
     ),
     Path("README"): (
         "0.1.1",
-        "pds-core>=0.6,<0.7",
+        "pds-core>=0.6.3,<0.7",
+        "released `0.1.1` baseline",
+        "Core v0.6.0 and Quillan v0.9.0",
+        "Core v0.6.3",
+        "Quillan v0.10.0",
         "Package installation alone does not enable publication ingestion.",
         "Discovery is not authorization.",
         "producer-owned public manifest contract or reader",
@@ -78,7 +83,8 @@ REQUIRED_TEXT = {
     Path("docs/README.md"): (
         "Four accepted ADRs govern the repository:",
         "ADR 0004",
-        "pds-core>=0.6.1,<0.7",
+        "pds-core>=0.6.3,<0.7",
+        "Quillan v0.9.0, and Concord v0.2.0 adapters were implemented",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
         "membership != evidence eligibility",
@@ -88,7 +94,8 @@ REQUIRED_TEXT = {
         "issue #30 — implemented",
         "issue #31 — implemented",
         "issue #32 — implemented",
-        "issue #33 — next",
+        "issue #33 — implemented",
+        "issue #34 — next",
         "projection != canonical eligibility decision",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
@@ -166,6 +173,7 @@ REQUIRED_TEXT = {
         "publication appears -X-> Grade Item membership",
         "highest membership revision -X-> current membership",
         "pds-core>=0.6,<0.7",
+        "Issue #33 subsequently raises Meridian's active development/runtime floor",
         "membership != evidence eligibility",
         "Issue #29 now implements the separate canonical evidence-eligibility",
     ),
@@ -190,6 +198,7 @@ REQUIRED_TEXT = {
         "higher score -X-> preferred attempt",
         "attempt selection != reassessment",
         "pds-core>=0.6,<0.7",
+        "Issue #33 subsequently raises Meridian's active development/runtime floor",
     ),
     Path("docs/architecture/reassessment-and-replacement-relationships.md"): (
         "AttemptSelectionDecisionReference",
@@ -219,6 +228,20 @@ REQUIRED_TEXT = {
         "reassessment != native-value mapping",
         "native-value mapping != standards evidence association",
         "pds-core>=0.6,<0.7",
+    ),
+    Path(
+        "docs/architecture/"
+        "standards-evidence-association-and-aggregation-inputs.md"
+    ): (
+        "producer-declared alignment",
+        "StandardEvidenceAssociationDecision",
+        "association_key",
+        "source_unverifiable",
+        "MAXIMUM_STANDARD_AGGREGATION_CANDIDATES == 1000",
+        "mapping_not_supplied",
+        "nonstudent_target",
+        "Quillan v0.10.0",
+        "Issue #34 is next",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",
