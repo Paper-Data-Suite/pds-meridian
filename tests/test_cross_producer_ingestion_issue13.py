@@ -222,7 +222,7 @@ def test_unsupported_reader_version_is_local_to_selected_producer() -> None:
     registry = cross_producer_registry()
 
     versions = {
-        "scoreform": "0.10.0",
+        "scoreform": "0.11.0",
         "quillan": "0.10.1",
         "pds-concord": "0.2.0",
     }

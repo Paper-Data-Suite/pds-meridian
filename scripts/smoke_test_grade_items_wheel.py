@@ -213,6 +213,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 get_current_mapping_profile_revision,
                 get_current_proficiency_scale_revision,
                 load_mapping_profile_revision,
+                load_proficiency_scale_revision,
                 select_mapping_profile_revision,
                 select_proficiency_scale_revision,
                 write_mapping_profile_revision,
@@ -241,6 +242,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 ResolvedStandardAggregationCandidate,
                 StandardEvidenceActor,
                 StandardEvidenceAssociationDecision,
+                StandardEvidenceAssociationReference,
                 build_standard_aggregation_inputs,
                 standard_aggregation_inputs_from_json_bytes,
                 standard_aggregation_inputs_to_json_bytes,
@@ -253,6 +255,26 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                 resolve_standard_aggregation_inputs,
                 select_standard_evidence_association_revision,
                 write_standard_evidence_association_revision,
+            )
+            from meridian.standards_proficiency import (
+                STANDARD_PROFICIENCY_POLICY_RECORD_TYPE,
+                STANDARD_PROFICIENCY_POLICY_SCHEMA_VERSION,
+                StandardProficiencyActor,
+                StandardProficiencyCalculationPolicy,
+                assess_standard_proficiency_result_freshness,
+                calculate_standard_proficiency,
+                create_standard_proficiency_result_snapshot,
+            )
+            from meridian.standards_proficiency_storage import (
+                get_current_standard_proficiency_policy_revision,
+                get_current_standard_proficiency_result_revision,
+                load_current_standard_proficiency_result,
+                load_standard_proficiency_policy_revision,
+                load_standard_proficiency_result_revision,
+                select_standard_proficiency_policy_revision,
+                select_standard_proficiency_result_revision,
+                write_standard_proficiency_policy_revision,
+                write_standard_proficiency_result_revision,
             )
 
             workspace = pathlib.Path(tempfile.mkdtemp(prefix="meridian-membership-"))
@@ -1476,6 +1498,350 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
                         student_id=None,
                     )
                 ).entries[0].exclusion_reason == "nonstudent_target"
+
+                # #34: pure Grade Item-level standards-proficiency calculation,
+                # immutable persistence, explicit selection, replay, and staleness.
+                exact_scale = load_proficiency_scale_revision(
+                    workspace,
+                    class_id,
+                    proficiency_scale.scale_id,
+                    1,
+                ).scale
+                assert exact_scale == proficiency_scale
+
+                calculation_policy = StandardProficiencyCalculationPolicy(
+                    schema_version=STANDARD_PROFICIENCY_POLICY_SCHEMA_VERSION,
+                    record_type=STANDARD_PROFICIENCY_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    policy_id="grade_item_standard_policy",
+                    policy_revision=1,
+                    supersedes_revision=None,
+                    title="Synthetic Grade Item standard policy",
+                    target_scale=proficiency_scale_reference(exact_scale),
+                    strategy="highest",
+                    minimum_performance_observations=1,
+                    mode_tie_rule=None,
+                    median_even_rule=None,
+                    blocking_exclusion_reasons=(
+                        "association_unresolved",
+                        "mapping_not_supplied",
+                    ),
+                    native_state_handling="noncontributing",
+                    actor=StandardProficiencyActor(
+                        "teacher",
+                        "teacher_local",
+                    ),
+                    rationale=None,
+                    revised_at=now,
+                )
+                calculation_policy_write = (
+                    write_standard_proficiency_policy_revision(
+                        workspace,
+                        calculation_policy,
+                    )
+                )
+                assert calculation_policy_write.disposition == "created"
+                assert get_current_standard_proficiency_policy_revision(
+                    workspace,
+                    class_id,
+                    calculation_policy.policy_id,
+                ) is None
+                loaded_calculation_policy = (
+                    load_standard_proficiency_policy_revision(
+                        workspace,
+                        class_id,
+                        calculation_policy.policy_id,
+                        1,
+                    ).policy
+                )
+                assert loaded_calculation_policy == calculation_policy
+                calculation_policy_select = (
+                    select_standard_proficiency_policy_revision(
+                        workspace,
+                        class_id,
+                        calculation_policy.policy_id,
+                        1,
+                        expected_current_policy_revision=None,
+                    )
+                )
+                assert calculation_policy_select.disposition == "created"
+                assert get_current_standard_proficiency_policy_revision(
+                    workspace,
+                    class_id,
+                    calculation_policy.policy_id,
+                ) == 1
+
+                def performance_candidate(source, level_id):
+                    return ResolvedStandardAggregationCandidate(
+                        source=source,
+                        standard_id=standard_id,
+                        result_kind="attempt_points",
+                        target_kind="attempt",
+                        subject_kind="student",
+                        subject_student_id="student_1",
+                        association_state="associated",
+                        eligibility_state="included",
+                        attempt_state="selected",
+                        reassessment_state="contributing",
+                        membership_reference=(
+                            aggregation_inputs.entries[0].membership_reference
+                        ),
+                        eligibility_reference=(
+                            aggregation_inputs.entries[0].eligibility_reference
+                        ),
+                        attempt_selection_reference=(
+                            aggregation_inputs.entries[0].attempt_selection_reference
+                        ),
+                        reassessment_reference=(
+                            aggregation_inputs.entries[0].reassessment_reference
+                        ),
+                        association_reference=StandardEvidenceAssociationReference(
+                            class_id=class_id,
+                            grade_item_id=item.grade_item_id,
+                            source=source,
+                            standard_id=standard_id,
+                            association_revision=1,
+                            decision_sha256="9" * 64,
+                        ),
+                        mapping_outcome=type(mapped_outcome)(
+                            "mapped",
+                            mapped_outcome.profile,
+                            mapped_outcome.target_scale,
+                            proficiency_level_id=level_id,
+                        ),
+                    )
+
+                calculation_basis = GradeItemAggregationBasis(
+                    class_id,
+                    item.grade_item_id,
+                    item.grade_item_revision,
+                    stored_item.revision_sha256,
+                )
+                calculation_inputs = build_standard_aggregation_inputs(
+                    calculation_basis,
+                    "student_1",
+                    standard_id,
+                    proficiency_scale_reference(exact_scale),
+                    (
+                        performance_candidate(sources[1], "ready"),
+                        performance_candidate(sources[0], "growing"),
+                    ),
+                )
+                calculated = calculate_standard_proficiency(
+                    calculation_inputs,
+                    loaded_calculation_policy,
+                    exact_scale,
+                )
+                assert calculated.status == "calculated"
+                assert calculated.proficiency_level_id == "ready"
+                assert calculated.performance_observation_count == 2
+                assert tuple(
+                    entry.status for entry in calculated.explanation_entries
+                ) == ("performance", "performance")
+
+                result_snapshot = create_standard_proficiency_result_snapshot(
+                    calculation_inputs,
+                    calculated,
+                    result_revision=1,
+                    calculated_at=now,
+                )
+                result_write = write_standard_proficiency_result_revision(
+                    workspace,
+                    result_snapshot,
+                )
+                assert result_write.disposition == "created"
+                assert get_current_standard_proficiency_result_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    "student_1",
+                    standard_id,
+                ) is None
+                result_select = select_standard_proficiency_result_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    "student_1",
+                    standard_id,
+                    1,
+                    expected_current_result_revision=None,
+                )
+                assert result_select.disposition == "created"
+                current_result = load_current_standard_proficiency_result(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    "student_1",
+                    standard_id,
+                )
+                assert current_result is not None
+                assert current_result.snapshot == result_snapshot
+
+                reproduced = calculate_standard_proficiency(
+                    current_result.snapshot.inputs,
+                    loaded_calculation_policy,
+                    exact_scale,
+                )
+                assert reproduced == current_result.snapshot.outcome
+                current_freshness = assess_standard_proficiency_result_freshness(
+                    current_result.snapshot,
+                    calculation_inputs,
+                    calculated.policy_reference,
+                    proficiency_scale_reference(exact_scale),
+                    calculated.algorithm_version,
+                )
+                assert current_freshness.status == "current"
+                assert current_freshness.reasons == ()
+
+                historical_result_bytes = current_result.content
+                changed_inputs = build_standard_aggregation_inputs(
+                    calculation_basis,
+                    "student_1",
+                    standard_id,
+                    proficiency_scale_reference(exact_scale),
+                    (performance_candidate(sources[0], "growing"),),
+                )
+                stale_result = assess_standard_proficiency_result_freshness(
+                    current_result.snapshot,
+                    changed_inputs,
+                    calculated.policy_reference,
+                    proficiency_scale_reference(exact_scale),
+                    calculated.algorithm_version,
+                )
+                assert stale_result.status == "stale"
+                assert stale_result.reasons == ("inputs_changed",)
+                assert load_standard_proficiency_result_revision(
+                    workspace,
+                    class_id,
+                    item.grade_item_id,
+                    "student_1",
+                    standard_id,
+                    1,
+                ).content == historical_result_bytes
+
+                minimum_policy = StandardProficiencyCalculationPolicy(
+                    schema_version=STANDARD_PROFICIENCY_POLICY_SCHEMA_VERSION,
+                    record_type=STANDARD_PROFICIENCY_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    policy_id="minimum_three",
+                    policy_revision=1,
+                    supersedes_revision=None,
+                    title="Require three observations",
+                    target_scale=proficiency_scale_reference(exact_scale),
+                    strategy="highest",
+                    minimum_performance_observations=3,
+                    mode_tie_rule=None,
+                    median_even_rule=None,
+                    blocking_exclusion_reasons=(),
+                    native_state_handling="noncontributing",
+                    actor=StandardProficiencyActor("policy", "minimum_policy"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                minimum_outcome = calculate_standard_proficiency(
+                    calculation_inputs,
+                    minimum_policy,
+                    exact_scale,
+                )
+                assert minimum_outcome.status == "insufficient_evidence"
+                assert tuple(
+                    reason.kind for reason in minimum_outcome.insufficiency_reasons
+                ) == ("below_minimum_performance_observations",)
+
+                blocking_outcome = calculate_standard_proficiency(
+                    unresolved_inputs,
+                    loaded_calculation_policy,
+                    exact_scale,
+                )
+                assert blocking_outcome.status == "insufficient_evidence"
+                assert "blocking_exclusion" in {
+                    reason.kind
+                    for reason in blocking_outcome.insufficiency_reasons
+                }
+                assert blocking_outcome.explanation_entries[0].status == "excluded"
+                assert (
+                    blocking_outcome.explanation_entries[0].exclusion_reason
+                    == "association_unresolved"
+                )
+
+                native_inputs = pure_inputs(resolved_candidate(native_outcome))
+                native_calculation = calculate_standard_proficiency(
+                    native_inputs,
+                    loaded_calculation_policy,
+                    exact_scale,
+                )
+                assert native_calculation.status == "insufficient_evidence"
+                assert native_calculation.native_state_count == 1
+                assert (
+                    native_calculation.explanation_entries[0].status
+                    == "native_state"
+                )
+                assert (
+                    native_calculation.explanation_entries[0].native_state_code
+                    == "unrated"
+                )
+
+                median_policy = StandardProficiencyCalculationPolicy(
+                    schema_version=STANDARD_PROFICIENCY_POLICY_SCHEMA_VERSION,
+                    record_type=STANDARD_PROFICIENCY_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    policy_id="median_lower",
+                    policy_revision=1,
+                    supersedes_revision=None,
+                    title="Median lower",
+                    target_scale=proficiency_scale_reference(exact_scale),
+                    strategy="median",
+                    minimum_performance_observations=1,
+                    mode_tie_rule=None,
+                    median_even_rule="lower",
+                    blocking_exclusion_reasons=(),
+                    native_state_handling="noncontributing",
+                    actor=StandardProficiencyActor("policy", "median_policy"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                median_outcome = calculate_standard_proficiency(
+                    calculation_inputs,
+                    median_policy,
+                    exact_scale,
+                )
+                assert median_outcome.status == "calculated"
+                assert median_outcome.proficiency_level_id == "growing"
+                assert median_outcome.tie_resolution is not None
+                assert median_outcome.tie_resolution.kind == "median_even"
+                assert median_outcome.tie_resolution.rule == "lower"
+
+                mode_policy = StandardProficiencyCalculationPolicy(
+                    schema_version=STANDARD_PROFICIENCY_POLICY_SCHEMA_VERSION,
+                    record_type=STANDARD_PROFICIENCY_POLICY_RECORD_TYPE,
+                    class_id=class_id,
+                    policy_id="mode_tie_insufficient",
+                    policy_revision=1,
+                    supersedes_revision=None,
+                    title="Mode tie is insufficient",
+                    target_scale=proficiency_scale_reference(exact_scale),
+                    strategy="mode",
+                    minimum_performance_observations=1,
+                    mode_tie_rule="insufficient",
+                    median_even_rule=None,
+                    blocking_exclusion_reasons=(),
+                    native_state_handling="noncontributing",
+                    actor=StandardProficiencyActor("policy", "mode_policy"),
+                    rationale=None,
+                    revised_at=now,
+                )
+                mode_outcome = calculate_standard_proficiency(
+                    calculation_inputs,
+                    mode_policy,
+                    exact_scale,
+                )
+                assert mode_outcome.status == "insufficient_evidence"
+                assert tuple(
+                    reason.kind for reason in mode_outcome.insufficiency_reasons
+                ) == ("unresolved_mode_tie",)
+                assert mode_outcome.tie_resolution is not None
+                assert mode_outcome.tie_resolution.kind == "mode_tie"
+                assert mode_outcome.tie_resolution.rule == "insufficient"
 
                 association_v2 = StandardEvidenceAssociationDecision(
                     schema_version=STANDARD_EVIDENCE_ASSOCIATION_SCHEMA_VERSION,

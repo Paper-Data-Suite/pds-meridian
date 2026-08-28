@@ -30,6 +30,7 @@ EXPECTED = (
     Path("docs/architecture/reassessment-and-replacement-relationships.md"),
     Path("docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md"),
     Path("docs/architecture/standards-evidence-association-and-aggregation-inputs.md"),
+    Path("docs/architecture/standards-proficiency-calculation.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -54,6 +55,8 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "ScoreForm qualification updated to exact v0.11.0",
+        "Pure deterministic Grade Item-level standards-proficiency calculation",
         "Canonical immutable teacher-defined proficiency scales",
         "Producer-neutral native-value mapping profiles",
         "Canonical immutable reassessment policy and student relationship decision",
@@ -71,7 +74,9 @@ REQUIRED_TEXT = {
         "released `0.1.1` baseline",
         "Core v0.6.0 and Quillan v0.9.0",
         "Core v0.6.3",
+        "ScoreForm v0.11.0",
         "Quillan v0.10.0",
+        "meridian.standards_proficiency",
         "Package installation alone does not enable publication ingestion.",
         "Discovery is not authorization.",
         "producer-owned public manifest contract or reader",
@@ -84,6 +89,7 @@ REQUIRED_TEXT = {
         "Four accepted ADRs govern the repository:",
         "ADR 0004",
         "pds-core>=0.6.3,<0.7",
+        "scoreform==0.11.0",
         "Quillan v0.9.0, and Concord v0.2.0 adapters were implemented",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
@@ -95,7 +101,8 @@ REQUIRED_TEXT = {
         "issue #31 — implemented",
         "issue #32 — implemented",
         "issue #33 — implemented",
-        "issue #34 — next",
+        "issue #34 — implemented",
+        "issue #35 — next",
         "projection != canonical eligibility decision",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
@@ -138,6 +145,11 @@ REQUIRED_TEXT = {
         "read_projection_cache",
         "EvidenceEligibility",
         "Concord v0.2.0",
+    ),
+    Path("docs/architecture/scoreform-adapter.md"): (
+        "Released Meridian v0.1.1 qualified ScoreForm v0.10.0",
+        "scoreform==0.11.0",
+        "reader version `0.11.0`",
     ),
     Path("docs/architecture/concord-adapter.md"): (
         "concord.academic_result",
@@ -241,7 +253,28 @@ REQUIRED_TEXT = {
         "mapping_not_supplied",
         "nonstudent_target",
         "Quillan v0.10.0",
-        "Issue #34 is next",
+        (
+            "Issue #34 subsequently moves current active ScoreForm "
+            "qualification to v0.11.0"
+        ),
+        "Issue #34 now",
+        "Issue #35 is the next boundary",
+    ),
+    Path("docs/architecture/standards-proficiency-calculation.md"): (
+        "StandardProficiencyCalculationPolicy",
+        "STANDARD_PROFICIENCY_ALGORITHM_VERSION = \"1\"",
+        "highest",
+        "lowest",
+        "median",
+        "mode",
+        "no_performance_evidence",
+        "StandardProficiencyResultSnapshot",
+        "Raw standard IDs never become path components.",
+        "inputs_changed",
+        "policy_changed",
+        "scale_changed",
+        "algorithm_changed",
+        "Issue #35 owns Academic Period proficiency aggregation",
     ),
     Path("docs/decisions/0003-consumer-side-producer-adapters.md"): (
         "Status:** Accepted",
@@ -270,6 +303,7 @@ REQUIRED_TEXT = {
         "upstream dependency-direction audit",
         "source-distribution boundary",
         "all-adapter coexistence",
+        "ScoreForm v0.11.0",
     ),
     Path("docs/development/synthetic-data.md"): (
         "real student",

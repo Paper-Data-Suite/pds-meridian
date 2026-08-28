@@ -1,4 +1,4 @@
-"""Exact ScoreForm v0.10.0 academic-result evidence projection."""
+"""Exact ScoreForm v0.11.0 academic-result evidence projection."""
 
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ __all__ = [
 SCOREFORM_ADAPTER_ID: Final = "scoreform.academic_result"
 SCOREFORM_PROJECTION_CONTRACT_VERSION: Final = "1"
 SCOREFORM_READER_DISTRIBUTION: Final = "scoreform"
-SCOREFORM_READER_VERSION: Final = "0.10.0"
+SCOREFORM_READER_VERSION: Final = "0.11.0"
 _SCOREFORM_RECORD_SET_ID: Final = "academic_results"
 _SCOREFORM_CAPABILITIES: Final[frozenset[PublicationCapability]] = frozenset(
     {"points", "question_evidence", "multiple_attempts"}

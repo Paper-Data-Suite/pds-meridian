@@ -26,7 +26,7 @@ classifiers = [
 
 [project.optional-dependencies]
 scoreform = [
-    "scoreform==0.10.0",
+    "scoreform==0.11.0",
 ]
 quillan = [
     "quillan==0.10.0",

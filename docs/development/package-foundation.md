@@ -12,7 +12,7 @@ not calculate proficiency or Grades or generate reports.
 - Python 3.11 or later
 - the authenticated `pds-core` v0.6 line
 - the exact Core v0.6.3 wheel for current development and qualification checks
-- the exact authenticated ScoreForm v0.10.0 wheel for adapter validation
+- the exact authenticated ScoreForm v0.11.0 wheel for current adapter validation
 - the exact authenticated Quillan v0.10.0 wheel for adapter validation
 - the exact authenticated Concord v0.2.0 wheel for adapter validation
 
@@ -29,7 +29,7 @@ PyPI. Install the verified wheel before installing Meridian:
 
 ```powershell
 python -m pip install .\pds_core-0.6.3-py3-none-any.whl
-python -m pip install .\scoreform-0.10.0-py3-none-any.whl
+python -m pip install .\scoreform-0.11.0-py3-none-any.whl
 python -m pip install .\quillan-0.10.0-py3-none-any.whl
 python -m pip install .\pds_concord-0.2.0-py3-none-any.whl
 python -m pip install -e ".[dev,scoreform,quillan,concord]"
@@ -47,7 +47,7 @@ From an activated repository virtual environment:
 ```powershell
 .\run_tests.ps1 `
   -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
-  -ScoreFormWheel C:\path\to\scoreform-0.10.0-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.11.0-py3-none-any.whl `
   -QuillanWheel C:\path\to\quillan-0.10.0-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.2.0-py3-none-any.whl
 ```
