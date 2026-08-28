@@ -20,11 +20,16 @@ def _console_script_path() -> Path:
 def test_main_without_arguments_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(()) == 0
     output = capsys.readouterr().out
-    assert "usage: meridian" in output
-    assert "publication-ingestion and typed-evidence" in output
-    assert "Grading, proficiency, and reporting policy stages" in output
-    assert "implemented yet." in output
-    assert "grading-policy" not in output
+    normalized = " ".join(output.split())
+    assert "usage: meridian" in normalized
+    assert "publication-ingestion and typed-evidence" in normalized
+    assert (
+        "Grade Item-level standards-proficiency calculation is implemented "
+        "as a library API; Academic Period proficiency aggregation, Grade "
+        "calculation, and reporting stages are not implemented yet."
+        in normalized
+    )
+    assert "grading-policy" not in normalized
 
 
 def test_main_help_returns_zero(capsys: pytest.CaptureFixture[str]) -> None:

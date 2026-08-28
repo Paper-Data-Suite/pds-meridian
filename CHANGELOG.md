@@ -4,6 +4,25 @@
 
 ### Added
 
+- Current unreleased ScoreForm qualification updated to exact v0.11.0,
+  preserving the existing `scoreform_academic_work_v1`,
+  `scoreform_academic_result_manifest_v1`, `academic_results`, and public
+  reader projection semantics while retaining v0.10.0 as the released
+  Meridian v0.1.1 historical baseline.
+- Pure deterministic Grade Item-level standards-proficiency calculation over
+  exact #33 aggregation inputs, exact proficiency-scale/policy revisions, and
+  algorithm version 1, with explicit `highest`, `lowest`, `median`, and `mode`
+  strategies and structured insufficient-evidence/tie behavior.
+- Immutable SHA-256-bound standards-proficiency calculation-policy and result
+  histories with canonical JSON, exact embedded aggregation inputs, explicit
+  compare-and-swap `current.json` selection, historical reselection, and
+  deterministic calculation fingerprints/explanations.
+- Pure standards-proficiency freshness diagnostics distinguishing
+  `inputs_changed`, `policy_changed`, `scale_changed`, and `algorithm_changed`
+  without mutating history or automatically recalculating/selecting results.
+- Integration acceptance proving calculate -> persist -> explicit select ->
+  reload -> reproduce -> stale-input detection, including zero-performance
+  input remaining `insufficient_evidence` rather than zero/lowest proficiency.
 - Canonical teacher/policy standards-evidence association decisions over exact
   projection sources and durable Core standard IDs, with explicit
   producer-declared/explicit bases, immutable SHA-256-bound revision history,

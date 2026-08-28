@@ -7,12 +7,15 @@ exact evidence serialization, an immutable digest-bound projection cache, a
 read-only publication/evidence diagnostics surface, and three real optional
 ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters in the
 released `0.1.1` baseline. The current unreleased v0.2 development tree
-qualifies Quillan v0.10.0 and adds the explicit #27-#33 interpretation layers.
+qualifies ScoreForm v0.11.0 and Quillan v0.10.0 and adds the explicit
+#27-#34 interpretation layers.
 The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
-the explicit #27-#33 interpretation layers, and construct bounded standards
-aggregation inputs without mutating historical state. It does not yet calculate
-standards proficiency, Grades, reports, subscriptions, or delivery.
+the explicit #27-#34 interpretation layers, construct bounded standards
+aggregation inputs, and calculate/persist deterministic Grade Item-level
+standards proficiency without mutating historical state. It does not yet
+aggregate standards proficiency across Academic Periods, calculate Grades,
+reports, subscriptions, or delivery.
 
 ## Purpose
 
@@ -71,12 +74,16 @@ The current package provides:
 - exact verification of the official Core v0.6.3 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
-- explicit, lazy adapters for exact ScoreForm v0.10.0, Quillan v0.10.0, and
+- explicit, lazy adapters for exact ScoreForm v0.11.0, Quillan v0.10.0, and
   Concord v0.2.0 academic results.
 - immutable standards-evidence association decisions with explicit SHA-bound
   current selection and Core durable-standard resolution; and
 - deterministic, bounded Grade Item/student/standard/scale aggregation inputs
-  preserving mapped observations, native states, and exact exclusion causes.
+  preserving mapped observations, native states, and exact exclusion causes;
+- pure deterministic Grade Item-level standards-proficiency calculation with
+  explicit `highest`, `lowest`, `median`, and `mode` policy strategies; and
+- immutable SHA-bound proficiency policy/result histories, explicit current
+  selection, deterministic explanation, and pure staleness diagnostics.
 
 The package does **not** yet provide:
 
@@ -84,7 +91,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- standards proficiency or Grade calculations;
+- Academic Period standards-proficiency aggregation or Grade calculations;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
@@ -120,6 +127,23 @@ beneath exact work membership, hashes the full logical association identity for
 Windows-safe paths, and uses an explicit SHA-bound compare-and-swap
 `current.json`. See [standards-evidence association and aggregation inputs](docs/architecture/standards-evidence-association-and-aggregation-inputs.md).
 
+## Grade Item standards proficiency
+
+`meridian.standards_proficiency` now consumes one exact #33 aggregation input
+snapshot plus one exact calculation-policy revision and target proficiency
+scale. It calculates `highest`, `lowest`, `median`, or `mode` strictly over
+configured scale positions, preserves native/noncontributing states, and emits
+structured `insufficient_evidence` rather than converting absence to zero.
+
+`meridian.standards_proficiency_storage` persists immutable policy and result
+revisions with SHA-256 sidecars and explicit compare-and-swap `current.json`
+selection. Persisted results embed the exact #33 input body and bind exact
+policy, scale, algorithm, and calculation-fingerprint provenance. Freshness is
+a pure comparison that reports `inputs_changed`, `policy_changed`,
+`scale_changed`, and/or `algorithm_changed` without recalculation or mutation.
+
+See [Grade Item standards-proficiency calculation](docs/architecture/standards-proficiency-calculation.md).
+
 ## Adapter interface and registry
 
 `meridian.adapters` defines the consumer-side adapter protocol and an immutable,
@@ -132,7 +156,7 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. Optional ScoreForm v0.10.0, Quillan v0.10.0, and Concord v0.2.0 adapters are
+descriptor. Optional ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.2.0 adapters are
 available through explicit composition; there is no adapter entry-point group or
 unconditional producer runtime dependency.
 
@@ -189,7 +213,7 @@ pds-core>=0.6.3,<0.7
 ```
 
 Current development and CI qualification use the exact completed Core v0.6.3,
-ScoreForm v0.10.0, Quillan v0.10.0, and Concord v0.2.0 releases. The released
+ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.2.0 releases. The released
 Meridian v0.1.1 history remains Core v0.6.0 and Quillan v0.9.0; the active #33
 floor/qualification update does not rewrite that release fact. Core is
 distributed through GitHub Release artifacts rather than PyPI.
@@ -260,7 +284,7 @@ From an activated repository virtual environment, run:
 ```powershell
 .\run_tests.ps1 `
   -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
-  -ScoreFormWheel C:\path\to\scoreform-0.10.0-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.11.0-py3-none-any.whl `
   -QuillanWheel C:\path\to\quillan-0.10.0-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.2.0-py3-none-any.whl
 ```

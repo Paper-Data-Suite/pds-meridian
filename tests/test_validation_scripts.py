@@ -22,7 +22,9 @@ from scripts.verify_quillan_wheel import (
     verify_quillan_wheel,
 )
 from scripts.verify_scoreform_wheel import (
+    EXPECTED_SCOREFORM_VERSION,
     EXPECTED_SCOREFORM_WHEEL_FILENAME,
+    EXPECTED_SCOREFORM_WHEEL_SHA256,
     ScoreFormVerificationError,
     verify_scoreform_wheel,
 )
@@ -41,6 +43,14 @@ def test_core_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         archive.writestr("placeholder.txt", "synthetic")
     with pytest.raises(CoreVerificationError, match="SHA-256 mismatch"):
         verify_core_wheel(path)
+
+
+def test_scoreform_verifier_targets_exact_011_release() -> None:
+    assert EXPECTED_SCOREFORM_VERSION == "0.11.0"
+    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == "scoreform-0.11.0-py3-none-any.whl"
+    assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
+        "8248c6a1cc8254b5f9df46440131d524f80da8662a0dc7864fdc982e501b4c44"
+    )
 
 
 def test_scoreform_verifier_rejects_wrong_filename(tmp_path: Path) -> None:
@@ -93,6 +103,16 @@ def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:
     path.write_bytes(b"not a zip archive")
     with pytest.raises(PackageValidationError, match="readable ZIP"):
         validate_wheel(path)
+
+def test_ci_wires_exact_scoreform_release_artifact() -> None:
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert (
+        "pds-scoreform/releases/download/v0.11.0/"
+        "scoreform-0.11.0-py3-none-any.whl"
+    ) in workflow
+    assert 'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"' in workflow
+    assert '--scoreform-wheel "$env:SCOREFORM_WHEEL"' in workflow
+
 
 def test_ci_wires_exact_concord_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")

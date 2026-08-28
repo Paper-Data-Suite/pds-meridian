@@ -69,7 +69,7 @@ def sig(
             "pds-concord" if producer == "concord" else producer
         ),
         producer_reader_version={
-            "scoreform": "0.10.0",
+            "scoreform": "0.11.0",
             "quillan": "0.10.0",
             "concord": "0.2.0",
         }[producer],

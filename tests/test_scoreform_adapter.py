@@ -50,7 +50,7 @@ def test_descriptor_is_the_exact_released_contract() -> None:
     assert SCOREFORM_ADAPTER_ID == "scoreform.academic_result"
     assert SCOREFORM_PROJECTION_CONTRACT_VERSION == "1"
     assert SCOREFORM_READER_DISTRIBUTION == "scoreform"
-    assert SCOREFORM_READER_VERSION == "0.10.0"
+    assert SCOREFORM_READER_VERSION == "0.11.0"
     assert descriptor.adapter_id == SCOREFORM_ADAPTER_ID
     assert descriptor.adapter_interface_version == MERIDIAN_ADAPTER_INTERFACE_VERSION
     assert descriptor.projection_contract_version == "1"
@@ -60,7 +60,7 @@ def test_descriptor_is_the_exact_released_contract() -> None:
     assert descriptor.supported_capabilities == frozenset(
         {"points", "question_evidence", "multiple_attempts"}
     )
-    assert descriptor.supported_producer_reader_versions == frozenset({"0.10.0"})
+    assert descriptor.supported_producer_reader_versions == frozenset({"0.11.0"})
 
 
 def test_import_descriptor_registry_and_selection_are_lazy() -> None:
@@ -83,7 +83,7 @@ assert set(sys.modules) >= before
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize("version", ["0.9.1", "0.10.1"])
+@pytest.mark.parametrize("version", ["0.10.0", "0.11.1"])
 def test_unsupported_reader_versions_fail_before_projection(version: str) -> None:
     registry = AdapterRegistry((ScoreFormAcademicResultAdapter(),))
     with pytest.raises(ProducerReaderVersionUnsupportedError):
@@ -153,8 +153,8 @@ def test_wrong_exact_contract_keys_are_not_selected() -> None:
 def test_projection_preserves_every_student_attempt_response_and_order() -> None:
     request = projection_request(withdrawal=True)
     registry = AdapterRegistry((ScoreFormAcademicResultAdapter(),))
-    first = registry.invoke(request, lambda _: "0.10.0")
-    second = registry.invoke(request, lambda _: "0.10.0")
+    first = registry.invoke(request, lambda _: "0.11.0")
+    second = registry.invoke(request, lambda _: "0.11.0")
     assert first == second
     assert len(first.items) == 24
     assert len({item.item_id for item in first.items}) == 24
@@ -218,7 +218,7 @@ def test_projection_preserves_every_student_attempt_response_and_order() -> None
 
 def test_projection_preserves_ordered_alignment_and_native_provenance() -> None:
     inventory = AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
-        projection_request(), lambda _: "0.10.0"
+        projection_request(), lambda _: "0.11.0"
     )
     question = next(
         item
@@ -301,7 +301,7 @@ def test_cross_contract_mismatches_fail_privately(change: str) -> None:
     )
     with pytest.raises(AdapterProjectionError) as raised:
         AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
-            request, lambda _: "0.10.0"
+            request, lambda _: "0.11.0"
         )
     text = str(raised.value)
     assert "student_synthetic" not in text
@@ -319,7 +319,7 @@ def test_noncanonical_manifest_and_reader_import_failure_are_wrapped(
     )
     registry = AdapterRegistry((ScoreFormAcademicResultAdapter(),))
     with pytest.raises(AdapterProjectionError) as raised:
-        registry.invoke(malformed_request, lambda _: "0.10.0")
+        registry.invoke(malformed_request, lambda _: "0.11.0")
     assert raised.value.__cause__ is not None
     assert malformed.decode() not in str(raised.value)
 

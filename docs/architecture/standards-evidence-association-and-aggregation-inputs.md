@@ -147,13 +147,25 @@ may bind. Mutable Core display/framework metadata is excluded. There is no
   alignment may support `producer_declared`; criterion evidence may use
   `explicit`. Group/nonstudent evidence is not individualized.
 
+#33 was implemented and merged against ScoreForm v0.10.0.
+Issue #34 subsequently moves current active ScoreForm qualification to v0.11.0.
+Because v0.11.0 preserves the public reader and academic-result contracts consumed by
+Meridian, that qualification change does not rewrite #33 historical
+provenance or change these aggregation semantics.
+
 Records contain only durable identity and exact provenance needed for the
 decision/input. They do not copy answers, feedback, accommodations,
 demographics, images, producer artifacts, roster names, or full Core standard
 descriptions. Generic runtime/storage imports no producer package.
 
-## Boundary to #34
+## Boundary to #34 and #35
 
-#33 does not calculate means, highest/latest values, weighted values,
-percentages, sufficiency, Grades, or proficiency. Issue #34 is next and owns the
-pure policy-driven standards-proficiency calculation over these exact inputs.
+#33 itself still does not calculate means, highest/latest values, weighted
+values, percentages, sufficiency, Grades, or proficiency. Issue #34 now
+implements the pure policy-driven Grade Item-level standards-proficiency
+calculation over these exact inputs, immutable policy/result histories,
+explicit current selection, and pure staleness diagnostics.
+
+See [Grade Item standards-proficiency calculation](standards-proficiency-calculation.md).
+
+Issue #35 is the next boundary and owns Academic Period proficiency aggregation.

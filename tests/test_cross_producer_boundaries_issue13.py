@@ -139,7 +139,7 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
     mixed = build_mixed_workspace(tmp_path)
 
     versions = {
-        "scoreform": "0.10.0",
+        "scoreform": "0.11.0",
         "quillan": "0.10.1",
         "pds-concord": "0.2.0",
     }
@@ -176,7 +176,7 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
 
     assert scoreform.overall_state == "support_ready"
     assert scoreform.reader_state == "ready"
-    assert scoreform.installed_reader_version == "0.10.0"
+    assert scoreform.installed_reader_version == "0.11.0"
 
     assert quillan.overall_state == "support_unsupported"
     assert quillan.reader_state == "version_unsupported"
