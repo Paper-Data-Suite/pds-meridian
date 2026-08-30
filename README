@@ -8,14 +8,14 @@ read-only publication/evidence diagnostics surface, and three real optional
 ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters in the
 released `0.1.1` baseline. The current unreleased v0.2 development tree
 qualifies ScoreForm v0.11.0 and Quillan v0.10.0 and adds the explicit
-#27-#34 interpretation layers.
+#27-#35 interpretation layers.
 The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
-the explicit #27-#34 interpretation layers, construct bounded standards
-aggregation inputs, and calculate/persist deterministic Grade Item-level
+the explicit #27-#35 interpretation layers, construct bounded standards
+aggregation inputs, and calculate/persist deterministic Grade Item-level and Academic Period
 standards proficiency without mutating historical state. It does not yet
-aggregate standards proficiency across Academic Periods, calculate Grades,
-reports, subscriptions, or delivery.
+calculate Grades, generate planning signals, reports, subscriptions, or
+delivery.
 
 ## Purpose
 
@@ -84,6 +84,11 @@ The current package provides:
   explicit `highest`, `lowest`, `median`, and `mode` policy strategies; and
 - immutable SHA-bound proficiency policy/result histories, explicit current
   selection, deterministic explanation, and pure staleness diagnostics.
+- pure producer-neutral Academic Period standards-proficiency aggregation over
+  exact immutable #34 results with explicit `direct`/`descendants` scope; and
+- immutable SHA-bound Academic Period proficiency policy/result histories,
+  explicit current selection, deterministic explanation, and pure freshness
+  diagnostics.
 
 The package does **not** yet provide:
 
@@ -91,7 +96,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- Academic Period standards-proficiency aggregation or Grade calculations;
+- Grade calculations or planning-signal derivation/export;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
@@ -143,6 +148,31 @@ a pure comparison that reports `inputs_changed`, `policy_changed`,
 `scale_changed`, and/or `algorithm_changed` without recalculation or mutation.
 
 See [Grade Item standards-proficiency calculation](docs/architecture/standards-proficiency-calculation.md).
+
+## Academic Period standards proficiency
+
+`meridian.academic_period_proficiency` consumes exact immutable #34 Grade Item
+proficiency results and exact #28 membership provenance to build one bounded
+class/Academic Period/student/standard calculation. `direct` scope requires the
+complete Grade Item membership basis to match the exact target period;
+`descendants` permits that complete basis to fall within the exact target Core
+calendar subtree. No date, label, lifecycle, or current-period inference is
+used.
+
+A mixed or otherwise incompatible exact membership basis is retained as
+`period_scope_mismatch` and is always blocking in schema version 1. A missing
+#34 result is `missing_result`; an existing #34 `insufficient_evidence` result
+remains insufficient; and a calculated low proficiency remains a real ordinal
+result. Policy independently chooses whether missing and insufficient entries
+are noncontributing or blocking.
+
+`meridian.academic_period_proficiency_storage` persists immutable policy and
+result revisions with exact dependency validation, SHA-256 sidecars, and
+explicit compare-and-swap current selectors. Freshness is diagnostic only: a
+stale result remains immutable and is never automatically recalculated or
+selected.
+
+See [Academic Period standards-proficiency aggregation](docs/architecture/academic-period-proficiency-aggregation.md).
 
 ## Adapter interface and registry
 

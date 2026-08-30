@@ -134,3 +134,11 @@ def test_cross_producer_acceptance_document_is_validation_guarded() -> None:
         "Academic Period definition != ingestion-time Grade-period assignment"
         in checker
     )
+
+def test_academic_period_proficiency_installed_smoke_is_release_guarded() -> None:
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    smoke_name = "smoke_test_academic_period_proficiency_wheel.py"
+
+    assert smoke_name in validator
+    assert smoke_name in sdist_checker

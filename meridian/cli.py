@@ -81,9 +81,9 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Meridian is the Paper Data Suite "
             "publication-ingestion and typed-evidence diagnostics foundation. "
-            "Grade Item-level standards-proficiency calculation is implemented "
-            "as a library API; Academic Period proficiency aggregation, Grade "
-            "calculation, and reporting stages are not implemented yet."
+            "Grade Item-level and Academic Period standards-proficiency "
+            "calculations are implemented as library APIs; Grade calculation "
+            "and reporting stages are not implemented yet."
         ),
     )
     parser.add_argument(
