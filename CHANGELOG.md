@@ -4,6 +4,21 @@
 
 ### Added
 
+- Academic Period standards-proficiency aggregation over exact immutable #34
+  Grade Item result snapshots and exact #28 membership provenance, with
+  explicit `direct` and `descendants` scope over one exact Core calendar
+  revision and deterministic `highest`, `lowest`, `median`, and `mode`
+  strategies.
+- Explicit always-blocking `period_scope_mismatch` handling for mixed sibling,
+  outside-target, calendar-revision, and school-year mismatches without date
+  or current-period inference.
+- Separate `missing_result`, #34 `insufficient_evidence`, and calculated low
+  proficiency states, with independent noncontributing/blocking policy for
+  missing and insufficient results.
+- Immutable SHA-256-bound Academic Period proficiency policy/result histories,
+  explicit compare-and-swap current selection, deterministic replay and
+  explanations, pure freshness diagnostics, package/sdist guards, and isolated
+  installed-wheel acceptance.
 - Current unreleased ScoreForm qualification updated to exact v0.11.0,
   preserving the existing `scoreform_academic_work_v1`,
   `scoreform_academic_result_manifest_v1`, `academic_results`, and public

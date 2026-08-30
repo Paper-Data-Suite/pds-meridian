@@ -23,12 +23,12 @@ def test_main_without_arguments_prints_help(capsys: pytest.CaptureFixture[str]) 
     normalized = " ".join(output.split())
     assert "usage: meridian" in normalized
     assert "publication-ingestion and typed-evidence" in normalized
-    assert (
-        "Grade Item-level standards-proficiency calculation is implemented "
-        "as a library API; Academic Period proficiency aggregation, Grade "
-        "calculation, and reporting stages are not implemented yet."
-        in normalized
-    )
+    assert "Grade Item-level" in normalized
+    assert "Academic Period" in normalized
+    assert "calculations are implemented as library APIs" in normalized
+    assert "Grade calculation" in normalized
+    assert "reporting stages are not implemented yet." in normalized
+    assert "Academic Period proficiency aggregation" not in normalized
     assert "grading-policy" not in normalized
 
 
