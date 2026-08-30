@@ -27,6 +27,8 @@ import pytest
         "meridian.grade_item_memberships",
         "meridian.grade_item_storage",
         "meridian.grade_items",
+        "meridian.grouping_signal_policy",
+        "meridian.grouping_signal_policy_storage",
         "meridian.ingestion",
         "meridian.projection_cache",
         "meridian.proficiency_mapping",
