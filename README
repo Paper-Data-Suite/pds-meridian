@@ -7,15 +7,17 @@ exact evidence serialization, an immutable digest-bound projection cache, a
 read-only publication/evidence diagnostics surface, and three real optional
 ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters in the
 released `0.1.1` baseline. The current unreleased v0.2 development tree
-qualifies ScoreForm v0.11.0 and Quillan v0.10.0 and adds the explicit
-#27-#35 interpretation layers.
+qualifies ScoreForm v0.11.0 and Quillan v0.10.0, adds the explicit
+#27-#35 interpretation layers, and formally adopts Core's neutral
+`grouping_signal_set_v1` interchange in #36 against exact Core v0.6.3.
 The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
 the explicit #27-#35 interpretation layers, construct bounded standards
-aggregation inputs, and calculate/persist deterministic Grade Item-level and Academic Period
-standards proficiency without mutating historical state. It does not yet
-calculate Grades, generate planning signals, reports, subscriptions, or
-delivery.
+aggregation inputs, calculate/persist deterministic Grade Item-level and
+Academic Period standards proficiency, and qualify Core's neutral grouping-signal
+model/JSON/CSV/storage/diagnostic boundary without mutating historical state. It
+does not yet calculate Grades, derive or export production planning signals,
+generate reports, create subscriptions, or deliver reports.
 
 ## Purpose
 
@@ -88,7 +90,12 @@ The current package provides:
   exact immutable #34 results with explicit `direct`/`descendants` scope; and
 - immutable SHA-bound Academic Period proficiency policy/result histories,
   explicit current selection, deterministic explanation, and pure freshness
-  diagnostics.
+  diagnostics;
+- formal adoption of Core's `grouping_signal_set_v1` as the sole shared
+  planning-signal interchange, preserving `pds-core>=0.6.3,<0.7`; and
+- focused plus isolated installed-wheel qualification of Core's canonical signal
+  model/JSON, `grouping_signal_csv_v1`, immutable exchange storage, canonical
+  signal digest, and workspace-aware roster diagnostics with Concord absent.
 
 The package does **not** yet provide:
 
@@ -173,6 +180,45 @@ stale result remains immutable and is never automatically recalculated or
 selected.
 
 See [Academic Period standards-proficiency aggregation](docs/architecture/academic-period-proficiency-aggregation.md).
+
+## Core neutral grouping-signal interchange
+
+Issue #36 adopts Core's released `grouping_signal_set_v1` as Meridian's only
+shared planning-signal interchange contract. The contract first shipped in Core
+v0.6.1; Meridian's active and authenticated qualification baseline is Core
+v0.6.3, so the runtime floor remains:
+
+```text
+pds-core>=0.6.3,<0.7
+```
+
+Core remains authoritative for the typed signal model, canonical JSON,
+`grouping_signal_csv_v1`, immutable exchange storage, canonical signal-byte
+SHA-256, and workspace-aware roster diagnostics. Meridian adds no competing
+wire model, serializer, CSV contract, storage layer, or roster matcher.
+
+A future Meridian-generated signal will be a minimal explicit projection from
+richer Meridian-owned academic derivation state:
+
+```text
+Meridian private academic derivation
+    -> Core grouping_signal_set_v1
+    -> optional downstream planning consumer
+```
+
+Bands are contextual ordinal planning signals rather than Grades, proficiency
+labels, ability classifications, or permanent learner attributes. Signal
+identity is exact and immutable as `(class_id, signal_set_id)`, there is no
+automatic `current` or `latest` selection, partial roster coverage is valid,
+student identity is exact `student_id`, and `source.snapshot_digest` is distinct
+from Core's canonical signal-record digest.
+
+The #36 installed-wheel qualification deliberately runs with exact Core plus
+Meridian and proves the grouping-signal contract without Concord installed.
+Teacher-controlled derivation policy begins in #37; production signal generation,
+preview, and export remain later work.
+
+See [Core neutral grouping-signal interchange](docs/architecture/core-grouping-signal-interchange.md).
 
 ## Adapter interface and registry
 
@@ -352,6 +398,9 @@ for details.
 
 Core v0.6 owns shared canonical infrastructure, including:
 
+- the neutral immutable `grouping_signal_set_v1` contract, canonical JSON/CSV
+  conversion, exchange storage, signal-byte digest binding, and roster
+  diagnostics;
 - immutable Academic Period Calendar revisions and explicit current pointers;
 - immutable Academic Work Registration revisions and explicit current pointers;
 - immutable Publication Records and separate Publication Withdrawals;
