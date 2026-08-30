@@ -42,7 +42,8 @@ def test_documentation_validation_guards_issue30_boundaries() -> None:
     assert "issue #33 — implemented" in checker
     assert "issue #34 — implemented" in checker
     assert "issue #35 — implemented" in checker
-    assert "issue #36 — next" in checker
+    assert "issue #36 — implemented" in checker
+    assert "issue #37 — next" in checker
 
 
 def test_installed_wheel_smoke_covers_core_only_attempt_selection_flow() -> None:

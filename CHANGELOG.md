@@ -4,6 +4,20 @@
 
 ### Added
 
+- Formal adoption of Core's neutral immutable `grouping_signal_set_v1` as
+  Meridian's sole shared planning-signal interchange, qualified against exact
+  Core v0.6.3 while preserving `pds-core>=0.6.3,<0.7` and introducing no direct
+  Meridian-to-Concord runtime dependency.
+- Focused qualification of Core's typed signal model/canonical JSON,
+  `grouping_signal_csv_v1`, immutable exchange storage and canonical signal-byte
+  digest, and workspace-aware roster diagnostics, including partial coverage,
+  exact student identity, immutable replay/conflict semantics, and the
+  distinction between upstream `source.snapshot_digest` and Core's signal
+  digest.
+- Isolated installed-wheel grouping-signal acceptance using only exact Core
+  v0.6.3 plus the candidate Meridian wheel, explicitly proving Concord is absent
+  and that #36 adds contract adoption rather than production derivation or
+  export behavior.
 - Academic Period standards-proficiency aggregation over exact immutable #34
   Grade Item result snapshots and exact #28 membership provenance, with
   explicit `direct` and `descendants` scope over one exact Core calendar

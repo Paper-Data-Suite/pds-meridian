@@ -142,3 +142,42 @@ def test_academic_period_proficiency_installed_smoke_is_release_guarded() -> Non
 
     assert smoke_name in validator
     assert smoke_name in sdist_checker
+
+
+def test_grouping_signal_contract_installed_smoke_is_release_guarded() -> None:
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    smoke_name = "smoke_test_grouping_signal_contract_wheel.py"
+
+    assert smoke_name in validator
+    assert smoke_name in sdist_checker
+    assert "tests/test_grouping_signal_contract.py" in sdist_checker
+    assert "tests/test_grouping_signal_storage_contract.py" in sdist_checker
+    assert "tests/test_grouping_signal_diagnostics_contract.py" in sdist_checker
+
+
+def test_grouping_signal_architecture_document_is_release_guarded() -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    document = "docs/architecture/core-grouping-signal-interchange.md"
+
+    assert document in documentation_checker
+    assert document in sdist_checker
+    assert "issue #36 — implemented" in documentation_checker
+    assert "issue #37 — next" in documentation_checker
+
+
+def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> None:
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+
+    assert (
+        "pds-core/releases/download/v0.6.3/"
+        "pds_core-0.6.3-py3-none-any.whl"
+    ) in workflow
+    assert 'python scripts/verify_core_wheel.py "$env:PDS_CORE_WHEEL"' in workflow
+    assert "python scripts/validate_repository.py" in workflow
+    assert '--core-wheel "$env:PDS_CORE_WHEEL"' in workflow
+    assert "smoke_test_grouping_signal_contract_wheel.py" in validator

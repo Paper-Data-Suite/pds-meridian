@@ -582,9 +582,8 @@ smoke against the exact supported Core wheel.
 Issue #35 stops at explainable Academic Period standards proficiency. It does not
 create or export a planning signal.
 
-Issue #36 is the next v0.2 boundary: **Adopt Core 0.6.1 and the neutral
-grouping-signal contract**. Meridian's active development runtime floor is already
-`pds-core>=0.6.3,<0.7` because issue #33 required later Core standards support;
-issue #36's grouping-signal work must therefore adopt the neutral contract
-without lowering that established floor or changing #35's academic result
-semantics.
+Issue #36 formally adopts the neutral Core grouping-signal contract. That
+contract first shipped in Core 0.6.1, while Meridian's authoritative
+qualification baseline is Core 0.6.3 and the active runtime floor remains
+`pds-core>=0.6.3,<0.7` because issue #33 required later Core standards support.
+The grouping-signal contract does not change #35's academic result semantics.
