@@ -24,11 +24,13 @@ teacher-defined proficiency scales/native-value mapping profiles, explicit
 standards-evidence association and bounded aggregation inputs, and pure
 Grade Item-level standards-proficiency policy/calculation/result persistence
 with explicit selection and staleness diagnostics, plus exact Academic Period
-proficiency aggregation over immutable #34 results. Issue #36 now formally
-adopts Core's neutral `grouping_signal_set_v1` contract against exact Core
-0.6.3 without adding Meridian signal-generation policy; derivation and export
-remain later implementation work. The package version remains `0.1.1` until
-the v0.2 release sequence reaches its release issue.
+proficiency aggregation over immutable #34 results. Issue #36 formally adopts
+Core's neutral `grouping_signal_set_v1` contract against exact Core 0.6.3, and
+issue #37 now adds the separate immutable teacher-controlled grouping-signal
+derivation-policy layer without assigning students to bands or writing Core
+signals. Issue #38 deterministic generation is the next boundary. The package
+version remains `0.1.1` until the v0.2 release sequence reaches its release
+issue.
 
 ## Recommended reading order
 
@@ -50,17 +52,18 @@ the v0.2 release sequence reaches its release issue.
 16. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
 17. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
 18. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
-19. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-20. [ScoreForm adapter](architecture/scoreform-adapter.md)
-21. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-22. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
-23. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-24. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-25. [ADR index](decisions/README.md)
-26. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-27. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-28. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-29. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+19. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
+20. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+21. [ScoreForm adapter](architecture/scoreform-adapter.md)
+22. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+23. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+24. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+25. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+26. [ADR index](decisions/README.md)
+27. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+28. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+29. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+30. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -322,10 +325,28 @@ digest.
 
 Issue #36 qualifies the contract with synthetic focused tests and an isolated
 installed-wheel smoke containing Core plus Meridian with Concord absent. It does
-not yet define teacher-controlled derivation policy or produce a production
-signal.
+not produce a production signal. Issue #37 now defines the separate
+teacher-controlled derivation-policy layer.
 
 See [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md).
+
+## Teacher-controlled grouping-signal derivation policy
+
+`meridian.grouping_signal_policy` binds one exact #35 Academic Period proficiency
+basis to one explicit contextual `dimension_id` and a teacher-defined contiguous
+partition of exact proficiency-scale positions. V1 fixes
+`same_level_same_band`, rejects percentile/equal-population derivation, never
+uses the proficiency threshold as a hidden boundary, and independently preserves
+missing versus insufficient results as `noncontributing` or `blocking`.
+
+`meridian.grouping_signal_policy_storage` persists immutable SHA-256-bound policy
+history in Meridian-owned class state with explicit compare-and-swap selection.
+Exact Core class/Academic Period/standard and exact #35 policy/proficiency-scale
+dependencies are verified before writes and selections. Policy creation and
+selection do not scan students, assign bands, create Core signals, export CSV,
+or invoke Concord.
+
+See [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md).
 
 ## Adapter interface and registry
 
@@ -399,9 +420,10 @@ scales/native-value mappings, standards-evidence association/bounded aggregation
 inputs, and pure Grade Item-level standards-proficiency calculation with
 immutable result persistence, explicit selection, and staleness diagnostics,
 plus exact Academic Period proficiency aggregation over immutable #34 results.
-Issue #36 now adopts Core's neutral `grouping_signal_set_v1` contract as the
-shared planning-signal boundary. Teacher-controlled derivation policy,
-generation, preview, and export remain explicit later work.
+Issue #36 adopts Core's neutral `grouping_signal_set_v1` contract as the
+shared planning-signal boundary. Issue #37 now implements the separate
+teacher-controlled grouping-signal derivation policy. Deterministic generation,
+preview, and export remain explicit later work beginning with issue #38.
 
 ## Architecture decisions
 
@@ -449,10 +471,11 @@ The v0.2.0 implementation sequence now begins:
 9. pure standards-proficiency calculation — issue #34 — implemented;
 10. Academic Period proficiency aggregation — issue #35 — implemented;
 11. Core grouping-signal adoption — issue #36 — implemented;
-12. teacher-controlled grouping-signal derivation policy — issue #37 — next;
-13. teacher workflows, explanations, and attention summaries;
-14. cross-producer and installed acceptance; and
-15. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+12. teacher-controlled grouping-signal derivation policy — issue #37 — implemented;
+13. deterministic grouping-signal generation — issue #38 — next;
+14. teacher workflows, explanations, and attention summaries;
+15. cross-producer and installed acceptance; and
+16. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
 
 Implementing Grade Item membership does not make evidence eligibility, attempt
 selection, reassessment, proficiency, Grade calculation, or planning export

@@ -4,6 +4,19 @@
 
 ### Added
 
+- Teacher-controlled grouping-signal derivation policy over one exact #35
+  Academic Period proficiency basis, with an explicit planning dimension,
+  teacher-defined contiguous proficiency-scale-position bands, fixed
+  `same_level_same_band` tie handling, and independent `noncontributing`/
+  `blocking` handling for missing and insufficient results.
+- Canonical immutable grouping-signal policy storage with SHA-256 sidecars,
+  contiguous revision history, exact replay/conflict semantics, explicit
+  compare-and-swap `current.json` selection, historical reselection, and exact
+  Core class/Academic Period/standard plus #35 policy/scale dependency checks.
+- Focused, hardening, integration, package-boundary, read-only-import, and
+  isolated installed-wheel qualification for #37, explicitly proving that policy
+  creation/selection does not assign students, create a Core grouping signal,
+  export CSV, or require Concord.
 - Formal adoption of Core's neutral immutable `grouping_signal_set_v1` as
   Meridian's sole shared planning-signal interchange, qualified against exact
   Core v0.6.3 while preserving `pds-core>=0.6.3,<0.7` and introducing no direct

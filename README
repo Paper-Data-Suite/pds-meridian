@@ -8,16 +8,17 @@ read-only publication/evidence diagnostics surface, and three real optional
 ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters in the
 released `0.1.1` baseline. The current unreleased v0.2 development tree
 qualifies ScoreForm v0.11.0 and Quillan v0.10.0, adds the explicit
-#27-#35 interpretation layers, and formally adopts Core's neutral
-`grouping_signal_set_v1` interchange in #36 against exact Core v0.6.3.
+#27-#35 interpretation layers, formally adopts Core's neutral
+`grouping_signal_set_v1` interchange in #36 against exact Core v0.6.3, and
+implements the teacher-controlled grouping-signal derivation policy in #37.
 The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
-the explicit #27-#35 interpretation layers, construct bounded standards
-aggregation inputs, calculate/persist deterministic Grade Item-level and
-Academic Period standards proficiency, and qualify Core's neutral grouping-signal
-model/JSON/CSV/storage/diagnostic boundary without mutating historical state. It
-does not yet calculate Grades, derive or export production planning signals,
-generate reports, create subscriptions, or deliver reports.
+the explicit #27-#35 interpretation layers, calculate/persist deterministic
+Grade Item-level and Academic Period standards proficiency, and persist/select
+exact immutable `meridian.grouping_signal_policy` revisions without mutating
+historical state. It does not yet calculate Grades, assign students to grouping
+bands, derive or export production planning signals, generate reports, create
+subscriptions, or deliver reports.
 
 ## Purpose
 
@@ -95,7 +96,11 @@ The current package provides:
   planning-signal interchange, preserving `pds-core>=0.6.3,<0.7`; and
 - focused plus isolated installed-wheel qualification of Core's canonical signal
   model/JSON, `grouping_signal_csv_v1`, immutable exchange storage, canonical
-  signal digest, and workspace-aware roster diagnostics with Concord absent.
+  signal digest, and workspace-aware roster diagnostics with Concord absent; and
+- immutable teacher-controlled grouping-signal derivation policy revisions over
+  exact #35 Academic Period proficiency, exact Core period/standard identity,
+  exact proficiency-scale positions, explicit contextual band partitions,
+  independent missing/insufficient handling, and CAS-protected selection.
 
 The package does **not** yet provide:
 
@@ -103,7 +108,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- Grade calculations or planning-signal derivation/export;
+- Grade calculations or production planning-signal generation/export;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
@@ -215,10 +220,28 @@ from Core's canonical signal-record digest.
 
 The #36 installed-wheel qualification deliberately runs with exact Core plus
 Meridian and proves the grouping-signal contract without Concord installed.
-Teacher-controlled derivation policy begins in #37; production signal generation,
-preview, and export remain later work.
+Issue #37 now adds the separate teacher-controlled derivation-policy layer;
+production signal generation, preview, and export remain later work.
 
 See [Core neutral grouping-signal interchange](docs/architecture/core-grouping-signal-interchange.md).
+
+## Teacher-controlled grouping-signal derivation policy
+
+`meridian.grouping_signal_policy` defines immutable v1 policy over one exact
+#35 Academic Period proficiency basis: exact period/calendar revision, durable
+standard, exact #35 policy, exact proficiency scale, one explicit contextual
+`dimension_id`, teacher-defined contiguous scale-position bands, fixed
+`same_level_same_band` tie handling, and independent `noncontributing`/`blocking`
+handling for missing and insufficient results.
+
+`meridian.grouping_signal_policy_storage` persists SHA-256-bound contiguous
+policy revisions beneath class-local Meridian state. Creating a revision never
+selects it; `current.json` is an explicit digest-bound selector updated only by
+compare-and-swap. Storage validates the exact Core class/Academic Period/standard
+and exact #35 policy/scale dependencies on write and selection. #37 stores no
+student assignments and writes no Core signal or CSV.
+
+See [Teacher-controlled grouping-signal derivation policy](docs/architecture/grouping-signal-derivation-policy.md).
 
 ## Adapter interface and registry
 

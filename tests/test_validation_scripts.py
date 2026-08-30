@@ -166,7 +166,8 @@ def test_grouping_signal_architecture_document_is_release_guarded() -> None:
     assert document in documentation_checker
     assert document in sdist_checker
     assert "issue #36 — implemented" in documentation_checker
-    assert "issue #37 — next" in documentation_checker
+    assert "issue #37 — implemented" in documentation_checker
+    assert "issue #38 — next" in documentation_checker
 
 
 def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> None:
@@ -181,3 +182,30 @@ def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> 
     assert "python scripts/validate_repository.py" in workflow
     assert '--core-wheel "$env:PDS_CORE_WHEEL"' in workflow
     assert "smoke_test_grouping_signal_contract_wheel.py" in validator
+
+
+def test_grouping_signal_policy_installed_smoke_is_release_guarded() -> None:
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    smoke_name = "smoke_test_grouping_signal_policy_wheel.py"
+
+    assert smoke_name in validator
+    assert smoke_name in sdist_checker
+    assert "tests/test_grouping_signal_policy.py" in sdist_checker
+    assert "tests/test_grouping_signal_policy_storage.py" in sdist_checker
+    assert "tests/test_grouping_signal_policy_integration.py" in sdist_checker
+    assert "tests/test_grouping_signal_policy_storage_hardening.py" in sdist_checker
+    assert "tests/test_grouping_signal_policy_package_boundaries.py" in sdist_checker
+
+
+def test_grouping_signal_policy_architecture_document_is_release_guarded() -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    document = "docs/architecture/grouping-signal-derivation-policy.md"
+
+    assert document in documentation_checker
+    assert document in sdist_checker
+    assert "issue #37 — implemented" in documentation_checker
+    assert "issue #38 — next" in documentation_checker

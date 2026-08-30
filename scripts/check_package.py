@@ -184,6 +184,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/_version.py",
         "meridian/academic_period_proficiency.py",
         "meridian/academic_period_proficiency_storage.py",
+        "meridian/grouping_signal_policy.py",
+        "meridian/grouping_signal_policy_storage.py",
         "meridian/adapters.py",
         "meridian/attempt_selection.py",
         "meridian/attempt_selection_storage.py",
