@@ -448,17 +448,19 @@ through explicit function calls.
 
 ## Issue handoff
 
-At the completion of issue #37:
+After completion of issue #38, the progression is:
 
 ```text
 #35 Academic Period proficiency aggregation — implemented
 #36 Core neutral grouping-signal contract — implemented
 #37 teacher-controlled grouping-signal derivation policy — implemented
-#38 deterministic grouping-signal generation — next
+#38 deterministic grouping-signal generation — implemented
+#39 grouping-signal preview and diagnostics — next
+#40 Core/CSV export — later
 ```
 
-Issue #38 may now resolve exact selected/current #35 results under one explicitly
-selected #37 policy and produce an immutable rich Meridian derivation snapshot.
+Issue #38 now resolves exact selected/current #35 results under one explicitly
+selected #37 policy and produces an immutable rich Meridian derivation snapshot.
 Issue #39 owns preview and diagnostics over an actual derivation. Issue #40 owns
 explicit conversion/export to Core `grouping_signal_set_v1` and optional
 `grouping_signal_csv_v1` output. None of those responsibilities are pulled into

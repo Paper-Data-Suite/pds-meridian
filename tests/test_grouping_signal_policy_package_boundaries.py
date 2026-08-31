@@ -103,6 +103,6 @@ def test_issue37_architecture_preserves_layer_boundaries() -> None:
         "same_level_same_band",
         "noncontributing",
         "blocking",
-        "#38 deterministic grouping-signal generation — next",
+        "#38 deterministic grouping-signal generation — implemented",
     ):
         assert statement in document
