@@ -167,7 +167,8 @@ def test_grouping_signal_architecture_document_is_release_guarded() -> None:
     assert document in sdist_checker
     assert "issue #36 — implemented" in documentation_checker
     assert "issue #37 — implemented" in documentation_checker
-    assert "issue #38 — next" in documentation_checker
+    assert "issue #38 — implemented" in documentation_checker
+    assert "issue #39 — next" in documentation_checker
 
 
 def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> None:
@@ -208,4 +209,52 @@ def test_grouping_signal_policy_architecture_document_is_release_guarded() -> No
     assert document in documentation_checker
     assert document in sdist_checker
     assert "issue #37 — implemented" in documentation_checker
-    assert "issue #38 — next" in documentation_checker
+    assert "issue #38 — implemented" in documentation_checker
+    assert "issue #39 — next" in documentation_checker
+
+def test_grouping_signal_generation_architecture_and_package_are_release_guarded(
+) -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    wheel_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    document = "docs/architecture/grouping-signal-generation.md"
+
+    assert document in documentation_checker
+    assert document in sdist_checker
+    assert "issue #38 — implemented" in documentation_checker
+    assert "issue #39 — next" in documentation_checker
+
+    for member in (
+        "meridian/grouping_signal_derivation.py",
+        "meridian/grouping_signal_derivation_storage.py",
+        "meridian/grouping_signal_generation.py",
+        "meridian/grouping_signal_generation_basis.py",
+    ):
+        assert member in wheel_checker
+        assert member in sdist_checker
+
+    for member in (
+        "tests/test_grouping_signal_derivation.py",
+        "tests/test_grouping_signal_derivation_storage.py",
+        "tests/test_grouping_signal_derivation_storage_hardening.py",
+        "tests/test_grouping_signal_generation.py",
+        "tests/test_grouping_signal_generation_basis.py",
+        "tests/test_grouping_signal_generation_integration.py",
+        "tests/test_grouping_signal_derivation_package_boundaries.py",
+    ):
+        assert member in sdist_checker
+
+
+def test_grouping_signal_generation_installed_smoke_is_release_guarded() -> None:
+    validator = Path("scripts/validate_repository.py").read_text(
+        encoding="utf-8"
+    )
+    sdist_checker = Path("scripts/check_sdist.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "smoke_test_grouping_signal_generation_wheel.py" in validator
+    assert "smoke_test_grouping_signal_generation_wheel.py" in sdist_checker
+    assert "smoke_program_grouping_signal_generation.py" in sdist_checker

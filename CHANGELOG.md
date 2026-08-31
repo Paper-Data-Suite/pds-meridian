@@ -4,6 +4,23 @@
 
 ### Added
 
+- Deterministic content-addressed grouping-signal generation from one exact Core
+  roster, one explicitly selected #37 policy, exact selected/current #35
+  Academic Period proficiency results, and exact rebuilt current #35 input basis.
+- Rich privacy-minimal per-student derivation provenance preserving calculated,
+  missing, and insufficient states without raw grades, percentages, evidence
+  details, student names, or Concord planning strategy.
+- Immutable class-local grouping-signal derivation storage using canonical JSON,
+  SHA-256 sidecars, exact replay, content-addressed `gsd_<fingerprint>` identity,
+  bounded reads, locking, and fail-closed path/symlink/tamper validation.
+- Workspace generation orchestration with structured `no_selected_policy`,
+  `missing_result`, `insufficient_evidence`, `stale_result`,
+  `selected_result_mismatch`, and `current_basis_unavailable` blockers while
+  reusing #35 freshness semantics and writing no Core grouping signal or CSV.
+- Isolated installed-wheel #38 generation acceptance using only exact Core
+  v0.6.3 plus the candidate Meridian wheel, exercising the persisted
+  Grade Item -> #34 -> #35 -> #37 -> #38 calculated path, deterministic
+  replay, and explicit absence of Core signal writes and Concord.
 - Teacher-controlled grouping-signal derivation policy over one exact #35
   Academic Period proficiency basis, with an explicit planning dimension,
   teacher-defined contiguous proficiency-scale-position bands, fixed

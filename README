@@ -10,14 +10,16 @@ released `0.1.1` baseline. The current unreleased v0.2 development tree
 qualifies ScoreForm v0.11.0 and Quillan v0.10.0, adds the explicit
 #27-#35 interpretation layers, formally adopts Core's neutral
 `grouping_signal_set_v1` interchange in #36 against exact Core v0.6.3, and
-implements the teacher-controlled grouping-signal derivation policy in #37.
+implements the teacher-controlled grouping-signal derivation policy in #37
+and deterministic content-addressed Meridian grouping-signal derivation in #38.
 The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
 the explicit #27-#35 interpretation layers, calculate/persist deterministic
 Grade Item-level and Academic Period standards proficiency, and persist/select
-exact immutable `meridian.grouping_signal_policy` revisions without mutating
-historical state. It does not yet calculate Grades, assign students to grouping
-bands, derive or export production planning signals, generate reports, create
+exact immutable `meridian.grouping_signal_policy` revisions, and generate
+immutable `meridian.grouping_signal_derivation` snapshots without mutating
+historical state. It does not yet calculate Grades, preview/accept grouping
+derivations, export Core planning signals/CSV, generate reports, create
 subscriptions, or deliver reports.
 
 ## Purpose
@@ -100,7 +102,11 @@ The current package provides:
 - immutable teacher-controlled grouping-signal derivation policy revisions over
   exact #35 Academic Period proficiency, exact Core period/standard identity,
   exact proficiency-scale positions, explicit contextual band partitions,
-  independent missing/insufficient handling, and CAS-protected selection.
+  independent missing/insufficient handling, and CAS-protected selection;
+- deterministic `meridian.grouping_signal_generation` over the exact Core roster,
+  exact selected/current #35 state, and rebuilt current #35 inputs, producing
+  rich immutable content-addressed Meridian derivations with structured
+  freshness/mismatch blockers and no Core signal write.
 
 The package does **not** yet provide:
 
@@ -108,7 +114,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- Grade calculations or production planning-signal generation/export;
+- Grade calculations, grouping-signal preview/acceptance, or Core signal export;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
@@ -220,8 +226,9 @@ from Core's canonical signal-record digest.
 
 The #36 installed-wheel qualification deliberately runs with exact Core plus
 Meridian and proves the grouping-signal contract without Concord installed.
-Issue #37 now adds the separate teacher-controlled derivation-policy layer;
-production signal generation, preview, and export remain later work.
+Issue #37 adds the separate teacher-controlled derivation-policy layer.
+Issue #38 now generates the immutable rich Meridian derivation; preview/acceptance
+and Core/CSV export remain issues #39 and #40.
 
 See [Core neutral grouping-signal interchange](docs/architecture/core-grouping-signal-interchange.md).
 
@@ -242,6 +249,25 @@ and exact #35 policy/scale dependencies on write and selection. #37 stores no
 student assignments and writes no Core signal or CSV.
 
 See [Teacher-controlled grouping-signal derivation policy](docs/architecture/grouping-signal-derivation-policy.md).
+
+## Deterministic grouping-signal generation
+
+`meridian.grouping_signal_derivation` defines the immutable rich #38 snapshot,
+privacy-minimal exact Core roster basis, per-student source/disposition
+provenance, canonical JSON, calculation fingerprint, and content-addressed
+`gsd_<fingerprint>` identity. `meridian.grouping_signal_derivation_storage`
+persists those snapshots as immutable JSON/SHA-256 pairs with no revision family
+and no `current` or `latest` pointer.
+
+`meridian.grouping_signal_generation_basis` rebuilds the exact current #35 input
+basis from explicit current Grade Item, membership, and #34 result selections.
+`meridian.grouping_signal_generation` then resolves the selected #37 policy,
+exact Core roster, explicitly selected #35 results, and existing #35 freshness
+semantics before producing/persisting a derivation or deterministic structured
+blockers. It writes no Core grouping signal, exports no CSV, and does not invoke
+Concord.
+
+See [Deterministic grouping-signal generation](docs/architecture/grouping-signal-generation.md).
 
 ## Adapter interface and registry
 

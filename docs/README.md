@@ -26,9 +26,10 @@ Grade Item-level standards-proficiency policy/calculation/result persistence
 with explicit selection and staleness diagnostics, plus exact Academic Period
 proficiency aggregation over immutable #34 results. Issue #36 formally adopts
 Core's neutral `grouping_signal_set_v1` contract against exact Core 0.6.3, and
-issue #37 now adds the separate immutable teacher-controlled grouping-signal
-derivation-policy layer without assigning students to bands or writing Core
-signals. Issue #38 deterministic generation is the next boundary. The package
+issue #37 adds the separate immutable teacher-controlled grouping-signal
+derivation-policy layer, and issue #38 now generates deterministic immutable
+content-addressed Meridian derivations without writing Core signals. Issue #39
+grouping-signal preview and diagnostics is the next boundary. The package
 version remains `0.1.1` until the v0.2 release sequence reaches its release
 issue.
 
@@ -53,17 +54,18 @@ issue.
 17. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
 18. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
 19. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
-20. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-21. [ScoreForm adapter](architecture/scoreform-adapter.md)
-22. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-23. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
-24. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-25. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-26. [ADR index](decisions/README.md)
-27. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-28. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-29. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-30. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+20. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
+21. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+22. [ScoreForm adapter](architecture/scoreform-adapter.md)
+23. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+24. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+25. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+26. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+27. [ADR index](decisions/README.md)
+28. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+29. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+30. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+31. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -348,6 +350,23 @@ or invoke Concord.
 
 See [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md).
 
+## Deterministic grouping-signal generation
+
+`meridian.grouping_signal_derivation` now records one immutable rich derivation
+over the exact selected #37 policy, privacy-minimal Core roster membership, and
+exact #35 source states. Its calculation fingerprint is semantic and
+content-addressed; there is no wall-clock field, derivation revision family,
+`current`, or `latest` selector.
+
+`meridian.grouping_signal_generation_basis` reconstructs current #35 inputs from
+explicit current Grade Item, membership, and #34 selections before
+`meridian.grouping_signal_generation` reuses #35 freshness diagnostics and
+persists a successful derivation. Missing, insufficient, stale, and mismatched
+states remain explicit; no raw grades/evidence are copied and no Core signal or
+Concord plan is produced.
+
+See [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md).
+
 ## Adapter interface and registry
 
 `meridian.adapters` defines exact keys, immutable descriptors and projection
@@ -472,8 +491,8 @@ The v0.2.0 implementation sequence now begins:
 10. Academic Period proficiency aggregation — issue #35 — implemented;
 11. Core grouping-signal adoption — issue #36 — implemented;
 12. teacher-controlled grouping-signal derivation policy — issue #37 — implemented;
-13. deterministic grouping-signal generation — issue #38 — next;
-14. teacher workflows, explanations, and attention summaries;
+13. deterministic grouping-signal generation — issue #38 — implemented;
+14. grouping-signal preview and diagnostics — issue #39 — next;
 15. cross-producer and installed acceptance; and
 16. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
 

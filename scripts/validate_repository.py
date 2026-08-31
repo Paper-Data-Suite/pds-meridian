@@ -211,6 +211,15 @@ def validate(
             ],
             env=env,
         )
+        _run(
+            [
+                python,
+                "scripts/smoke_test_grouping_signal_generation_wheel.py",
+                str(wheels[0]),
+                str(wheel),
+            ],
+            env=env,
+        )
 
     _run(["git", "diff", "--check"])
     if not allow_dirty:
