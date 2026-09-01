@@ -7,7 +7,9 @@ import pytest
 
 from scripts.check_package import PackageValidationError, validate_wheel
 from scripts.verify_concord_wheel import (
+    EXPECTED_CONCORD_VERSION,
     EXPECTED_CONCORD_WHEEL_FILENAME,
+    EXPECTED_CONCORD_WHEEL_SHA256,
     ConcordVerificationError,
     verify_concord_wheel,
 )
@@ -83,6 +85,16 @@ def test_quillan_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         verify_quillan_wheel(path)
 
 
+def test_concord_verifier_targets_exact_030_release() -> None:
+    assert EXPECTED_CONCORD_VERSION == "0.3.0"
+    assert EXPECTED_CONCORD_WHEEL_FILENAME == (
+        "pds_concord-0.3.0-py3-none-any.whl"
+    )
+    assert EXPECTED_CONCORD_WHEEL_SHA256 == (
+        "dd827f7059c91c79bd69b6190b3c673d6b3bbc02bc25fa666286bbf5883c5e12"
+    )
+
+
 def test_concord_verifier_rejects_wrong_filename(tmp_path: Path) -> None:
     path = tmp_path / "renamed.whl"
     path.write_bytes(b"not a wheel")
@@ -117,8 +129,8 @@ def test_ci_wires_exact_scoreform_release_artifact() -> None:
 def test_ci_wires_exact_concord_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-concord/releases/download/v0.2.0/"
-        "pds_concord-0.2.0-py3-none-any.whl"
+        "pds-concord/releases/download/v0.3.0/"
+        "pds_concord-0.3.0-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"' in workflow
     assert '".[dev,scoreform,quillan,concord]"' in workflow
@@ -168,7 +180,7 @@ def test_grouping_signal_architecture_document_is_release_guarded() -> None:
     assert "issue #36 — implemented" in documentation_checker
     assert "issue #37 — implemented" in documentation_checker
     assert "issue #38 — implemented" in documentation_checker
-    assert "issue #39 — next" in documentation_checker
+    assert "issue #39 — implemented" in documentation_checker
 
 
 def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> None:
@@ -210,7 +222,7 @@ def test_grouping_signal_policy_architecture_document_is_release_guarded() -> No
     assert document in sdist_checker
     assert "issue #37 — implemented" in documentation_checker
     assert "issue #38 — implemented" in documentation_checker
-    assert "issue #39 — next" in documentation_checker
+    assert "issue #39 — implemented" in documentation_checker
 
 def test_grouping_signal_generation_architecture_and_package_are_release_guarded(
 ) -> None:
@@ -224,7 +236,7 @@ def test_grouping_signal_generation_architecture_and_package_are_release_guarded
     assert document in documentation_checker
     assert document in sdist_checker
     assert "issue #38 — implemented" in documentation_checker
-    assert "issue #39 — next" in documentation_checker
+    assert "issue #39 — implemented" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_derivation.py",
@@ -258,3 +270,35 @@ def test_grouping_signal_generation_installed_smoke_is_release_guarded() -> None
     assert "smoke_test_grouping_signal_generation_wheel.py" in validator
     assert "smoke_test_grouping_signal_generation_wheel.py" in sdist_checker
     assert "smoke_program_grouping_signal_generation.py" in sdist_checker
+
+
+def test_grouping_signal_preview_review_release_is_guarded() -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    wheel_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+
+    document = "docs/architecture/grouping-signal-preview-diagnostics.md"
+    assert document in documentation_checker
+    assert document in sdist_checker
+    assert "issue #39 — implemented" in documentation_checker
+    assert "issue #40 — next" in documentation_checker
+
+    for member in (
+        "meridian/grouping_signal_currentness.py",
+        "meridian/grouping_signal_preview.py",
+        "meridian/grouping_signal_preview_storage.py",
+        "meridian/grouping_signal_preview_generation.py",
+        "meridian/grouping_signal_preview_projection.py",
+        "meridian/grouping_signal_review.py",
+        "meridian/grouping_signal_review_storage.py",
+        "meridian/grouping_signal_review_workflow.py",
+    ):
+        assert member in wheel_checker
+        assert member in sdist_checker
+
+    assert "smoke_test_grouping_signal_preview_review_wheel.py" in validator
+    assert "smoke_test_grouping_signal_preview_review_wheel.py" in sdist_checker
+    assert "smoke_program_grouping_signal_preview_review.py" in sdist_checker

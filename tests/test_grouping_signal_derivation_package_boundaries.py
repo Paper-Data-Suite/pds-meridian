@@ -92,7 +92,8 @@ def test_issue38_architecture_preserves_layer_and_identity_boundaries() -> None:
         "current_basis_unavailable",
         "pds_core.grouping_signal_csv",
         "#38 deterministic grouping-signal generation — implemented",
-        "#39 grouping-signal preview and diagnostics — next",
+        "#39 grouping-signal preview and diagnostics — implemented",
+        "#40 Core/CSV export — next",
     ):
         assert statement in document
 

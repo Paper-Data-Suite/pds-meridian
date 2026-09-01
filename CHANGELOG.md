@@ -4,6 +4,12 @@
 
 ### Added
 
+- Issue #39 grouping-signal preview and diagnostics: deterministic content-addressed previews over exact #38 derivations, read-only currentness, structured coverage/tie/noncontributor diagnostics, immutable teacher review revisions with exact warning acknowledgments and explicit selection, live acceptance revalidation, and a read-only teacher projection with transient Core roster display names. Previewing and accepting do not export; Core/CSV export remains issue #40.
+- Current unreleased Concord qualification updated to exact v0.3.0
+  (`pds-concord==0.3.0`) while preserving Concord v0.2.0 as the released
+  Meridian v0.1.1 historical baseline. The v0.3.0 academic-result manifest,
+  public reader, and publication-profile modules are byte-identical to their
+  v0.2.0 counterparts, so the adapter's projection semantics remain unchanged.
 - Deterministic content-addressed grouping-signal generation from one exact Core
   roster, one explicitly selected #37 policy, exact selected/current #35
   Academic Period proficiency results, and exact rebuilt current #35 input basis.

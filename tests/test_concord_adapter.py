@@ -66,7 +66,7 @@ def test_descriptor_is_exact_released_contract() -> None:
     assert CONCORD_ADAPTER_ID == "concord.academic_result"
     assert CONCORD_PROJECTION_CONTRACT_VERSION == "1"
     assert CONCORD_READER_DISTRIBUTION == "pds-concord"
-    assert CONCORD_READER_VERSION == "0.2.0"
+    assert CONCORD_READER_VERSION == "0.3.0"
     assert descriptor.key == CONCORD_ADAPTER_KEY
     assert descriptor.key.producer_module_id == "concord"
     assert descriptor.key.publication_kind == "academic_result_set"
@@ -84,7 +84,7 @@ def test_descriptor_is_exact_released_contract() -> None:
         {"criterion_scores", "moderated_scores", "standards_ratings"}
     )
     assert descriptor.supported_producer_reader_versions == frozenset(
-        {"0.2.0"}
+        {"0.3.0"}
     )
 
 
@@ -203,7 +203,7 @@ context = CanonicalPublicationContext(
 dependencies = diagnostics.DiagnosticsDependencies(
     producer_registry=PublicationProducerRegistry((profile,)),
     adapter_registry=registry,
-    distribution_version_resolver=lambda name: "0.2.0",
+    distribution_version_resolver=lambda name: "0.3.0",
 )
 support = diagnostics.diagnose_publication_support(context, dependencies)
 assert support.overall_state == "support_ready"
@@ -304,8 +304,8 @@ def test_wrong_exact_contract_keys_are_not_selected() -> None:
 def test_projection_preserves_group_history_scale_states_and_moderation() -> None:
     request = projection_request(withdrawal=True)
     registry = AdapterRegistry((ConcordAcademicResultAdapter(),))
-    first = registry.invoke(request, lambda _: "0.2.0")
-    second = registry.invoke(request, lambda _: "0.2.0")
+    first = registry.invoke(request, lambda _: "0.3.0")
+    second = registry.invoke(request, lambda _: "0.3.0")
 
     assert first == second
     assert len(first.items) == 4
@@ -477,7 +477,7 @@ def test_content_dependent_capability_sets_are_exact(
     )
     inventory = AdapterRegistry((ConcordAcademicResultAdapter(),)).invoke(
         request,
-        lambda _: "0.2.0",
+        lambda _: "0.3.0",
     )
     assert inventory.items
     assert all(
@@ -494,7 +494,7 @@ def test_rejected_moderation_is_preserved_without_policy_inference() -> None:
     request = projection_request(rejected_moderation=True)
     inventory = AdapterRegistry((ConcordAcademicResultAdapter(),)).invoke(
         request,
-        lambda _: "0.2.0",
+        lambda _: "0.3.0",
     )
     current = inventory.items[1]
     assert current.subject is None
@@ -583,7 +583,7 @@ def test_cross_contract_mismatches_fail_privately(
     with pytest.raises(AdapterProjectionError) as raised:
         AdapterRegistry((ConcordAcademicResultAdapter(),)).invoke(
             changed,
-            lambda _: "0.2.0",
+            lambda _: "0.3.0",
         )
     message = str(raised.value)
     assert "group_1" not in message
@@ -609,7 +609,7 @@ def test_noncanonical_bytes_reader_import_failure_and_artifact_boundary(
     with pytest.raises(AdapterProjectionError) as malformed_error:
         AdapterRegistry((ConcordAcademicResultAdapter(),)).invoke(
             malformed_request,
-            lambda _: "0.2.0",
+            lambda _: "0.3.0",
         )
     assert malformed_error.value.__cause__ is not None
     assert malformed.decode() not in str(malformed_error.value)

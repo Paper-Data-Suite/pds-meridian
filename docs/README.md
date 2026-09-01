@@ -10,7 +10,8 @@ ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters were implemented
 in the released v0.1.1 foundation,
 and the cross-producer synthetic ingestion acceptance suite documents the
 verified no-grading boundary. Current unreleased v0.2 development now
-qualifies ScoreForm v0.11.0 while preserving that historical v0.1.1 fact.
+qualifies ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 while
+preserving that historical v0.1.1 fact.
 
 Phase 2 now builds on that released foundation. ADR 0004 adopts the v0.2
 evidence-policy, proficiency, and planning-export architecture. Issues #27
@@ -58,7 +59,7 @@ issue.
 21. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
 22. [ScoreForm adapter](architecture/scoreform-adapter.md)
 23. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-24. [Concord v0.2.0 adapter](architecture/concord-adapter.md)
+24. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
 25. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
 26. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
 27. [ADR index](decisions/README.md)
@@ -75,7 +76,7 @@ The package foundation provides:
 - `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
 - exact optional `scoreform==0.11.0` adapter support;
 - exact optional `quillan==0.10.0` adapter support;
-- exact optional `pds-concord==0.2.0` adapter support;
+- exact optional `pds-concord==0.3.0` adapter support;
 - exact authentication of the official Core v0.6.3 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;
 - strict mypy and Ruff checks;
@@ -367,6 +368,34 @@ Concord plan is produced.
 
 See [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md).
 
+## Grouping-signal preview, diagnostics, and teacher review
+
+`meridian.grouping_signal_preview` builds one deterministic immutable preview
+from an explicit exact #38 derivation reference. The preview binds exact #37
+policy and academic provenance, deterministic coverage/distribution/student
+rows, ties, noncontributors, read-only currentness, and structured blocking or
+warning diagnostics. Preview storage is content-addressed and has no current or
+latest selector.
+
+`meridian.grouping_signal_review` and
+`meridian.grouping_signal_review_storage` implement immutable teacher review
+revisions and explicit compare-and-swap selection. `accepted_for_export`
+requires no blocker, exact acknowledgment of every warning diagnostic ID, and a
+fresh live #38 currentness re-check at review time. Rejection remains available
+for stale or blocked previews.
+
+`meridian.grouping_signal_preview_projection` joins current Core roster display
+names transiently for a neutral `Band 1`, `Band 2`, ... teacher view. Names
+remain noncanonical and cannot affect #38/#39 identity.
+
+```text
+Previewing does not export.
+Accepting does not export.
+Export happens only in #40.
+```
+
+See [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md).
+
 ## Adapter interface and registry
 
 `meridian.adapters` defines exact keys, immutable descriptors and projection
@@ -376,7 +405,7 @@ not discover entry points, import producer packages, open files, or authorize
 student-record access.
 
 The registry has real optional ScoreForm v0.11.0, Quillan v0.10.0, and
-Concord v0.2.0 adapters. Other producer projections remain later work.
+Concord v0.3.0 adapters. Other producer projections remain later work.
 
 See
 [Adapter interface and registry](architecture/adapter-interface-and-registry.md)
@@ -440,9 +469,11 @@ inputs, and pure Grade Item-level standards-proficiency calculation with
 immutable result persistence, explicit selection, and staleness diagnostics,
 plus exact Academic Period proficiency aggregation over immutable #34 results.
 Issue #36 adopts Core's neutral `grouping_signal_set_v1` contract as the
-shared planning-signal boundary. Issue #37 now implements the separate
-teacher-controlled grouping-signal derivation policy. Deterministic generation,
-preview, and export remain explicit later work beginning with issue #38.
+shared planning-signal boundary. Issue #37 implements the separate
+teacher-controlled grouping-signal derivation policy. Issue #38 implements
+deterministic immutable grouping-signal derivation, and issue #39 now implements
+preview, diagnostics, deliberate teacher review, and read-only projection.
+Issue #40 remains the explicit Core/CSV export boundary.
 
 ## Architecture decisions
 
@@ -492,9 +523,10 @@ The v0.2.0 implementation sequence now begins:
 11. Core grouping-signal adoption — issue #36 — implemented;
 12. teacher-controlled grouping-signal derivation policy — issue #37 — implemented;
 13. deterministic grouping-signal generation — issue #38 — implemented;
-14. grouping-signal preview and diagnostics — issue #39 — next;
-15. cross-producer and installed acceptance; and
-16. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+14. grouping-signal preview and diagnostics — issue #39 — implemented;
+15. Core/CSV grouping-signal export — issue #40 — next;
+16. cross-producer and installed acceptance; and
+17. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
 
 Implementing Grade Item membership does not make evidence eligibility, attempt
 selection, reassessment, proficiency, Grade calculation, or planning export

@@ -1,37 +1,57 @@
-# Concord v0.2.0 adapter
+# Concord v0.3.0 adapter qualification
 
 ## Status
 
-Meridian issue #23 adds the exact consumer-side adapter for the released
-Concord v0.2.0 Academic Result publication contract.
+Meridian issue #23 originally added the exact consumer-side adapter for the
+released Concord v0.2.0 Academic Result publication contract. That remains a
+historical Meridian v0.1.1 release fact. The current unreleased v0.2 development
+tree requalifies the same bounded adapter against released Concord v0.3.0.
 
 The adapter is intentionally observational. It projects validated producer
 results into Meridian's typed evidence inventory. It does not select Scores,
 individualize Group Scores, calculate eligibility, calculate proficiency,
-calculate Grades, or read separately protected Artifact bytes.
+calculate Grades, read separately protected Artifact bytes, consume GroupPlans,
+consume grouping signals, or infer Group membership.
 
-## Frozen release boundary
+## Current exact release boundary
 
-The implementation targets the authenticated Concord release:
+The active qualification targets the authenticated Concord release:
 
 ```text
-release tag: v0.2.0
-release commit: a742d7bb5e46f44d1fb0af3ff1bc77799427559e
+release tag: v0.3.0
+release commit: fe37f9fca3dd7894a86f5a5c4e74bbe09c1e84ed
 
 wheel:
-  pds_concord-0.2.0-py3-none-any.whl
+  pds_concord-0.3.0-py3-none-any.whl
   SHA-256:
-  e7f0171e8fd54eaa6ab0fd71580378bdd5ee8577a686890cd470dac83f7a619e
+  dd827f7059c91c79bd69b6190b3c673d6b3bbc02bc25fa666286bbf5883c5e12
 
 sdist:
-  pds_concord-0.2.0.tar.gz
+  pds_concord-0.3.0.tar.gz
   SHA-256:
-  16014bb70999de9f5cf03d973e36758c8ff2e113526a4b379884b54bfd28119d
+  454ecb87bee50ec6a54b6e17c0d38ea14c3c7fb417a8926e2b32090dba0dc3db
 ```
 
+The public academic-result contract used by Meridian did not change between the
+qualified v0.2.0 and v0.3.0 tags. Git identifies the exact same blobs for:
+
+```text
+concord/academic_result_manifest.py
+  0d82054ba2d72700871d6e9756bb1973fa1396d0
+concord/academic_result_reader.py
+  4d6b0b2a46717debe45eac3838a8182171bd9814
+concord/pds_publication.py
+  b1e36b3b70217b9cdf5a785e60da4984abc93df2
+```
+
+Therefore the qualification change rebases exact reader distribution identity
+without changing Meridian projection semantics. Concord v0.3.0's new GroupPlan
+and grouping-signal workflows remain downstream Concord-owned planning state and
+do not expand this academic-result adapter's authority.
+
 Meridian's `scripts/verify_concord_wheel.py` freezes the wheel filename,
-distribution metadata, exact version, SHA-256, public reader member, and active
-installation identity.
+distribution metadata, exact version, SHA-256, public contract members, exact
+Core requirement, and active installation identity.
 
 ## Exact adapter key
 
@@ -41,7 +61,7 @@ The adapter identity is:
 adapter_id: concord.academic_result
 projection_contract_version: 1
 producer_reader_distribution: pds-concord
-producer_reader_version: 0.2.0
+producer_reader_version: 0.3.0
 ```
 
 The exact `AdapterKey` is:
@@ -268,15 +288,15 @@ non-student items rather than associating them with a requested student.
 Concord remains optional:
 
 ```text
-pds-core>=0.6,<0.7
+pds-core>=0.6.3,<0.7
 ```
 
-is still Meridian's only unconditional runtime dependency.
+remains Meridian's only unconditional runtime dependency.
 
 Exact Concord support is exposed as:
 
 ```text
-pds-concord==0.2.0; extra == "concord"
+pds-concord==0.3.0; extra == "concord"
 ```
 
 The built-in registry explicitly composes ScoreForm, Quillan, and Concord
