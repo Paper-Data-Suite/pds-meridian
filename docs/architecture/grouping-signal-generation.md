@@ -592,7 +592,8 @@ At the completion of issue #38:
 #37 teacher-controlled grouping-signal derivation policy — implemented
 #38 deterministic grouping-signal generation — implemented
 #39 grouping-signal preview and diagnostics — implemented
-#40 Core/CSV export — next
+#40 Core/CSV grouping-signal export — implemented
+#41 teacher eligibility, proficiency, and planning-export workflows — next
 ```
 
 Issue #39 now consumes one exact `GroupingSignalDerivationReference` and

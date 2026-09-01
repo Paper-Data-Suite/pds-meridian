@@ -30,7 +30,8 @@ Core's neutral `grouping_signal_set_v1` contract against exact Core 0.6.3, and
 issue #37 adds the separate immutable teacher-controlled grouping-signal
 derivation-policy layer, and issue #38 now generates deterministic immutable
 content-addressed Meridian derivations without writing Core signals. Issue #39
-grouping-signal preview and diagnostics is the next boundary. The package
+implements preview/diagnostics/review, issue #40 implements immutable Core/CSV
+export, and issue #41 is the next teacher-workflow boundary. The package
 version remains `0.1.1` until the v0.2 release sequence reaches its release
 issue.
 
@@ -396,6 +397,13 @@ Export happens only in #40.
 
 See [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md).
 
+## Immutable Core/CSV grouping-signal export
+
+#40 requires the selected #39 acceptance to remain current, writes Core's exact
+`grouping_signal_set_v1`, persists only digest-bound Meridian audit provenance,
+and optionally emits Core `grouping_signal_csv_v1` as `complete_signal`. It has
+no Concord runtime dependency. See [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md).
+
 ## Adapter interface and registry
 
 `meridian.adapters` defines exact keys, immutable descriptors and projection
@@ -473,7 +481,8 @@ shared planning-signal boundary. Issue #37 implements the separate
 teacher-controlled grouping-signal derivation policy. Issue #38 implements
 deterministic immutable grouping-signal derivation, and issue #39 now implements
 preview, diagnostics, deliberate teacher review, and read-only projection.
-Issue #40 remains the explicit Core/CSV export boundary.
+Issue #40 now implements the explicit Core/CSV export boundary. Issue #41 is
+the next task-oriented teacher eligibility/proficiency/planning-export workflow.
 
 ## Architecture decisions
 
@@ -524,9 +533,10 @@ The v0.2.0 implementation sequence now begins:
 12. teacher-controlled grouping-signal derivation policy — issue #37 — implemented;
 13. deterministic grouping-signal generation — issue #38 — implemented;
 14. grouping-signal preview and diagnostics — issue #39 — implemented;
-15. Core/CSV grouping-signal export — issue #40 — next;
-16. cross-producer and installed acceptance; and
-17. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+15. Core/CSV grouping-signal export — issue #40 — implemented;
+16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — next;
+17. cross-producer and installed acceptance; and
+18. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
 
 Implementing Grade Item membership does not make evidence eligibility, attempt
 selection, reassessment, proficiency, Grade calculation, or planning export

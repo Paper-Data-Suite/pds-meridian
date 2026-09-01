@@ -11,16 +11,18 @@ qualifies ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0, adds the expli
 #27-#35 interpretation layers, formally adopts Core's neutral
 `grouping_signal_set_v1` interchange in #36 against exact Core v0.6.3, and
 implements the teacher-controlled grouping-signal derivation policy in #37
-and deterministic content-addressed Meridian grouping-signal derivation in #38.
+and deterministic content-addressed Meridian grouping-signal derivation in #38,
+then #39 preview/review and #40 immutable Core/CSV export.
 The package can prepare an authorized
 `AdapterProjectionRequest`, persist an exact validated `EvidenceInventory`, apply
 the explicit #27-#35 interpretation layers, calculate/persist deterministic
 Grade Item-level and Academic Period standards proficiency, and persist/select
 exact immutable `meridian.grouping_signal_policy` revisions, and generate
 immutable `meridian.grouping_signal_derivation` snapshots without mutating
-historical state. It does not yet calculate Grades, preview/accept grouping
-derivations, export Core planning signals/CSV, generate reports, create
-subscriptions, or deliver reports.
+historical state, preview/review them deliberately, and export approved signals
+through Core with immutable receipts and optional Core-native CSV. It does not
+yet calculate Grades, provide #41 task-oriented teacher workflows, generate
+reports, create subscriptions, or deliver reports.
 
 ## Purpose
 
@@ -114,7 +116,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- Grade calculations, grouping-signal preview/acceptance, or Core signal export;
+- Grade calculations or task-oriented #41 teacher planning-export workflows;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
@@ -268,6 +270,13 @@ blockers. It writes no Core grouping signal, exports no CSV, and does not invoke
 Concord.
 
 See [Deterministic grouping-signal generation](docs/architecture/grouping-signal-generation.md).
+
+## Immutable Core/CSV grouping-signal export
+
+Issue #40 resolves the explicitly selected `accepted_for_export` review, rechecks
+live #38 currentness, delegates canonical signal storage and CSV grammar to Core,
+persists a privacy-minimal Meridian export receipt, and never launches Concord or
+creates Groups. See [Immutable Core/CSV grouping-signal export](docs/architecture/grouping-signal-core-export.md).
 
 ## Adapter interface and registry
 

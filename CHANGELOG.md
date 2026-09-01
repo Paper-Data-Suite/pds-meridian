@@ -4,6 +4,8 @@
 
 ### Added
 
+- Issue #40 immutable Core/CSV grouping-signal export: explicit selected-review eligibility and final currentness revalidation, pure #38-to-Core projection, Core roster diagnostics, immutable Core persistence, digest-bound Meridian export receipts with partial-write recovery, and optional Core-native `grouping_signal_csv_v1` complete-signal round-trip with non-overwriting file semantics and no Concord dependency.
+
 - Issue #39 grouping-signal preview and diagnostics: deterministic content-addressed previews over exact #38 derivations, read-only currentness, structured coverage/tie/noncontributor diagnostics, immutable teacher review revisions with exact warning acknowledgments and explicit selection, live acceptance revalidation, and a read-only teacher projection with transient Core roster display names. Previewing and accepting do not export; Core/CSV export remains issue #40.
 - Current unreleased Concord qualification updated to exact v0.3.0
   (`pds-concord==0.3.0`) while preserving Concord v0.2.0 as the released
