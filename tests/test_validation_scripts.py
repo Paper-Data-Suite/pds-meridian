@@ -284,7 +284,8 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
     assert document in documentation_checker
     assert document in sdist_checker
     assert "issue #39 — implemented" in documentation_checker
-    assert "issue #40 — next" in documentation_checker
+    assert "issue #40 — implemented" in documentation_checker
+    assert "issue #41 — next" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_currentness.py",
@@ -302,3 +303,31 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
     assert "smoke_test_grouping_signal_preview_review_wheel.py" in validator
     assert "smoke_test_grouping_signal_preview_review_wheel.py" in sdist_checker
     assert "smoke_program_grouping_signal_preview_review.py" in sdist_checker
+
+def test_grouping_signal_export_release_is_guarded() -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    wheel_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+
+    assert "grouping-signal-core-export.md" in documentation_checker
+    assert "grouping-signal-core-export.md" in sdist_checker
+    assert "issue #40 — implemented" in documentation_checker
+    assert "issue #41 — next" in documentation_checker
+
+    for member in (
+        "meridian/grouping_signal_export.py",
+        "meridian/grouping_signal_export_eligibility.py",
+        "meridian/grouping_signal_export_workflow.py",
+        "meridian/grouping_signal_export_receipt.py",
+        "meridian/grouping_signal_export_storage.py",
+        "meridian/grouping_signal_export_receipt_workflow.py",
+        "meridian/grouping_signal_csv_export.py",
+    ):
+        assert member in wheel_checker
+        assert member in sdist_checker
+
+    assert "smoke_test_grouping_signal_export_wheel.py" in validator
+    assert "smoke_program_grouping_signal_export.py" in sdist_checker
