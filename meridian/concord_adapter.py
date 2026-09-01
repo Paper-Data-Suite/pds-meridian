@@ -1,4 +1,4 @@
-"""Exact Concord v0.2.0 academic-result evidence projection."""
+"""Exact Concord v0.3.0 academic-result evidence projection."""
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ __all__ = [
 CONCORD_ADAPTER_ID: Final = "concord.academic_result"
 CONCORD_PROJECTION_CONTRACT_VERSION: Final = "1"
 CONCORD_READER_DISTRIBUTION: Final = "pds-concord"
-CONCORD_READER_VERSION: Final = "0.2.0"
+CONCORD_READER_VERSION: Final = "0.3.0"
 
 _CONCORD_RECORD_SET_ID: Final = "academic_results"
 _CONCORD_WORK_KIND: Final = "collaborative_activity"

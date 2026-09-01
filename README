@@ -7,7 +7,7 @@ exact evidence serialization, an immutable digest-bound projection cache, a
 read-only publication/evidence diagnostics surface, and three real optional
 ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters in the
 released `0.1.1` baseline. The current unreleased v0.2 development tree
-qualifies ScoreForm v0.11.0 and Quillan v0.10.0, adds the explicit
+qualifies ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0, adds the explicit
 #27-#35 interpretation layers, formally adopts Core's neutral
 `grouping_signal_set_v1` interchange in #36 against exact Core v0.6.3, and
 implements the teacher-controlled grouping-signal derivation policy in #37
@@ -80,7 +80,7 @@ The current package provides:
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
 - explicit, lazy adapters for exact ScoreForm v0.11.0, Quillan v0.10.0, and
-  Concord v0.2.0 academic results.
+  Concord v0.3.0 academic results.
 - immutable standards-evidence association decisions with explicit SHA-bound
   current selection and Core durable-standard resolution; and
 - deterministic, bounded Grade Item/student/standard/scale aggregation inputs
@@ -281,7 +281,7 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. Optional ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.2.0 adapters are
+descriptor. Optional ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 adapters are
 available through explicit composition; there is no adapter entry-point group or
 unconditional producer runtime dependency.
 
@@ -294,7 +294,7 @@ Likewise, install the authenticated Quillan release wheel and then use
 `python -m pip install ".[quillan]"`. Quillan does not auto-register its adapter.
 See [`docs/architecture/quillan-adapter.md`](docs/architecture/quillan-adapter.md).
 
-Install the authenticated Concord v0.2.0 release wheel and then use
+Install the authenticated Concord v0.3.0 release wheel and then use
 `python -m pip install ".[concord]"`. Concord does not auto-register its adapter,
 and Meridian does not read Concord Artifact contents through this adapter. See
 [`docs/architecture/concord-adapter.md`](docs/architecture/concord-adapter.md).
@@ -338,7 +338,7 @@ pds-core>=0.6.3,<0.7
 ```
 
 Current development and CI qualification use the exact completed Core v0.6.3,
-ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.2.0 releases. The released
+ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 releases. The released
 Meridian v0.1.1 history remains Core v0.6.0 and Quillan v0.9.0; the active #33
 floor/qualification update does not rewrite that release fact. Core is
 distributed through GitHub Release artifacts rather than PyPI.
@@ -696,3 +696,34 @@ and unverifiable states without rewriting historical snapshots.
 These projection snapshots are derived cache entries, not report snapshots,
 Grades, proficiency results, or mutable current views. See
 [`docs/architecture/exact-projection-snapshots-and-cache.md`](docs/architecture/exact-projection-snapshots-and-cache.md).
+
+
+## Grouping-signal preview and teacher review
+
+Current unreleased v0.2 development includes the issue #39 review boundary.
+`meridian.grouping_signal_preview` and
+`meridian.grouping_signal_preview_generation` build an immutable,
+content-addressed teacher-review preview from one explicit exact #38 derivation.
+`meridian.grouping_signal_currentness` reuses #38 semantics read-only so stale or
+blocked historical derivations remain explainable without generating replacement
+state.
+
+`meridian.grouping_signal_review`,
+`meridian.grouping_signal_review_storage`, and
+`meridian.grouping_signal_review_workflow` preserve deliberate teacher
+`accepted_for_export` or `rejected` decisions as immutable revisions with an
+explicit selected-review pointer. Acceptance requires the exact derivation to be
+current at review time, no blocking diagnostics, and exact acknowledgment of all
+warning diagnostic IDs.
+
+`meridian.grouping_signal_preview_projection` provides the teacher-facing view.
+Current Core roster names are joined transiently by `student_id`; names are not
+persisted into #38/#39 canonical state and do not affect fingerprints or
+digests. Bands remain neutral contextual labels such as `Band 1` and `Band 2`.
+
+Previewing does not export. Accepting does not export. Export happens only in
+issue #40 through Core `grouping_signal_set_v1` and optional
+`grouping_signal_csv_v1`.
+
+See
+[Grouping-signal preview, diagnostics, and teacher review](docs/architecture/grouping-signal-preview-diagnostics.md).

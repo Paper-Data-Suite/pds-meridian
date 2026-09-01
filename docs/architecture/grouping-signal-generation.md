@@ -591,20 +591,20 @@ At the completion of issue #38:
 #36 Core neutral grouping-signal contract — implemented
 #37 teacher-controlled grouping-signal derivation policy — implemented
 #38 deterministic grouping-signal generation — implemented
-#39 grouping-signal preview and diagnostics — next
-#40 Core/CSV export — later
+#39 grouping-signal preview and diagnostics — implemented
+#40 Core/CSV export — next
 ```
 
-Issue #39 consumes one exact `GroupingSignalDerivationReference` and owns
-teacher-facing preview/diagnostics: class and academic basis, exact policy,
-period/window, band definitions, distribution, ties, missing/insufficient
-noncontributors, exact roster basis, exact source-result provenance, and
-zero-coverage/nonexportable conditions.
+Issue #39 now consumes one exact `GroupingSignalDerivationReference` and
+implements immutable preview/diagnostics, read-only currentness, deliberate
+teacher review, explicit review selection, live acceptance revalidation, and a
+teacher-facing projection. See
+[Grouping-signal preview, diagnostics, and teacher review](grouping-signal-preview-diagnostics.md).
 
-Issue #40 consumes an explicitly accepted exact #38 derivation and owns the
-conversion into Core `grouping_signal_set_v1`, optional
-`grouping_signal_csv_v1`, immutable Core exchange persistence, and any explicit
-handoff to Concord.
+Issue #40 consumes an explicitly selected, still-applicable
+`accepted_for_export` review and owns the conversion into Core
+`grouping_signal_set_v1`, optional `grouping_signal_csv_v1`, immutable Core
+exchange persistence, and any explicit handoff to Concord.
 
 No automatic preview, acceptance, export, `latest` alias, or downstream planning
-is introduced by issue #38.
+is introduced by issue #38 or #39.

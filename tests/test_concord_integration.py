@@ -42,7 +42,7 @@ class AllowSyntheticProjection:
 
 def _exact_version(name: str) -> str:
     assert name == "pds-concord"
-    return "0.2.0"
+    return "0.3.0"
 
 
 def test_released_concord_core_handoff_projection_cache_and_diagnostics(
@@ -127,7 +127,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
         authorization_purpose_id="grading_import",
         distribution_version_resolver=_exact_version,
     )
-    assert prepared.producer_reader_version == "0.2.0"
+    assert prepared.producer_reader_version == "0.3.0"
     assert prepared.projection_request.manifest_bytes == manifest_bytes
     assert prepared.projection_request.publication.source_record == SOURCE
 
@@ -178,7 +178,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
         authorization_purpose_id="grading_import",
         producer_registry=producer_registry,
         adapter_registry=adapter_registry,
-        distribution_version_resolver=lambda _: "0.2.1",
+        distribution_version_resolver=lambda _: "0.3.1",
     )
     assert changed_reader.assessment.reuse_status == "reprojection_required"
     assert "cache.reader_version_changed" in changed_reader.assessment.reason_codes
@@ -204,7 +204,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
     )
     assert ready.reader_state == "ready"
     assert ready.reader_distribution == "pds-concord"
-    assert ready.installed_reader_version == "0.2.0"
+    assert ready.installed_reader_version == "0.3.0"
 
     adapter_absent = diagnostics.DiagnosticsDependencies(
         producer_registry=producer_registry,
@@ -241,7 +241,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
     wrong_version_dependencies = diagnostics.DiagnosticsDependencies(
         producer_registry=producer_registry,
         adapter_registry=diagnostics.build_builtin_adapter_registry(),
-        distribution_version_resolver=lambda _: "0.2.1",
+        distribution_version_resolver=lambda _: "0.3.1",
     )
     wrong = diagnostics.verify_publication_diagnostic(
         workspace,
@@ -249,6 +249,6 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
         wrong_version_dependencies,
     ).support
     assert wrong.reader_state == "version_unsupported"
-    assert wrong.installed_reader_version == "0.2.1"
-    assert wrong.supported_reader_versions == ("0.2.0",)
+    assert wrong.installed_reader_version == "0.3.1"
+    assert wrong.supported_reader_versions == ("0.3.0",)
     assert wrong.overall_state == "support_unsupported"

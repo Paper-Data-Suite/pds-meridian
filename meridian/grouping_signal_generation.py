@@ -33,6 +33,7 @@ from meridian.academic_period_proficiency_storage import (
 )
 from meridian.grouping_signal_derivation import (
     GroupingSignalDerivationBlockedError,
+    GroupingSignalDerivationSnapshot,
     GroupingSignalResolvedStudentResult,
     GroupingSignalRosterBasis,
     derive_grouping_signal_snapshot,
@@ -171,6 +172,44 @@ class GroupingSignalGenerationBlocker:
 
 
 @dataclass(frozen=True, slots=True)
+class GroupingSignalGenerationCandidate:
+    """Read-only deterministic #38 candidate or structured blockers."""
+
+    status: GroupingSignalGenerationStatus
+    blockers: tuple[GroupingSignalGenerationBlocker, ...]
+    snapshot: GroupingSignalDerivationSnapshot | None
+
+    def __post_init__(self) -> None:
+        if self.status not in {"generated", "blocked"}:
+            raise GroupingSignalGenerationValidationError(
+                "status must be generated or blocked."
+            )
+        blockers = tuple(self.blockers)
+        if any(
+            not isinstance(item, GroupingSignalGenerationBlocker)
+            for item in blockers
+        ):
+            raise GroupingSignalGenerationValidationError(
+                "blockers contains an invalid generation blocker."
+            )
+        ordered = tuple(sorted(blockers, key=_blocker_sort_key))
+        if blockers != ordered:
+            raise GroupingSignalGenerationValidationError(
+                "blockers must use deterministic class/student/code ordering."
+            )
+        if self.status == "generated":
+            if blockers or self.snapshot is None:
+                raise GroupingSignalGenerationValidationError(
+                    "generated candidate requires a snapshot and no blockers."
+                )
+        elif not blockers or self.snapshot is not None:
+            raise GroupingSignalGenerationValidationError(
+                "blocked candidate requires blockers and no snapshot."
+            )
+        object.__setattr__(self, "blockers", blockers)
+
+
+@dataclass(frozen=True, slots=True)
 class GroupingSignalGenerationResult:
     """Generated immutable derivation or deterministic structured blockers."""
 
@@ -213,6 +252,45 @@ class GroupingSignalGenerationResult:
         object.__setattr__(self, "blockers", blockers)
 
 
+def resolve_current_grouping_signal_derivation(
+    workspace_root: str | Path,
+    class_id: str,
+    policy_id: str,
+) -> GroupingSignalGenerationCandidate:
+    """Resolve the exact current #38 candidate without persisting it."""
+
+    root = _root(workspace_root)
+    exact_class_id = _identifier(class_id, "class_id")
+    exact_policy_id = _identifier(policy_id, "policy_id")
+    selected_policy = _load_selected_policy(
+        root,
+        exact_class_id,
+        exact_policy_id,
+    )
+    if selected_policy is None:
+        return _no_selected_policy_candidate()
+
+    roster_basis = _load_roster_basis(root, exact_class_id)
+    try:
+        current_inputs = build_current_grouping_signal_inputs_by_student(
+            root,
+            selected_policy.policy,
+            roster_basis.student_ids,
+        )
+    except GroupingSignalCurrentBasisError as error:
+        raise GroupingSignalGenerationReadError(
+            "Could not rebuild the exact current #35 aggregation-input basis."
+        ) from error
+
+    return _resolve_grouping_signal_derivation_from_resolved_state(
+        root,
+        exact_class_id,
+        selected_policy,
+        roster_basis,
+        current_inputs,
+    )
+
+
 def generate_grouping_signal_derivation(
     workspace_root: str | Path,
     class_id: str,
@@ -220,10 +298,8 @@ def generate_grouping_signal_derivation(
 ) -> GroupingSignalGenerationResult:
     """Generate #38 from exact selected workspace state.
 
-    The convenience workflow resolves the selected #37 policy and Core roster
-    once, rebuilds the current #35 aggregation-input basis for those roster
-    students, and then evaluates the explicitly selected #35 results against
-    that exact current basis.
+    This preserves the established generating orchestration seam while the
+    read-only resolver uses the same in-memory candidate core without writing.
     """
 
     root = _root(workspace_root)
@@ -257,19 +333,46 @@ def generate_grouping_signal_derivation(
         current_inputs,
     )
 
+def resolve_grouping_signal_derivation_from_current_inputs(
+    workspace_root: str | Path,
+    class_id: str,
+    policy_id: str,
+    current_inputs_by_student: Mapping[
+        str, AcademicPeriodProficiencyAggregationInputs
+    ],
+) -> GroupingSignalGenerationCandidate:
+    """Resolve #38 from explicit current #35 inputs without persisting it."""
+
+    root = _root(workspace_root)
+    exact_class_id = _identifier(class_id, "class_id")
+    exact_policy_id = _identifier(policy_id, "policy_id")
+    current_inputs = _current_inputs_mapping(current_inputs_by_student)
+    selected_policy = _load_selected_policy(
+        root,
+        exact_class_id,
+        exact_policy_id,
+    )
+    if selected_policy is None:
+        return _no_selected_policy_candidate()
+    roster_basis = _load_roster_basis(root, exact_class_id)
+    return _resolve_grouping_signal_derivation_from_resolved_state(
+        root,
+        exact_class_id,
+        selected_policy,
+        roster_basis,
+        current_inputs,
+    )
+
 
 def generate_grouping_signal_derivation_from_current_inputs(
     workspace_root: str | Path,
     class_id: str,
     policy_id: str,
-    current_inputs_by_student: Mapping[str, AcademicPeriodProficiencyAggregationInputs],
+    current_inputs_by_student: Mapping[
+        str, AcademicPeriodProficiencyAggregationInputs
+    ],
 ) -> GroupingSignalGenerationResult:
-    """Generate #38 from explicit current #35 input bases and selected workspace state.
-
-    This lower-level entry point remains useful for qualification and callers
-    that have already reconstructed the exact current #35 aggregation inputs.
-    Embedded historical result inputs are never assumed to be current.
-    """
+    """Generate #38 from explicit current #35 inputs and persist it."""
 
     root = _root(workspace_root)
     exact_class_id = _identifier(class_id, "class_id")
@@ -291,7 +394,6 @@ def generate_grouping_signal_derivation_from_current_inputs(
         current_inputs,
     )
 
-
 def _load_selected_policy(
     root: Path,
     class_id: str,
@@ -309,6 +411,17 @@ def _load_selected_policy(
         ) from error
 
 
+def _no_selected_policy_candidate() -> GroupingSignalGenerationCandidate:
+    return _blocked_candidate(
+        (
+            GroupingSignalGenerationBlocker(
+                "no_selected_policy",
+                None,
+                None,
+            ),
+        )
+    )
+
 def _no_selected_policy_result() -> GroupingSignalGenerationResult:
     return _blocked(
         (
@@ -320,14 +433,13 @@ def _no_selected_policy_result() -> GroupingSignalGenerationResult:
         )
     )
 
-
-def _generate_grouping_signal_derivation_from_resolved_state(
+def _resolve_grouping_signal_derivation_from_resolved_state(
     root: Path,
     exact_class_id: str,
     selected_policy: StoredGroupingSignalDerivationPolicy,
     roster_basis: GroupingSignalRosterBasis,
     current_inputs: Mapping[str, AcademicPeriodProficiencyAggregationInputs],
-) -> GroupingSignalGenerationResult:
+) -> GroupingSignalGenerationCandidate:
     try:
         dependencies = validate_grouping_signal_policy_dependencies(
             root,
@@ -445,7 +557,7 @@ def _generate_grouping_signal_derivation_from_resolved_state(
             )
 
     if blockers:
-        return _blocked(tuple(blockers))
+        return _blocked_candidate(tuple(blockers))
 
     try:
         snapshot = derive_grouping_signal_snapshot(
@@ -466,10 +578,47 @@ def _generate_grouping_signal_derivation_from_resolved_state(
             )
             for student_id, state in error.blocking_students
         )
-        return _blocked(derived_blockers)
+        return _blocked_candidate(derived_blockers)
     except ValueError as error:
         raise GroupingSignalGenerationValidationError(str(error)) from error
 
+    return GroupingSignalGenerationCandidate(
+        status="generated",
+        blockers=(),
+        snapshot=snapshot,
+    )
+
+
+def _generate_grouping_signal_derivation_from_resolved_state(
+    root: Path,
+    exact_class_id: str,
+    selected_policy: StoredGroupingSignalDerivationPolicy,
+    roster_basis: GroupingSignalRosterBasis,
+    current_inputs: Mapping[str, AcademicPeriodProficiencyAggregationInputs],
+) -> GroupingSignalGenerationResult:
+    """Resolve through the shared pure core and persist the resulting #38 state."""
+
+    candidate = _resolve_grouping_signal_derivation_from_resolved_state(
+        root,
+        exact_class_id,
+        selected_policy,
+        roster_basis,
+        current_inputs,
+    )
+    return _persist_grouping_signal_generation_candidate(root, candidate)
+
+
+def _persist_grouping_signal_generation_candidate(
+    root: Path,
+    candidate: GroupingSignalGenerationCandidate,
+) -> GroupingSignalGenerationResult:
+    if candidate.status == "blocked":
+        return _blocked(candidate.blockers)
+    snapshot = candidate.snapshot
+    if snapshot is None:
+        raise GroupingSignalGenerationValidationError(
+            "generated candidate is missing its derivation snapshot."
+        )
     write_result = write_grouping_signal_derivation(root, snapshot)
     return GroupingSignalGenerationResult(
         status="generated",
@@ -546,6 +695,17 @@ def _reference_for_student(
         if item.student_id == student_id and item.result is not None:
             return academic_period_proficiency_result_reference(item.result)
     return None
+
+
+def _blocked_candidate(
+    blockers: tuple[GroupingSignalGenerationBlocker, ...],
+) -> GroupingSignalGenerationCandidate:
+    ordered = tuple(sorted(blockers, key=_blocker_sort_key))
+    return GroupingSignalGenerationCandidate(
+        status="blocked",
+        blockers=ordered,
+        snapshot=None,
+    )
 
 
 def _blocked(

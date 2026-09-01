@@ -20,7 +20,7 @@ EXPECTED_SUMMARY = (
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.11.0; extra == 'scoreform'")
 EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.0; extra == 'quillan'")
-EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.2.0; extra == 'concord'")
+EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
 ALLOWED_ENTRY_POINT_GROUPS = frozenset({"console_scripts"})
 FORBIDDEN_PREFIXES = (
     "tests/",
@@ -164,7 +164,7 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
-            "The concord extra must pin exactly pds-concord==0.2.0."
+            "The concord extra must pin exactly pds-concord==0.3.0."
         )
 
     groups = frozenset(entry_points.sections())
@@ -190,6 +190,14 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/grouping_signal_derivation_storage.py",
         "meridian/grouping_signal_generation.py",
         "meridian/grouping_signal_generation_basis.py",
+        "meridian/grouping_signal_currentness.py",
+        "meridian/grouping_signal_preview.py",
+        "meridian/grouping_signal_preview_storage.py",
+        "meridian/grouping_signal_preview_generation.py",
+        "meridian/grouping_signal_preview_projection.py",
+        "meridian/grouping_signal_review.py",
+        "meridian/grouping_signal_review_storage.py",
+        "meridian/grouping_signal_review_workflow.py",
         "meridian/adapters.py",
         "meridian/attempt_selection.py",
         "meridian/attempt_selection_storage.py",

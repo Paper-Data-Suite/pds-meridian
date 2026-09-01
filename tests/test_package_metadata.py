@@ -32,7 +32,7 @@ def test_distribution_metadata() -> None:
     assert quillan == [Requirement("quillan==0.10.0; extra == 'quillan'")]
     concord = [item for item in requirements if item.name == "pds-concord"]
     assert concord == [
-        Requirement("pds-concord==0.2.0; extra == 'concord'")
+        Requirement("pds-concord==0.3.0; extra == 'concord'")
     ]
 
 

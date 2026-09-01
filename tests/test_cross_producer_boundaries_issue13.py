@@ -141,7 +141,7 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
     versions = {
         "scoreform": "0.11.0",
         "quillan": "0.10.1",
-        "pds-concord": "0.2.0",
+        "pds-concord": "0.3.0",
     }
     dependencies = diagnostics.DiagnosticsDependencies(
         producer_registry=mixed.producer_registry,
@@ -185,7 +185,7 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
 
     assert concord.overall_state == "support_ready"
     assert concord.reader_state == "ready"
-    assert concord.installed_reader_version == "0.2.0"
+    assert concord.installed_reader_version == "0.3.0"
 
 
 class DenyQuillanProjection:

@@ -1,4 +1,4 @@
-"""Authenticate the exact released Concord v0.2.0 wheel and installation."""
+"""Authenticate the exact released Concord v0.3.0 wheel and installation."""
 
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ from pathlib import Path, PurePosixPath
 
 CONCORD_DISTRIBUTION_NAME = "pds-concord"
 CONCORD_IMPORT_NAME = "concord"
-EXPECTED_CONCORD_VERSION = "0.2.0"
-EXPECTED_CONCORD_WHEEL_FILENAME = "pds_concord-0.2.0-py3-none-any.whl"
+EXPECTED_CONCORD_VERSION = "0.3.0"
+EXPECTED_CONCORD_WHEEL_FILENAME = "pds_concord-0.3.0-py3-none-any.whl"
 EXPECTED_CONCORD_WHEEL_SHA256 = (
-    "e7f0171e8fd54eaa6ab0fd71580378bdd5ee8577a686890cd470dac83f7a619e"
+    "dd827f7059c91c79bd69b6190b3c673d6b3bbc02bc25fa666286bbf5883c5e12"
 )
 EXPECTED_PUBLIC_MEMBERS = frozenset(
     {
@@ -27,8 +27,8 @@ EXPECTED_PUBLIC_MEMBERS = frozenset(
 )
 EXPECTED_CORE_REQUIREMENTS = frozenset(
     {
-        "pds-core>=0.6,<0.7",
-        "pds-core<0.7,>=0.6",
+        "pds-core>=0.6.3,<0.7",
+        "pds-core<0.7,>=0.6.3",
     }
 )
 
@@ -63,7 +63,7 @@ def _wheel_metadata(archive: zipfile.ZipFile) -> Message:
 
 
 def verify_concord_wheel(path: str | Path) -> None:
-    """Authenticate the exact published Concord v0.2.0 wheel."""
+    """Authenticate the exact published Concord v0.3.0 wheel."""
     wheel = Path(path)
     if wheel.name != EXPECTED_CONCORD_WHEEL_FILENAME:
         raise ConcordVerificationError(
@@ -110,16 +110,16 @@ def verify_concord_wheel(path: str | Path) -> None:
         if item.replace(" ", "").lower().startswith("pds-core")
     }
     if core_requirements not in (
-        {"pds-core>=0.6,<0.7"},
-        {"pds-core<0.7,>=0.6"},
+        {"pds-core>=0.6.3,<0.7"},
+        {"pds-core<0.7,>=0.6.3"},
     ):
         raise ConcordVerificationError(
-            "Concord wheel must require exactly pds-core>=0.6,<0.7."
+            "Concord wheel must require exactly pds-core>=0.6.3,<0.7."
         )
 
 
 def verify_installed_concord() -> None:
-    """Verify the active environment resolves exact Concord v0.2.0."""
+    """Verify the active environment resolves exact Concord v0.3.0."""
     try:
         version = importlib.metadata.version(CONCORD_DISTRIBUTION_NAME)
     except importlib.metadata.PackageNotFoundError as error:
