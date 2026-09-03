@@ -35,6 +35,20 @@ from meridian.academic_period_proficiency import (
     AcademicPeriodProficiencyAggregationPolicyReference,
     AcademicPeriodProficiencyTarget,
 )
+from meridian.academic_period_result_persistence_workflow import (
+    AcademicPeriodResultPersistenceError,
+    AcademicPeriodResultPersistencePreview,
+    AcademicPeriodResultPersistenceWorkflowResult,
+    commit_academic_period_result_persistence_preview,
+    preview_academic_period_result_persistence,
+)
+from meridian.academic_period_result_selection_workflow import (
+    AcademicPeriodResultSelectionError,
+    AcademicPeriodResultSelectionPreview,
+    AcademicPeriodResultSelectionWorkflowResult,
+    commit_academic_period_result_selection_preview,
+    preview_academic_period_result_selection,
+)
 from meridian.attempt_decision_authoring_workflow import (
     AttemptDecisionAuthoringPreview,
     AttemptDecisionAuthoringResult,
@@ -216,6 +230,26 @@ from meridian.new_evidence_workflow import (
     NewEvidenceWorkflowError,
     new_evidence_review_to_dict,
     project_new_evidence_review,
+)
+from meridian.planning_signal_derivation_persistence_workflow import (
+    PlanningSignalDerivationPersistenceError,
+    PlanningSignalDerivationPersistencePreview,
+    PlanningSignalDerivationPersistenceResult,
+    commit_planning_signal_derivation_persistence_preview,
+    preview_planning_signal_derivation_persistence,
+)
+from meridian.planning_signal_preview_write_workflow import (
+    PlanningSignalPreviewWriteError,
+    PlanningSignalPreviewWritePreview,
+    PlanningSignalPreviewWriteResult,
+    PlanningSignalPreviewWriteScopeError,
+    commit_planning_signal_preview_write,
+    preview_planning_signal_preview_write,
+)
+from meridian.planning_signal_workflow import (
+    PlanningSignalReadinessProjection,
+    PlanningSignalWorkflowError,
+    project_planning_signal_readiness,
 )
 from meridian.proficiency_mapping import (
     NativeValueMappingProfileReference,
@@ -1416,6 +1450,171 @@ def build_parser() -> argparse.ArgumentParser:
         handler=_handle_academic_period_calculation_preview,
         show_group_help=None,
     )
+    period_write_parser = workflow_commands.add_parser(
+        "academic-period-result-write",
+        help=(
+            "Preview or write one immutable Academic Period "
+            "proficiency result."
+        ),
+        description=(
+            "Rebuild one exact bounded Academic Period Calculation "
+            "Preview, freeze the next immutable #35 result revision, "
+            "and only with --confirm-write persist it after live "
+            "revalidation. Writing never changes the current "
+            "Academic Period result selection."
+        ),
+    )
+    period_write_parser.add_argument("class_id")
+    period_write_parser.add_argument("school_year")
+    period_write_parser.add_argument("period_id")
+    period_write_parser.add_argument(
+        "calendar_revision", type=_positive_integer
+    )
+    period_write_parser.add_argument("student_id")
+    period_write_parser.add_argument("standard_id")
+    period_write_parser.add_argument("policy_id")
+    period_write_parser.add_argument(
+        "policy_revision", type=_positive_integer
+    )
+    period_write_parser.add_argument(
+        "policy_sha256", type=_sha256_argument
+    )
+    _add_workspace_argument(period_write_parser)
+    period_write_parser.add_argument(
+        "--candidate",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=(
+            "GRADE_ITEM_ID",
+            "GRADE_ITEM_REVISION",
+            "GRADE_ITEM_SHA256",
+        ),
+    )
+    period_write_parser.add_argument(
+        "--candidate-membership",
+        nargs=5,
+        action="append",
+        default=[],
+        metavar=(
+            "GRADE_ITEM_ID",
+            "MODULE_ID",
+            "WORK_ID",
+            "MEMBERSHIP_REVISION",
+            "MEMBERSHIP_SHA256",
+        ),
+    )
+    period_write_parser.add_argument(
+        "--candidate-result",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=(
+            "GRADE_ITEM_ID",
+            "RESULT_REVISION",
+            "RESULT_SHA256",
+        ),
+    )
+    period_write_parser.add_argument("--actor-id", required=True)
+    period_write_parser.add_argument(
+        "--calculated-at",
+        required=True,
+        type=_datetime_argument,
+    )
+    period_write_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact previewed immutable Academic Period "
+            "result after live calculation/history revalidation."
+        ),
+    )
+    _add_format_argument(period_write_parser)
+    period_write_parser.set_defaults(
+        handler=_handle_academic_period_result_persistence,
+        show_group_help=None,
+    )
+    period_select_parser = workflow_commands.add_parser(
+        "academic-period-result-select",
+        help=(
+            "Preview or select one persisted Academic Period "
+            "proficiency result."
+        ),
+        description=(
+            "Preview one exact persisted #35 Academic Period "
+            "proficiency result revision. Only --confirm-select "
+            "mutates the current-result pointer with CAS. No result "
+            "is authored or recalculated."
+        ),
+    )
+    period_select_parser.add_argument("class_id")
+    period_select_parser.add_argument("school_year")
+    period_select_parser.add_argument("period_id")
+    period_select_parser.add_argument("student_id")
+    period_select_parser.add_argument("standard_id")
+    period_select_parser.add_argument(
+        "result_revision", type=_positive_integer
+    )
+    _add_workspace_argument(period_select_parser)
+    period_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed persisted Academic Period "
+            "result after history/target/current-pointer CAS "
+            "revalidation."
+        ),
+    )
+    _add_format_argument(period_select_parser)
+    period_select_parser.set_defaults(
+        handler=_handle_academic_period_result_selection,
+        show_group_help=None,
+    )
+    planning_signal_parser = workflow_commands.add_parser(
+        "create-planning-signal",
+        help=(
+            "Review planning-signal readiness from selected Academic "
+            "Period proficiency."
+        ),
+        description=(
+            "Inspect the explicitly selected #37 policy and resolve "
+            "the current read-only #38 derivation candidate from exact "
+            "selected/current #35 Academic Period proficiency. This "
+            "entry step writes or exports nothing."
+        ),
+    )
+    planning_signal_parser.add_argument("class_id")
+    planning_signal_parser.add_argument("policy_id")
+    _add_workspace_argument(planning_signal_parser)
+    planning_signal_parser.add_argument(
+        "--confirm-derivation-write",
+        action="store_true",
+        help=(
+            "Persist the exact reviewed #38 derivation after live "
+            "readiness revalidation; stop before #39 preview/review."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--preview-derivation-id",
+        help="Exact persisted #38 derivation to use as the #39 source.",
+    )
+    planning_signal_parser.add_argument(
+        "--preview-derivation-sha256",
+        help="Exact SHA-256 for --preview-derivation-id.",
+    )
+    planning_signal_parser.add_argument(
+        "--confirm-preview-write",
+        action="store_true",
+        help=(
+            "Persist the canonical #39 preview for the exact supplied "
+            "#38 source; stop before teacher review."
+        ),
+    )
+    _add_format_argument(planning_signal_parser)
+    planning_signal_parser.set_defaults(
+        handler=_handle_planning_signal_readiness,
+        show_group_help=None,
+    )
     workflow.set_defaults(show_group_help=workflow)
 
     return parser
@@ -1852,6 +2051,198 @@ def _handle_academic_period_calculation_preview(
         policy_reference,
     )
     _render_academic_period_calculation_preview(preview, args.format)
+    return 0
+
+
+def _handle_academic_period_result_persistence(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        target = AcademicPeriodProficiencyTarget(
+            period=AcademicPeriodRef(
+                school_year=args.school_year,
+                period_id=args.period_id,
+            ),
+            calendar_revision=args.calendar_revision,
+        )
+        policy_reference = AcademicPeriodProficiencyAggregationPolicyReference(
+            class_id=args.class_id,
+            policy_id=args.policy_id,
+            policy_revision=args.policy_revision,
+            policy_sha256=args.policy_sha256,
+        )
+    except (AcademicPeriodValidationError, ValueError) as error:
+        raise AcademicPeriodCalculationAssemblyScopeError(str(error)) from error
+
+    reviewed = build_bounded_academic_period_calculation_preview(
+        str(args.workspace),
+        target,
+        args.student_id,
+        args.standard_id,
+        _academic_period_candidate_specs(args),
+        policy_reference,
+    )
+    preview = preview_academic_period_result_persistence(
+        str(args.workspace),
+        reviewed,
+        actor_id=args.actor_id,
+        calculated_at=args.calculated_at,
+    )
+    if not args.confirm_write:
+        _render_academic_period_result_persistence_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_academic_period_result_persistence_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_academic_period_result_persistence_preview(
+        str(args.workspace),
+        preview,
+    )
+    _render_academic_period_result_persistence_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_planning_signal_readiness(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+
+    has_preview_derivation_id = args.preview_derivation_id is not None
+    has_preview_derivation_sha256 = (
+        args.preview_derivation_sha256 is not None
+    )
+    if has_preview_derivation_id != has_preview_derivation_sha256:
+        raise PlanningSignalPreviewWriteScopeError(
+            "#39 preview source requires both --preview-derivation-id and "
+            "--preview-derivation-sha256."
+        )
+    preview_source_supplied = (
+        has_preview_derivation_id and has_preview_derivation_sha256
+    )
+    if args.confirm_preview_write and not preview_source_supplied:
+        raise PlanningSignalPreviewWriteScopeError(
+            "--confirm-preview-write requires an exact persisted #38 source."
+        )
+    if preview_source_supplied and args.confirm_derivation_write:
+        raise PlanningSignalPreviewWriteScopeError(
+            "#38 derivation write and #39 preview write stages cannot be combined."
+        )
+
+    if preview_source_supplied:
+        preview_write = preview_planning_signal_preview_write(
+            str(args.workspace),
+            args.class_id,
+            args.policy_id,
+            args.preview_derivation_id,
+            args.preview_derivation_sha256,
+        )
+        if not args.confirm_preview_write:
+            _render_planning_signal_preview_write_preview(
+                preview_write,
+                args.format,
+            )
+            return 0
+        if args.format == "text":
+            _render_planning_signal_preview_write_confirmation(preview_write)
+            sys.stdout.flush()
+        preview_result = commit_planning_signal_preview_write(
+            str(args.workspace),
+            preview_write,
+        )
+        _render_planning_signal_preview_write_result(
+            preview_write,
+            preview_result,
+            args.format,
+        )
+        return 0
+
+    projection = project_planning_signal_readiness(
+        str(args.workspace),
+        args.class_id,
+        args.policy_id,
+    )
+    if not projection.ready_for_derivation_persistence:
+        if args.confirm_derivation_write:
+            preview_planning_signal_derivation_persistence(projection)
+        _render_planning_signal_readiness(projection, args.format)
+        return 0
+
+    preview = preview_planning_signal_derivation_persistence(projection)
+    if not args.confirm_derivation_write:
+        _render_planning_signal_derivation_persistence_preview(
+            projection,
+            preview,
+            args.format,
+        )
+        return 0
+
+    if args.format == "text":
+        _render_planning_signal_derivation_write_confirmation(preview)
+        sys.stdout.flush()
+    result = commit_planning_signal_derivation_persistence_preview(
+        str(args.workspace),
+        preview,
+    )
+    _render_planning_signal_derivation_persistence_result(
+        projection,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_academic_period_result_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    preview = preview_academic_period_result_selection(
+        str(args.workspace),
+        args.class_id,
+        args.school_year,
+        args.period_id,
+        args.student_id,
+        args.standard_id,
+        args.result_revision,
+    )
+    if not args.confirm_select:
+        _render_academic_period_result_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_academic_period_result_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_academic_period_result_selection_preview(
+        str(args.workspace),
+        preview,
+    )
+    _render_academic_period_result_selection_result(
+        preview,
+        result,
+        args.format,
+    )
     return 0
 
 
@@ -3414,6 +3805,803 @@ def _render_academic_period_calculation_preview(
     )
     print("NO ACADEMIC PERIOD PROFICIENCY RESULT WRITTEN")
     print("NO CURRENT ACADEMIC PERIOD RESULT SELECTION CHANGED")
+
+
+def _academic_period_result_persistence_preview_to_dict(
+    preview: AcademicPeriodResultPersistencePreview,
+) -> dict[str, object]:
+    candidate = preview.candidate
+    period = candidate.target_period.period
+    return {
+        "actor_id": preview.actor_id,
+        "class_id": candidate.class_id,
+        "school_year": period.school_year,
+        "period_id": period.period_id,
+        "calendar_revision": candidate.target_period.calendar_revision,
+        "student_id": candidate.student_id,
+        "standard_id": candidate.standard_id,
+        "candidate_revision": preview.candidate_revision,
+        "candidate_status": preview.candidate_status,
+        "candidate_proficiency_level_id": (
+            preview.candidate_proficiency_level_id
+        ),
+        "candidate_calculation_fingerprint": (
+            preview.candidate_calculation_fingerprint
+        ),
+        "calculated_at": candidate.calculated_at.isoformat(),
+        "history_before": list(preview.history_before),
+        "latest_result_sha256_before": preview.latest_result_sha256_before,
+        "selected_revision_before": preview.selected_revision_before,
+        "selection_action": preview.selection_action,
+    }
+
+
+def _render_academic_period_result_persistence_preview(
+    preview: AcademicPeriodResultPersistencePreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": (
+                    _academic_period_result_persistence_preview_to_dict(
+                        preview
+                    )
+                ),
+            }
+        )
+        return
+    candidate = preview.candidate
+    period = candidate.target_period.period
+    print("Academic Period result write preview")
+    print(f"teacher actor context: {preview.actor_id}")
+    print(
+        "Academic Period: "
+        f"{period.school_year}/{period.period_id} @ calendar revision "
+        f"{candidate.target_period.calendar_revision}"
+    )
+    print(f"student: {candidate.student_id}")
+    print(f"Standard: {candidate.standard_id}")
+    print(f"candidate period-result revision: {preview.candidate_revision}")
+    print(f"calculation status: {preview.candidate_status}")
+    print(
+        "proficiency level: "
+        f"{preview.candidate_proficiency_level_id or 'none'}"
+    )
+    print(
+        "calculation fingerprint: "
+        f"{preview.candidate_calculation_fingerprint}"
+    )
+    print(f"calculated at: {candidate.calculated_at.isoformat()}")
+    current = preview.selected_revision_before
+    print(
+        "currently selected Academic Period result revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print(
+            "writing this exact immutable Academic Period result after "
+            "live revalidation"
+        )
+    else:
+        print("confirmation supplied: no")
+        print("NO ACADEMIC PERIOD PROFICIENCY RESULT WRITTEN")
+        print(
+            "rerun with --confirm-write to authorize immutable "
+            "Academic Period result write"
+        )
+    print("NO CURRENT ACADEMIC PERIOD RESULT SELECTION CHANGED")
+
+
+def _render_academic_period_result_persistence_result(
+    preview: AcademicPeriodResultPersistencePreview,
+    result: AcademicPeriodResultPersistenceWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": (
+                    _academic_period_result_persistence_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "write_disposition": result.write_result.disposition,
+                    "written_revision": result.written_revision,
+                    "written_result_sha256": result.written_result_sha256,
+                    "written_status": result.written_status,
+                    "written_proficiency_level_id": (
+                        result.written_proficiency_level_id
+                    ),
+                    "selected_revision_after_write": (
+                        result.selected_revision_after_write
+                    ),
+                    "selection_changed_during_write": (
+                        result.selection_changed_during_write
+                    ),
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        "Academic Period proficiency result revision "
+        f"{result.written_revision} written "
+        f"({result.write_result.disposition})"
+    )
+    print(f"result SHA-256: {result.written_result_sha256}")
+    before = preview.selected_revision_before
+    after = result.selected_revision_after_write
+    if result.selection_changed_during_write:
+        print(
+            "WARNING: current Academic Period result selection changed "
+            "concurrently: "
+            f"{before if before is not None else 'none'} -> "
+            f"{after if after is not None else 'none'}"
+        )
+    else:
+        print(
+            "current Academic Period result selection after write: "
+            f"{after if after is not None else 'none'}"
+        )
+    print(
+        "Academic Period result selection action: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _planning_signal_source_result_to_dict(
+    source_result: object | None,
+) -> dict[str, object] | None:
+    if source_result is None:
+        return None
+    return {
+        "class_id": getattr(source_result, "class_id"),
+        "school_year": getattr(source_result, "school_year"),
+        "period_id": getattr(source_result, "period_id"),
+        "student_id": getattr(source_result, "student_id"),
+        "standard_id": getattr(source_result, "standard_id"),
+        "result_revision": getattr(source_result, "result_revision"),
+        "result_sha256": getattr(source_result, "result_sha256"),
+    }
+
+
+def _planning_signal_readiness_to_dict(
+    projection: PlanningSignalReadinessProjection,
+) -> dict[str, object]:
+    policy = projection.policy
+    policy_data: dict[str, object] | None = None
+    academic_basis: dict[str, object] | None = None
+    if policy is not None:
+        reference = policy.reference
+        period = policy.target_period.period
+        source_policy = policy.source_policy_reference
+        scale = policy.target_scale_reference
+        policy_data = {
+            "policy_id": reference.policy_id,
+            "policy_revision": reference.policy_revision,
+            "policy_sha256": reference.policy_sha256,
+            "title": policy.title,
+            "dimension_id": policy.dimension_id,
+            "band_count": policy.band_count,
+            "band_definitions": [
+                {
+                    "band": band.band,
+                    "minimum_scale_position": band.minimum_scale_position,
+                    "maximum_scale_position": band.maximum_scale_position,
+                }
+                for band in policy.band_definitions
+            ],
+            "tie_handling": policy.tie_handling,
+            "missing_result_handling": policy.missing_result_handling,
+            "insufficient_result_handling": (
+                policy.insufficient_result_handling
+            ),
+            "actor": {
+                "kind": policy.actor_kind,
+                "actor_id": policy.actor_id,
+            },
+            "rationale": policy.rationale,
+            "revised_at": policy.revised_at.isoformat(),
+        }
+        academic_basis = {
+            "school_year": period.school_year,
+            "period_id": period.period_id,
+            "calendar_revision": policy.target_period.calendar_revision,
+            "standard_id": policy.standard_id,
+            "source_policy": {
+                "policy_id": source_policy.policy_id,
+                "policy_revision": source_policy.policy_revision,
+                "policy_sha256": source_policy.policy_sha256,
+            },
+            "target_scale": {
+                "scale_id": scale.scale_id,
+                "scale_revision": scale.scale_revision,
+                "scale_sha256": scale.scale_sha256,
+            },
+        }
+
+    return {
+        "task": "create-planning-signal",
+        "class_id": projection.class_id,
+        "requested_policy_id": projection.policy_id,
+        "policy": policy_data,
+        "academic_basis": academic_basis,
+        "generation": {
+            "status": projection.generation_status,
+            "ready_for_derivation_persistence": (
+                projection.ready_for_derivation_persistence
+            ),
+            "blockers": [
+                {
+                    "code": blocker.code,
+                    "student_id": blocker.student_id,
+                    "source_result": _planning_signal_source_result_to_dict(
+                        blocker.source_result
+                    ),
+                    "freshness_reasons": list(blocker.freshness_reasons),
+                }
+                for blocker in projection.generation.blockers
+            ],
+            "candidate_derivation_id": projection.candidate_derivation_id,
+            "candidate_calculation_fingerprint": (
+                projection.candidate_calculation_fingerprint
+            ),
+            "roster_student_count": projection.roster_student_count,
+            "contributing_student_count": (
+                projection.contributing_student_count
+            ),
+            "noncontributing_student_count": (
+                projection.noncontributing_student_count
+            ),
+        },
+        "actions": {
+            "derivation_write": projection.derivation_write_action,
+            "preview_write": projection.preview_write_action,
+            "review_write": projection.review_write_action,
+            "review_selection": projection.review_selection_action,
+            "core_export": projection.core_export_action,
+            "csv_export": projection.csv_export_action,
+        },
+        "concord_action": "not_performed",
+    }
+
+
+def _render_planning_signal_readiness(
+    projection: PlanningSignalReadinessProjection,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_planning_signal_readiness_to_dict(projection))
+        return
+
+    print("Create Planning Signal — readiness")
+    print(f"class: {projection.class_id}")
+    policy = projection.policy
+    if policy is None:
+        print("selected #37 policy: none")
+    else:
+        reference = policy.reference
+        period = policy.target_period.period
+        source_policy = policy.source_policy_reference
+        scale = policy.target_scale_reference
+        print(
+            "selected #37 policy: "
+            f"{reference.policy_id}@{reference.policy_revision}"
+        )
+        print(f"policy SHA-256: {reference.policy_sha256}")
+        print(f"policy title: {policy.title}")
+        print(
+            "Academic Period: "
+            f"{period.school_year}/{period.period_id} @ calendar revision "
+            f"{policy.target_period.calendar_revision}"
+        )
+        print(f"Standard: {policy.standard_id}")
+        print(
+            "#35 source policy: "
+            f"{source_policy.policy_id}@{source_policy.policy_revision}"
+        )
+        print(
+            "target proficiency scale: "
+            f"{scale.scale_id}@{scale.scale_revision}"
+        )
+        print(f"grouping dimension: {policy.dimension_id}")
+        print(f"band count: {policy.band_count}")
+        print("band boundaries:")
+        for band in policy.band_definitions:
+            print(
+                f"  band {band.band}: scale positions "
+                f"{band.minimum_scale_position}-"
+                f"{band.maximum_scale_position}"
+            )
+        print(f"tie handling: {policy.tie_handling}")
+        print(
+            "missing-result handling: "
+            f"{policy.missing_result_handling}"
+        )
+        print(
+            "insufficient-result handling: "
+            f"{policy.insufficient_result_handling}"
+        )
+
+    if projection.ready_for_derivation_persistence:
+        print("generation readiness: ready")
+        print(
+            "candidate derivation ID: "
+            f"{projection.candidate_derivation_id}"
+        )
+        print(
+            "candidate calculation fingerprint: "
+            f"{projection.candidate_calculation_fingerprint}"
+        )
+        print(f"roster students: {projection.roster_student_count}")
+        print(
+            "contributing students: "
+            f"{projection.contributing_student_count}"
+        )
+        print(
+            "noncontributing students: "
+            f"{projection.noncontributing_student_count}"
+        )
+    else:
+        print("generation readiness: blocked")
+        print("blockers:")
+        for blocker in projection.generation.blockers:
+            detail: str = blocker.code
+            if blocker.student_id is not None:
+                detail += f" | student={blocker.student_id}"
+            if blocker.source_result is not None:
+                source = blocker.source_result
+                detail += (
+                    f" | result={source.result_revision}@"
+                    f"{source.result_sha256}"
+                )
+            if blocker.freshness_reasons:
+                detail += (
+                    " | freshness="
+                    + ",".join(blocker.freshness_reasons)
+                )
+            print(f"  {detail}")
+
+    print("NO #38 DERIVATION PERSISTED")
+    print("NO #39 PREVIEW OR REVIEW WRITTEN")
+    print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _planning_signal_preview_write_source_to_dict(
+    preview: PlanningSignalPreviewWritePreview,
+) -> dict[str, object]:
+    policy = preview.policy_reference
+    return {
+        "class_id": preview.class_id,
+        "policy_id": preview.policy_id,
+        "bound_policy_revision": policy.policy_revision,
+        "bound_policy_sha256": policy.policy_sha256,
+        "derivation_id": preview.derivation_id,
+        "derivation_sha256": preview.derivation_sha256,
+        "calculation_fingerprint": preview.calculation_fingerprint,
+        "roster_student_count": preview.roster_student_count,
+        "contributing_student_count": preview.contributing_student_count,
+        "noncontributing_student_count": preview.noncontributing_student_count,
+    }
+
+
+def _render_planning_signal_preview_write_preview(
+    preview: PlanningSignalPreviewWritePreview,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "task": "create-planning-signal",
+                "mode": "preview_write_intent",
+                "preview_write_confirmed": False,
+                "source_derivation": (
+                    _planning_signal_preview_write_source_to_dict(preview)
+                ),
+                "actions": {
+                    "derivation_write": "not_performed",
+                    "preview_write": preview.preview_write_action,
+                    "review_write": preview.review_write_action,
+                    "review_selection": preview.review_selection_action,
+                    "core_export": preview.core_export_action,
+                    "csv_export": preview.csv_export_action,
+                },
+                "concord_action": "not_performed",
+            }
+        )
+        return
+
+    policy = preview.policy_reference
+    print("Create Planning Signal — #39 preview write")
+    print(f"class: {preview.class_id}")
+    print(
+        "bound #37 policy: "
+        f"{policy.policy_id}@{policy.policy_revision}"
+    )
+    print(f"exact #38 derivation: {preview.derivation_id}")
+    print(f"derivation SHA-256: {preview.derivation_sha256}")
+    print(
+        "derivation calculation fingerprint: "
+        f"{preview.calculation_fingerprint}"
+    )
+    print(f"roster students: {preview.roster_student_count}")
+    print(
+        "contributing students: "
+        f"{preview.contributing_student_count}"
+    )
+    print(
+        "noncontributing students: "
+        f"{preview.noncontributing_student_count}"
+    )
+    print("preview write confirmation supplied: no")
+    print("NO #39 PREVIEW WRITTEN")
+    print("NO TEACHER REVIEW WRITTEN")
+    print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_preview_write_confirmation(
+    preview: PlanningSignalPreviewWritePreview,
+) -> None:
+    print("Create Planning Signal — #39 preview write")
+    print(f"exact #38 derivation: {preview.derivation_id}")
+    print(f"derivation SHA-256: {preview.derivation_sha256}")
+    print("preview write confirmation supplied: yes")
+    print(
+        "generating and persisting the canonical immutable #39 preview "
+        "from this exact #38 source"
+    )
+    print("NO TEACHER REVIEW OR EXPORT WILL OCCUR")
+
+
+def _render_planning_signal_preview_write_result(
+    preview: PlanningSignalPreviewWritePreview,
+    result: PlanningSignalPreviewWriteResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "task": "create-planning-signal",
+                "mode": "preview_written",
+                "preview_write_confirmed": True,
+                "source_derivation": (
+                    _planning_signal_preview_write_source_to_dict(preview)
+                ),
+                "preview": {
+                    "preview_id": result.preview_id,
+                    "preview_sha256": result.preview_sha256,
+                    "preview_fingerprint": result.preview_fingerprint,
+                    "write_disposition": result.write_disposition,
+                    "currentness_state": result.currentness_state,
+                    "currentness_reason_codes": list(
+                        result.currentness_reason_codes
+                    ),
+                    "diagnostic_count": result.diagnostic_count,
+                    "warning_diagnostic_ids": list(
+                        result.warning_diagnostic_ids
+                    ),
+                    "blocking_diagnostic_ids": list(
+                        result.blocking_diagnostic_ids
+                    ),
+                    "roster_student_count": result.roster_student_count,
+                    "contributing_student_count": (
+                        result.contributing_student_count
+                    ),
+                    "noncontributing_student_count": (
+                        result.noncontributing_student_count
+                    ),
+                },
+                "actions": {
+                    "derivation_write": "not_performed",
+                    "preview_write": "performed",
+                    "review_write": result.review_write_action,
+                    "review_selection": result.review_selection_action,
+                    "core_export": result.core_export_action,
+                    "csv_export": result.csv_export_action,
+                },
+                "concord_action": "not_performed",
+            }
+        )
+        return
+
+    print(f"#39 preview persisted: {result.preview_id}")
+    print(f"preview SHA-256: {result.preview_sha256}")
+    print(f"preview fingerprint: {result.preview_fingerprint}")
+    print(f"write disposition: {result.write_disposition}")
+    print(f"preview currentness: {result.currentness_state}")
+    print(
+        "currentness reasons: "
+        + (
+            ", ".join(result.currentness_reason_codes)
+            if result.currentness_reason_codes
+            else "none"
+        )
+    )
+    print(f"diagnostics: {result.diagnostic_count}")
+    print(
+        "warning diagnostic IDs: "
+        + (
+            ", ".join(result.warning_diagnostic_ids)
+            if result.warning_diagnostic_ids
+            else "none"
+        )
+    )
+    print(
+        "blocking diagnostic IDs: "
+        + (
+            ", ".join(result.blocking_diagnostic_ids)
+            if result.blocking_diagnostic_ids
+            else "none"
+        )
+    )
+    print("NO TEACHER REVIEW WRITTEN")
+    print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _planning_signal_derivation_preview_to_dict(
+    preview: PlanningSignalDerivationPersistencePreview,
+) -> dict[str, object]:
+    return {
+        "derivation_id": preview.derivation_id,
+        "calculation_fingerprint": preview.calculation_fingerprint,
+        "roster_student_count": preview.roster_student_count,
+        "contributing_student_count": preview.contributing_student_count,
+        "noncontributing_student_count": preview.noncontributing_student_count,
+    }
+
+
+def _render_planning_signal_derivation_persistence_preview(
+    projection: PlanningSignalReadinessProjection,
+    preview: PlanningSignalDerivationPersistencePreview,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_readiness_to_dict(projection)
+        data["mode"] = "derivation_write_preview"
+        data["derivation_write_confirmed"] = False
+        data["derivation"] = _planning_signal_derivation_preview_to_dict(
+            preview
+        )
+        _print_json(data)
+        return
+
+    _render_planning_signal_readiness(projection, "text")
+    print(f"derivation write candidate: {preview.derivation_id}")
+    print(
+        "derivation candidate fingerprint: "
+        f"{preview.calculation_fingerprint}"
+    )
+    print("derivation write confirmation supplied: no")
+    print(
+        "rerun with --confirm-derivation-write to persist this exact "
+        "#38 candidate after live revalidation"
+    )
+
+
+def _render_planning_signal_derivation_write_confirmation(
+    preview: PlanningSignalDerivationPersistencePreview,
+) -> None:
+    print("Create Planning Signal — #38 derivation write")
+    print(f"derivation write candidate: {preview.derivation_id}")
+    print(
+        "derivation candidate fingerprint: "
+        f"{preview.calculation_fingerprint}"
+    )
+    print(f"roster students: {preview.roster_student_count}")
+    print(
+        "contributing students: "
+        f"{preview.contributing_student_count}"
+    )
+    print(
+        "noncontributing students: "
+        f"{preview.noncontributing_student_count}"
+    )
+    print("derivation write confirmation supplied: yes")
+    print(
+        "persisting this exact immutable #38 candidate after live "
+        "readiness revalidation"
+    )
+
+
+def _render_planning_signal_derivation_persistence_result(
+    projection: PlanningSignalReadinessProjection,
+    result: PlanningSignalDerivationPersistenceResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_readiness_to_dict(projection)
+        data["mode"] = "derivation_written"
+        data["derivation_write_confirmed"] = True
+        data["derivation"] = {
+            "derivation_id": result.derivation_id,
+            "derivation_sha256": result.derivation_sha256,
+            "calculation_fingerprint": result.calculation_fingerprint,
+            "write_disposition": result.write_disposition,
+        }
+        data["actions"] = {
+            "derivation_write": "performed",
+            "preview_write": result.preview_write_action,
+            "review_write": result.review_write_action,
+            "review_selection": result.review_selection_action,
+            "core_export": result.core_export_action,
+            "csv_export": result.csv_export_action,
+        }
+        _print_json(data)
+        return
+
+    print(f"#38 derivation persisted: {result.derivation_id}")
+    print(f"derivation SHA-256: {result.derivation_sha256}")
+    print(f"write disposition: {result.write_disposition}")
+    print(
+        "calculation fingerprint: "
+        f"{result.calculation_fingerprint}"
+    )
+    print("NO #39 PREVIEW OR REVIEW WRITTEN")
+    print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _academic_period_result_selection_preview_to_dict(
+    preview: AcademicPeriodResultSelectionPreview,
+) -> dict[str, object]:
+    return {
+        "class_id": preview.class_id,
+        "school_year": preview.school_year,
+        "period_id": preview.period_id,
+        "calendar_revision": preview.calendar_revision,
+        "student_id": preview.student_id,
+        "standard_id": preview.standard_id,
+        "target_revision": preview.target_revision,
+        "target_result_sha256": preview.target_result_sha256,
+        "target_status": preview.target_status,
+        "target_proficiency_level_id": (
+            preview.target_proficiency_level_id
+        ),
+        "target_calculation_fingerprint": (
+            preview.target_calculation_fingerprint
+        ),
+        "history": list(preview.history),
+        "target_is_latest": preview.target_is_latest,
+        "expected_current_result_revision": (
+            preview.expected_current_result_revision
+        ),
+        "authoring_action": preview.authoring_action,
+    }
+
+
+def _render_academic_period_result_selection_preview(
+    preview: AcademicPeriodResultSelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": (
+                    _academic_period_result_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+            }
+        )
+        return
+    print("Academic Period result selection preview")
+    print(
+        "Academic Period: "
+        f"{preview.school_year}/{preview.period_id} @ calendar revision "
+        f"{preview.calendar_revision}"
+    )
+    print(f"student: {preview.student_id}")
+    print(f"Standard: {preview.standard_id}")
+    print(f"target result revision: {preview.target_revision}")
+    print(f"target result SHA-256: {preview.target_result_sha256}")
+    print(f"target calculation status: {preview.target_status}")
+    print(
+        "target proficiency level: "
+        f"{preview.target_proficiency_level_id or 'none'}"
+    )
+    print(
+        "target calculation fingerprint: "
+        f"{preview.target_calculation_fingerprint}"
+    )
+    print(
+        "persisted Academic Period result history: "
+        + (", ".join(str(value) for value in preview.history) or "none")
+    )
+    print(
+        "target is latest: "
+        f"{'yes' if preview.target_is_latest else 'no'}"
+    )
+    current = preview.expected_current_result_revision
+    print(
+        "currently selected Academic Period result revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print(
+            "selecting this exact persisted Academic Period result "
+            "after live CAS revalidation"
+        )
+    else:
+        print("confirmation supplied: no")
+        print("NO CURRENT ACADEMIC PERIOD RESULT SELECTION CHANGED")
+        print(
+            "rerun with --confirm-select to authorize Academic Period "
+            "pointer mutation"
+        )
+    print("NO ACADEMIC PERIOD PROFICIENCY RESULT AUTHORED OR RECALCULATED")
+
+
+def _render_academic_period_result_selection_result(
+    preview: AcademicPeriodResultSelectionPreview,
+    result: AcademicPeriodResultSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": (
+                    _academic_period_result_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "selection_disposition": result.selection_disposition,
+                    "previous_current_result_revision": (
+                        result.previous_current_result_revision
+                    ),
+                    "selected_revision": result.selected_revision,
+                    "selected_result_sha256": result.selected_result_sha256,
+                    "selected_status": result.selected_status,
+                    "selected_proficiency_level_id": (
+                        result.selected_proficiency_level_id
+                    ),
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Academic Period result selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_result_revision
+    print(
+        "previous current Academic Period result revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(f"selected result SHA-256: {result.selected_result_sha256}")
+    print(f"selected calculation status: {result.selected_status}")
+    print(
+        "selected proficiency level: "
+        f"{result.selected_proficiency_level_id or 'none'}"
+    )
+    print(
+        "authoring action: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
 
 
 def _calculation_result_selection_preview_to_dict(
@@ -6109,6 +7297,9 @@ def main(
         return 0
     try:
         return int(handler(args, dependencies))
+    except PlanningSignalPreviewWriteScopeError as error:
+        print(f"error: {error.code}: {error}", file=sys.stderr)
+        return 1
     except (
         PublicationIngestionError,
         DiagnosticsError,
@@ -6131,6 +7322,11 @@ def main(
         CalculationResultSelectionError,
         AcademicPeriodCalculationAssemblyError,
         AcademicPeriodCalculationPreviewWorkflowError,
+        AcademicPeriodResultPersistenceError,
+        AcademicPeriodResultSelectionError,
+        PlanningSignalWorkflowError,
+        PlanningSignalDerivationPersistenceError,
+        PlanningSignalPreviewWriteError,
         AttemptDecisionWorkflowError,
         AttemptPolicyAuthoringWorkflowError,
         AttemptPolicySelectionWorkflowError,
