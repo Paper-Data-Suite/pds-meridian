@@ -1,4 +1,4 @@
-"""Read-only command-line diagnostics for the Meridian foundation."""
+"""Command-line diagnostics and teacher workflows for Meridian."""
 
 from __future__ import annotations
 
@@ -7,13 +7,60 @@ import json
 import sys
 from collections.abc import Sequence
 from datetime import UTC, datetime
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import cast
 
 from pds_core.academic_catalog import PublicationCatalogQuery
+from pds_core.academic_periods import (
+    AcademicPeriodRef,
+    AcademicPeriodValidationError,
+)
 from pds_core.publication_records import PUBLICATION_CAPABILITIES
+from pds_core.routing_models import ModuleWorkRef, RoutingModelError
 
 from meridian import __version__
+from meridian.attempt_decision_authoring_workflow import (
+    AttemptDecisionAuthoringPreview,
+    AttemptDecisionAuthoringResult,
+    AttemptDecisionAuthoringScopeError,
+    AttemptDecisionAuthoringWorkflowError,
+    commit_attempt_decision_authoring_preview,
+    preview_attempt_decision_authoring,
+)
+from meridian.attempt_decision_selection_workflow import (
+    AttemptDecisionSelectionPreview,
+    AttemptDecisionSelectionWorkflowError,
+    AttemptDecisionSelectionWorkflowResult,
+    commit_attempt_decision_selection_preview,
+    preview_attempt_decision_selection,
+)
+from meridian.attempt_decisions_workflow import (
+    AttemptDecisionWorkflowError,
+    AttemptDecisionWorkflowProjection,
+    project_attempt_decisions,
+)
+from meridian.attempt_policy_authoring_workflow import (
+    AttemptPolicyAuthoringPreview,
+    AttemptPolicyAuthoringResult,
+    AttemptPolicyAuthoringScopeError,
+    AttemptPolicyAuthoringWorkflowError,
+    commit_attempt_policy_authoring_preview,
+    preview_attempt_policy_authoring,
+)
+from meridian.attempt_policy_selection_workflow import (
+    AttemptPolicySelectionPreview,
+    AttemptPolicySelectionScopeError,
+    AttemptPolicySelectionWorkflowError,
+    AttemptPolicySelectionWorkflowResult,
+    commit_attempt_policy_selection_preview,
+    preview_attempt_policy_selection,
+)
+from meridian.attempt_selection import AttemptObservationReference
+from meridian.attempt_selection_storage import (
+    AttemptSelectionStorageError,
+    derive_attempt_candidates,
+)
 from meridian.diagnostics import (
     DiagnosticsDependencies,
     DiagnosticsError,
@@ -39,8 +86,127 @@ from meridian.evidence import (
     NativeScaledValue,
     NativeStateValue,
 )
+from meridian.evidence_eligibility_storage import EvidenceEligibilityStorageError
+from meridian.exclusions_eligibility_authoring_workflow import (
+    ExclusionAcademicDisposition,
+    ExclusionEligibilityAuthoringError,
+    ExclusionEligibilityAuthoringPreview,
+    ExclusionEligibilityAuthoringResult,
+    commit_exclusion_eligibility_authoring_preview,
+    preview_exclusion_eligibility_authoring,
+)
+from meridian.exclusions_eligibility_selection_workflow import (
+    ExclusionEligibilitySelectionError,
+    ExclusionEligibilitySelectionPreview,
+    ExclusionEligibilitySelectionWorkflowResult,
+    commit_exclusion_eligibility_selection_preview,
+    preview_exclusion_eligibility_selection,
+)
+from meridian.exclusions_workflow import (
+    ExclusionsProjection,
+    ExclusionsWorkflowError,
+    build_exclusions_projection,
+)
+from meridian.grade_item_authoring_workflow import (
+    GradeItemAuthoringPreview,
+    GradeItemAuthoringResult,
+    GradeItemAuthoringScopeError,
+    GradeItemAuthoringWorkflowError,
+    GradeItemWeightingAction,
+    commit_grade_item_authoring_preview,
+    preview_grade_item_authoring,
+)
+from meridian.grade_item_membership_authoring_workflow import (
+    GradeItemMembershipAuthoringError,
+    GradeItemMembershipAuthoringPreview,
+    GradeItemMembershipAuthoringResult,
+    GradeItemMembershipAuthoringScopeError,
+    commit_grade_item_membership_authoring_preview,
+    preview_grade_item_membership_authoring,
+)
+from meridian.grade_item_membership_selection_workflow import (
+    GradeItemMembershipSelectionPreview,
+    GradeItemMembershipSelectionScopeError,
+    GradeItemMembershipSelectionWorkflowError,
+    GradeItemMembershipSelectionWorkflowResult,
+    commit_grade_item_membership_selection_preview,
+    preview_grade_item_membership_selection,
+)
+from meridian.grade_item_membership_storage import GradeItemMembershipStorageError
+from meridian.grade_item_memberships import (
+    GradeItemAcademicPeriodAssignment,
+    GradeItemMembershipValidationError,
+)
+from meridian.grade_item_selection_workflow import (
+    GradeItemSelectionPreview,
+    GradeItemSelectionWorkflowError,
+    GradeItemSelectionWorkflowResult,
+    commit_grade_item_selection_preview,
+    preview_grade_item_selection,
+)
+from meridian.grade_item_storage import GradeItemStorageError
+from meridian.grade_items import (
+    GradeItemValidationError,
+    GradeItemWeightingMetadata,
+    grade_item_revision_to_dict,
+)
+from meridian.grade_items_workflow import (
+    GradeItemsReview,
+    GradeItemsWorkflowError,
+    grade_items_review_to_dict,
+    project_grade_items_review,
+)
 from meridian.ingestion import PublicationDiscoveryRequest, PublicationIngestionError
+from meridian.new_evidence_eligibility_selection_workflow import (
+    NewEvidenceEligibilitySelectionError,
+    NewEvidenceEligibilitySelectionPreview,
+    NewEvidenceEligibilitySelectionWorkflowResult,
+    commit_new_evidence_eligibility_selection_preview,
+    preview_new_evidence_eligibility_selection,
+)
+from meridian.new_evidence_eligibility_workflow import (
+    NewEvidenceEligibilityAuthoringError,
+    NewEvidenceEligibilityAuthoringPreview,
+    NewEvidenceEligibilityAuthoringResult,
+    commit_new_evidence_eligibility_preview,
+    preview_new_evidence_eligibility_revision,
+)
+from meridian.new_evidence_workflow import (
+    NewEvidenceReview,
+    NewEvidenceWorkflowError,
+    new_evidence_review_to_dict,
+    project_new_evidence_review,
+)
+from meridian.proficiency_mapping import (
+    NativeValueMappingProfileReference,
+    ProficiencyScaleReference,
+)
 from meridian.projection_cache import ProjectionCacheError
+from meridian.standards_association_authoring_workflow import (
+    StandardsAssociationAuthoringError,
+    StandardsAssociationAuthoringPreview,
+    StandardsAssociationAuthoringResult,
+    commit_standards_association_authoring_preview,
+    preview_standards_association_authoring,
+)
+from meridian.standards_association_selection_workflow import (
+    StandardsAssociationSelectionError,
+    StandardsAssociationSelectionPreview,
+    StandardsAssociationSelectionWorkflowResult,
+    commit_standards_association_selection_preview,
+    preview_standards_association_selection,
+)
+from meridian.standards_review_workflow import (
+    StandardsReviewProjection,
+    StandardsReviewWorkflowError,
+    StandardsReviewWorkflowScopeError,
+    build_standards_review_projection,
+)
+from meridian.teacher_workflows import (
+    TeacherWorkflowCatalog,
+    teacher_workflow_catalog,
+    teacher_workflow_catalog_to_dict,
+)
 
 
 def _datetime_argument(value: str) -> datetime:
@@ -54,6 +220,15 @@ def _datetime_argument(value: str) -> datetime:
     return parsed.astimezone(UTC)
 
 
+def _decimal_argument(value: str) -> Decimal:
+    try:
+        return Decimal(value)
+    except InvalidOperation as error:
+        raise argparse.ArgumentTypeError(
+            "expected decimal text"
+        ) from error
+
+
 def _positive_integer(value: str) -> int:
     try:
         result = int(value)
@@ -62,6 +237,16 @@ def _positive_integer(value: str) -> int:
     if result <= 0:
         raise argparse.ArgumentTypeError("expected a positive integer")
     return result
+
+
+def _sha256_argument(value: str) -> str:
+    if len(value) != 64 or any(
+        character not in "0123456789abcdef" for character in value
+    ):
+        raise argparse.ArgumentTypeError(
+            "expected a lowercase 64-character SHA-256 digest"
+        )
+    return value
 
 
 def _nonnegative_integer(value: str) -> int:
@@ -194,6 +379,759 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     evidence.set_defaults(show_group_help=evidence)
+
+    workflow = groups.add_parser(
+        "workflow",
+        help="Enter the task-oriented teacher workflow surface.",
+        description="Enter the task-oriented teacher workflow surface for issue #41.",
+    )
+    workflow_commands = workflow.add_subparsers(dest="workflow_command")
+    workflow_list_parser = workflow_commands.add_parser(
+        "list",
+        help="List the seven canonical issue #41 teacher workflow tasks.",
+    )
+    _add_format_argument(workflow_list_parser)
+    workflow_list_parser.set_defaults(
+        handler=_handle_teacher_workflow_list, show_group_help=None
+    )
+    new_evidence_parser = workflow_commands.add_parser(
+        "new-evidence",
+        help="Review one authorized evidence projection for a Grade Item.",
+        description=(
+            "Review one already-authorized exact evidence projection against "
+            "selected Grade Item membership and eligibility state. This command "
+            "is read-only."
+        ),
+    )
+    new_evidence_parser.add_argument("publication_id")
+    new_evidence_parser.add_argument("cache_key")
+    new_evidence_parser.add_argument("grade_item_id")
+    _add_workspace_argument(new_evidence_parser)
+    _add_evidence_authorization_arguments(new_evidence_parser)
+    _add_format_argument(new_evidence_parser)
+    new_evidence_parser.set_defaults(
+        handler=_handle_new_evidence_review, show_group_help=None
+    )
+    new_evidence_author_parser = workflow_commands.add_parser(
+        "new-evidence-author",
+        help="Preview or write one teacher eligibility revision.",
+        description=(
+            "Preview one exact teacher-authored eligibility revision. "
+            "No state is written unless --confirm-write is supplied; "
+            "writing never selects the revision as current."
+        ),
+    )
+    new_evidence_author_parser.add_argument("publication_id")
+    new_evidence_author_parser.add_argument("cache_key")
+    new_evidence_author_parser.add_argument("grade_item_id")
+    new_evidence_author_parser.add_argument("item_id")
+    _add_workspace_argument(new_evidence_author_parser)
+    _add_evidence_authorization_arguments(new_evidence_author_parser)
+    new_evidence_author_parser.add_argument(
+        "--disposition",
+        required=True,
+        choices=("included", "excluded", "pending", "unsupported"),
+    )
+    new_evidence_author_parser.add_argument("--actor-id", required=True)
+    new_evidence_author_parser.add_argument("--policy-id", required=True)
+    new_evidence_author_parser.add_argument("--policy-version", required=True)
+    new_evidence_author_parser.add_argument(
+        "--reason-code", action="append", default=[]
+    )
+    new_evidence_author_parser.add_argument("--rationale")
+    new_evidence_author_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact preview after live revalidation. Omit to "
+            "preview/cancel with no state change."
+        ),
+    )
+    _add_format_argument(new_evidence_author_parser)
+    new_evidence_author_parser.set_defaults(
+        handler=_handle_new_evidence_eligibility_authoring,
+        show_group_help=None,
+    )
+    new_evidence_select_parser = workflow_commands.add_parser(
+        "new-evidence-select",
+        help="Preview or select one persisted eligibility revision.",
+        description=(
+            "Preview one exact persisted eligibility revision and, only "
+            "with --confirm-select, select it as current after live CAS "
+            "revalidation. This command does not author eligibility records."
+        ),
+    )
+    new_evidence_select_parser.add_argument("publication_id")
+    new_evidence_select_parser.add_argument("cache_key")
+    new_evidence_select_parser.add_argument("grade_item_id")
+    new_evidence_select_parser.add_argument("item_id")
+    new_evidence_select_parser.add_argument(
+        "eligibility_revision", type=_positive_integer
+    )
+    _add_workspace_argument(new_evidence_select_parser)
+    _add_evidence_authorization_arguments(new_evidence_select_parser)
+    new_evidence_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed revision after live CAS "
+            "revalidation. Omit to preview/cancel with no selector change."
+        ),
+    )
+    _add_format_argument(new_evidence_select_parser)
+    new_evidence_select_parser.set_defaults(
+        handler=_handle_new_evidence_eligibility_selection,
+        show_group_help=None,
+    )
+    grade_items_parser = workflow_commands.add_parser(
+        "grade-items",
+        help="Review explicit Grade Item and membership selector state.",
+        description=(
+            "Review canonical Grade Item histories, explicit current "
+            "Grade Item selectors, and explicit per-work membership "
+            "selectors. This command is read-only and performs no "
+            "Grade calculation."
+        ),
+    )
+    grade_items_parser.add_argument("class_id")
+    _add_workspace_argument(grade_items_parser)
+    _add_format_argument(grade_items_parser)
+    grade_items_parser.set_defaults(
+        handler=_handle_grade_items_review,
+        show_group_help=None,
+    )
+    grade_items_author_parser = workflow_commands.add_parser(
+        "grade-items-author",
+        help="Preview or write one immutable Grade Item revision.",
+        description=(
+            "Preview an exact Grade Item create/revise/archive/reactivate "
+            "revision and, only with --confirm-write, persist that immutable "
+            "revision after live history revalidation. Writing does not "
+            "select the revision as current."
+        ),
+    )
+    grade_items_author_parser.add_argument("class_id")
+    grade_items_author_parser.add_argument("grade_item_id")
+    _add_workspace_argument(grade_items_author_parser)
+    grade_items_author_parser.add_argument(
+        "--operation",
+        required=True,
+        choices=("create", "revise", "archive", "reactivate"),
+    )
+    grade_items_author_parser.add_argument("--actor-id", required=True)
+    grade_items_author_parser.add_argument(
+        "--revised-at", required=True, type=_datetime_argument
+    )
+    grade_items_author_parser.add_argument("--title")
+    grade_items_author_parser.add_argument(
+        "--purpose",
+        choices=(
+            "standards_proficiency",
+            "conventional_grade",
+            "standards_and_conventional",
+            "reporting_only",
+        ),
+    )
+    grade_items_author_parser.add_argument("--weighting-category-id")
+    grade_items_author_parser.add_argument(
+        "--relative-weight", type=_decimal_argument
+    )
+    grade_items_author_parser.add_argument(
+        "--clear-weighting",
+        action="store_true",
+        help=(
+            "Explicitly clear weighting metadata on revise. Cannot be "
+            "combined with weighting replacement fields."
+        ),
+    )
+    grade_items_author_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact previewed immutable revision after live "
+            "history revalidation. Omit to preview/cancel with no write."
+        ),
+    )
+    _add_format_argument(grade_items_author_parser)
+    grade_items_author_parser.set_defaults(
+        handler=_handle_grade_item_authoring,
+        show_group_help=None,
+    )
+    grade_items_select_parser = workflow_commands.add_parser(
+        "grade-items-select",
+        help="Preview or select one persisted Grade Item revision.",
+        description=(
+            "Preview one exact persisted Grade Item revision and, only "
+            "with --confirm-select, select it as current after live CAS "
+            "revalidation. This command does not author Grade Item revisions."
+        ),
+    )
+    grade_items_select_parser.add_argument("class_id")
+    grade_items_select_parser.add_argument("grade_item_id")
+    grade_items_select_parser.add_argument(
+        "grade_item_revision", type=_positive_integer
+    )
+    _add_workspace_argument(grade_items_select_parser)
+    grade_items_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed revision after live CAS "
+            "revalidation. Omit to preview/cancel with no selector change."
+        ),
+    )
+    _add_format_argument(grade_items_select_parser)
+    grade_items_select_parser.set_defaults(
+        handler=_handle_grade_item_selection,
+        show_group_help=None,
+    )
+    membership_author_parser = workflow_commands.add_parser(
+        "grade-items-membership-author",
+        help="Preview or write one Grade Item membership revision.",
+        description=(
+            "Preview one explicit Grade Item/work membership decision and, "
+            "only with --confirm-write, persist its immutable revision. "
+            "Writing never selects the new membership revision."
+        ),
+    )
+    membership_author_parser.add_argument("class_id")
+    membership_author_parser.add_argument("grade_item_id")
+    membership_author_parser.add_argument("module_id")
+    membership_author_parser.add_argument("work_id")
+    _add_workspace_argument(membership_author_parser)
+    membership_author_parser.add_argument(
+        "--operation", choices=("create", "revise"), required=True
+    )
+    membership_author_parser.add_argument(
+        "--grade-item-revision", type=_positive_integer, required=True
+    )
+    membership_author_parser.add_argument(
+        "--registration-revision", type=_positive_integer, required=True
+    )
+    membership_author_parser.add_argument(
+        "--decision", choices=("included", "excluded"), required=True
+    )
+    membership_author_parser.add_argument("--actor-id", required=True)
+    membership_author_parser.add_argument(
+        "--decided-at", type=_datetime_argument, required=True
+    )
+    membership_author_parser.add_argument("--school-year")
+    membership_author_parser.add_argument("--period-id")
+    membership_author_parser.add_argument(
+        "--calendar-revision", type=_positive_integer
+    )
+    membership_author_parser.add_argument("--rationale")
+    membership_author_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact previewed immutable membership revision after "
+            "live revalidation. Omit for a read-only preview."
+        ),
+    )
+    _add_format_argument(membership_author_parser)
+    membership_author_parser.set_defaults(
+        handler=_handle_grade_item_membership_authoring,
+        show_group_help=None,
+    )
+    membership_select_parser = workflow_commands.add_parser(
+        "grade-items-membership-select",
+        help="Preview or select one Grade Item membership revision.",
+        description=(
+            "Preview one exact persisted membership decision and, only "
+            "with --confirm-select, select it as operative after live CAS "
+            "revalidation. Selection does not author membership history."
+        ),
+    )
+    membership_select_parser.add_argument("class_id")
+    membership_select_parser.add_argument("grade_item_id")
+    membership_select_parser.add_argument("module_id")
+    membership_select_parser.add_argument("work_id")
+    membership_select_parser.add_argument(
+        "membership_revision", type=_positive_integer
+    )
+    _add_workspace_argument(membership_select_parser)
+    membership_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed membership revision after live "
+            "CAS revalidation. Omit for a read-only preview."
+        ),
+    )
+    _add_format_argument(membership_select_parser)
+    membership_select_parser.set_defaults(
+        handler=_handle_grade_item_membership_selection,
+        show_group_help=None,
+    )
+    attempt_decisions_parser = workflow_commands.add_parser(
+        "attempt-decisions",
+        help="Review explicit attempt candidates and current selection.",
+        description=(
+            "Review the exact #30 attempt candidate and current-selection "
+            "state for one student in one authorized projection. This "
+            "command is read-only and applies no ranking heuristic."
+        ),
+    )
+    attempt_decisions_parser.add_argument("publication_id")
+    attempt_decisions_parser.add_argument("cache_key")
+    attempt_decisions_parser.add_argument("grade_item_id")
+    attempt_decisions_parser.add_argument("student_id")
+    _add_workspace_argument(attempt_decisions_parser)
+    _add_evidence_authorization_arguments(attempt_decisions_parser)
+    _add_format_argument(attempt_decisions_parser)
+    attempt_decisions_parser.set_defaults(
+        handler=_handle_attempt_decisions_review,
+        show_group_help=None,
+    )
+    attempt_policy_author_parser = workflow_commands.add_parser(
+        "attempt-policy-author",
+        help="Preview or write an explicit attempt-selection policy.",
+        description=(
+            "Preview one immutable explicit-selection policy revision and, "
+            "only with --confirm-write, persist it. Writing never selects "
+            "the policy as current."
+        ),
+    )
+    attempt_policy_author_parser.add_argument("class_id")
+    attempt_policy_author_parser.add_argument("grade_item_id")
+    attempt_policy_author_parser.add_argument("module_id")
+    attempt_policy_author_parser.add_argument("work_id")
+    attempt_policy_author_parser.add_argument("policy_id")
+    _add_workspace_argument(attempt_policy_author_parser)
+    attempt_policy_author_parser.add_argument(
+        "--operation", choices=("create", "revise"), required=True
+    )
+    attempt_policy_author_parser.add_argument(
+        "--minimum-selected", type=_nonnegative_integer, required=True
+    )
+    attempt_policy_author_parser.add_argument(
+        "--maximum-selected", type=_nonnegative_integer
+    )
+    attempt_policy_author_parser.add_argument("--actor-id", required=True)
+    attempt_policy_author_parser.add_argument(
+        "--revised-at", type=_datetime_argument, required=True
+    )
+    attempt_policy_author_parser.add_argument("--rationale")
+    attempt_policy_author_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Persist the exact previewed policy revision after live "
+            "history revalidation. Omit for a read-only preview."
+        ),
+    )
+    _add_format_argument(attempt_policy_author_parser)
+    attempt_policy_author_parser.set_defaults(
+        handler=_handle_attempt_policy_authoring,
+        show_group_help=None,
+    )
+    attempt_policy_select_parser = workflow_commands.add_parser(
+        "attempt-policy-select",
+        help=(
+            "Preview or select one persisted attempt-selection policy."
+        ),
+        description=(
+            "Preview one exact persisted attempt-selection policy revision "
+            "and, only with --confirm-select, select it as current after "
+            "live CAS revalidation. Historical revisions are valid explicit "
+            "targets. This command does not author policy history."
+        ),
+    )
+    attempt_policy_select_parser.add_argument("class_id")
+    attempt_policy_select_parser.add_argument("grade_item_id")
+    attempt_policy_select_parser.add_argument("module_id")
+    attempt_policy_select_parser.add_argument("work_id")
+    attempt_policy_select_parser.add_argument("policy_id")
+    attempt_policy_select_parser.add_argument(
+        "policy_revision", type=_positive_integer
+    )
+    _add_workspace_argument(attempt_policy_select_parser)
+    attempt_policy_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed policy revision after live CAS "
+            "revalidation. Omit for a read-only preview."
+        ),
+    )
+    _add_format_argument(attempt_policy_select_parser)
+    attempt_policy_select_parser.set_defaults(
+        handler=_handle_attempt_policy_selection,
+        show_group_help=None,
+    )
+    attempt_decision_author_parser = workflow_commands.add_parser(
+        "attempt-decision-author",
+        help="Preview or write one explicit student attempt decision.",
+        description=(
+            "Resolve explicit native attempt identities against the exact "
+            "current authorized candidate set, preview one immutable student "
+            "decision revision, and write it only with --confirm-write. "
+            "Writing does not select the decision as current."
+        ),
+    )
+    attempt_decision_author_parser.add_argument("publication_id")
+    attempt_decision_author_parser.add_argument("cache_key")
+    attempt_decision_author_parser.add_argument("grade_item_id")
+    attempt_decision_author_parser.add_argument("student_id")
+    attempt_decision_author_parser.add_argument("policy_id")
+    _add_workspace_argument(attempt_decision_author_parser)
+    _add_evidence_authorization_arguments(attempt_decision_author_parser)
+    attempt_decision_author_parser.add_argument(
+        "--select-sequence",
+        action="append",
+        type=_positive_integer,
+        default=[],
+        help="Select one exact native attempt sequence; repeat as needed.",
+    )
+    attempt_decision_author_parser.add_argument(
+        "--select-identifier",
+        action="append",
+        default=[],
+        help="Select one exact native attempt identifier; repeat as needed.",
+    )
+    attempt_decision_author_parser.add_argument("--actor-id", required=True)
+    attempt_decision_author_parser.add_argument(
+        "--decided-at", type=_datetime_argument, required=True
+    )
+    attempt_decision_author_parser.add_argument("--rationale")
+    attempt_decision_author_parser.add_argument(
+        "--confirm-write", action="store_true",
+        help=(
+            "Write the exact previewed immutable decision revision after "
+            "live dependency revalidation. Omit for a read-only preview."
+        ),
+    )
+    _add_format_argument(attempt_decision_author_parser)
+    attempt_decision_author_parser.set_defaults(
+        handler=_handle_attempt_decision_authoring,
+        show_group_help=None,
+    )
+    attempt_decision_select_parser = workflow_commands.add_parser(
+        "attempt-decision-select",
+        help=(
+            "Preview or select one persisted student attempt decision."
+        ),
+        description=(
+            "Preview one exact persisted student attempt-decision revision "
+            "against the current authorized evidence, membership, policy, "
+            "candidate, and eligibility state. Only --confirm-select mutates "
+            "the current decision pointer; decision history is unchanged."
+        ),
+    )
+    attempt_decision_select_parser.add_argument("publication_id")
+    attempt_decision_select_parser.add_argument("cache_key")
+    attempt_decision_select_parser.add_argument("grade_item_id")
+    attempt_decision_select_parser.add_argument("student_id")
+    attempt_decision_select_parser.add_argument(
+        "decision_revision", type=_positive_integer
+    )
+    _add_workspace_argument(attempt_decision_select_parser)
+    _add_evidence_authorization_arguments(attempt_decision_select_parser)
+    attempt_decision_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed decision revision after live "
+            "dependency and current-pointer revalidation."
+        ),
+    )
+    _add_format_argument(attempt_decision_select_parser)
+    attempt_decision_select_parser.set_defaults(
+        handler=_handle_attempt_decision_selection,
+        show_group_help=None,
+    )
+    exclusions_parser = workflow_commands.add_parser(
+        "exclusions",
+        help=(
+            "Review academic eligibility separately from source lifecycle."
+        ),
+        description=(
+            "Read one exact authorized projection and show selected #29 "
+            "academic eligibility beside current Core source lifecycle. "
+            "This command is read-only and never writes or selects "
+            "eligibility decisions."
+        ),
+    )
+    exclusions_parser.add_argument("publication_id")
+    exclusions_parser.add_argument("cache_key")
+    exclusions_parser.add_argument("grade_item_id")
+    _add_workspace_argument(exclusions_parser)
+    _add_evidence_authorization_arguments(exclusions_parser)
+    _add_format_argument(exclusions_parser)
+    exclusions_parser.set_defaults(
+        handler=_handle_exclusions_workflow,
+        show_group_help=None,
+    )
+    exclusions_author_parser = workflow_commands.add_parser(
+        "exclusions-author",
+        help=(
+            "Preview or write one teacher academic eligibility revision."
+        ),
+        description=(
+            "Create one immutable #29 teacher academic "
+            "eligibility revision "
+            "from an exact Exclusions review. Preview is read-only. "
+            "--confirm-write writes the exact previewed "
+            "revision but never "
+            "selects it as current."
+        ),
+    )
+    exclusions_author_parser.add_argument("publication_id")
+    exclusions_author_parser.add_argument("cache_key")
+    exclusions_author_parser.add_argument("grade_item_id")
+    exclusions_author_parser.add_argument("item_id")
+    _add_workspace_argument(exclusions_author_parser)
+    _add_evidence_authorization_arguments(exclusions_author_parser)
+    exclusions_author_parser.add_argument(
+        "--disposition",
+        required=True,
+        choices=("included", "excluded", "pending", "unsupported"),
+    )
+    exclusions_author_parser.add_argument("--actor-id", required=True)
+    exclusions_author_parser.add_argument("--policy-id", required=True)
+    exclusions_author_parser.add_argument(
+        "--policy-version", required=True
+    )
+    exclusions_author_parser.add_argument(
+        "--reason-code",
+        action="append",
+        default=[],
+        help=(
+            "Canonical academic eligibility reason code; "
+            "repeat as needed."
+        ),
+    )
+    exclusions_author_parser.add_argument("--rationale")
+    exclusions_author_parser.add_argument(
+        "--decided-at",
+        required=True,
+        type=_datetime_argument,
+    )
+    exclusions_author_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact previewed immutable eligibility revision. "
+            "This never changes the current eligibility selector."
+        ),
+    )
+    _add_format_argument(exclusions_author_parser)
+    exclusions_author_parser.set_defaults(
+        handler=_handle_exclusions_eligibility_authoring,
+        show_group_help=None,
+    )
+    exclusions_select_parser = workflow_commands.add_parser(
+        "exclusions-select",
+        help=(
+            "Preview or select one persisted eligibility revision."
+        ),
+        description=(
+            "Preview one exact persisted #29 eligibility revision "
+            "against current authorized evidence, membership, source "
+            "lifecycle, and selector state. Only --confirm-select "
+            "mutates the current eligibility pointer; no decision "
+            "revision is authored."
+        ),
+    )
+    exclusions_select_parser.add_argument("publication_id")
+    exclusions_select_parser.add_argument("cache_key")
+    exclusions_select_parser.add_argument("grade_item_id")
+    exclusions_select_parser.add_argument("item_id")
+    exclusions_select_parser.add_argument(
+        "eligibility_revision",
+        type=_positive_integer,
+    )
+    _add_workspace_argument(exclusions_select_parser)
+    _add_evidence_authorization_arguments(exclusions_select_parser)
+    exclusions_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed eligibility revision after "
+            "live dependency and current-pointer revalidation."
+        ),
+    )
+    _add_format_argument(exclusions_select_parser)
+    exclusions_select_parser.set_defaults(
+        handler=_handle_exclusions_eligibility_selection,
+        show_group_help=None,
+    )
+    standards_review_parser = workflow_commands.add_parser(
+        "standards-review",
+        help=(
+            "Review one exact evidence-to-standard interpretation path."
+        ),
+        description=(
+            "Read one authorized evidence item through current Standard "
+            "resolution, selected #33 association, explicit mapping context, "
+            "and bounded aggregation state. This command never calculates "
+            "or persists standards proficiency."
+        ),
+    )
+    standards_review_parser.add_argument("publication_id")
+    standards_review_parser.add_argument("cache_key")
+    standards_review_parser.add_argument("grade_item_id")
+    standards_review_parser.add_argument("student_id")
+    standards_review_parser.add_argument("standard_id")
+    standards_review_parser.add_argument("item_id")
+    standards_review_parser.add_argument("scale_id")
+    standards_review_parser.add_argument(
+        "scale_revision",
+        type=_positive_integer,
+    )
+    standards_review_parser.add_argument(
+        "scale_sha256",
+        type=_sha256_argument,
+    )
+    _add_workspace_argument(standards_review_parser)
+    _add_evidence_authorization_arguments(standards_review_parser)
+    standards_review_parser.add_argument("--mapping-profile-scale-id")
+    standards_review_parser.add_argument("--mapping-profile-id")
+    standards_review_parser.add_argument(
+        "--mapping-profile-revision",
+        type=_positive_integer,
+    )
+    standards_review_parser.add_argument(
+        "--mapping-profile-sha256",
+        type=_sha256_argument,
+    )
+    _add_format_argument(standards_review_parser)
+    standards_review_parser.set_defaults(
+        handler=_handle_standards_review,
+        show_group_help=None,
+    )
+    standards_author_parser = workflow_commands.add_parser(
+        "standards-association-author",
+        help=(
+            "Preview or write one standards-evidence association revision."
+        ),
+        description=(
+            "Review one exact authorized evidence-to-Standard path, then "
+            "preview an immutable #33 association create/revise operation. "
+            "Only --confirm-write writes the exact previewed revision, and "
+            "writing never selects it as current."
+        ),
+    )
+    standards_author_parser.add_argument("publication_id")
+    standards_author_parser.add_argument("cache_key")
+    standards_author_parser.add_argument("grade_item_id")
+    standards_author_parser.add_argument("student_id")
+    standards_author_parser.add_argument("standard_id")
+    standards_author_parser.add_argument("item_id")
+    standards_author_parser.add_argument("scale_id")
+    standards_author_parser.add_argument(
+        "scale_revision",
+        type=_positive_integer,
+    )
+    standards_author_parser.add_argument(
+        "scale_sha256",
+        type=_sha256_argument,
+    )
+    _add_workspace_argument(standards_author_parser)
+    _add_evidence_authorization_arguments(standards_author_parser)
+    standards_author_parser.add_argument("--mapping-profile-scale-id")
+    standards_author_parser.add_argument("--mapping-profile-id")
+    standards_author_parser.add_argument(
+        "--mapping-profile-revision",
+        type=_positive_integer,
+    )
+    standards_author_parser.add_argument(
+        "--mapping-profile-sha256",
+        type=_sha256_argument,
+    )
+    standards_author_parser.add_argument(
+        "--operation",
+        required=True,
+        choices=("create", "revise"),
+    )
+    standards_author_parser.add_argument(
+        "--disposition",
+        required=True,
+        choices=("associated", "not_associated"),
+    )
+    standards_author_parser.add_argument(
+        "--basis",
+        required=True,
+        choices=("producer_declared", "explicit"),
+    )
+    standards_author_parser.add_argument("--actor-id", required=True)
+    standards_author_parser.add_argument("--rationale")
+    standards_author_parser.add_argument(
+        "--decided-at",
+        required=True,
+        type=_datetime_argument,
+    )
+    standards_author_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact previewed immutable association revision. "
+            "This never changes the current association selector."
+        ),
+    )
+    _add_format_argument(standards_author_parser)
+    standards_author_parser.set_defaults(
+        handler=_handle_standards_association_authoring,
+        show_group_help=None,
+    )
+    standards_select_parser = workflow_commands.add_parser(
+        "standards-association-select",
+        help=(
+            "Preview or select one persisted standards association revision."
+        ),
+        description=(
+            "Review one exact authorized evidence-to-Standard path, then "
+            "preview selection of one exact persisted #33 association "
+            "revision. Only --confirm-select mutates the current pointer; "
+            "selection never authors an association revision."
+        ),
+    )
+    standards_select_parser.add_argument("publication_id")
+    standards_select_parser.add_argument("cache_key")
+    standards_select_parser.add_argument("grade_item_id")
+    standards_select_parser.add_argument("student_id")
+    standards_select_parser.add_argument("standard_id")
+    standards_select_parser.add_argument("item_id")
+    standards_select_parser.add_argument("scale_id")
+    standards_select_parser.add_argument(
+        "scale_revision",
+        type=_positive_integer,
+    )
+    standards_select_parser.add_argument(
+        "scale_sha256",
+        type=_sha256_argument,
+    )
+    standards_select_parser.add_argument(
+        "association_revision",
+        type=_positive_integer,
+    )
+    _add_workspace_argument(standards_select_parser)
+    _add_evidence_authorization_arguments(standards_select_parser)
+    standards_select_parser.add_argument("--mapping-profile-scale-id")
+    standards_select_parser.add_argument("--mapping-profile-id")
+    standards_select_parser.add_argument(
+        "--mapping-profile-revision",
+        type=_positive_integer,
+    )
+    standards_select_parser.add_argument(
+        "--mapping-profile-sha256",
+        type=_sha256_argument,
+    )
+    standards_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed persisted association revision "
+            "after live review/history/target/current-pointer checks."
+        ),
+    )
+    _add_format_argument(standards_select_parser)
+    standards_select_parser.set_defaults(
+        handler=_handle_standards_association_selection,
+        show_group_help=None,
+    )
+    workflow.set_defaults(show_group_help=workflow)
 
     return parser
 
@@ -330,6 +1268,977 @@ def _handle_evidence_explain(
     return 0
 
 
+def _handle_teacher_workflow_list(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    _ = dependencies
+    catalog = teacher_workflow_catalog()
+    _render_teacher_workflow_catalog(catalog, args.format)
+    return 0
+
+
+def _handle_new_evidence_review(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    class_id = authorized.stored.snapshot.source.publication.work.class_id
+    review = project_new_evidence_review(
+        str(args.workspace),
+        class_id,
+        args.grade_item_id,
+        authorized,
+    )
+    _render_new_evidence_review(review, args.format)
+    return 0
+
+
+def _handle_standards_association_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    profile_values = (
+        args.mapping_profile_scale_id,
+        args.mapping_profile_id,
+        args.mapping_profile_revision,
+        args.mapping_profile_sha256,
+    )
+    if any(value is not None for value in profile_values) and not all(
+        value is not None for value in profile_values
+    ):
+        raise StandardsReviewWorkflowScopeError(
+            "mapping profile selection requires scale ID, profile ID, "
+            "revision, and SHA-256 together."
+        )
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    class_id = authorized.stored.snapshot.source.publication.work.class_id
+    target_scale = ProficiencyScaleReference(
+        class_id=class_id,
+        scale_id=args.scale_id,
+        scale_revision=args.scale_revision,
+        scale_sha256=args.scale_sha256,
+    )
+    mapping_profile = None
+    if all(value is not None for value in profile_values):
+        mapping_profile = NativeValueMappingProfileReference(
+            class_id=class_id,
+            scale_id=cast(str, args.mapping_profile_scale_id),
+            profile_id=cast(str, args.mapping_profile_id),
+            profile_revision=cast(int, args.mapping_profile_revision),
+            profile_sha256=cast(str, args.mapping_profile_sha256),
+        )
+    review = build_standards_review_projection(
+        str(args.workspace),
+        args.grade_item_id,
+        args.student_id,
+        args.standard_id,
+        args.item_id,
+        target_scale,
+        authorized_snapshot=authorized,
+        mapping_profile=mapping_profile,
+        attempt=None,
+    )
+    preview = preview_standards_association_selection(
+        str(args.workspace),
+        review,
+        authorized_snapshot=authorized,
+        association_revision=args.association_revision,
+        attempt=None,
+    )
+    if not args.confirm_select:
+        _render_standards_association_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_standards_association_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_standards_association_selection_preview(
+        str(args.workspace),
+        preview,
+        authorized_snapshot=authorized,
+    )
+    _render_standards_association_selection_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_standards_association_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    profile_values = (
+        args.mapping_profile_scale_id,
+        args.mapping_profile_id,
+        args.mapping_profile_revision,
+        args.mapping_profile_sha256,
+    )
+    if any(value is not None for value in profile_values) and not all(
+        value is not None for value in profile_values
+    ):
+        raise StandardsReviewWorkflowScopeError(
+            "mapping profile selection requires scale ID, profile ID, "
+            "revision, and SHA-256 together."
+        )
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    class_id = authorized.stored.snapshot.source.publication.work.class_id
+    target_scale = ProficiencyScaleReference(
+        class_id=class_id,
+        scale_id=args.scale_id,
+        scale_revision=args.scale_revision,
+        scale_sha256=args.scale_sha256,
+    )
+    mapping_profile = None
+    if all(value is not None for value in profile_values):
+        mapping_profile = NativeValueMappingProfileReference(
+            class_id=class_id,
+            scale_id=cast(str, args.mapping_profile_scale_id),
+            profile_id=cast(str, args.mapping_profile_id),
+            profile_revision=cast(int, args.mapping_profile_revision),
+            profile_sha256=cast(str, args.mapping_profile_sha256),
+        )
+    review = build_standards_review_projection(
+        str(args.workspace),
+        args.grade_item_id,
+        args.student_id,
+        args.standard_id,
+        args.item_id,
+        target_scale,
+        authorized_snapshot=authorized,
+        mapping_profile=mapping_profile,
+        attempt=None,
+    )
+    preview = preview_standards_association_authoring(
+        str(args.workspace),
+        review,
+        authorized_snapshot=authorized,
+        operation=args.operation,
+        disposition=args.disposition,
+        basis=args.basis,
+        actor_id=args.actor_id,
+        rationale=args.rationale,
+        decided_at=args.decided_at,
+    )
+    if not args.confirm_write:
+        _render_standards_association_authoring_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_standards_association_authoring_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_standards_association_authoring_preview(
+        str(args.workspace),
+        preview,
+        authorized_snapshot=authorized,
+    )
+    _render_standards_association_authoring_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_standards_review(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    profile_values = (
+        args.mapping_profile_scale_id,
+        args.mapping_profile_id,
+        args.mapping_profile_revision,
+        args.mapping_profile_sha256,
+    )
+    if any(value is not None for value in profile_values) and not all(
+        value is not None for value in profile_values
+    ):
+        raise StandardsReviewWorkflowScopeError(
+            "mapping profile selection requires scale ID, profile ID, "
+            "revision, and SHA-256 together."
+        )
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    class_id = authorized.stored.snapshot.source.publication.work.class_id
+    target_scale = ProficiencyScaleReference(
+        class_id=class_id,
+        scale_id=args.scale_id,
+        scale_revision=args.scale_revision,
+        scale_sha256=args.scale_sha256,
+    )
+    mapping_profile = None
+    if all(value is not None for value in profile_values):
+        mapping_profile = NativeValueMappingProfileReference(
+            class_id=class_id,
+            scale_id=cast(str, args.mapping_profile_scale_id),
+            profile_id=cast(str, args.mapping_profile_id),
+            profile_revision=cast(int, args.mapping_profile_revision),
+            profile_sha256=cast(str, args.mapping_profile_sha256),
+        )
+    projection = build_standards_review_projection(
+        str(args.workspace),
+        args.grade_item_id,
+        args.student_id,
+        args.standard_id,
+        args.item_id,
+        target_scale,
+        authorized_snapshot=authorized,
+        mapping_profile=mapping_profile,
+        attempt=None,
+    )
+    _render_standards_review(projection, args.format)
+    return 0
+
+
+def _handle_exclusions_eligibility_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    projection = build_exclusions_projection(
+        str(args.workspace),
+        args.grade_item_id,
+        authorized_snapshot=authorized,
+    )
+    preview = preview_exclusion_eligibility_selection(
+        str(args.workspace),
+        projection,
+        authorized_snapshot=authorized,
+        item_id=args.item_id,
+        eligibility_revision=args.eligibility_revision,
+    )
+    if not args.confirm_select:
+        _render_exclusions_eligibility_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_exclusions_eligibility_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_exclusion_eligibility_selection_preview(
+        str(args.workspace),
+        preview,
+        authorized_snapshot=authorized,
+    )
+    _render_exclusions_eligibility_selection_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_exclusions_eligibility_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    projection = build_exclusions_projection(
+        str(args.workspace),
+        args.grade_item_id,
+        authorized_snapshot=authorized,
+    )
+    preview = preview_exclusion_eligibility_authoring(
+        str(args.workspace),
+        projection,
+        authorized_snapshot=authorized,
+        item_id=args.item_id,
+        disposition=cast(ExclusionAcademicDisposition, args.disposition),
+        actor_id=args.actor_id,
+        policy_id=args.policy_id,
+        policy_version=args.policy_version,
+        reason_codes=tuple(args.reason_code),
+        rationale=args.rationale,
+        decided_at=args.decided_at,
+    )
+    if not args.confirm_write:
+        _render_exclusions_eligibility_authoring_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_exclusions_eligibility_authoring_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_exclusion_eligibility_authoring_preview(
+        str(args.workspace),
+        preview,
+        authorized_snapshot=authorized,
+    )
+    _render_exclusions_eligibility_authoring_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_exclusions_workflow(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    projection = build_exclusions_projection(
+        str(args.workspace),
+        args.grade_item_id,
+        authorized_snapshot=inspection.authorized,
+    )
+    _render_exclusions_projection(projection, args.format)
+    return 0
+
+
+def _handle_attempt_decision_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=(args.student_id,),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    work = authorized.stored.snapshot.source.publication.work
+    preview = preview_attempt_decision_selection(
+        str(args.workspace),
+        work.class_id,
+        args.grade_item_id,
+        work,
+        args.student_id,
+        args.decision_revision,
+        authorized_snapshot=authorized,
+    )
+    if not args.confirm_select:
+        _render_attempt_decision_selection_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_attempt_decision_selection_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_attempt_decision_selection_preview(
+        str(args.workspace),
+        preview,
+        authorized_snapshot=authorized,
+    )
+    _render_attempt_decision_selection_result(preview, result, args.format)
+    return 0
+
+
+def _resolve_attempt_decision_cli_selection(
+    derivation: object,
+    sequences: list[int],
+    identifiers: list[str],
+) -> tuple[AttemptObservationReference, ...]:
+    status = getattr(derivation, "status", None)
+    if status != "applicable":
+        raise AttemptDecisionAuthoringScopeError(
+            "Explicit attempt selection requires applicable current "
+            f"candidates; derivation status is {status!r}."
+        )
+    candidates = tuple(getattr(derivation, "candidates", ()))
+    selected: list[AttemptObservationReference] = []
+    for field_name, values in (
+        ("sequence", sequences),
+        ("identifier", identifiers),
+    ):
+        for value in values:
+            matches = tuple(
+                candidate.attempt
+                for candidate in candidates
+                if getattr(candidate.attempt.native, field_name) == value
+            )
+            if len(matches) != 1:
+                raise AttemptDecisionAuthoringScopeError(
+                    f"Native attempt {field_name} {value!r} must match "
+                    "exactly one current candidate."
+                )
+            if matches[0] in selected:
+                raise AttemptDecisionAuthoringScopeError(
+                    "Multiple selectors resolved to the same candidate."
+                )
+            selected.append(matches[0])
+    return tuple(
+        candidate.attempt
+        for candidate in candidates
+        if candidate.attempt in selected
+    )
+
+
+def _handle_attempt_decision_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=(args.student_id,),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    work = authorized.stored.snapshot.source.publication.work
+    derivation = derive_attempt_candidates(
+        str(args.workspace),
+        work.class_id,
+        args.grade_item_id,
+        args.student_id,
+        authorized,
+    )
+    selected = _resolve_attempt_decision_cli_selection(
+        derivation,
+        args.select_sequence,
+        args.select_identifier,
+    )
+    preview = preview_attempt_decision_authoring(
+        str(args.workspace),
+        work.class_id,
+        args.grade_item_id,
+        work,
+        args.student_id,
+        args.policy_id,
+        authorized_snapshot=authorized,
+        selected_attempts=selected,
+        actor_id=args.actor_id,
+        decided_at=args.decided_at,
+        rationale=args.rationale,
+    )
+    if not args.confirm_write:
+        _render_attempt_decision_authoring_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_attempt_decision_authoring_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_attempt_decision_authoring_preview(
+        str(args.workspace),
+        preview,
+        authorized_snapshot=authorized,
+    )
+    _render_attempt_decision_authoring_result(preview, result, args.format)
+    return 0
+
+
+def _handle_attempt_policy_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        work = ModuleWorkRef(
+            module_id=args.module_id,
+            class_id=args.class_id,
+            work_id=args.work_id,
+        )
+    except RoutingModelError as error:
+        raise AttemptPolicySelectionScopeError(str(error)) from error
+    preview = preview_attempt_policy_selection(
+        str(args.workspace),
+        args.class_id,
+        args.grade_item_id,
+        work,
+        args.policy_id,
+        args.policy_revision,
+    )
+    if not args.confirm_select:
+        _render_attempt_policy_selection_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_attempt_policy_selection_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_attempt_policy_selection_preview(
+        str(args.workspace), preview
+    )
+    _render_attempt_policy_selection_result(preview, result, args.format)
+    return 0
+
+
+def _handle_attempt_policy_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        work = ModuleWorkRef(
+            module_id=args.module_id,
+            class_id=args.class_id,
+            work_id=args.work_id,
+        )
+    except RoutingModelError as error:
+        raise AttemptPolicyAuthoringScopeError(str(error)) from error
+    preview = preview_attempt_policy_authoring(
+        str(args.workspace),
+        args.class_id,
+        args.grade_item_id,
+        work,
+        args.policy_id,
+        operation=args.operation,
+        minimum_selected=args.minimum_selected,
+        maximum_selected=args.maximum_selected,
+        actor_id=args.actor_id,
+        revised_at=args.revised_at,
+        rationale=args.rationale,
+    )
+    if not args.confirm_write:
+        _render_attempt_policy_authoring_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_attempt_policy_authoring_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_attempt_policy_authoring_preview(
+        str(args.workspace), preview
+    )
+    _render_attempt_policy_authoring_result(preview, result, args.format)
+    return 0
+
+
+def _handle_attempt_decisions_review(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=(args.student_id,),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    work = authorized.stored.snapshot.source.publication.work
+    review = project_attempt_decisions(
+        str(args.workspace),
+        work.class_id,
+        args.grade_item_id,
+        work,
+        args.student_id,
+        authorized_snapshot=authorized,
+    )
+    _render_attempt_decisions_review(review, args.format)
+    return 0
+
+
+def _handle_grade_item_membership_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        work = ModuleWorkRef(
+            module_id=args.module_id,
+            class_id=args.class_id,
+            work_id=args.work_id,
+        )
+    except RoutingModelError as error:
+        raise GradeItemMembershipSelectionScopeError(str(error)) from error
+    preview = preview_grade_item_membership_selection(
+        str(args.workspace),
+        args.class_id,
+        args.grade_item_id,
+        work,
+        args.membership_revision,
+    )
+    if not args.confirm_select:
+        _render_grade_item_membership_selection_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_grade_item_membership_selection_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_grade_item_membership_selection_preview(
+        str(args.workspace), preview
+    )
+    _render_grade_item_membership_selection_result(
+        preview, result, args.format
+    )
+    return 0
+
+
+def _handle_grade_item_membership_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        work = ModuleWorkRef(
+            module_id=args.module_id,
+            class_id=args.class_id,
+            work_id=args.work_id,
+        )
+        period_parts = (
+            args.school_year,
+            args.period_id,
+            args.calendar_revision,
+        )
+        academic_period: GradeItemAcademicPeriodAssignment | None = None
+        if args.decision == "included":
+            if any(value is None for value in period_parts):
+                raise GradeItemMembershipAuthoringScopeError(
+                    "included membership requires --school-year, "
+                    "--period-id, and --calendar-revision."
+                )
+            academic_period = GradeItemAcademicPeriodAssignment(
+                period=AcademicPeriodRef(
+                    school_year=args.school_year,
+                    period_id=args.period_id,
+                ),
+                calendar_revision=args.calendar_revision,
+            )
+        elif any(value is not None for value in period_parts):
+            raise GradeItemMembershipAuthoringScopeError(
+                "excluded membership must not include Academic Period "
+                "coordinates."
+            )
+        preview = preview_grade_item_membership_authoring(
+            str(args.workspace),
+            args.class_id,
+            args.grade_item_id,
+            work,
+            operation=args.operation,
+            grade_item_revision=args.grade_item_revision,
+            registration_revision=args.registration_revision,
+            decision=args.decision,
+            actor_id=args.actor_id,
+            decided_at=args.decided_at,
+            academic_period=academic_period,
+            rationale=args.rationale,
+        )
+    except (
+        AcademicPeriodValidationError,
+        GradeItemMembershipValidationError,
+        RoutingModelError,
+    ) as error:
+        raise GradeItemMembershipAuthoringScopeError(str(error)) from error
+    if not args.confirm_write:
+        _render_grade_item_membership_authoring_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_grade_item_membership_authoring_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_grade_item_membership_authoring_preview(
+        str(args.workspace), preview
+    )
+    _render_grade_item_membership_authoring_result(
+        preview, result, args.format
+    )
+    return 0
+
+
+def _handle_grade_item_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    preview = preview_grade_item_selection(
+        str(args.workspace),
+        args.class_id,
+        args.grade_item_id,
+        args.grade_item_revision,
+    )
+    if not args.confirm_select:
+        _render_grade_item_selection_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_grade_item_selection_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_grade_item_selection_preview(
+        str(args.workspace), preview
+    )
+    _render_grade_item_selection_result(preview, result, args.format)
+    return 0
+
+
+def _handle_grade_item_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        has_weighting_replacement = (
+            args.weighting_category_id is not None
+            or args.relative_weight is not None
+        )
+        if args.clear_weighting and has_weighting_replacement:
+            raise GradeItemAuthoringScopeError(
+                "--clear-weighting cannot be combined with weighting replacement "
+                "fields."
+            )
+        weighting = None
+        weighting_action: GradeItemWeightingAction = "preserve"
+        if args.clear_weighting:
+            weighting_action = "clear"
+        elif has_weighting_replacement:
+            weighting_action = "replace"
+            weighting = GradeItemWeightingMetadata(
+                category_id=args.weighting_category_id,
+                relative_weight=args.relative_weight,
+            )
+        preview = preview_grade_item_authoring(
+            str(args.workspace),
+            args.class_id,
+            args.grade_item_id,
+            operation=args.operation,
+            actor_id=args.actor_id,
+            revised_at=args.revised_at,
+            title=args.title,
+            purpose=args.purpose,
+            weighting=weighting,
+            weighting_action=weighting_action,
+        )
+        if not args.confirm_write:
+            _render_grade_item_authoring_preview(
+                preview, args.format, confirmation_supplied=False
+            )
+            return 0
+        if args.format == "text":
+            _render_grade_item_authoring_preview(
+                preview, args.format, confirmation_supplied=True
+            )
+            sys.stdout.flush()
+        result = commit_grade_item_authoring_preview(
+            str(args.workspace), preview
+        )
+    except GradeItemValidationError as error:
+        raise GradeItemAuthoringScopeError(str(error)) from error
+    _render_grade_item_authoring_result(preview, result, args.format)
+    return 0
+
+
+def _handle_grade_items_review(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    review = project_grade_items_review(
+        str(args.workspace),
+        args.class_id,
+    )
+    _render_grade_items_review(review, args.format)
+    return 0
+
+
+def _handle_new_evidence_eligibility_authoring(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    class_id = authorized.stored.snapshot.source.publication.work.class_id
+    review = project_new_evidence_review(
+        str(args.workspace),
+        class_id,
+        args.grade_item_id,
+        authorized,
+    )
+    preview = preview_new_evidence_eligibility_revision(
+        str(args.workspace),
+        review,
+        authorized,
+        item_id=args.item_id,
+        disposition=args.disposition,
+        actor_id=args.actor_id,
+        policy_id=args.policy_id,
+        policy_version=args.policy_version,
+        reason_codes=tuple(args.reason_code),
+        rationale=args.rationale,
+        decided_at=datetime.now(UTC),
+    )
+    if not args.confirm_write:
+        _render_new_evidence_eligibility_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_new_evidence_eligibility_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_new_evidence_eligibility_preview(
+        str(args.workspace),
+        preview,
+        authorized,
+    )
+    _render_new_evidence_eligibility_authoring_result(
+        preview, result, args.format
+    )
+    return 0
+
+
+def _handle_new_evidence_eligibility_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    inspection = inspect_evidence_diagnostic(
+        str(args.workspace),
+        args.publication_id,
+        args.cache_key,
+        authorization_purpose_id=args.purpose_id,
+        requested_student_ids=tuple(args.scope_student_id),
+        filters=EvidenceFilters(),
+        dependencies=_dependencies(dependencies),
+    )
+    authorized = inspection.authorized
+    class_id = authorized.stored.snapshot.source.publication.work.class_id
+    review = project_new_evidence_review(
+        str(args.workspace),
+        class_id,
+        args.grade_item_id,
+        authorized,
+    )
+    preview = preview_new_evidence_eligibility_selection(
+        str(args.workspace),
+        review,
+        authorized,
+        item_id=args.item_id,
+        eligibility_revision=args.eligibility_revision,
+    )
+    if not args.confirm_select:
+        _render_new_evidence_eligibility_selection_preview(
+            preview, args.format, confirmation_supplied=False
+        )
+        return 0
+    if args.format == "text":
+        _render_new_evidence_eligibility_selection_preview(
+            preview, args.format, confirmation_supplied=True
+        )
+        sys.stdout.flush()
+    result = commit_new_evidence_eligibility_selection_preview(
+        str(args.workspace),
+        preview,
+        authorized,
+    )
+    _render_new_evidence_eligibility_selection_result(
+        preview, result, args.format
+    )
+    return 0
+
+
 def _print_json(value: object) -> None:
     sys.stdout.write(
         json.dumps(
@@ -341,6 +2250,2275 @@ def _print_json(value: object) -> None:
         )
         + "\n"
     )
+
+
+def _new_evidence_eligibility_preview_to_dict(
+    preview: NewEvidenceEligibilityAuthoringPreview,
+) -> dict[str, object]:
+    decision = preview.decision
+    policy = decision.policy
+    return {
+        "class_id": decision.class_id,
+        "grade_item_id": decision.grade_item_id,
+        "item_id": decision.source.item_id,
+        "publication_id": decision.source.publication_id,
+        "cache_key": decision.source.cache_key,
+        "snapshot_digest": decision.source.snapshot_digest,
+        "membership_revision": decision.membership_revision,
+        "eligibility_revision": decision.eligibility_revision,
+        "supersedes_revision": decision.supersedes_revision,
+        "disposition": decision.disposition,
+        "actor": {
+            "kind": decision.actor.kind,
+            "actor_id": decision.actor.actor_id,
+        },
+        "policy": (
+            None
+            if policy is None
+            else {
+                "policy_id": policy.policy_id,
+                "policy_version": policy.policy_version,
+            }
+        ),
+        "reason_codes": list(decision.reason_codes),
+        "rationale": decision.rationale,
+        "source_state": decision.source_state.state,
+        "decided_at": decision.decided_at.isoformat().replace(
+            "+00:00", "Z"
+        ),
+        "selected_revision": preview.selected_revision,
+    }
+
+
+def _render_new_evidence_eligibility_preview(
+    preview: NewEvidenceEligibilityAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": _new_evidence_eligibility_preview_to_dict(
+                    preview
+                ),
+                "selection_action": "not_performed",
+            }
+        )
+        return
+    decision = preview.decision
+    print("Eligibility revision preview")
+    print(f"Grade Item: {decision.grade_item_id}")
+    print(f"item: {decision.source.item_id}")
+    print(f"revision: {decision.eligibility_revision}")
+    supersedes = decision.supersedes_revision
+    print(f"supersedes: {supersedes if supersedes is not None else 'none'}")
+    print(f"disposition: {decision.disposition}")
+    print(f"teacher actor: {decision.actor.actor_id}")
+    if decision.policy is not None:
+        print(
+            "policy: "
+            f"{decision.policy.policy_id}@{decision.policy.policy_version}"
+        )
+    print(
+        "reason codes: " + (", ".join(decision.reason_codes) or "none")
+    )
+    selected = preview.selected_revision
+    print(f"currently selected revision: {selected if selected else 'none'}")
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("committing this exact preview after live revalidation")
+    else:
+        print("confirmation supplied: no")
+        print("NO WRITE PERFORMED; current selection is unchanged")
+        print("rerun with --confirm-write to authorize a fresh commit")
+
+
+def _render_new_evidence_eligibility_authoring_result(
+    preview: NewEvidenceEligibilityAuthoringPreview,
+    result: NewEvidenceEligibilityAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": _new_evidence_eligibility_preview_to_dict(
+                    preview
+                ),
+                "result": {
+                    "write_disposition": result.write_result.disposition,
+                    "written_revision": result.written_revision,
+                    "written_disposition": result.written_disposition,
+                    "selected_revision_before_write": (
+                        result.selected_revision_before_write
+                    ),
+                    "selected_revision_after_write": (
+                        result.selected_revision_after_write
+                    ),
+                    "selection_changed_during_write": (
+                        result.selection_changed_during_write
+                    ),
+                    "selection_action": "not_performed",
+                },
+            }
+        )
+        return
+    print(
+        "Write committed: eligibility revision "
+        f"{result.written_revision} ({result.write_result.disposition})"
+    )
+    before = result.selected_revision_before_write
+    after = result.selected_revision_after_write
+    if result.selection_changed_during_write:
+        print(
+            "WARNING: current eligibility selection changed concurrently: "
+            f"{before if before is not None else 'none'} -> "
+            f"{after if after is not None else 'none'}"
+        )
+    else:
+        print(
+            "selected eligibility revision remains: "
+            f"{after if after is not None else 'none'}"
+        )
+    print("selection action: not performed")
+
+
+def _new_evidence_eligibility_selection_preview_to_dict(
+    preview: NewEvidenceEligibilitySelectionPreview,
+) -> dict[str, object]:
+    decision = preview.target.decision
+    return {
+        "class_id": decision.class_id,
+        "grade_item_id": decision.grade_item_id,
+        "item_id": decision.source.item_id,
+        "publication_id": decision.source.publication_id,
+        "cache_key": decision.source.cache_key,
+        "snapshot_digest": decision.source.snapshot_digest,
+        "target_revision": preview.target_revision,
+        "target_disposition": preview.target_disposition,
+        "target_revision_sha256": preview.target.decision_sha256,
+        "expected_current_revision": preview.expected_current_revision,
+        "membership_revision": preview.membership_revision,
+        "membership_revision_sha256": (
+            preview.membership_revision_sha256
+        ),
+        "source_state": preview.source_state.state,
+    }
+
+
+def _render_new_evidence_eligibility_selection_preview(
+    preview: NewEvidenceEligibilitySelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": (
+                    _new_evidence_eligibility_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "authoring_action": "not_performed",
+            }
+        )
+        return
+    decision = preview.target.decision
+    print("Eligibility current-selection preview")
+    print(f"Grade Item: {decision.grade_item_id}")
+    print(f"item: {decision.source.item_id}")
+    print(f"target revision: {preview.target_revision}")
+    print(f"target disposition: {preview.target_disposition}")
+    print(f"target revision digest: {preview.target.decision_sha256}")
+    current = preview.expected_current_revision
+    print(
+        "currently selected revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    print(f"membership revision: {preview.membership_revision}")
+    print(f"source state: {preview.source_state.state}")
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact revision after live CAS revalidation")
+    else:
+        print("confirmation supplied: no")
+        print(
+            "NO SELECTION PERFORMED; eligibility history and current "
+            "selection are unchanged"
+        )
+        print("rerun with --confirm-select to authorize a fresh selection")
+
+
+def _render_new_evidence_eligibility_selection_result(
+    preview: NewEvidenceEligibilitySelectionPreview,
+    result: NewEvidenceEligibilitySelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": (
+                    _new_evidence_eligibility_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "selection_disposition": result.selection_disposition,
+                    "previous_current_revision": (
+                        result.previous_current_revision
+                    ),
+                    "selected_revision": result.selected_revision,
+                    "selected_disposition": result.selected_disposition,
+                    "authoring_action": "not_performed",
+                },
+            }
+        )
+        return
+    print(
+        "Selection committed: eligibility revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_revision
+    print(
+        "previous current revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(f"selected disposition: {result.selected_disposition}")
+    print("authoring action: not performed")
+
+
+def _standards_association_selection_preview_to_dict(
+    preview: StandardsAssociationSelectionPreview,
+) -> dict[str, object]:
+    decision = preview.target.decision
+    return {
+        "class_id": decision.class_id,
+        "grade_item_id": decision.grade_item_id,
+        "standard_id": decision.standard_id,
+        "item_id": decision.source.item_id,
+        "target_revision": preview.target_revision,
+        "target_disposition": preview.target_disposition,
+        "target_basis": preview.target_basis,
+        "target_decision_sha256": preview.target_sha256,
+        "history": list(preview.history),
+        "expected_current_association_revision": (
+            preview.expected_current_association_revision
+        ),
+        "actor_kind": decision.actor.kind,
+        "actor_id": decision.actor.actor_id,
+        "rationale": decision.rationale,
+        "authoring_action": preview.authoring_action,
+    }
+
+
+def _render_standards_association_selection_preview(
+    preview: StandardsAssociationSelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": (
+                    _standards_association_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+            }
+        )
+        return
+    decision = preview.target.decision
+    print("Standards association selection preview")
+    print(f"Standard: {decision.standard_id}")
+    print(f"evidence item: {decision.source.item_id}")
+    print(f"target revision: {preview.target_revision}")
+    print(f"target association: {preview.target_disposition}")
+    print(f"target basis: {preview.target_basis}")
+    current = preview.expected_current_association_revision
+    print(
+        "currently selected association revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact persisted association revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO CURRENT ASSOCIATION SELECTION CHANGED")
+        print("rerun with --confirm-select to authorize pointer mutation")
+    print("NO ASSOCIATION REVISION AUTHORED")
+
+
+def _render_standards_association_selection_result(
+    preview: StandardsAssociationSelectionPreview,
+    result: StandardsAssociationSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": (
+                    _standards_association_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "selected_revision": result.selected_revision,
+                    "selected_disposition": result.selected_disposition,
+                    "selected_basis": result.selected_basis,
+                    "selected_decision_sha256": (
+                        result.selected_decision_sha256
+                    ),
+                    "selection_disposition": (
+                        result.selection_disposition
+                    ),
+                    "previous_current_revision": (
+                        result.previous_current_revision
+                    ),
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Association selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_revision
+    print(
+        "previous current association revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(
+        "association authoring: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
+
+
+def _standards_association_authoring_preview_to_dict(
+    preview: StandardsAssociationAuthoringPreview,
+) -> dict[str, object]:
+    candidate = preview.candidate
+    return {
+        "operation": preview.operation,
+        "class_id": candidate.class_id,
+        "grade_item_id": candidate.grade_item_id,
+        "standard_id": candidate.standard_id,
+        "item_id": candidate.source.item_id,
+        "candidate_revision": preview.candidate_revision,
+        "supersedes_revision": candidate.supersedes_revision,
+        "disposition": preview.candidate_disposition,
+        "basis": preview.candidate_basis,
+        "history": list(preview.history),
+        "latest_revision_sha256": preview.latest_revision_sha256,
+        "expected_current_association_revision": (
+            preview.expected_current_association_revision
+        ),
+        "grade_item_revision": preview.grade_item_revision,
+        "membership_revision": preview.membership_revision,
+        "standard_resolved": preview.standard_resolved,
+        "standard_active": preview.standard_active,
+        "actor_kind": candidate.actor.kind,
+        "actor_id": candidate.actor.actor_id,
+        "rationale": candidate.rationale,
+        "decided_at": candidate.decided_at.isoformat(),
+        "selection_action": preview.selection_action,
+    }
+
+
+def _render_standards_association_authoring_preview(
+    preview: StandardsAssociationAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": (
+                    _standards_association_authoring_preview_to_dict(
+                        preview
+                    )
+                ),
+            }
+        )
+        return
+    candidate = preview.candidate
+    print("Standards association authoring preview")
+    print(f"operation: {preview.operation}")
+    print(f"Standard: {candidate.standard_id}")
+    print(f"evidence item: {candidate.source.item_id}")
+    print(f"candidate revision: {preview.candidate_revision}")
+    print(f"association: {preview.candidate_disposition}")
+    print(f"basis: {preview.candidate_basis}")
+    print(f"teacher actor: {candidate.actor.actor_id}")
+    current = preview.expected_current_association_revision
+    print(
+        "currently selected association revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("writing this exact immutable association revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO ASSOCIATION REVISION WRITTEN")
+        print("rerun with --confirm-write to authorize immutable write")
+    print("NO CURRENT ASSOCIATION SELECTION CHANGED")
+
+
+def _render_standards_association_authoring_result(
+    preview: StandardsAssociationAuthoringPreview,
+    result: StandardsAssociationAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": (
+                    _standards_association_authoring_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "written_revision": result.written_revision,
+                    "written_disposition": result.written_disposition,
+                    "written_basis": result.written_basis,
+                    "write_disposition": (
+                        result.write_result.disposition
+                    ),
+                    "selected_revision_before_write": (
+                        result.selected_revision_before_write
+                    ),
+                    "selected_revision_after_write": (
+                        result.selected_revision_after_write
+                    ),
+                    "selection_changed_during_write": (
+                        result.selection_changed_during_write
+                    ),
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        "Association revision written: "
+        f"{result.written_revision} ({result.write_result.disposition})"
+    )
+    before = result.selected_revision_before_write
+    after = result.selected_revision_after_write
+    print(
+        "current selection before write: "
+        f"{before if before is not None else 'none'}"
+    )
+    print(
+        "current selection after write: "
+        f"{after if after is not None else 'none'}"
+    )
+    print(
+        "selection action: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _standards_review_to_dict(
+    projection: StandardsReviewProjection,
+) -> dict[str, object]:
+    standard_resolution = projection.standard_resolution
+    profile = projection.mapping_profile
+    native_state = projection.native_state
+    return {
+        "class_id": projection.class_id,
+        "grade_item_id": projection.grade_item_id,
+        "student_id": projection.student_id,
+        "standard_id": projection.standard_id,
+        "item_id": projection.item_id,
+        "producer_alignment": {
+            "standard_ids": list(
+                projection.producer_declared_standard_ids
+            ),
+            "declares_requested_standard": (
+                projection.producer_declares_standard
+            ),
+        },
+        "core_standard": {
+            "resolved": standard_resolution.resolved,
+            "active": standard_resolution.active,
+        },
+        "association": {
+            "status": projection.association_status,
+            "revision": projection.association_revision,
+            "decision_sha256": projection.association_sha256,
+            "disposition": projection.association_disposition,
+            "basis": projection.association_basis,
+            "actor_kind": projection.association_actor_kind,
+            "actor_id": projection.association_actor_id,
+            "rationale": projection.association_rationale,
+            "operative": projection.operative_associated,
+        },
+        "target_scale": {
+            "scale_id": projection.target_scale.scale_id,
+            "scale_revision": projection.target_scale.scale_revision,
+            "scale_sha256": projection.target_scale.scale_sha256,
+        },
+        "mapping": {
+            "profile": (
+                None
+                if profile is None
+                else {
+                    "scale_id": profile.scale_id,
+                    "profile_id": profile.profile_id,
+                    "profile_revision": profile.profile_revision,
+                    "profile_sha256": profile.profile_sha256,
+                }
+            ),
+            "status": projection.mapping_status,
+            "proficiency_level_id": (
+                projection.mapped_proficiency_level_id
+            ),
+            "native_state": (
+                None
+                if native_state is None
+                else {
+                    "code": native_state.code,
+                    "label": native_state.label,
+                    "description": native_state.description,
+                }
+            ),
+            "unsupported_reason": (
+                projection.mapping_unsupported_reason
+            ),
+        },
+        "evidence_context": {
+            "result_kind": projection.result_kind,
+            "target_kind": projection.target_kind,
+            "subject_kind": projection.subject_kind,
+            "subject_student_id": projection.subject_student_id,
+        },
+        "upstream": {
+            "eligibility_state": projection.eligibility_state,
+            "attempt_state": projection.attempt_state,
+            "reassessment_state": projection.reassessment_state,
+            "membership_revision": projection.membership_revision,
+            "eligibility_revision": projection.eligibility_revision,
+            "attempt_selection_revision": (
+                projection.attempt_selection_revision
+            ),
+            "reassessment_revision": projection.reassessment_revision,
+        },
+        "aggregation": {
+            "status": projection.aggregation_status,
+            "exclusion_reason": projection.aggregation_exclusion_reason,
+        },
+        "calculation_performed": projection.calculation_performed,
+    }
+
+
+def _render_standards_review(
+    projection: StandardsReviewProjection,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_standards_review_to_dict(projection))
+        return
+    print("Standards Review")
+    print(f"class: {projection.class_id}")
+    print(f"Grade Item: {projection.grade_item_id}")
+    print(f"student: {projection.student_id}")
+    print(f"evidence item: {projection.item_id}")
+    print(f"requested Standard: {projection.standard_id}")
+    producer_ids = ", ".join(
+        projection.producer_declared_standard_ids
+    ) or "none"
+    print(f"producer-declared Standards: {producer_ids}")
+    print(
+        "producer declares requested standard: "
+        f"{'yes' if projection.producer_declares_standard else 'no'}"
+    )
+    resolution = projection.standard_resolution
+    print(
+        "Core Standard: "
+        f"{'resolved' if resolution.resolved else 'unresolved'}; "
+        f"active={resolution.active if resolution.active is not None else '-'}"
+    )
+    association = projection.association_status
+    if projection.association_revision is not None:
+        association += f" rev {projection.association_revision}"
+    if projection.association_basis is not None:
+        association += f" basis={projection.association_basis}"
+    print(f"association: {association}")
+    print(
+        "association operative: "
+        f"{'yes' if projection.operative_associated else 'no'}"
+    )
+    print(
+        "target scale: "
+        f"{projection.target_scale.scale_id}@"
+        f"{projection.target_scale.scale_revision} "
+        f"sha256={projection.target_scale.scale_sha256}"
+    )
+    if projection.mapping_profile is None:
+        print("mapping profile: none supplied")
+    else:
+        profile = projection.mapping_profile
+        print(
+            "mapping profile: "
+            f"{profile.scale_id}/{profile.profile_id}@"
+            f"{profile.profile_revision} sha256={profile.profile_sha256}"
+        )
+    print(f"mapping status: {projection.mapping_status or 'not supplied'}")
+    if projection.mapped_proficiency_level_id is not None:
+        print(
+            "mapped proficiency level: "
+            f"{projection.mapped_proficiency_level_id}"
+        )
+    if projection.native_state is not None:
+        print(f"native state: {projection.native_state.code}")
+    if projection.mapping_unsupported_reason is not None:
+        print(
+            "mapping unsupported reason: "
+            f"{projection.mapping_unsupported_reason}"
+        )
+    print(
+        "upstream: "
+        f"eligibility={projection.eligibility_state}; "
+        f"attempt={projection.attempt_state}; "
+        f"reassessment={projection.reassessment_state}"
+    )
+    aggregation = projection.aggregation_status
+    if projection.aggregation_exclusion_reason is not None:
+        aggregation += f" ({projection.aggregation_exclusion_reason})"
+    print(f"aggregation: {aggregation}")
+    print(
+        "proficiency calculation performed: "
+        f"{'yes' if projection.calculation_performed else 'no'}"
+    )
+
+
+def _exclusions_eligibility_selection_preview_to_dict(
+    preview: ExclusionEligibilitySelectionPreview,
+) -> dict[str, object]:
+    decision = preview.target.decision
+    policy = decision.policy
+    return {
+        "class_id": decision.class_id,
+        "grade_item_id": decision.grade_item_id,
+        "item_id": preview.item_id,
+        "target_revision": preview.target_revision,
+        "target_disposition": preview.target_disposition,
+        "target_decision_sha256": preview.target_sha256,
+        "expected_current_revision": preview.expected_current_revision,
+        "membership_revision": preview.membership_revision,
+        "authored_source_state": decision.source_state.state,
+        "current_source_state": preview.source_state.state,
+        "actor_kind": decision.actor.kind,
+        "actor_id": decision.actor.actor_id,
+        "policy_id": None if policy is None else policy.policy_id,
+        "policy_version": (
+            None if policy is None else policy.policy_version
+        ),
+        "reason_codes": list(decision.reason_codes),
+        "rationale": decision.rationale,
+        "authoring_action": preview.authoring_action,
+    }
+
+
+def _render_exclusions_eligibility_selection_preview(
+    preview: ExclusionEligibilitySelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": (
+                    _exclusions_eligibility_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+            }
+        )
+        return
+    decision = preview.target.decision
+    print("Exclusions eligibility selection preview")
+    print(f"item: {preview.item_id}")
+    print(f"target revision: {preview.target_revision}")
+    print(f"target disposition: {preview.target_disposition}")
+    print(f"authored source state: {decision.source_state.state}")
+    print(f"current source state: {preview.source_state.state}")
+    print(f"membership revision: {preview.membership_revision}")
+    current = preview.expected_current_revision
+    print(
+        "currently selected eligibility revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact persisted eligibility revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO CURRENT ELIGIBILITY SELECTION CHANGED")
+        print("rerun with --confirm-select to authorize pointer mutation")
+    print("NO ELIGIBILITY REVISION AUTHORED")
+
+
+def _render_exclusions_eligibility_selection_result(
+    preview: ExclusionEligibilitySelectionPreview,
+    result: ExclusionEligibilitySelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": (
+                    _exclusions_eligibility_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "selected_revision": result.selected_revision,
+                    "selected_disposition": result.selected_disposition,
+                    "selected_decision_sha256": (
+                        result.selected_decision_sha256
+                    ),
+                    "selection_disposition": (
+                        result.selection_disposition
+                    ),
+                    "previous_current_revision": (
+                        result.previous_current_revision
+                    ),
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Eligibility selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_revision
+    print(
+        "previous current eligibility revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(
+        "eligibility authoring: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
+
+
+def _exclusions_eligibility_authoring_preview_to_dict(
+    preview: ExclusionEligibilityAuthoringPreview,
+) -> dict[str, object]:
+    candidate = preview.candidate
+    policy = candidate.policy
+    return {
+        "class_id": candidate.class_id,
+        "grade_item_id": candidate.grade_item_id,
+        "item_id": preview.item_id,
+        "candidate_revision": preview.candidate_revision,
+        "disposition": preview.candidate_disposition,
+        "history": list(preview.history),
+        "expected_current_eligibility_revision": (
+            preview.expected_current_eligibility_revision
+        ),
+        "membership_revision": preview.membership_revision,
+        "source_state": preview.source_state,
+        "actor_kind": candidate.actor.kind,
+        "actor_id": candidate.actor.actor_id,
+        "policy_id": None if policy is None else policy.policy_id,
+        "policy_version": (
+            None if policy is None else policy.policy_version
+        ),
+        "reason_codes": list(candidate.reason_codes),
+        "rationale": candidate.rationale,
+        "decided_at": candidate.decided_at.isoformat(),
+        "selection_action": preview.selection_action,
+    }
+
+
+def _render_exclusions_eligibility_authoring_preview(
+    preview: ExclusionEligibilityAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": (
+                    _exclusions_eligibility_authoring_preview_to_dict(
+                        preview
+                    )
+                ),
+            }
+        )
+        return
+    candidate = preview.candidate
+    print("Exclusions eligibility authoring preview")
+    print(f"item: {preview.item_id}")
+    print(f"candidate revision: {preview.candidate_revision}")
+    print(f"academic disposition: {preview.candidate_disposition}")
+    print(f"membership revision: {preview.membership_revision}")
+    print(f"source state: {preview.source_state}")
+    print(f"teacher actor: {candidate.actor.actor_id}")
+    if candidate.policy is not None:
+        print(
+            "policy: "
+            f"{candidate.policy.policy_id}@"
+            f"{candidate.policy.policy_version}"
+        )
+    print(
+        "reason codes: "
+        f"{', '.join(candidate.reason_codes) or 'none'}"
+    )
+    print(f"rationale: {candidate.rationale or 'none'}")
+    current = preview.expected_current_eligibility_revision
+    print(
+        "currently selected eligibility revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("writing this exact immutable eligibility revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO ELIGIBILITY REVISION WRITTEN")
+        print("rerun with --confirm-write to authorize immutable write")
+    print("NO CURRENT SELECTION CHANGED")
+
+
+def _render_exclusions_eligibility_authoring_result(
+    preview: ExclusionEligibilityAuthoringPreview,
+    result: ExclusionEligibilityAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": (
+                    _exclusions_eligibility_authoring_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "written_revision": result.written_revision,
+                    "written_disposition": result.written_disposition,
+                    "write_disposition": (
+                        result.write_result.disposition
+                    ),
+                    "selected_revision_before_write": (
+                        result.selected_revision_before_write
+                    ),
+                    "selected_revision_after_write": (
+                        result.selected_revision_after_write
+                    ),
+                    "selection_changed_during_write": (
+                        result.selection_changed_during_write
+                    ),
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        "Eligibility revision written: "
+        f"{result.written_revision} ({result.write_result.disposition})"
+    )
+    before = result.selected_revision_before_write
+    after = result.selected_revision_after_write
+    print(
+        "current selection before write: "
+        f"{before if before is not None else 'none'}"
+    )
+    print(
+        "current selection after write: "
+        f"{after if after is not None else 'none'}"
+    )
+    print(
+        "selection action: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _exclusions_projection_to_dict(
+    projection: ExclusionsProjection,
+) -> dict[str, object]:
+    rows: list[dict[str, object]] = []
+    for row in projection.rows:
+        rows.append(
+            {
+                "item_id": row.item_id,
+                "student_id": row.student_id,
+                "academic_disposition": row.selected_disposition,
+                "eligibility_revision": (
+                    row.selected_eligibility_revision
+                ),
+                "eligibility_decision_sha256": (
+                    row.selected_decision_sha256
+                ),
+                "reviewed_membership_revision": (
+                    row.reviewed_membership_revision
+                ),
+                "current_membership_revision": (
+                    row.current_membership_revision
+                ),
+                "reason_codes": list(row.reason_codes),
+                "rationale": row.rationale,
+                "actor_kind": row.actor_kind,
+                "actor_id": row.actor_id,
+                "policy_id": row.policy_id,
+                "policy_version": row.policy_version,
+                "reviewed_source_state": row.reviewed_source_state,
+                "review_state": row.review_state,
+                "source_state": row.source_state,
+                "operative_included": row.operative_included,
+                "successor_publication_id": (
+                    row.successor_publication_id
+                ),
+                "head_publication_id": row.head_publication_id,
+            }
+        )
+    return {
+        "class_id": projection.class_id,
+        "grade_item_id": projection.grade_item_id,
+        "counts": projection.counts,
+        "rows": rows,
+    }
+
+
+def _render_exclusions_projection(
+    projection: ExclusionsProjection,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_exclusions_projection_to_dict(projection))
+        return
+    print("Exclusions review")
+    print(f"class: {projection.class_id}")
+    print(f"grade item: {projection.grade_item_id}")
+    counts = projection.counts
+    print(
+        "counts: "
+        + ", ".join(
+            f"{key}={counts[key]}"
+            for key in (
+                "included",
+                "excluded",
+                "pending",
+                "unsupported",
+                "superseded",
+                "withdrawn",
+                "no_decision",
+                "stale",
+                "source_blocked",
+                "source_unverifiable",
+            )
+        )
+    )
+    if not projection.rows:
+        print("No evidence items are present in the authorized projection.")
+        return
+    print(
+        "item | student | academic_disposition | review_state | "
+        "source_state | operative | reviewed_membership | current_membership | "
+        "reason_codes | rationale"
+    )
+    for row in projection.rows:
+        disposition = row.selected_disposition or "none"
+        source_state = row.source_state or "unverifiable"
+        print(
+            f"{row.item_id} | {row.student_id or '-'} | "
+            f"{disposition} | {row.review_state} | {source_state} | "
+            f"{'yes' if row.operative_included else 'no'} | "
+            f"{row.reviewed_membership_revision or '-'} | "
+            f"{row.current_membership_revision or '-'} | "
+            f"{','.join(row.reason_codes) or '-'} | "
+            f"{row.rationale or '-'}"
+        )
+    print(
+        "Academic disposition is distinct from Core publication lifecycle."
+    )
+    print("NO ELIGIBILITY WRITE OR SELECTION PERFORMED")
+
+
+def _attempt_decision_selection_preview_to_dict(
+    preview: AttemptDecisionSelectionPreview,
+) -> dict[str, object]:
+    decision = preview.target.decision
+    selected = decision.selected_attempts
+    candidates: list[dict[str, object]] = []
+    for candidate in decision.candidates:
+        attempt = candidate.attempt
+        candidates.append(
+            {
+                "native": {
+                    "identifier": attempt.native.identifier,
+                    "sequence": attempt.native.sequence,
+                },
+                "target_id": attempt.target.target_id,
+                "eligible_evidence_count": len(candidate.eligible_evidence),
+                "selected": attempt in selected,
+            }
+        )
+    return {
+        "class_id": decision.class_id,
+        "grade_item_id": decision.grade_item_id,
+        "student_id": decision.student_id,
+        "target_revision": preview.target_revision,
+        "target_decision_sha256": preview.target_sha256,
+        "latest_revision": preview.latest_revision,
+        "target_is_latest": preview.target_is_latest,
+        "expected_current_decision_revision": (
+            preview.expected_current_decision_revision
+        ),
+        "policy_id": decision.policy.policy_id,
+        "policy_revision": decision.policy.policy_revision,
+        "membership_revision": decision.membership_revision,
+        "candidate_count": len(decision.candidates),
+        "selected_count": len(decision.selected_attempts),
+        "candidates": candidates,
+        "history": list(preview.history),
+    }
+
+
+def _render_attempt_decision_selection_preview(
+    preview: AttemptDecisionSelectionPreview,
+    output_format: str,
+    *, confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": _attempt_decision_selection_preview_to_dict(
+                    preview
+                ),
+                "authoring_action": "not_performed",
+            }
+        )
+        return
+    decision = preview.target.decision
+    print("Attempt-decision selection preview")
+    print(f"student: {decision.student_id}")
+    print(f"target decision revision: {preview.target_revision}")
+    print(f"latest persisted decision revision: {preview.latest_revision}")
+    print(
+        "target is latest: "
+        f"{'yes' if preview.target_is_latest else 'no'}"
+    )
+    current = preview.expected_current_decision_revision
+    print(
+        "currently selected decision revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    print(
+        f"policy: {decision.policy.policy_id}@{decision.policy.policy_revision}"
+    )
+    print(f"candidate attempts: {len(decision.candidates)}")
+    print(f"selected attempts: {len(decision.selected_attempts)}")
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact persisted decision revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO DECISION SELECTION PERFORMED")
+        print("rerun with --confirm-select to authorize pointer mutation")
+    print("decision authoring remains a separate action")
+
+
+def _render_attempt_decision_selection_result(
+    preview: AttemptDecisionSelectionPreview,
+    result: AttemptDecisionSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": _attempt_decision_selection_preview_to_dict(
+                    preview
+                ),
+                "result": {
+                    "selected_revision": result.selected_revision,
+                    "selected_decision_sha256": (
+                        result.selected_decision_sha256
+                    ),
+                    "selection_disposition": (
+                        result.selection_disposition
+                    ),
+                    "previous_current_decision_revision": (
+                        result.previous_current_decision_revision
+                    ),
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Decision selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    print(
+        "previous current decision revision: "
+        f"{result.previous_current_decision_revision}"
+    )
+    print(
+        "decision authoring: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
+
+
+def _attempt_decision_authoring_preview_to_dict(
+    preview: AttemptDecisionAuthoringPreview,
+) -> dict[str, object]:
+    decision = preview.candidate
+    selected = decision.selected_attempts
+    candidates: list[dict[str, object]] = []
+    for candidate in decision.candidates:
+        attempt = candidate.attempt
+        candidates.append(
+            {
+                "native": {
+                    "identifier": attempt.native.identifier,
+                    "sequence": attempt.native.sequence,
+                },
+                "target_id": attempt.target.target_id,
+                "eligible_evidence_count": len(candidate.eligible_evidence),
+                "selected": attempt in selected,
+            }
+        )
+    return {
+        "class_id": decision.class_id,
+        "grade_item_id": decision.grade_item_id,
+        "student_id": decision.student_id,
+        "policy_id": decision.policy.policy_id,
+        "policy_revision": decision.policy.policy_revision,
+        "policy_sha256": decision.policy.policy_revision_sha256,
+        "membership_revision": decision.membership_revision,
+        "membership_sha256": decision.membership_revision_sha256,
+        "decision_revision": decision.decision_revision,
+        "supersedes_revision": decision.supersedes_revision,
+        "candidate_count": preview.candidate_count,
+        "selected_count": preview.selected_count,
+        "candidates": candidates,
+        "actor": {
+            "kind": decision.actor.kind,
+            "actor_id": decision.actor.actor_id,
+        },
+        "rationale": decision.rationale,
+        "decided_at": decision.decided_at.isoformat(),
+        "history": list(preview.history),
+        "reviewed_current_decision_revision": (
+            preview.reviewed_current_decision_revision
+        ),
+    }
+
+
+def _render_attempt_decision_authoring_preview(
+    preview: AttemptDecisionAuthoringPreview,
+    output_format: str,
+    *, confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": _attempt_decision_authoring_preview_to_dict(
+                    preview
+                ),
+                "selection_action": "not_performed",
+            }
+        )
+        return
+    decision = preview.candidate
+    print("Attempt-decision authoring preview")
+    print(f"student: {decision.student_id}")
+    print(f"decision revision: {decision.decision_revision}")
+    print(
+        f"policy: {decision.policy.policy_id}@{decision.policy.policy_revision}"
+    )
+    print(f"candidate attempts: {preview.candidate_count}")
+    print(f"selected attempts: {preview.selected_count}")
+    if decision.candidates:
+        print("sequence | identifier | target | selected")
+        chosen = decision.selected_attempts
+        for candidate in decision.candidates:
+            attempt = candidate.attempt
+            print(
+                f"{attempt.native.sequence or '-'} | "
+                f"{attempt.native.identifier or '-'} | "
+                f"{attempt.target.target_id or '-'} | "
+                f"{'yes' if attempt in chosen else 'no'}"
+            )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("writing this exact immutable decision revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO DECISION WRITE PERFORMED")
+        print("rerun with --confirm-write to authorize the write")
+    print("current-decision selection remains a separate action")
+
+
+def _render_attempt_decision_authoring_result(
+    preview: AttemptDecisionAuthoringPreview,
+    result: AttemptDecisionAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": _attempt_decision_authoring_preview_to_dict(
+                    preview
+                ),
+                "result": {
+                    "written_revision": result.written_revision,
+                    "write_disposition": result.write_disposition,
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        "Decision write committed: revision "
+        f"{result.written_revision} ({result.write_disposition})"
+    )
+    print(
+        "current-decision selection: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _attempt_policy_selection_preview_to_dict(
+    preview: AttemptPolicySelectionPreview,
+) -> dict[str, object]:
+    policy = preview.target.policy
+    return {
+        "class_id": preview.class_id,
+        "grade_item_id": preview.grade_item_id,
+        "work": {
+            "module_id": preview.work.module_id,
+            "class_id": preview.work.class_id,
+            "work_id": preview.work.work_id,
+        },
+        "policy_id": preview.policy_id,
+        "target_revision": preview.target_revision,
+        "target_policy_sha256": preview.target_sha256,
+        "selection_basis": policy.selection_basis,
+        "minimum_selected": policy.minimum_selected,
+        "maximum_selected": policy.maximum_selected,
+        "actor": {
+            "kind": policy.actor.kind,
+            "actor_id": policy.actor.actor_id,
+        },
+        "history": list(preview.history),
+        "latest_revision": preview.latest_revision,
+        "target_is_latest": preview.target_is_latest,
+        "expected_current_policy_revision": (
+            preview.expected_current_policy_revision
+        ),
+    }
+
+
+def _render_attempt_policy_selection_preview(
+    preview: AttemptPolicySelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": _attempt_policy_selection_preview_to_dict(
+                    preview
+                ),
+                "authoring_action": "not_performed",
+            }
+        )
+        return
+    policy = preview.target.policy
+    maximum = (
+        "unbounded"
+        if policy.maximum_selected is None
+        else str(policy.maximum_selected)
+    )
+    print("Attempt-selection policy selection preview")
+    print(f"target policy: {preview.policy_id}@{preview.target_revision}")
+    print(f"selection basis: {policy.selection_basis}")
+    print(f"cardinality: {policy.minimum_selected}..{maximum}")
+    print(f"latest persisted policy revision: {preview.latest_revision}")
+    print(
+        "target is latest: "
+        f"{'yes' if preview.target_is_latest else 'no'}"
+    )
+    current = preview.expected_current_policy_revision
+    print(
+        "currently selected policy revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact persisted policy revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO POLICY SELECTION PERFORMED")
+        print("rerun with --confirm-select to authorize pointer mutation")
+    print("policy authoring remains a separate action")
+
+
+def _render_attempt_policy_selection_result(
+    preview: AttemptPolicySelectionPreview,
+    result: AttemptPolicySelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": _attempt_policy_selection_preview_to_dict(
+                    preview
+                ),
+                "result": {
+                    "selected_revision": result.selected_revision,
+                    "selected_policy_sha256": (
+                        result.selected_policy_sha256
+                    ),
+                    "selection_disposition": (
+                        result.selection_disposition
+                    ),
+                    "previous_current_policy_revision": (
+                        result.previous_current_policy_revision
+                    ),
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Policy selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    print(
+        "previous current policy revision: "
+        f"{result.previous_current_policy_revision}"
+    )
+    print(
+        "policy authoring: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
+
+
+def _attempt_policy_authoring_preview_to_dict(
+    preview: AttemptPolicyAuthoringPreview,
+) -> dict[str, object]:
+    policy = preview.candidate
+    return {
+        "operation": preview.operation,
+        "class_id": policy.class_id,
+        "grade_item_id": policy.grade_item_id,
+        "work": {
+            "module_id": policy.work.module_id,
+            "class_id": policy.work.class_id,
+            "work_id": policy.work.work_id,
+        },
+        "policy_id": policy.policy_id,
+        "policy_revision": policy.policy_revision,
+        "supersedes_revision": policy.supersedes_revision,
+        "selection_basis": policy.selection_basis,
+        "minimum_selected": policy.minimum_selected,
+        "maximum_selected": policy.maximum_selected,
+        "actor": {
+            "kind": policy.actor.kind,
+            "actor_id": policy.actor.actor_id,
+        },
+        "rationale": policy.rationale,
+        "revised_at": policy.revised_at.isoformat(),
+        "history": list(preview.history),
+        "latest_persisted_policy_sha256": (
+            preview.latest_persisted_policy_sha256
+        ),
+        "reviewed_current_policy_revision": (
+            preview.reviewed_current_policy_revision
+        ),
+    }
+
+
+def _render_attempt_policy_authoring_preview(
+    preview: AttemptPolicyAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": _attempt_policy_authoring_preview_to_dict(
+                    preview
+                ),
+                "selection_action": "not_performed",
+            }
+        )
+        return
+    policy = preview.candidate
+    maximum = (
+        "unbounded"
+        if policy.maximum_selected is None
+        else str(policy.maximum_selected)
+    )
+    print("Attempt-selection policy authoring preview")
+    print(f"operation: {preview.operation}")
+    print(f"policy: {policy.policy_id}@{policy.policy_revision}")
+    print(f"selection basis: {policy.selection_basis}")
+    print(f"cardinality: {policy.minimum_selected}..{maximum}")
+    print(f"actor: {policy.actor.kind}/{policy.actor.actor_id}")
+    current = preview.reviewed_current_policy_revision
+    print(
+        "currently selected policy revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("writing this exact immutable policy revision")
+    else:
+        print("confirmation supplied: no")
+        print("NO POLICY WRITE PERFORMED")
+        print("rerun with --confirm-write to authorize the write")
+    print("current-policy selection remains a separate action")
+
+
+def _render_attempt_policy_authoring_result(
+    preview: AttemptPolicyAuthoringPreview,
+    result: AttemptPolicyAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": _attempt_policy_authoring_preview_to_dict(
+                    preview
+                ),
+                "result": {
+                    "written_revision": result.written_revision,
+                    "write_disposition": result.write_disposition,
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        "Policy write committed: revision "
+        f"{result.written_revision} ({result.write_disposition})"
+    )
+    print(
+        "current-policy selection: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _attempt_decisions_review_to_dict(
+    review: AttemptDecisionWorkflowProjection,
+) -> dict[str, object]:
+    policy: dict[str, object] | None = None
+    if review.current_policy_id is not None:
+        policy = {
+            "policy_id": review.current_policy_id,
+            "policy_revision": review.current_policy_revision,
+            "policy_sha256": review.current_policy_sha256,
+            "minimum_selected": review.minimum_selected,
+            "maximum_selected": review.maximum_selected,
+        }
+    candidates: list[dict[str, object]] = []
+    for row in review.candidates:
+        candidates.append(
+            {
+                "target": {
+                    "target_kind": row.attempt.target.target_kind,
+                    "target_id": row.attempt.target.target_id,
+                    "owning_system": row.attempt.target.owning_system,
+                    "contract_version": row.attempt.target.contract_version,
+                },
+                "native": {
+                    "identifier": row.native_identifier,
+                    "sequence": row.native_sequence,
+                },
+                "eligible_evidence_count": row.eligible_evidence_count,
+                "selected_in_reviewed_decision": (
+                    row.selected_in_reviewed_decision
+                ),
+            }
+        )
+    source = review.source_snapshot
+    return {
+        "status": review.status,
+        "resolution_status": review.resolution_status,
+        "stale_reason": review.stale_reason,
+        "class_id": review.class_id,
+        "grade_item_id": review.grade_item_id,
+        "work": {
+            "module_id": review.work.module_id,
+            "class_id": review.work.class_id,
+            "work_id": review.work.work_id,
+        },
+        "student_id": review.student_id,
+        "source_snapshot": {
+            "publication_id": source.publication_id,
+            "cache_key": source.cache_key,
+            "snapshot_digest": source.snapshot_digest,
+        },
+        "candidate_count": review.candidate_count,
+        "reviewed_selected_count": review.reviewed_selected_count,
+        "selected_decision_revision": review.selected_decision_revision,
+        "selected_decision_sha256": review.selected_decision_sha256,
+        "operative_selection": review.operative_selection,
+        "policy": policy,
+        "candidates": candidates,
+        "read_only": True,
+    }
+
+
+def _render_attempt_decisions_review(
+    review: AttemptDecisionWorkflowProjection,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_attempt_decisions_review_to_dict(review))
+        return
+    print("Attempt Decisions review")
+    print(f"Grade Item: {review.grade_item_id}")
+    print(f"student: {review.student_id}")
+    print(
+        "work: "
+        f"{review.work.module_id}/{review.work.class_id}/{review.work.work_id}"
+    )
+    print(f"status: {review.status}")
+    print(f"resolution status: {review.resolution_status}")
+    if review.stale_reason is not None:
+        print(f"stale reason: {review.stale_reason}")
+    print(
+        "operative selection: "
+        f"{'yes' if review.operative_selection else 'no'}"
+    )
+    print(f"candidate count: {review.candidate_count}")
+    print(f"reviewed selected count: {review.reviewed_selected_count}")
+    if review.selected_decision_revision is not None:
+        print(
+            "selected decision revision: "
+            f"{review.selected_decision_revision}"
+        )
+    if review.current_policy_id is not None:
+        maximum = (
+            "unbounded"
+            if review.maximum_selected is None
+            else str(review.maximum_selected)
+        )
+        print(
+            "current policy: "
+            f"{review.current_policy_id}@{review.current_policy_revision} "
+            f"cardinality={review.minimum_selected}..{maximum}"
+        )
+    if review.candidates:
+        print(
+            "native_sequence | target | eligible_sources | reviewed_selected"
+        )
+        for row in review.candidates:
+            native = (
+                str(row.native_sequence)
+                if row.native_sequence is not None
+                else row.native_identifier or "opaque"
+            )
+            target = row.target_id or "none"
+            selected = "yes" if row.selected_in_reviewed_decision else "no"
+            print(
+                f"{native} | {target} | {row.eligible_evidence_count} | "
+                f"{selected}"
+            )
+    else:
+        print("No current attempt candidates are available.")
+    print("read-only; no attempt-selection state was written")
+
+
+def _grade_item_membership_selection_preview_to_dict(
+    preview: GradeItemMembershipSelectionPreview,
+) -> dict[str, object]:
+    decision = preview.target.decision
+    assignment = decision.academic_period
+    academic_period: dict[str, object] | None = None
+    if assignment is not None:
+        academic_period = {
+            "school_year": assignment.period.school_year,
+            "period_id": assignment.period.period_id,
+            "calendar_revision": assignment.calendar_revision,
+        }
+    return {
+        "class_id": preview.class_id,
+        "grade_item_id": preview.grade_item_id,
+        "work": {
+            "module_id": preview.work.module_id,
+            "class_id": preview.work.class_id,
+            "work_id": preview.work.work_id,
+        },
+        "target_revision": preview.target_revision,
+        "target_decision_sha256": preview.target.decision_sha256,
+        "target_decision": preview.target_decision,
+        "target_grade_item_revision": (
+            preview.target_grade_item_revision
+        ),
+        "target_grade_item_revision_sha256": (
+            decision.grade_item_revision_sha256
+        ),
+        "target_registration_revision": (
+            preview.target_registration_revision
+        ),
+        "academic_period": academic_period,
+        "history": list(preview.history),
+        "latest_revision": preview.latest_revision,
+        "target_is_latest": preview.target_is_latest,
+        "expected_current_membership_revision": (
+            preview.expected_current_membership_revision
+        ),
+    }
+
+
+def _render_grade_item_membership_selection_preview(
+    preview: GradeItemMembershipSelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": (
+                    _grade_item_membership_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "authoring_action": "not_performed",
+            }
+        )
+        return
+    decision = preview.target.decision
+    print("Grade Item membership current-selection preview")
+    print(f"Grade Item: {preview.grade_item_id}")
+    print(f"work: {preview.work.module_id}/{preview.work.work_id}")
+    print(f"target membership revision: {preview.target_revision}")
+    print(f"target decision: {preview.target_decision}")
+    print(
+        "target decision digest: "
+        f"{preview.target.decision_sha256}"
+    )
+    print(
+        "target Grade Item revision: "
+        f"{preview.target_grade_item_revision}"
+    )
+    print(
+        "target registration revision: "
+        f"{preview.target_registration_revision}"
+    )
+    assignment = decision.academic_period
+    if assignment is None:
+        print("target academic period: none")
+    else:
+        print(
+            "target academic period: "
+            f"{assignment.period.school_year}/"
+            f"{assignment.period.period_id} @ calendar revision "
+            f"{assignment.calendar_revision}"
+        )
+    print(f"latest persisted membership revision: {preview.latest_revision}")
+    print(
+        "target is latest: "
+        f"{'yes' if preview.target_is_latest else 'no'}"
+    )
+    current = preview.expected_current_membership_revision
+    print(
+        "currently selected membership revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact revision after live CAS revalidation")
+    else:
+        print("confirmation supplied: no")
+        print(
+            "NO MEMBERSHIP SELECTION PERFORMED; immutable history is "
+            "unchanged"
+        )
+        print("rerun with --confirm-select to authorize fresh selection")
+
+
+def _render_grade_item_membership_selection_result(
+    preview: GradeItemMembershipSelectionPreview,
+    result: GradeItemMembershipSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": (
+                    _grade_item_membership_selection_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "selection_disposition": (
+                        result.selection_disposition
+                    ),
+                    "previous_current_membership_revision": (
+                        result.previous_current_membership_revision
+                    ),
+                    "selected_revision": result.selected_revision,
+                    "selected_decision": result.selected_decision,
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Membership selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_membership_revision
+    print(
+        "previous current membership revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(f"selected decision: {result.selected_decision}")
+    print(
+        "membership authoring action: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
+
+
+def _grade_item_membership_assignment_to_dict(
+    assignment: GradeItemAcademicPeriodAssignment | None,
+) -> dict[str, object] | None:
+    if assignment is None:
+        return None
+    return {
+        "school_year": assignment.period.school_year,
+        "period_id": assignment.period.period_id,
+        "calendar_revision": assignment.calendar_revision,
+    }
+
+
+def _grade_item_membership_authoring_preview_to_dict(
+    preview: GradeItemMembershipAuthoringPreview,
+) -> dict[str, object]:
+    candidate = preview.candidate
+    work = candidate.work_reference.work
+    return {
+        "operation": preview.operation,
+        "class_id": candidate.class_id,
+        "grade_item_id": candidate.grade_item_id,
+        "grade_item_revision": candidate.grade_item_revision,
+        "grade_item_revision_sha256": (
+            candidate.grade_item_revision_sha256
+        ),
+        "work": {
+            "module_id": work.module_id,
+            "class_id": work.class_id,
+            "work_id": work.work_id,
+        },
+        "registration_revision": (
+            candidate.work_reference.registration_revision
+        ),
+        "membership_revision": candidate.membership_revision,
+        "supersedes_revision": candidate.supersedes_revision,
+        "decision": candidate.decision,
+        "academic_period": _grade_item_membership_assignment_to_dict(
+            candidate.academic_period
+        ),
+        "actor_id": candidate.actor_id,
+        "rationale": candidate.rationale,
+        "decided_at": candidate.decided_at.isoformat(),
+        "history": list(preview.history),
+        "latest_persisted_decision_sha256": (
+            preview.latest_persisted_decision_sha256
+        ),
+        "expected_current_grade_item_revision": (
+            preview.expected_current_grade_item_revision
+        ),
+        "expected_current_membership_revision": (
+            preview.expected_current_membership_revision
+        ),
+    }
+
+
+def _render_grade_item_membership_authoring_preview(
+    preview: GradeItemMembershipAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": (
+                    _grade_item_membership_authoring_preview_to_dict(
+                        preview
+                    )
+                ),
+                "selection_action": "not_performed",
+            }
+        )
+        return
+    candidate = preview.candidate
+    work = candidate.work_reference.work
+    print("Grade Item membership authoring preview")
+    print(f"operation: {preview.operation}")
+    print(f"Grade Item: {candidate.grade_item_id}")
+    print(f"Grade Item revision: {candidate.grade_item_revision}")
+    print(
+        "Grade Item revision digest: "
+        f"{candidate.grade_item_revision_sha256}"
+    )
+    print(f"work: {work.module_id}/{work.work_id}")
+    print(
+        "registration revision: "
+        f"{candidate.work_reference.registration_revision}"
+    )
+    print(f"membership revision: {candidate.membership_revision}")
+    print(f"decision: {candidate.decision}")
+    assignment = candidate.academic_period
+    if assignment is None:
+        print("academic period: none")
+    else:
+        print(
+            "academic period: "
+            f"{assignment.period.school_year}/"
+            f"{assignment.period.period_id} @ calendar revision "
+            f"{assignment.calendar_revision}"
+        )
+    print(f"actor: {candidate.actor_id}")
+    print(f"rationale: {candidate.rationale or 'none'}")
+    current = preview.expected_current_membership_revision
+    print(
+        "currently selected membership revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("writing this exact revision after live revalidation")
+    else:
+        print("confirmation supplied: no")
+        print(
+            "NO MEMBERSHIP WRITE PERFORMED; current membership selection "
+            "is unchanged"
+        )
+        print("rerun with --confirm-write to authorize a fresh write")
+
+
+def _render_grade_item_membership_authoring_result(
+    preview: GradeItemMembershipAuthoringPreview,
+    result: GradeItemMembershipAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": (
+                    _grade_item_membership_authoring_preview_to_dict(
+                        preview
+                    )
+                ),
+                "result": {
+                    "write_disposition": result.write_disposition,
+                    "written_revision": result.written_revision,
+                    "written_decision": result.written_decision,
+                    "previous_current_membership_revision": (
+                        result.previous_current_membership_revision
+                    ),
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        f"Membership revision {result.written_revision} written "
+        f"({result.write_disposition})"
+    )
+    previous = result.previous_current_membership_revision
+    print(
+        "previous current membership revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(
+        "membership selection action: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _grade_item_selection_preview_to_dict(
+    preview: GradeItemSelectionPreview,
+) -> dict[str, object]:
+    return {
+        "class_id": preview.class_id,
+        "grade_item_id": preview.grade_item_id,
+        "target_revision": preview.target_revision,
+        "target_revision_sha256": preview.target.revision_sha256,
+        "target_status": preview.target_status,
+        "history": list(preview.history),
+        "latest_revision": preview.latest_revision,
+        "target_is_latest": preview.target_is_latest,
+        "expected_current_revision": preview.expected_current_revision,
+    }
+
+
+def _render_grade_item_selection_preview(
+    preview: GradeItemSelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": _grade_item_selection_preview_to_dict(preview),
+                "authoring_action": "not_performed",
+            }
+        )
+        return
+    print("Grade Item current-selection preview")
+    print(f"Grade Item: {preview.grade_item_id}")
+    print(f"target revision: {preview.target_revision}")
+    print(f"target status: {preview.target_status}")
+    print(f"target revision digest: {preview.target.revision_sha256}")
+    print(f"latest persisted revision: {preview.latest_revision}")
+    print(
+        "target is latest: "
+        f"{'yes' if preview.target_is_latest else 'no'}"
+    )
+    current = preview.expected_current_revision
+    print(
+        "currently selected revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact revision after live CAS revalidation")
+    else:
+        print("confirmation supplied: no")
+        print("NO SELECTION PERFORMED; Grade Item history is unchanged")
+        print("rerun with --confirm-select to authorize a fresh selection")
+
+
+def _render_grade_item_selection_result(
+    preview: GradeItemSelectionPreview,
+    result: GradeItemSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": _grade_item_selection_preview_to_dict(preview),
+                "result": {
+                    "selection_disposition": result.selection_disposition,
+                    "previous_current_revision": (
+                        result.previous_current_revision
+                    ),
+                    "selected_revision": result.selected_revision,
+                    "selected_status": result.selected_status,
+                    "authoring_action": "not_performed",
+                },
+            }
+        )
+        return
+    print(
+        "Selection committed: Grade Item revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_revision
+    print(
+        "previous current revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(f"selected status: {result.selected_status}")
+    print("authoring action: not performed")
+
+
+def _grade_item_authoring_preview_to_dict(
+    preview: GradeItemAuthoringPreview,
+) -> dict[str, object]:
+    return {
+        "actor_id": preview.actor_id,
+        "operation": preview.operation,
+        "history_before": list(preview.history_before),
+        "latest_revision_sha256_before": (
+            preview.latest_revision_sha256_before
+        ),
+        "candidate_sha256": preview.candidate_sha256,
+        "candidate": grade_item_revision_to_dict(preview.candidate),
+    }
+
+
+def _render_grade_item_authoring_preview(
+    preview: GradeItemAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": _grade_item_authoring_preview_to_dict(preview),
+                "selection_action": "not_performed",
+            }
+        )
+        return
+    candidate = preview.candidate
+    print("Grade Item revision preview")
+    print(f"Grade Item: {candidate.grade_item_id}")
+    print(f"operation: {preview.operation}")
+    print(f"candidate revision: {candidate.grade_item_revision}")
+    print(f"status: {candidate.status}")
+    print(f"title: {candidate.title}")
+    print(f"purpose: {candidate.purpose}")
+    print(f"teacher actor context: {preview.actor_id}")
+    if candidate.weighting is not None:
+        category = candidate.weighting.category_id or "none"
+        relative = (
+            str(candidate.weighting.relative_weight)
+            if candidate.weighting.relative_weight is not None
+            else "none"
+        )
+        print(
+            "weighting metadata only: "
+            f"category={category} | relative_weight={relative}"
+        )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("committing this exact preview after live revalidation")
+    else:
+        print("confirmation supplied: no")
+        print("NO WRITE PERFORMED; current selection is unchanged")
+        print("rerun with --confirm-write to authorize a fresh commit")
+
+
+def _render_grade_item_authoring_result(
+    preview: GradeItemAuthoringPreview,
+    result: GradeItemAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": _grade_item_authoring_preview_to_dict(preview),
+                "result": {
+                    "write_disposition": result.write_disposition,
+                    "written_revision": (
+                        result.preview.candidate.grade_item_revision
+                    ),
+                    "stored_revision_sha256": (
+                        result.stored_revision_sha256
+                    ),
+                    "selected_revision_after": (
+                        result.selected_revision_after
+                    ),
+                    "selection_action": "not_performed",
+                },
+            }
+        )
+        return
+    revision = result.preview.candidate.grade_item_revision
+    print(
+        f"Write committed: Grade Item revision {revision} "
+        f"({result.write_disposition})"
+    )
+    selected = result.selected_revision_after
+    print(
+        "selected Grade Item revision remains: "
+        f"{selected if selected is not None else 'none'}"
+    )
+    print("selection action: not performed")
+
+
+def _render_grade_items_review(
+    review: GradeItemsReview, output_format: str
+) -> None:
+    if output_format == "json":
+        _print_json(grade_items_review_to_dict(review))
+        return
+    print(
+        f"Grade Items review: {review.class_id} | "
+        f"active={review.active_count} | archived={review.archived_count} | "
+        f"unselected={review.unselected_count}"
+    )
+    if not review.items:
+        print("No canonical Grade Items exist for this class.")
+        print("No Grade Item was inferred from publications or dates.")
+        return
+    for row in review.items:
+        selected = (
+            str(row.selected_revision)
+            if row.selected_revision is not None
+            else "none"
+        )
+        title = row.title or "(no selected revision)"
+        status = row.status or "unselected"
+        purpose = row.purpose or "none"
+        print(
+            f"{row.grade_item_id} | {row.selection_state} | "
+            f"selected={selected} | latest={row.latest_persisted_revision} | "
+            f"{status} | {title} | purpose={purpose}"
+        )
+        if row.weighting is not None:
+            category = row.weighting.category_id or "none"
+            relative = row.weighting.relative_weight or "none"
+            print(
+                "  weighting metadata only: "
+                f"category={category} | relative_weight={relative}"
+            )
+        for membership in row.memberships:
+            membership_selected = (
+                str(membership.selected_revision)
+                if membership.selected_revision is not None
+                else "none"
+            )
+            decision = membership.decision or "none"
+            registration = (
+                str(membership.registration_revision)
+                if membership.registration_revision is not None
+                else "none"
+            )
+            if membership.academic_period_id is None:
+                period = "none"
+            else:
+                period = (
+                    f"{membership.academic_period_school_year}/"
+                    f"{membership.academic_period_id}"
+                    f"@calendar-{membership.academic_period_calendar_revision}"
+                )
+            print(
+                f"  {membership.work.module_id}/{membership.work.work_id} | "
+                f"{membership.selection_state} | "
+                f"selected={membership_selected} | "
+                f"latest={membership.latest_persisted_revision} | "
+                f"decision={decision} | "
+                f"grade_item_basis={membership.grade_item_basis_state} | "
+                f"registration={registration} | period={period}"
+            )
+    print("read-only review; no Grade Item or membership state changed")
+
+
+def _render_new_evidence_review(
+    review: NewEvidenceReview, output_format: str
+) -> None:
+    if output_format == "json":
+        _print_json(new_evidence_review_to_dict(review))
+        return
+    print(f"New Evidence review | Grade Item: {review.grade_item_id}")
+    print(
+        "work: "
+        f"{review.work.module_id}/{review.work.class_id}/{review.work.work_id}"
+    )
+    print(f"publication: {review.publication_id}")
+    print(f"projection source: {review.projection_source_status}")
+    membership: str = review.membership_state
+    if review.membership_revision is not None:
+        membership += f"@{review.membership_revision}"
+    print(f"membership: {membership}")
+    if review.academic_period_id is not None:
+        print(
+            "academic period: "
+            f"{review.academic_period_id}@calendar-"
+            f"{review.academic_period_calendar_revision}"
+        )
+    print(f"attention: {review.attention_count}/{len(review.rows)} evidence rows")
+    if review.status_summary:
+        print("status summary:")
+        for item in review.status_summary:
+            print(f"  {item.status}: {item.count}")
+    if not review.rows:
+        print("No evidence rows are present in this authorized projection.")
+    else:
+        print(
+            "item | student | target | result_kind | membership | eligibility | "
+            "source_state | attention | next"
+        )
+        for row in review.rows:
+            student = row.student_id or "none"
+            target = f"{row.target_kind}/{row.target_id or 'none'}"
+            eligibility = row.eligibility_status or "not_evaluated"
+            source_state = row.eligibility_source_state or "not_evaluated"
+            attention = "yes" if row.attention_required else "no"
+            next_task = row.recommended_task or "none"
+            print(
+                f"{row.source.item_id} | {student} | {target} | "
+                f"{row.result_kind} | {row.membership_state} | {eligibility} | "
+                f"{source_state} | {attention} | {next_task}"
+            )
+    print("read-only; no Meridian or Core state was written")
+
+
+def _render_teacher_workflow_catalog(
+    catalog: TeacherWorkflowCatalog, output_format: str
+) -> None:
+    if output_format == "json":
+        _print_json(teacher_workflow_catalog_to_dict(catalog))
+        return
+    print("Issue #41 teacher workflows:")
+    for index, task in enumerate(catalog.tasks, start=1):
+        print(f"{index}. {task.task_id} | {task.title}")
+        print(f"   {task.summary}")
+        print(f"   write boundary: {task.write_boundary}")
+    print("catalog only; this command performs no workflow write")
 
 
 def _render_publication_list(
@@ -569,7 +4747,34 @@ def main(
         return 0
     try:
         return int(handler(args, dependencies))
-    except (PublicationIngestionError, DiagnosticsError, ProjectionCacheError) as error:
+    except (
+        PublicationIngestionError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        NewEvidenceEligibilityAuthoringError,
+        NewEvidenceEligibilitySelectionError,
+        NewEvidenceWorkflowError,
+        EvidenceEligibilityStorageError,
+        AttemptDecisionAuthoringWorkflowError,
+        AttemptDecisionSelectionWorkflowError,
+        ExclusionsWorkflowError,
+        ExclusionEligibilityAuthoringError,
+        ExclusionEligibilitySelectionError,
+        StandardsReviewWorkflowError,
+        StandardsAssociationAuthoringError,
+        StandardsAssociationSelectionError,
+        AttemptDecisionWorkflowError,
+        AttemptPolicyAuthoringWorkflowError,
+        AttemptPolicySelectionWorkflowError,
+        AttemptSelectionStorageError,
+        GradeItemAuthoringWorkflowError,
+        GradeItemMembershipStorageError,
+        GradeItemMembershipAuthoringError,
+        GradeItemMembershipSelectionWorkflowError,
+        GradeItemSelectionWorkflowError,
+        GradeItemStorageError,
+        GradeItemsWorkflowError,
+    ) as error:
         print(f"error: {error.code}", file=sys.stderr)
         return 1
     except (ValueError, TypeError) as error:
