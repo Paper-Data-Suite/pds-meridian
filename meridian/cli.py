@@ -20,6 +20,21 @@ from pds_core.publication_records import PUBLICATION_CAPABILITIES
 from pds_core.routing_models import ModuleWorkRef, RoutingModelError
 
 from meridian import __version__
+from meridian.academic_period_calculation_assembly_workflow import (
+    AcademicPeriodCalculationAssemblyError,
+    AcademicPeriodCalculationAssemblyScopeError,
+    AcademicPeriodCalculationCandidateSpec,
+    AcademicPeriodMembershipSpec,
+    BoundedAcademicPeriodCalculationPreview,
+    build_bounded_academic_period_calculation_preview,
+)
+from meridian.academic_period_calculation_preview_workflow import (
+    AcademicPeriodCalculationPreviewWorkflowError,
+)
+from meridian.academic_period_proficiency import (
+    AcademicPeriodProficiencyAggregationPolicyReference,
+    AcademicPeriodProficiencyTarget,
+)
 from meridian.attempt_decision_authoring_workflow import (
     AttemptDecisionAuthoringPreview,
     AttemptDecisionAuthoringResult,
@@ -61,6 +76,30 @@ from meridian.attempt_selection_storage import (
     AttemptSelectionStorageError,
     derive_attempt_candidates,
 )
+from meridian.calculation_preview_assembly_workflow import (
+    BoundedCalculationPreview,
+    CalculationPreviewAssemblyDependencyError,
+    CalculationPreviewAssemblyError,
+    CalculationPreviewAssemblyScopeError,
+    build_bounded_calculation_preview,
+)
+from meridian.calculation_preview_workflow import (
+    CalculationPreviewWorkflowError,
+)
+from meridian.calculation_result_persistence_workflow import (
+    CalculationResultPersistenceError,
+    CalculationResultPersistencePreview,
+    CalculationResultPersistenceWorkflowResult,
+    commit_calculation_result_persistence_preview,
+    preview_calculation_result_persistence,
+)
+from meridian.calculation_result_selection_workflow import (
+    CalculationResultSelectionError,
+    CalculationResultSelectionPreview,
+    CalculationResultSelectionWorkflowResult,
+    commit_calculation_result_selection_preview,
+    preview_calculation_result_selection,
+)
 from meridian.diagnostics import (
     DiagnosticsDependencies,
     DiagnosticsError,
@@ -86,6 +125,7 @@ from meridian.evidence import (
     NativeScaledValue,
     NativeStateValue,
 )
+from meridian.evidence_eligibility import EvidenceSourceReference
 from meridian.evidence_eligibility_storage import EvidenceEligibilityStorageError
 from meridian.exclusions_eligibility_authoring_workflow import (
     ExclusionAcademicDisposition,
@@ -195,6 +235,12 @@ from meridian.standards_association_selection_workflow import (
     StandardsAssociationSelectionWorkflowResult,
     commit_standards_association_selection_preview,
     preview_standards_association_selection,
+)
+from meridian.standards_evidence_storage import (
+    StandardAggregationCandidateBinding,
+)
+from meridian.standards_proficiency import (
+    StandardProficiencyCalculationPolicyReference,
 )
 from meridian.standards_review_workflow import (
     StandardsReviewProjection,
@@ -1131,6 +1177,245 @@ def build_parser() -> argparse.ArgumentParser:
         handler=_handle_standards_association_selection,
         show_group_help=None,
     )
+    calculation_preview_parser = workflow_commands.add_parser(
+        "calculation-preview",
+        help=(
+            "Preview one bounded Grade Item standards-proficiency calculation."
+        ),
+        description=(
+            "Resolve only explicitly supplied evidence bindings into one "
+            "exact #33 aggregation input snapshot, then run the pure #34 "
+            "calculation. This command never writes or selects a result."
+        ),
+    )
+    calculation_preview_parser.add_argument("class_id")
+    calculation_preview_parser.add_argument("grade_item_id")
+    calculation_preview_parser.add_argument("student_id")
+    calculation_preview_parser.add_argument("standard_id")
+    calculation_preview_parser.add_argument("scale_id")
+    calculation_preview_parser.add_argument(
+        "scale_revision", type=_positive_integer
+    )
+    calculation_preview_parser.add_argument(
+        "scale_sha256", type=_sha256_argument
+    )
+    calculation_preview_parser.add_argument("policy_id")
+    calculation_preview_parser.add_argument(
+        "policy_revision", type=_positive_integer
+    )
+    calculation_preview_parser.add_argument(
+        "policy_sha256", type=_sha256_argument
+    )
+    _add_workspace_argument(calculation_preview_parser)
+    _add_evidence_authorization_arguments(calculation_preview_parser)
+    calculation_preview_parser.add_argument(
+        "--binding",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=("PUBLICATION_ID", "CACHE_KEY", "ITEM_ID"),
+        help=(
+            "Explicit evidence candidate; repeat as needed. An empty "
+            "binding set is allowed and is never populated implicitly."
+        ),
+    )
+    calculation_preview_parser.add_argument(
+        "--binding-profile",
+        nargs=7,
+        action="append",
+        default=[],
+        metavar=(
+            "PUBLICATION_ID",
+            "CACHE_KEY",
+            "ITEM_ID",
+            "SCALE_ID",
+            "PROFILE_ID",
+            "PROFILE_REVISION",
+            "PROFILE_SHA256",
+        ),
+        help=(
+            "Attach one exact #32 mapping profile to one explicitly "
+            "named --binding. Repeat for bindings that need profiles."
+        ),
+    )
+    _add_format_argument(calculation_preview_parser)
+    calculation_preview_parser.set_defaults(
+        handler=_handle_calculation_preview,
+        show_group_help=None,
+    )
+    calculation_write_parser = workflow_commands.add_parser(
+        "calculation-result-write",
+        help=(
+            "Preview or write one immutable Grade Item proficiency result."
+        ),
+        description=(
+            "Rebuild one exact bounded Calculation Preview, freeze the "
+            "next immutable #34 result revision, and only with "
+            "--confirm-write persist it after live revalidation. Writing "
+            "never changes the current result selection."
+        ),
+    )
+    calculation_write_parser.add_argument("class_id")
+    calculation_write_parser.add_argument("grade_item_id")
+    calculation_write_parser.add_argument("student_id")
+    calculation_write_parser.add_argument("standard_id")
+    calculation_write_parser.add_argument("scale_id")
+    calculation_write_parser.add_argument(
+        "scale_revision", type=_positive_integer
+    )
+    calculation_write_parser.add_argument(
+        "scale_sha256", type=_sha256_argument
+    )
+    calculation_write_parser.add_argument("policy_id")
+    calculation_write_parser.add_argument(
+        "policy_revision", type=_positive_integer
+    )
+    calculation_write_parser.add_argument(
+        "policy_sha256", type=_sha256_argument
+    )
+    _add_workspace_argument(calculation_write_parser)
+    _add_evidence_authorization_arguments(calculation_write_parser)
+    calculation_write_parser.add_argument(
+        "--binding",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=("PUBLICATION_ID", "CACHE_KEY", "ITEM_ID"),
+    )
+    calculation_write_parser.add_argument(
+        "--binding-profile",
+        nargs=7,
+        action="append",
+        default=[],
+        metavar=(
+            "PUBLICATION_ID",
+            "CACHE_KEY",
+            "ITEM_ID",
+            "SCALE_ID",
+            "PROFILE_ID",
+            "PROFILE_REVISION",
+            "PROFILE_SHA256",
+        ),
+    )
+    calculation_write_parser.add_argument("--actor-id", required=True)
+    calculation_write_parser.add_argument(
+        "--calculated-at",
+        required=True,
+        type=_datetime_argument,
+    )
+    calculation_write_parser.add_argument(
+        "--confirm-write",
+        action="store_true",
+        help=(
+            "Write the exact previewed immutable result after live "
+            "calculation/history revalidation."
+        ),
+    )
+    _add_format_argument(calculation_write_parser)
+    calculation_write_parser.set_defaults(
+        handler=_handle_calculation_result_persistence,
+        show_group_help=None,
+    )
+    calculation_select_parser = workflow_commands.add_parser(
+        "calculation-result-select",
+        help=(
+            "Preview or select one persisted Grade Item proficiency result."
+        ),
+        description=(
+            "Preview one exact persisted #34 Grade Item proficiency result "
+            "revision. Only --confirm-select mutates the current-result "
+            "pointer with CAS. No result is authored or recalculated."
+        ),
+    )
+    calculation_select_parser.add_argument("class_id")
+    calculation_select_parser.add_argument("grade_item_id")
+    calculation_select_parser.add_argument("student_id")
+    calculation_select_parser.add_argument("standard_id")
+    calculation_select_parser.add_argument(
+        "result_revision", type=_positive_integer
+    )
+    _add_workspace_argument(calculation_select_parser)
+    calculation_select_parser.add_argument(
+        "--confirm-select",
+        action="store_true",
+        help=(
+            "Select the exact previewed persisted result revision "
+            "after history/target/current-pointer revalidation."
+        ),
+    )
+    _add_format_argument(calculation_select_parser)
+    calculation_select_parser.set_defaults(
+        handler=_handle_calculation_result_selection,
+        show_group_help=None,
+    )
+    period_preview_parser = workflow_commands.add_parser(
+        "academic-period-calculation-preview",
+        help=(
+            "Preview one bounded Academic Period proficiency calculation."
+        ),
+        description=(
+            "Assemble only explicitly named Grade Item, membership, and "
+            "optional #34 result revisions into exact #35 inputs, then "
+            "run the pure Academic Period proficiency calculation. No "
+            "result is written or selected."
+        ),
+    )
+    period_preview_parser.add_argument("class_id")
+    period_preview_parser.add_argument("school_year")
+    period_preview_parser.add_argument("period_id")
+    period_preview_parser.add_argument(
+        "calendar_revision", type=_positive_integer
+    )
+    period_preview_parser.add_argument("student_id")
+    period_preview_parser.add_argument("standard_id")
+    period_preview_parser.add_argument("policy_id")
+    period_preview_parser.add_argument(
+        "policy_revision", type=_positive_integer
+    )
+    period_preview_parser.add_argument(
+        "policy_sha256", type=_sha256_argument
+    )
+    _add_workspace_argument(period_preview_parser)
+    period_preview_parser.add_argument(
+        "--candidate",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=(
+            "GRADE_ITEM_ID",
+            "GRADE_ITEM_REVISION",
+            "GRADE_ITEM_SHA256",
+        ),
+    )
+    period_preview_parser.add_argument(
+        "--candidate-membership",
+        nargs=5,
+        action="append",
+        default=[],
+        metavar=(
+            "GRADE_ITEM_ID",
+            "MODULE_ID",
+            "WORK_ID",
+            "MEMBERSHIP_REVISION",
+            "MEMBERSHIP_SHA256",
+        ),
+    )
+    period_preview_parser.add_argument(
+        "--candidate-result",
+        nargs=3,
+        action="append",
+        default=[],
+        metavar=(
+            "GRADE_ITEM_ID",
+            "RESULT_REVISION",
+            "RESULT_SHA256",
+        ),
+    )
+    _add_format_argument(period_preview_parser)
+    period_preview_parser.set_defaults(
+        handler=_handle_academic_period_calculation_preview,
+        show_group_help=None,
+    )
     workflow.set_defaults(show_group_help=workflow)
 
     return parser
@@ -1300,6 +1585,440 @@ def _handle_new_evidence_review(
         authorized,
     )
     _render_new_evidence_review(review, args.format)
+    return 0
+
+
+def _calculation_binding_profile_specs(
+    args: argparse.Namespace,
+) -> dict[tuple[str, str, str], tuple[str, str, int, str]]:
+    binding_keys = tuple(tuple(values) for values in args.binding)
+    if len(set(binding_keys)) != len(binding_keys):
+        raise CalculationPreviewAssemblyScopeError(
+            "Calculation Preview --binding values must not duplicate "
+            "the same publication/cache/item triple."
+        )
+    profiles: dict[tuple[str, str, str], tuple[str, str, int, str]] = {}
+    binding_key_set = set(binding_keys)
+    for raw in args.binding_profile:
+        (
+            publication_id,
+            cache_key,
+            item_id,
+            scale_id,
+            profile_id,
+            revision,
+            sha256,
+        ) = raw
+        key = (publication_id, cache_key, item_id)
+        if key not in binding_key_set:
+            raise CalculationPreviewAssemblyScopeError(
+                "Every --binding-profile must identify an explicit --binding."
+            )
+        if key in profiles:
+            raise CalculationPreviewAssemblyScopeError(
+                "A Calculation Preview binding may have at most one mapping profile."
+            )
+        try:
+            profile_revision = _positive_integer(revision)
+            profile_sha256 = _sha256_argument(sha256)
+        except argparse.ArgumentTypeError as error:
+            raise CalculationPreviewAssemblyScopeError(str(error)) from error
+        profiles[key] = (
+            scale_id,
+            profile_id,
+            profile_revision,
+            profile_sha256,
+        )
+    return profiles
+
+
+def _build_calculation_result_review_from_args(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> BoundedCalculationPreview:
+    profile_specs = _calculation_binding_profile_specs(args)
+    target_scale = ProficiencyScaleReference(
+        class_id=args.class_id,
+        scale_id=args.scale_id,
+        scale_revision=args.scale_revision,
+        scale_sha256=args.scale_sha256,
+    )
+    policy_reference = StandardProficiencyCalculationPolicyReference(
+        class_id=args.class_id,
+        policy_id=args.policy_id,
+        policy_revision=args.policy_revision,
+        policy_sha256=args.policy_sha256,
+    )
+    bindings: list[StandardAggregationCandidateBinding] = []
+    for publication_id, cache_key, item_id in args.binding:
+        inspection = inspect_evidence_diagnostic(
+            str(args.workspace),
+            publication_id,
+            cache_key,
+            authorization_purpose_id=args.purpose_id,
+            requested_student_ids=tuple(args.scope_student_id),
+            filters=EvidenceFilters(item_ids=(item_id,)),
+            dependencies=_dependencies(dependencies),
+        )
+        if len(inspection.items) != 1 or inspection.items[0].item_id != item_id:
+            raise CalculationPreviewAssemblyDependencyError(
+                "Explicit Calculation Preview binding must resolve to exactly "
+                "one authorized evidence item."
+            )
+        authorized = inspection.authorized
+        stored = authorized.stored
+        publication = stored.snapshot.source.publication
+        if publication.work.class_id != args.class_id:
+            raise CalculationPreviewAssemblyScopeError(
+                "Every authorized binding must belong to the requested class."
+            )
+        source = EvidenceSourceReference(
+            work=publication.work,
+            publication_id=publication.publication_id,
+            cache_key=stored.cache_key,
+            snapshot_digest=stored.snapshot_digest,
+            item_id=item_id,
+        )
+        profile_spec = profile_specs.get(
+            (publication_id, cache_key, item_id)
+        )
+        mapping_profile = None
+        if profile_spec is not None:
+            (
+                scale_id,
+                profile_id,
+                profile_revision,
+                profile_sha256,
+            ) = profile_spec
+            mapping_profile = NativeValueMappingProfileReference(
+                class_id=args.class_id,
+                scale_id=scale_id,
+                profile_id=profile_id,
+                profile_revision=profile_revision,
+                profile_sha256=profile_sha256,
+            )
+        bindings.append(
+            StandardAggregationCandidateBinding(
+                source=source,
+                authorized_snapshot=authorized,
+                mapping_profile=mapping_profile,
+                attempt=None,
+            )
+        )
+    return build_bounded_calculation_preview(
+        str(args.workspace),
+        args.grade_item_id,
+        args.student_id,
+        args.standard_id,
+        target_scale,
+        tuple(bindings),
+        policy_reference,
+    )
+
+
+def _academic_period_candidate_specs(
+    args: argparse.Namespace,
+) -> tuple[AcademicPeriodCalculationCandidateSpec, ...]:
+    declared: dict[str, tuple[int, str]] = {}
+    for grade_item_id, raw_revision, raw_sha256 in args.candidate:
+        if grade_item_id in declared:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                "Academic Period --candidate must not duplicate a Grade Item."
+            )
+        try:
+            revision = _positive_integer(raw_revision)
+            sha256 = _sha256_argument(raw_sha256)
+        except argparse.ArgumentTypeError as error:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                str(error)
+            ) from error
+        declared[grade_item_id] = (revision, sha256)
+
+    memberships: dict[str, list[AcademicPeriodMembershipSpec]] = {
+        grade_item_id: [] for grade_item_id in declared
+    }
+    membership_keys: set[tuple[str, str, str]] = set()
+    for raw in args.candidate_membership:
+        (
+            grade_item_id,
+            module_id,
+            work_id,
+            raw_revision,
+            raw_sha256,
+        ) = raw
+        if grade_item_id not in declared:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                "Every --candidate-membership must identify a declared "
+                "--candidate."
+            )
+        key = (grade_item_id, module_id, work_id)
+        if key in membership_keys:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                "A candidate membership work relationship must not duplicate."
+            )
+        membership_keys.add(key)
+        try:
+            revision = _positive_integer(raw_revision)
+            sha256 = _sha256_argument(raw_sha256)
+            work = ModuleWorkRef(
+                module_id=module_id,
+                class_id=args.class_id,
+                work_id=work_id,
+            )
+        except (argparse.ArgumentTypeError, RoutingModelError) as error:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                str(error)
+            ) from error
+        memberships[grade_item_id].append(
+            AcademicPeriodMembershipSpec(
+                work=work,
+                membership_revision=revision,
+                membership_sha256=sha256,
+            )
+        )
+
+    results: dict[str, tuple[int, str]] = {}
+    for grade_item_id, raw_revision, raw_sha256 in args.candidate_result:
+        if grade_item_id not in declared:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                "Every --candidate-result must identify a declared --candidate."
+            )
+        if grade_item_id in results:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                "A Grade Item candidate may have at most one exact #34 result."
+            )
+        try:
+            revision = _positive_integer(raw_revision)
+            sha256 = _sha256_argument(raw_sha256)
+        except argparse.ArgumentTypeError as error:
+            raise AcademicPeriodCalculationAssemblyScopeError(
+                str(error)
+            ) from error
+        results[grade_item_id] = (revision, sha256)
+
+    specs: list[AcademicPeriodCalculationCandidateSpec] = []
+    for grade_item_id in sorted(declared):
+        grade_item_revision, grade_item_sha256 = declared[grade_item_id]
+        result = results.get(grade_item_id)
+        specs.append(
+            AcademicPeriodCalculationCandidateSpec(
+                grade_item_id=grade_item_id,
+                grade_item_revision=grade_item_revision,
+                grade_item_revision_sha256=grade_item_sha256,
+                memberships=tuple(
+                    sorted(
+                        memberships[grade_item_id],
+                        key=lambda value: (
+                            value.work.module_id,
+                            value.work.work_id,
+                        ),
+                    )
+                ),
+                result_revision=None if result is None else result[0],
+                result_sha256=None if result is None else result[1],
+            )
+        )
+    return tuple(specs)
+
+
+def _handle_academic_period_calculation_preview(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    try:
+        target = AcademicPeriodProficiencyTarget(
+            period=AcademicPeriodRef(
+                school_year=args.school_year,
+                period_id=args.period_id,
+            ),
+            calendar_revision=args.calendar_revision,
+        )
+        policy_reference = AcademicPeriodProficiencyAggregationPolicyReference(
+            class_id=args.class_id,
+            policy_id=args.policy_id,
+            policy_revision=args.policy_revision,
+            policy_sha256=args.policy_sha256,
+        )
+    except (AcademicPeriodValidationError, ValueError) as error:
+        raise AcademicPeriodCalculationAssemblyScopeError(str(error)) from error
+
+    preview = build_bounded_academic_period_calculation_preview(
+        str(args.workspace),
+        target,
+        args.student_id,
+        args.standard_id,
+        _academic_period_candidate_specs(args),
+        policy_reference,
+    )
+    _render_academic_period_calculation_preview(preview, args.format)
+    return 0
+
+
+def _handle_calculation_result_selection(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    preview = preview_calculation_result_selection(
+        str(args.workspace),
+        args.class_id,
+        args.grade_item_id,
+        args.student_id,
+        args.standard_id,
+        args.result_revision,
+    )
+    if not args.confirm_select:
+        _render_calculation_result_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_calculation_result_selection_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_calculation_result_selection_preview(
+        str(args.workspace),
+        preview,
+    )
+    _render_calculation_result_selection_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_calculation_result_persistence(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    reviewed = _build_calculation_result_review_from_args(
+        args,
+        dependencies,
+    )
+    preview = preview_calculation_result_persistence(
+        str(args.workspace),
+        reviewed,
+        actor_id=args.actor_id,
+        calculated_at=args.calculated_at,
+    )
+    if not args.confirm_write:
+        _render_calculation_result_persistence_preview(
+            preview,
+            args.format,
+            confirmation_supplied=False,
+        )
+        return 0
+    if args.format == "text":
+        _render_calculation_result_persistence_preview(
+            preview,
+            args.format,
+            confirmation_supplied=True,
+        )
+        sys.stdout.flush()
+    result = commit_calculation_result_persistence_preview(
+        str(args.workspace),
+        preview,
+    )
+    _render_calculation_result_persistence_result(
+        preview,
+        result,
+        args.format,
+    )
+    return 0
+
+
+def _handle_calculation_preview(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    profile_specs = _calculation_binding_profile_specs(args)
+    target_scale = ProficiencyScaleReference(
+        class_id=args.class_id,
+        scale_id=args.scale_id,
+        scale_revision=args.scale_revision,
+        scale_sha256=args.scale_sha256,
+    )
+    policy_reference = StandardProficiencyCalculationPolicyReference(
+        class_id=args.class_id,
+        policy_id=args.policy_id,
+        policy_revision=args.policy_revision,
+        policy_sha256=args.policy_sha256,
+    )
+
+    bindings: list[StandardAggregationCandidateBinding] = []
+    for publication_id, cache_key, item_id in args.binding:
+        inspection = inspect_evidence_diagnostic(
+            str(args.workspace),
+            publication_id,
+            cache_key,
+            authorization_purpose_id=args.purpose_id,
+            requested_student_ids=tuple(args.scope_student_id),
+            filters=EvidenceFilters(item_ids=(item_id,)),
+            dependencies=_dependencies(dependencies),
+        )
+        if len(inspection.items) != 1 or inspection.items[0].item_id != item_id:
+            raise CalculationPreviewAssemblyDependencyError(
+                "Explicit Calculation Preview binding must resolve to exactly "
+                "one authorized evidence item."
+            )
+        authorized = inspection.authorized
+        stored = authorized.stored
+        publication = stored.snapshot.source.publication
+        if publication.work.class_id != args.class_id:
+            raise CalculationPreviewAssemblyScopeError(
+                "Every authorized binding must belong to the requested class."
+            )
+        source = EvidenceSourceReference(
+            work=publication.work,
+            publication_id=publication.publication_id,
+            cache_key=stored.cache_key,
+            snapshot_digest=stored.snapshot_digest,
+            item_id=item_id,
+        )
+        profile_spec = profile_specs.get(
+            (publication_id, cache_key, item_id)
+        )
+        mapping_profile = None
+        if profile_spec is not None:
+            (
+                scale_id,
+                profile_id,
+                profile_revision,
+                profile_sha256,
+            ) = profile_spec
+            mapping_profile = NativeValueMappingProfileReference(
+                class_id=args.class_id,
+                scale_id=scale_id,
+                profile_id=profile_id,
+                profile_revision=profile_revision,
+                profile_sha256=profile_sha256,
+            )
+        bindings.append(
+            StandardAggregationCandidateBinding(
+                source=source,
+                authorized_snapshot=authorized,
+                mapping_profile=mapping_profile,
+                attempt=None,
+            )
+        )
+
+    preview = build_bounded_calculation_preview(
+        str(args.workspace),
+        args.grade_item_id,
+        args.student_id,
+        args.standard_id,
+        target_scale,
+        tuple(bindings),
+        policy_reference,
+    )
+    _render_calculation_preview(preview, args.format)
     return 0
 
 
@@ -2494,6 +3213,649 @@ def _render_new_evidence_eligibility_selection_result(
     )
     print(f"selected disposition: {result.selected_disposition}")
     print("authoring action: not performed")
+
+
+def _academic_period_calculation_preview_to_dict(
+    preview: BoundedAcademicPeriodCalculationPreview,
+) -> dict[str, object]:
+    calculation = preview.calculation
+    outcome = calculation.outcome
+    tie = outcome.tie_resolution
+    return {
+        "scope": {
+            "class_id": calculation.class_id,
+            "school_year": calculation.school_year,
+            "period_id": calculation.period_id,
+            "calendar_revision": calculation.calendar_revision,
+            "period_label": calculation.target_period_title,
+            "student_id": calculation.student_id,
+            "standard_id": calculation.standard_id,
+        },
+        "candidates": {
+            "count": preview.candidate_count,
+            "grade_item_ids": list(preview.grade_item_ids),
+        },
+        "inputs": {
+            "sha256": calculation.inputs_sha256,
+            "entry_count": calculation.input_entry_count,
+            "target_scale": {
+                "scale_id": preview.inputs.target_scale.scale_id,
+                "scale_revision": preview.inputs.target_scale.scale_revision,
+                "scale_sha256": preview.inputs.target_scale.scale_sha256,
+            },
+            "status_counts": [
+                {"status": status, "count": count}
+                for status, count in calculation.input_status_counts
+            ],
+        },
+        "policy": {
+            "policy_id": calculation.policy_reference.policy_id,
+            "policy_revision": calculation.policy_reference.policy_revision,
+            "policy_sha256": calculation.policy_reference.policy_sha256,
+            "title": calculation.policy_title,
+            "strategy": calculation.strategy,
+            "period_membership_scope": calculation.period_membership_scope,
+            "minimum_calculated_results": (
+                calculation.minimum_calculated_results
+            ),
+            "mode_tie_rule": calculation.mode_tie_rule,
+            "median_even_rule": calculation.median_even_rule,
+            "missing_result_handling": calculation.missing_result_handling,
+            "insufficient_result_handling": (
+                calculation.insufficient_result_handling
+            ),
+        },
+        "outcome": {
+            "status": outcome.status,
+            "proficiency_level_id": outcome.proficiency_level_id,
+            "calculation_fingerprint": outcome.calculation_fingerprint,
+            "candidate_count": outcome.candidate_count,
+            "calculated_result_count": outcome.calculated_result_count,
+            "insufficient_result_count": outcome.insufficient_result_count,
+            "missing_result_count": outcome.missing_result_count,
+            "period_scope_mismatch_count": (
+                outcome.period_scope_mismatch_count
+            ),
+            "insufficiency_reasons": [
+                {
+                    "kind": reason.kind,
+                    "grade_item_ids": list(reason.grade_item_ids),
+                    "required_results": reason.required_results,
+                    "actual_results": reason.actual_results,
+                }
+                for reason in outcome.insufficiency_reasons
+            ],
+            "tie_resolution": (
+                None
+                if tie is None
+                else {
+                    "kind": tie.kind,
+                    "rule": tie.rule,
+                    "candidate_level_ids": list(tie.candidate_level_ids),
+                    "selected_level_id": tie.selected_level_id,
+                }
+            ),
+        },
+        "result_state": {
+            "history": list(calculation.result_history),
+            "next_revision": calculation.next_result_revision,
+            "current_revision": calculation.current_result_revision,
+        },
+        "result_write_performed": preview.result_write_performed,
+        "result_selection_performed": preview.result_selection_performed,
+    }
+
+
+def _render_academic_period_calculation_preview(
+    preview: BoundedAcademicPeriodCalculationPreview,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_academic_period_calculation_preview_to_dict(preview))
+        return
+    calculation = preview.calculation
+    outcome = calculation.outcome
+    print("Academic Period Calculation Preview")
+    print(f"class: {calculation.class_id}")
+    print(
+        "Academic Period: "
+        f"{calculation.target_period_title} | "
+        f"{calculation.school_year}/{calculation.period_id} | "
+        f"calendar revision {calculation.calendar_revision}"
+    )
+    print(f"student: {calculation.student_id}")
+    print(f"Standard: {calculation.standard_id}")
+    print(f"candidate count: {preview.candidate_count}")
+    print(
+        "candidate Grade Items: "
+        + (", ".join(preview.grade_item_ids) or "none")
+    )
+    print(f"aggregation inputs SHA-256: {calculation.inputs_sha256}")
+    print(
+        "target scale: "
+        f"{preview.inputs.target_scale.scale_id}@"
+        f"{preview.inputs.target_scale.scale_revision}"
+    )
+    print(
+        "period policy: "
+        f"{calculation.policy_reference.policy_id}@"
+        f"{calculation.policy_reference.policy_revision} | "
+        f"{calculation.policy_title}"
+    )
+    print(f"strategy: {calculation.strategy}")
+    print(
+        "period membership scope: "
+        f"{calculation.period_membership_scope}"
+    )
+    print(
+        "minimum calculated results: "
+        f"{calculation.minimum_calculated_results}"
+    )
+    print(
+        "missing-result handling: "
+        f"{calculation.missing_result_handling}"
+    )
+    print(
+        "insufficient-result handling: "
+        f"{calculation.insufficient_result_handling}"
+    )
+    if calculation.input_status_counts:
+        print("input status counts:")
+        for input_status, count in calculation.input_status_counts:
+            print(f"  {input_status}: {count}")
+    print(f"calculation status: {outcome.status}")
+    print(
+        "proficiency level: "
+        f"{outcome.proficiency_level_id or 'none'}"
+    )
+    print(
+        "result counts: "
+        f"calculated={outcome.calculated_result_count} | "
+        f"insufficient={outcome.insufficient_result_count} | "
+        f"missing={outcome.missing_result_count} | "
+        f"period_scope_mismatch={outcome.period_scope_mismatch_count}"
+    )
+    if outcome.insufficiency_reasons:
+        print("insufficiency reasons:")
+        for insufficiency_reason in outcome.insufficiency_reasons:
+            detail: str = insufficiency_reason.kind
+            if insufficiency_reason.grade_item_ids:
+                detail += (
+                    " | Grade Items="
+                    + ",".join(insufficiency_reason.grade_item_ids)
+                )
+            if insufficiency_reason.required_results is not None:
+                detail += (
+                    f" | required={insufficiency_reason.required_results}"
+                )
+            if insufficiency_reason.actual_results is not None:
+                detail += (
+                    f" | actual={insufficiency_reason.actual_results}"
+                )
+            print(f"  {detail}")
+    tie = outcome.tie_resolution
+    if tie is not None:
+        print(
+            "tie resolution: "
+            f"{tie.kind} | rule={tie.rule} | "
+            f"selected={tie.selected_level_id or 'none'}"
+        )
+    print(f"calculation fingerprint: {outcome.calculation_fingerprint}")
+    history = ", ".join(str(value) for value in calculation.result_history)
+    print(f"persisted period-result history: {history or 'none'}")
+    print(
+        "next period-result revision if confirmed later: "
+        f"{calculation.next_result_revision}"
+    )
+    current = calculation.current_result_revision
+    print(
+        "currently selected period-result revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    print("NO ACADEMIC PERIOD PROFICIENCY RESULT WRITTEN")
+    print("NO CURRENT ACADEMIC PERIOD RESULT SELECTION CHANGED")
+
+
+def _calculation_result_selection_preview_to_dict(
+    preview: CalculationResultSelectionPreview,
+) -> dict[str, object]:
+    return {
+        "class_id": preview.class_id,
+        "grade_item_id": preview.grade_item_id,
+        "student_id": preview.student_id,
+        "standard_id": preview.standard_id,
+        "target_revision": preview.target_revision,
+        "target_result_sha256": preview.target_result_sha256,
+        "target_status": preview.target_status,
+        "target_proficiency_level_id": (
+            preview.target_proficiency_level_id
+        ),
+        "target_calculation_fingerprint": (
+            preview.target_calculation_fingerprint
+        ),
+        "history": list(preview.history),
+        "target_is_latest": preview.target_is_latest,
+        "expected_current_result_revision": (
+            preview.expected_current_result_revision
+        ),
+        "authoring_action": preview.authoring_action,
+    }
+
+
+def _render_calculation_result_selection_preview(
+    preview: CalculationResultSelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "selection_confirmed": confirmation_supplied,
+                "preview": _calculation_result_selection_preview_to_dict(
+                    preview
+                ),
+            }
+        )
+        return
+    print("Calculation result selection preview")
+    print(f"Grade Item: {preview.grade_item_id}")
+    print(f"student: {preview.student_id}")
+    print(f"Standard: {preview.standard_id}")
+    print(f"target result revision: {preview.target_revision}")
+    print(f"target result SHA-256: {preview.target_result_sha256}")
+    print(f"target calculation status: {preview.target_status}")
+    print(
+        "target proficiency level: "
+        f"{preview.target_proficiency_level_id or 'none'}"
+    )
+    print(
+        "target calculation fingerprint: "
+        f"{preview.target_calculation_fingerprint}"
+    )
+    print(
+        "persisted result history: "
+        + (", ".join(str(value) for value in preview.history) or "none")
+    )
+    print(
+        "target is latest: "
+        f"{'yes' if preview.target_is_latest else 'no'}"
+    )
+    current = preview.expected_current_result_revision
+    print(
+        "currently selected result revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("selecting this exact persisted result after live CAS revalidation")
+    else:
+        print("confirmation supplied: no")
+        print("NO CURRENT RESULT SELECTION CHANGED")
+        print("rerun with --confirm-select to authorize pointer mutation")
+    print("NO PROFICIENCY RESULT AUTHORED OR RECALCULATED")
+
+
+def _render_calculation_result_selection_result(
+    preview: CalculationResultSelectionPreview,
+    result: CalculationResultSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "selected",
+                "selection_confirmed": True,
+                "preview": _calculation_result_selection_preview_to_dict(
+                    preview
+                ),
+                "result": {
+                    "selection_disposition": result.selection_disposition,
+                    "previous_current_result_revision": (
+                        result.previous_current_result_revision
+                    ),
+                    "selected_revision": result.selected_revision,
+                    "selected_result_sha256": result.selected_result_sha256,
+                    "selected_status": result.selected_status,
+                    "selected_proficiency_level_id": (
+                        result.selected_proficiency_level_id
+                    ),
+                    "authoring_action": result.authoring_action,
+                },
+            }
+        )
+        return
+    print(
+        "Result selection committed: revision "
+        f"{result.selected_revision} ({result.selection_disposition})"
+    )
+    previous = result.previous_current_result_revision
+    print(
+        "previous current result revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print(f"selected result SHA-256: {result.selected_result_sha256}")
+    print(f"selected calculation status: {result.selected_status}")
+    print(
+        "selected proficiency level: "
+        f"{result.selected_proficiency_level_id or 'none'}"
+    )
+    print(
+        "authoring action: "
+        f"{result.authoring_action.replace('_', ' ')}"
+    )
+
+
+def _calculation_result_persistence_preview_to_dict(
+    preview: CalculationResultPersistencePreview,
+) -> dict[str, object]:
+    candidate = preview.candidate
+    return {
+        "actor_id": preview.actor_id,
+        "class_id": candidate.class_id,
+        "grade_item_id": candidate.grade_item_id,
+        "student_id": candidate.student_id,
+        "standard_id": candidate.standard_id,
+        "candidate_revision": preview.candidate_revision,
+        "candidate_status": preview.candidate_status,
+        "candidate_proficiency_level_id": (
+            preview.candidate_proficiency_level_id
+        ),
+        "candidate_calculation_fingerprint": (
+            preview.candidate_calculation_fingerprint
+        ),
+        "calculated_at": candidate.calculated_at.isoformat(),
+        "history_before": list(preview.history_before),
+        "latest_result_sha256_before": preview.latest_result_sha256_before,
+        "selected_revision_before": preview.selected_revision_before,
+        "selection_action": preview.selection_action,
+    }
+
+
+def _render_calculation_result_persistence_preview(
+    preview: CalculationResultPersistencePreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "preview",
+                "write_confirmed": confirmation_supplied,
+                "preview": (
+                    _calculation_result_persistence_preview_to_dict(preview)
+                ),
+            }
+        )
+        return
+    print("Calculation result write preview")
+    print(f"teacher actor context: {preview.actor_id}")
+    print(f"Grade Item: {preview.candidate.grade_item_id}")
+    print(f"student: {preview.candidate.student_id}")
+    print(f"Standard: {preview.candidate.standard_id}")
+    print(f"candidate result revision: {preview.candidate_revision}")
+    print(f"calculation status: {preview.candidate_status}")
+    print(
+        "proficiency level: "
+        f"{preview.candidate_proficiency_level_id or 'none'}"
+    )
+    print(
+        "calculation fingerprint: "
+        f"{preview.candidate_calculation_fingerprint}"
+    )
+    print(f"calculated at: {preview.candidate.calculated_at.isoformat()}")
+    current = preview.selected_revision_before
+    print(
+        "currently selected result revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("confirmation supplied: yes")
+        print("writing this exact immutable result after live revalidation")
+    else:
+        print("confirmation supplied: no")
+        print("NO PROFICIENCY RESULT WRITTEN")
+        print("rerun with --confirm-write to authorize immutable result write")
+    print("NO CURRENT RESULT SELECTION CHANGED")
+
+
+def _render_calculation_result_persistence_result(
+    preview: CalculationResultPersistencePreview,
+    result: CalculationResultPersistenceWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(
+            {
+                "mode": "written",
+                "write_confirmed": True,
+                "preview": (
+                    _calculation_result_persistence_preview_to_dict(preview)
+                ),
+                "result": {
+                    "write_disposition": result.write_result.disposition,
+                    "written_revision": result.written_revision,
+                    "written_result_sha256": result.written_result_sha256,
+                    "written_status": result.written_status,
+                    "written_proficiency_level_id": (
+                        result.written_proficiency_level_id
+                    ),
+                    "selected_revision_after_write": (
+                        result.selected_revision_after_write
+                    ),
+                    "selection_changed_during_write": (
+                        result.selection_changed_during_write
+                    ),
+                    "selection_action": result.selection_action,
+                },
+            }
+        )
+        return
+    print(
+        f"Proficiency result revision {result.written_revision} written "
+        f"({result.write_result.disposition})"
+    )
+    print(f"result SHA-256: {result.written_result_sha256}")
+    before = preview.selected_revision_before
+    after = result.selected_revision_after_write
+    if result.selection_changed_during_write:
+        print(
+            "WARNING: current result selection changed concurrently: "
+            f"{before if before is not None else 'none'} -> "
+            f"{after if after is not None else 'none'}"
+        )
+    else:
+        print(
+            "current result selection after write: "
+            f"{after if after is not None else 'none'}"
+        )
+    print(
+        "result selection action: "
+        f"{result.selection_action.replace('_', ' ')}"
+    )
+
+
+def _calculation_preview_to_dict(
+    preview: BoundedCalculationPreview,
+) -> dict[str, object]:
+    calculation = preview.calculation
+    outcome = calculation.outcome
+    tie = outcome.tie_resolution
+    return {
+        "scope": {
+            "class_id": preview.class_id,
+            "grade_item_id": preview.grade_item_id,
+            "grade_item_revision": preview.grade_item_basis.grade_item_revision,
+            "grade_item_revision_sha256": (
+                preview.grade_item_basis.grade_item_revision_sha256
+            ),
+            "student_id": preview.student_id,
+            "standard_id": preview.standard_id,
+        },
+        "bindings": {
+            "count": preview.binding_count,
+            "source_keys": list(preview.source_keys),
+        },
+        "inputs": {
+            "sha256": preview.inputs.sha256,
+            "entry_count": calculation.input_entry_count,
+            "target_scale": {
+                "scale_id": preview.inputs.target_scale.scale_id,
+                "scale_revision": preview.inputs.target_scale.scale_revision,
+                "scale_sha256": preview.inputs.target_scale.scale_sha256,
+            },
+            "exclusion_reason_counts": [
+                {"reason": reason, "count": count}
+                for reason, count in calculation.exclusion_reason_counts
+            ],
+        },
+        "policy": {
+            "policy_id": calculation.policy_reference.policy_id,
+            "policy_revision": calculation.policy_reference.policy_revision,
+            "policy_sha256": calculation.policy_reference.policy_sha256,
+            "title": calculation.policy_title,
+            "strategy": calculation.strategy,
+            "minimum_performance_observations": (
+                calculation.minimum_performance_observations
+            ),
+            "mode_tie_rule": calculation.mode_tie_rule,
+            "median_even_rule": calculation.median_even_rule,
+            "blocking_exclusion_reasons": list(
+                calculation.blocking_exclusion_reasons
+            ),
+            "native_state_handling": calculation.native_state_handling,
+        },
+        "outcome": {
+            "status": outcome.status,
+            "proficiency_level_id": outcome.proficiency_level_id,
+            "calculation_fingerprint": outcome.calculation_fingerprint,
+            "performance_observation_count": (
+                outcome.performance_observation_count
+            ),
+            "native_state_count": outcome.native_state_count,
+            "excluded_count": outcome.excluded_count,
+            "insufficiency_reasons": [
+                {
+                    "kind": reason.kind,
+                    "source_keys": list(reason.source_keys),
+                    "required_observations": reason.required_observations,
+                    "actual_observations": reason.actual_observations,
+                }
+                for reason in outcome.insufficiency_reasons
+            ],
+            "tie_resolution": (
+                None
+                if tie is None
+                else {
+                    "kind": tie.kind,
+                    "rule": tie.rule,
+                    "candidate_level_ids": list(tie.candidate_level_ids),
+                    "selected_level_id": tie.selected_level_id,
+                }
+            ),
+        },
+        "result_state": {
+            "history": list(calculation.result_history),
+            "next_revision": calculation.next_result_revision,
+            "current_revision": calculation.current_result_revision,
+        },
+        "result_write_performed": preview.result_write_performed,
+        "result_selection_performed": preview.result_selection_performed,
+    }
+
+
+def _render_calculation_preview(
+    preview: BoundedCalculationPreview,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_calculation_preview_to_dict(preview))
+        return
+    calculation = preview.calculation
+    outcome = calculation.outcome
+    print("Calculation Preview")
+    print(f"class: {preview.class_id}")
+    print(f"Grade Item: {preview.grade_item_id}")
+    print(
+        "Grade Item basis: revision "
+        f"{preview.grade_item_basis.grade_item_revision} | "
+        f"{preview.grade_item_basis.grade_item_revision_sha256}"
+    )
+    print(f"student: {preview.student_id}")
+    print(f"Standard: {preview.standard_id}")
+    print(f"binding count: {preview.binding_count}")
+    print(f"aggregation inputs SHA-256: {preview.inputs.sha256}")
+    print(
+        "target scale: "
+        f"{preview.inputs.target_scale.scale_id}@"
+        f"{preview.inputs.target_scale.scale_revision}"
+    )
+    print(
+        "calculation policy: "
+        f"{calculation.policy_reference.policy_id}@"
+        f"{calculation.policy_reference.policy_revision} | "
+        f"{calculation.policy_title}"
+    )
+    print(f"strategy: {calculation.strategy}")
+    print(
+        "minimum performance observations: "
+        f"{calculation.minimum_performance_observations}"
+    )
+    print(
+        "input counts: "
+        f"performance={outcome.performance_observation_count} | "
+        f"native_state={outcome.native_state_count} | "
+        f"excluded={outcome.excluded_count}"
+    )
+    if calculation.exclusion_reason_counts:
+        print("exclusion reason counts:")
+        for exclusion_reason, count in calculation.exclusion_reason_counts:
+            print(f"  {exclusion_reason}: {count}")
+    print(f"calculation status: {outcome.status}")
+    print(
+        "proficiency level: "
+        f"{outcome.proficiency_level_id or 'none'}"
+    )
+    if outcome.insufficiency_reasons:
+        print("insufficiency reasons:")
+        for insufficiency_reason in outcome.insufficiency_reasons:
+            detail: str = insufficiency_reason.kind
+            if insufficiency_reason.required_observations is not None:
+                detail += (
+                    f" | required={insufficiency_reason.required_observations}"
+                )
+            if insufficiency_reason.actual_observations is not None:
+                detail += (
+                    f" | actual={insufficiency_reason.actual_observations}"
+                )
+            if insufficiency_reason.source_keys:
+                detail += (
+                    f" | sources={','.join(insufficiency_reason.source_keys)}"
+                )
+            print(f"  {detail}")
+    tie = outcome.tie_resolution
+    if tie is not None:
+        print(
+            "tie resolution: "
+            f"{tie.kind} | rule={tie.rule} | "
+            f"selected={tie.selected_level_id or 'none'}"
+        )
+    print(f"calculation fingerprint: {outcome.calculation_fingerprint}")
+    history = ", ".join(str(value) for value in calculation.result_history)
+    print(f"persisted result history: {history or 'none'}")
+    print(
+        "next result revision if confirmed later: "
+        f"{calculation.next_result_revision}"
+    )
+    current = calculation.current_result_revision
+    print(
+        "currently selected result revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    print("NO PROFICIENCY RESULT WRITTEN")
+    print("NO CURRENT RESULT SELECTION CHANGED")
 
 
 def _standards_association_selection_preview_to_dict(
@@ -4763,6 +6125,12 @@ def main(
         StandardsReviewWorkflowError,
         StandardsAssociationAuthoringError,
         StandardsAssociationSelectionError,
+        CalculationPreviewAssemblyError,
+        CalculationPreviewWorkflowError,
+        CalculationResultPersistenceError,
+        CalculationResultSelectionError,
+        AcademicPeriodCalculationAssemblyError,
+        AcademicPeriodCalculationPreviewWorkflowError,
         AttemptDecisionWorkflowError,
         AttemptPolicyAuthoringWorkflowError,
         AttemptPolicySelectionWorkflowError,
