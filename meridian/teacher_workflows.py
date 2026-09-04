@@ -1,10 +1,9 @@
 """Teacher-facing workflow catalog for Meridian issue #41.
 
-This module establishes the reusable application/presentation boundary for the
-seven task-oriented teacher workflows required by issue #41. Slice 1 is
-intentionally read-only: it names and describes the workflow entry points but
-does not perform domain discovery, persist revisions, change current selectors,
-or export planning signals.
+This module defines the stable presentation identity for the seven task-oriented
+teacher workflows. Task-specific application controllers remain separate from
+terminal rendering and reuse the canonical #27-#40 services for discovery,
+revision writes, explicit selection, calculation, review, and export.
 """
 
 from __future__ import annotations
@@ -160,12 +159,13 @@ _TEACHER_WORKFLOW_DESCRIPTORS: Final = (
         task_id="create-planning-signal",
         title="Create Planning Signal",
         summary=(
-            "Guide policy, derivation, preview/review, explicit selection, and final "
-            "Core planning-signal export without invoking Concord."
+            "Guide policy, derivation, preview/review, explicit review selection, "
+            "Core/receipt export, and optional Core-native CSV without invoking "
+            "Concord."
         ),
         write_boundary=(
-            "Generation, review acceptance, review selection, and Core export remain "
-            "separate deliberate stages."
+            "Generation, review acceptance, review selection, Core/receipt export, "
+            "and optional CSV remain deliberate stages; no Concord state is created."
         ),
     ),
 )

@@ -165,5 +165,6 @@ round-trip, and exact replay. Sibling PDS packages are absent.
 #38 deterministic grouping-signal generation — implemented
 #39 grouping-signal preview and diagnostics — implemented
 #40 Core/CSV grouping-signal export — implemented
-#41 teacher eligibility, proficiency, and planning-export workflows — next
+#41 teacher eligibility, proficiency, and planning-export workflows — implemented
+#42 proficiency and planning-export explanation/trace views — next
 ```

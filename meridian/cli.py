@@ -210,6 +210,10 @@ from meridian.grade_items_workflow import (
     grade_items_review_to_dict,
     project_grade_items_review,
 )
+from meridian.grouping_signal_preview_projection import (
+    GroupingSignalTeacherPreviewProjection,
+    format_grouping_signal_teacher_projection,
+)
 from meridian.ingestion import PublicationDiscoveryRequest, PublicationIngestionError
 from meridian.new_evidence_eligibility_selection_workflow import (
     NewEvidenceEligibilitySelectionError,
@@ -231,12 +235,36 @@ from meridian.new_evidence_workflow import (
     new_evidence_review_to_dict,
     project_new_evidence_review,
 )
+from meridian.planning_signal_core_export_commit_workflow import (
+    PlanningSignalCoreExportCommitError,
+    PlanningSignalCoreExportCommitPartialSuccessError,
+    PlanningSignalCoreExportCommitResult,
+    PlanningSignalCoreExportCommitScopeError,
+    commit_planning_signal_core_export,
+)
+from meridian.planning_signal_core_export_preview_workflow import (
+    PlanningSignalCoreExportPreview,
+    PlanningSignalCoreExportPreviewError,
+    PlanningSignalCoreExportPreviewScopeError,
+    preview_planning_signal_core_export,
+)
 from meridian.planning_signal_derivation_persistence_workflow import (
     PlanningSignalDerivationPersistenceError,
     PlanningSignalDerivationPersistencePreview,
     PlanningSignalDerivationPersistenceResult,
     commit_planning_signal_derivation_persistence_preview,
     preview_planning_signal_derivation_persistence,
+)
+from meridian.planning_signal_export_commit_workflow import (
+    PlanningSignalCsvExportPartialSuccessError,
+    PlanningSignalExportCommitError,
+    PlanningSignalExportCommitResult,
+    commit_planning_signal_export,
+)
+from meridian.planning_signal_preview_diagnostics_workflow import (
+    PlanningSignalPreviewDiagnosticsError,
+    PlanningSignalPreviewDiagnosticsScopeError,
+    project_planning_signal_preview_diagnostics,
 )
 from meridian.planning_signal_preview_write_workflow import (
     PlanningSignalPreviewWriteError,
@@ -245,6 +273,22 @@ from meridian.planning_signal_preview_write_workflow import (
     PlanningSignalPreviewWriteScopeError,
     commit_planning_signal_preview_write,
     preview_planning_signal_preview_write,
+)
+from meridian.planning_signal_review_authoring_workflow import (
+    PlanningSignalReviewAuthoringError,
+    PlanningSignalReviewAuthoringPreview,
+    PlanningSignalReviewAuthoringResult,
+    PlanningSignalReviewAuthoringScopeError,
+    commit_planning_signal_review_authoring,
+    preview_planning_signal_review_authoring,
+)
+from meridian.planning_signal_review_selection_workflow import (
+    PlanningSignalReviewSelectionError,
+    PlanningSignalReviewSelectionPreview,
+    PlanningSignalReviewSelectionScopeError,
+    PlanningSignalReviewSelectionWorkflowResult,
+    commit_planning_signal_review_selection,
+    preview_planning_signal_review_selection,
 )
 from meridian.planning_signal_workflow import (
     PlanningSignalReadinessProjection,
@@ -346,9 +390,12 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Meridian is the Paper Data Suite "
             "publication-ingestion and typed-evidence diagnostics foundation. "
-            "Grade Item-level and Academic Period standards-proficiency "
-            "calculations are implemented as library APIs; Grade calculation "
-            "and reporting stages are not implemented yet."
+            "The v0.2 task-oriented teacher workflows cover evidence, Grade Items, "
+            "attempts, exclusions, standards review, Grade Item/Academic Period "
+            "standards-proficiency preview/persistence/selection, and deliberate "
+            "planning-signal export through Core with optional Core-native CSV. "
+            "Conventional Grade calculation and report generation are not "
+            "implemented yet."
         ),
     )
     parser.add_argument(
@@ -1610,6 +1657,104 @@ def build_parser() -> argparse.ArgumentParser:
             "#38 source; stop before teacher review."
         ),
     )
+    planning_signal_parser.add_argument(
+        "--review-preview-id",
+        help=(
+            "Exact persisted #39 preview to inspect with full teacher-facing "
+            "diagnostics before any review write."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--review-preview-sha256",
+        help="Exact SHA-256 for --review-preview-id.",
+    )
+    planning_signal_parser.add_argument(
+        "--review-decision",
+        choices=("accepted_for_export", "rejected"),
+        help=(
+            "Preview one immutable teacher review over the exact supplied "
+            "#39 preview. Omit to keep the stage read-only diagnostics only."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--acknowledge-warning-id",
+        action="append",
+        default=[],
+        help=(
+            "Explicitly acknowledge one exact #39 warning diagnostic ID; "
+            "repeat for every warning required by accepted_for_export."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--review-actor-id",
+        help="Explicit teacher actor identifier for the immutable review revision.",
+    )
+    planning_signal_parser.add_argument(
+        "--reviewed-at",
+        type=_datetime_argument,
+        help="Explicit timezone-aware review timestamp.",
+    )
+    planning_signal_parser.add_argument(
+        "--confirm-review-write",
+        action="store_true",
+        help=(
+            "Persist the exact reviewed #39 teacher-review revision after live "
+            "revalidation; never select it or export a Core signal."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--select-review-revision",
+        type=_positive_integer,
+        help=(
+            "Exact persisted #39 review revision to preview for explicit "
+            "current-review selection."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--select-review-sha256",
+        type=_sha256_argument,
+        help="Exact SHA-256 for --select-review-revision.",
+    )
+    planning_signal_parser.add_argument(
+        "--confirm-review-select",
+        action="store_true",
+        help=(
+            "CAS-select the exact persisted #39 review after a read-only "
+            "selection preview; never author a review or export a signal."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--export-signal-set-id",
+        help=(
+            "Explicit Core grouping_signal_set_v1 identity to use for a "
+            "read-only #40 export preview."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--export-created-at",
+        type=_datetime_argument,
+        help=(
+            "Explicit timezone-aware Core signal creation timestamp for the "
+            "read-only #40 export preview."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--csv-destination",
+        type=Path,
+        help=(
+            "Optional explicit destination for Core-native "
+            "grouping_signal_csv_v1 after Core + receipt succeed."
+        ),
+    )
+    planning_signal_parser.add_argument(
+        "--confirm-core-export",
+        action="store_true",
+        help=(
+            "Commit the exact reviewed #40 Core grouping signal and reconcile "
+            "its immutable Meridian export receipt; if --csv-destination is "
+            "supplied, emit that optional Core-native CSV afterward."
+        ),
+    )
     _add_format_argument(planning_signal_parser)
     planning_signal_parser.set_defaults(
         handler=_handle_planning_signal_readiness,
@@ -2122,6 +2267,15 @@ def _handle_planning_signal_readiness(
 ) -> int:
     del dependencies
 
+    has_review_preview_id = args.review_preview_id is not None
+    has_review_preview_sha256 = args.review_preview_sha256 is not None
+    if has_review_preview_id != has_review_preview_sha256:
+        raise PlanningSignalPreviewDiagnosticsScopeError(
+            "#39 diagnostic review source requires both --review-preview-id "
+            "and --review-preview-sha256."
+        )
+    review_preview_supplied = has_review_preview_id and has_review_preview_sha256
+
     has_preview_derivation_id = args.preview_derivation_id is not None
     has_preview_derivation_sha256 = (
         args.preview_derivation_sha256 is not None
@@ -2134,6 +2288,21 @@ def _handle_planning_signal_readiness(
     preview_source_supplied = (
         has_preview_derivation_id and has_preview_derivation_sha256
     )
+    if review_preview_supplied and preview_source_supplied:
+        raise PlanningSignalPreviewDiagnosticsScopeError(
+            "#39 diagnostic review and #39 preview-write source stages "
+            "cannot be combined."
+        )
+    if review_preview_supplied and args.confirm_derivation_write:
+        raise PlanningSignalPreviewDiagnosticsScopeError(
+            "#39 diagnostic review and #38 derivation write stages "
+            "cannot be combined."
+        )
+    if review_preview_supplied and args.confirm_preview_write:
+        raise PlanningSignalPreviewDiagnosticsScopeError(
+            "#39 diagnostic review and #39 preview write confirmation "
+            "cannot be combined."
+        )
     if args.confirm_preview_write and not preview_source_supplied:
         raise PlanningSignalPreviewWriteScopeError(
             "--confirm-preview-write requires an exact persisted #38 source."
@@ -2142,6 +2311,254 @@ def _handle_planning_signal_readiness(
         raise PlanningSignalPreviewWriteScopeError(
             "#38 derivation write and #39 preview write stages cannot be combined."
         )
+
+    has_select_review_revision = args.select_review_revision is not None
+    has_select_review_sha256 = args.select_review_sha256 is not None
+    if has_select_review_revision != has_select_review_sha256:
+        raise PlanningSignalReviewSelectionScopeError(
+            "Review selection target requires both --select-review-revision "
+            "and --select-review-sha256."
+        )
+    review_selection_target_supplied = (
+        has_select_review_revision and has_select_review_sha256
+    )
+    review_selection_requested = (
+        review_selection_target_supplied or args.confirm_review_select
+    )
+    if review_selection_requested and not review_preview_supplied:
+        raise PlanningSignalReviewSelectionScopeError(
+            "Review selection requires an exact persisted #39 preview via "
+            "--review-preview-id and --review-preview-sha256."
+        )
+    if args.confirm_review_select and not review_selection_target_supplied:
+        raise PlanningSignalReviewSelectionScopeError(
+            "--confirm-review-select requires an exact persisted #39 review target."
+        )
+
+    review_authoring_requested = (
+        args.review_decision is not None
+        or bool(args.acknowledge_warning_id)
+        or args.review_actor_id is not None
+        or args.reviewed_at is not None
+        or args.confirm_review_write
+    )
+    if review_authoring_requested and not review_preview_supplied:
+        raise PlanningSignalReviewAuthoringScopeError(
+            "Teacher review authoring requires an exact persisted #39 preview "
+            "via --review-preview-id and --review-preview-sha256."
+        )
+    if args.confirm_review_write and args.review_decision is None:
+        raise PlanningSignalReviewAuthoringScopeError(
+            "--confirm-review-write requires --review-decision."
+        )
+    if args.review_decision is None and (
+        args.acknowledge_warning_id
+        or args.review_actor_id is not None
+        or args.reviewed_at is not None
+    ):
+        raise PlanningSignalReviewAuthoringScopeError(
+            "Warning acknowledgment, review actor, and reviewed-at values "
+            "require --review-decision."
+        )
+    if args.review_decision is not None and (
+        args.review_actor_id is None or args.reviewed_at is None
+    ):
+        raise PlanningSignalReviewAuthoringScopeError(
+            "--review-decision requires --review-actor-id and --reviewed-at."
+        )
+    if review_selection_target_supplied and review_authoring_requested:
+        raise PlanningSignalReviewSelectionScopeError(
+            "Review selection cannot be combined with review authoring fields."
+        )
+
+    has_export_signal_set_id = args.export_signal_set_id is not None
+    has_export_created_at = args.export_created_at is not None
+    if has_export_signal_set_id != has_export_created_at:
+        raise PlanningSignalCoreExportPreviewScopeError(
+            "#40 Core export preview requires both --export-signal-set-id "
+            "and --export-created-at."
+        )
+    core_export_preview_requested = (
+        has_export_signal_set_id and has_export_created_at
+    )
+    csv_export_requested = args.csv_destination is not None
+    if csv_export_requested and not core_export_preview_requested:
+        raise PlanningSignalCoreExportCommitScopeError(
+            "--csv-destination requires the exact #40 export preview intent "
+            "via --export-signal-set-id and --export-created-at."
+        )
+    if args.confirm_core_export and not core_export_preview_requested:
+        raise PlanningSignalCoreExportCommitScopeError(
+            "--confirm-core-export requires the exact #40 export preview intent "
+            "via --export-signal-set-id and --export-created-at."
+        )
+    if core_export_preview_requested and not review_preview_supplied:
+        raise PlanningSignalCoreExportPreviewScopeError(
+            "#40 Core export preview requires an exact persisted #39 preview "
+            "via --review-preview-id and --review-preview-sha256."
+        )
+    if core_export_preview_requested and (
+        review_authoring_requested or review_selection_requested
+    ):
+        raise PlanningSignalCoreExportPreviewScopeError(
+            "#40 Core export preview cannot be combined with review authoring "
+            "or review selection; preview the exact selected review first."
+        )
+
+    if review_preview_supplied:
+        if core_export_preview_requested:
+            export_preview = preview_planning_signal_core_export(
+                str(args.workspace),
+                args.class_id,
+                args.policy_id,
+                args.review_preview_id,
+                args.review_preview_sha256,
+                signal_set_id=args.export_signal_set_id,
+                created_at=args.export_created_at,
+            )
+            if not args.confirm_core_export:
+                if csv_export_requested:
+                    _render_planning_signal_csv_export_plan(
+                        export_preview,
+                        args.csv_destination,
+                        args.format,
+                    )
+                else:
+                    _render_planning_signal_core_export_preview(
+                        export_preview,
+                        args.format,
+                    )
+                return 0
+            if csv_export_requested:
+                try:
+                    final_export_result = commit_planning_signal_export(
+                        str(args.workspace),
+                        export_preview,
+                        csv_destination=args.csv_destination,
+                    )
+                except PlanningSignalCoreExportCommitPartialSuccessError as error:
+                    _render_planning_signal_core_export_partial_success(
+                        export_preview,
+                        error,
+                        args.format,
+                    )
+                    return 1
+                except PlanningSignalCsvExportPartialSuccessError as error:
+                    _render_planning_signal_csv_export_partial_success(
+                        export_preview,
+                        error,
+                        args.format,
+                    )
+                    return 1
+                _render_planning_signal_csv_export_result(
+                    export_preview,
+                    final_export_result,
+                    args.format,
+                )
+                return 0
+            try:
+                export_result = commit_planning_signal_core_export(
+                    str(args.workspace),
+                    export_preview,
+                )
+            except PlanningSignalCoreExportCommitPartialSuccessError as error:
+                _render_planning_signal_core_export_partial_success(
+                    export_preview,
+                    error,
+                    args.format,
+                )
+                return 1
+            _render_planning_signal_core_export_result(
+                export_preview,
+                export_result,
+                args.format,
+            )
+            return 0
+
+        if review_selection_target_supplied:
+            selection_preview = preview_planning_signal_review_selection(
+                str(args.workspace),
+                args.class_id,
+                args.policy_id,
+                args.review_preview_id,
+                args.review_preview_sha256,
+                args.select_review_revision,
+                args.select_review_sha256,
+            )
+            if not args.confirm_review_select:
+                _render_planning_signal_review_selection_preview(
+                    selection_preview,
+                    args.format,
+                    confirmation_supplied=False,
+                )
+                return 0
+            if args.format == "text":
+                _render_planning_signal_review_selection_preview(
+                    selection_preview,
+                    args.format,
+                    confirmation_supplied=True,
+                )
+                sys.stdout.flush()
+            selection_result = commit_planning_signal_review_selection(
+                str(args.workspace),
+                selection_preview,
+            )
+            _render_planning_signal_review_selection_result(
+                selection_preview,
+                selection_result,
+                args.format,
+            )
+            return 0
+
+        if args.review_decision is None:
+            review_projection = project_planning_signal_preview_diagnostics(
+                str(args.workspace),
+                args.class_id,
+                args.policy_id,
+                args.review_preview_id,
+                args.review_preview_sha256,
+            )
+            _render_planning_signal_preview_diagnostics(
+                review_projection,
+                args.format,
+            )
+            return 0
+
+        review_preview = preview_planning_signal_review_authoring(
+            str(args.workspace),
+            args.class_id,
+            args.policy_id,
+            args.review_preview_id,
+            args.review_preview_sha256,
+            decision=args.review_decision,
+            acknowledged_warning_ids=tuple(args.acknowledge_warning_id),
+            actor_id=args.review_actor_id,
+            reviewed_at=args.reviewed_at,
+        )
+        if not args.confirm_review_write:
+            _render_planning_signal_review_authoring_preview(
+                review_preview,
+                args.format,
+                confirmation_supplied=False,
+            )
+            return 0
+        if args.format == "text":
+            _render_planning_signal_review_authoring_preview(
+                review_preview,
+                args.format,
+                confirmation_supplied=True,
+            )
+            sys.stdout.flush()
+        review_result = commit_planning_signal_review_authoring(
+            str(args.workspace),
+            review_preview,
+        )
+        _render_planning_signal_review_authoring_result(
+            review_preview,
+            review_result,
+            args.format,
+        )
+        return 0
 
     if preview_source_supplied:
         preview_write = preview_planning_signal_preview_write(
@@ -4349,6 +4766,951 @@ def _render_planning_signal_preview_write_result(
     )
     print("NO TEACHER REVIEW WRITTEN")
     print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+
+def _planning_signal_derivation_reference_to_dict(
+    reference: object | None,
+) -> dict[str, object] | None:
+    if reference is None:
+        return None
+    return {
+        "class_id": getattr(reference, "class_id"),
+        "derivation_id": getattr(reference, "derivation_id"),
+        "derivation_sha256": getattr(reference, "derivation_sha256"),
+    }
+
+
+def _planning_signal_teacher_student_to_dict(
+    student: object,
+) -> dict[str, object]:
+    return {
+        "student_id": getattr(student, "student_id"),
+        "display_name": getattr(student, "display_name"),
+        "source_state": getattr(student, "source_state"),
+        "disposition": getattr(student, "disposition"),
+        "source_result": _planning_signal_source_result_to_dict(
+            getattr(student, "source_result")
+        ),
+        "proficiency_level_id": getattr(student, "proficiency_level_id"),
+        "scale_position": getattr(student, "scale_position"),
+        "band": getattr(student, "band"),
+    }
+
+
+def _planning_signal_preview_diagnostics_to_dict(
+    projection: GroupingSignalTeacherPreviewProjection,
+) -> dict[str, object]:
+    preview = projection.preview_reference
+    derivation = projection.derivation_reference
+    policy = projection.policy_reference
+    source_policy = projection.source_policy_reference
+    scale = projection.target_scale_reference
+    currentness = projection.live_currentness
+    coverage = projection.coverage
+    review = projection.review_status
+
+    selected_review = review.selected_review_reference
+    selected_review_data = None
+    if selected_review is not None:
+        selected_review_data = {
+            "class_id": selected_review.class_id,
+            "derivation_id": selected_review.derivation_id,
+            "review_revision": selected_review.review_revision,
+            "review_sha256": selected_review.review_sha256,
+        }
+    applicability = review.applicability
+    applicability_data = None
+    if applicability is not None:
+        applicability_data = {
+            "status": applicability.status,
+            "reason_codes": list(applicability.reason_codes),
+        }
+
+    return {
+        "task": "create-planning-signal",
+        "mode": "preview_diagnostics",
+        "class_id": projection.class_id,
+        "preview": {
+            "class_id": preview.class_id,
+            "preview_id": preview.preview_id,
+            "preview_sha256": preview.preview_sha256,
+        },
+        "academic_basis": {
+            "school_year": projection.school_year,
+            "period_id": projection.period_id,
+            "calendar_revision": projection.calendar_revision,
+            "standard_id": projection.standard_id,
+            "source_policy": {
+                "class_id": source_policy.class_id,
+                "policy_id": source_policy.policy_id,
+                "policy_revision": source_policy.policy_revision,
+                "policy_sha256": source_policy.policy_sha256,
+            },
+            "target_scale": {
+                "class_id": scale.class_id,
+                "scale_id": scale.scale_id,
+                "scale_revision": scale.scale_revision,
+                "scale_sha256": scale.scale_sha256,
+            },
+        },
+        "derivation": {
+            "class_id": derivation.class_id,
+            "derivation_id": derivation.derivation_id,
+            "derivation_sha256": derivation.derivation_sha256,
+            "algorithm_version": projection.derivation_algorithm_version,
+            "calculation_fingerprint": (
+                projection.derivation_calculation_fingerprint
+            ),
+            "live_currentness": {
+                "state": currentness.state,
+                "reason_codes": list(currentness.reason_codes),
+                "current_derivation_reference": (
+                    _planning_signal_derivation_reference_to_dict(
+                        currentness.current_derivation_reference
+                    )
+                ),
+            },
+        },
+        "policy": {
+            "class_id": policy.class_id,
+            "policy_id": policy.policy_id,
+            "policy_revision": policy.policy_revision,
+            "policy_sha256": policy.policy_sha256,
+            "title": projection.policy_title,
+            "dimension_id": projection.dimension_id,
+            "band_count": projection.band_count,
+            "band_definitions": [
+                {
+                    "band": item.band,
+                    "minimum_scale_position": item.minimum_scale_position,
+                    "maximum_scale_position": item.maximum_scale_position,
+                }
+                for item in projection.band_definitions
+            ],
+            "tie_handling": projection.tie_handling,
+            "missing_result_handling": projection.missing_result_handling,
+            "insufficient_result_handling": (
+                projection.insufficient_result_handling
+            ),
+        },
+        "coverage": {
+            "roster_student_count": coverage.roster_student_count,
+            "contributing_student_count": coverage.contributing_student_count,
+            "noncontributing_student_count": (
+                coverage.noncontributing_student_count
+            ),
+            "missing_noncontributor_count": coverage.missing_noncontributor_count,
+            "insufficient_noncontributor_count": (
+                coverage.insufficient_noncontributor_count
+            ),
+            "occupied_band_count": coverage.occupied_band_count,
+            "empty_band_count": coverage.empty_band_count,
+        },
+        "band_distribution": [
+            {
+                "band": item.band,
+                "label": item.label,
+                "minimum_scale_position": item.minimum_scale_position,
+                "maximum_scale_position": item.maximum_scale_position,
+                "proficiency_level_ids": list(item.proficiency_level_ids),
+                "student_ids": list(item.student_ids),
+                "student_display_names": list(item.student_display_names),
+                "student_count": item.student_count,
+            }
+            for item in projection.band_summaries
+        ],
+        "student_assignments": [
+            _planning_signal_teacher_student_to_dict(item)
+            for item in projection.student_assignments
+        ],
+        "ties": [
+            {
+                "proficiency_level_id": item.proficiency_level_id,
+                "scale_position": item.scale_position,
+                "band": item.band,
+                "band_label": item.band_label,
+                "student_ids": list(item.student_ids),
+                "student_display_names": list(item.student_display_names),
+            }
+            for item in projection.ties
+        ],
+        "noncontributing_students": [
+            _planning_signal_teacher_student_to_dict(item)
+            for item in projection.noncontributing_students
+        ],
+        "diagnostics": [
+            {
+                "diagnostic_id": item.diagnostic_id,
+                "code": item.code,
+                "severity": item.severity,
+                "message": item.message,
+                "student_ids": list(item.student_ids),
+                "student_display_names": list(item.student_display_names),
+                "bands": list(item.bands),
+                "details": list(item.details),
+            }
+            for item in projection.diagnostics
+        ],
+        "review_status": {
+            "selected_review": selected_review_data,
+            "decision": review.decision,
+            "acknowledged_warning_ids": list(review.acknowledged_warning_ids),
+            "actor_id": review.actor_id,
+            "reviewed_at": (
+                None if review.reviewed_at is None else review.reviewed_at.isoformat()
+            ),
+            "applicability": applicability_data,
+        },
+        "notices": list(projection.notices),
+        "actions": {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": "not_performed",
+            "review_selection": "not_performed",
+            "core_export": "not_performed",
+            "csv_export": "not_performed",
+        },
+        "concord_action": "not_performed",
+    }
+
+
+def _render_planning_signal_preview_diagnostics(
+    projection: GroupingSignalTeacherPreviewProjection,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        _print_json(_planning_signal_preview_diagnostics_to_dict(projection))
+        return
+
+    print("Create Planning Signal — #39 preview / diagnostics")
+    print(f"exact #39 preview: {projection.preview_reference.preview_id}")
+    print(f"preview SHA-256: {projection.preview_reference.preview_sha256}")
+    print(format_grouping_signal_teacher_projection(projection))
+    print("NO TEACHER REVIEW WRITTEN")
+    print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+
+
+def _planning_signal_core_export_candidate_to_dict(
+    preview: PlanningSignalCoreExportPreview,
+) -> dict[str, object]:
+    signal = preview.signal_set
+    return {
+        "schema_version": signal.schema_version,
+        "record_type": signal.record_type,
+        "signal_set_id": signal.signal_set_id,
+        "class_id": signal.class_id,
+        "created_at": signal.created_at.isoformat().replace("+00:00", "Z"),
+        "source": {
+            "kind": signal.source.kind,
+            "module_id": signal.source.module_id,
+            "snapshot_id": signal.source.snapshot_id,
+            "snapshot_digest_algorithm": signal.source.snapshot_digest_algorithm,
+            "snapshot_digest": signal.source.snapshot_digest,
+        },
+        "dimensions": [
+            {
+                "dimension_id": item.dimension_id,
+                "band_count": item.band_count,
+            }
+            for item in signal.dimensions
+        ],
+        "student_bands": [
+            {
+                "student_id": item.student_id,
+                "dimension_id": item.dimension_id,
+                "band": item.band,
+            }
+            for item in signal.student_bands
+        ],
+    }
+
+
+def _planning_signal_core_export_authorization_to_dict(
+    preview: PlanningSignalCoreExportPreview,
+) -> dict[str, object]:
+    eligibility = preview.eligibility
+    selected_review = eligibility.review_reference
+    currentness = eligibility.currentness
+    return {
+        "derivation": _planning_signal_derivation_reference_to_dict(
+            eligibility.derivation_reference
+        ),
+        "preview": {
+            "class_id": eligibility.preview_reference.class_id,
+            "preview_id": eligibility.preview_reference.preview_id,
+            "preview_sha256": eligibility.preview_reference.preview_sha256,
+        },
+        "selected_review": {
+            "class_id": selected_review.class_id,
+            "derivation_id": selected_review.derivation_id,
+            "review_revision": selected_review.review_revision,
+            "review_sha256": selected_review.review_sha256,
+        },
+        "currentness": {
+            "state": currentness.state,
+            "reason_codes": list(currentness.reason_codes),
+            "current_derivation": _planning_signal_derivation_reference_to_dict(
+                currentness.current_derivation_reference
+            ),
+        },
+    }
+
+
+def _render_planning_signal_core_export_preview(
+    preview: PlanningSignalCoreExportPreview,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "core_export_preview"
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
+            preview
+        )
+        data["export_authorization"] = (
+            _planning_signal_core_export_authorization_to_dict(preview)
+        )
+        data["contributing_student_ids"] = list(
+            preview.contributing_student_ids
+        )
+        data["noncontributing_student_ids"] = list(
+            preview.noncontributing_student_ids
+        )
+        data["final_core_revalidation_required"] = (
+            preview.final_core_revalidation_required
+        )
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": preview.review_write_action,
+            "review_selection": preview.review_selection_action,
+            "core_export": preview.core_export_action,
+            "export_receipt": preview.export_receipt_action,
+            "csv_export": preview.csv_export_action,
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    signal = preview.signal_set
+    eligibility = preview.eligibility
+    print("Create Planning Signal — #40 Core export preview")
+    print(format_grouping_signal_teacher_projection(preview.projection))
+    print("Core grouping_signal_set_v1 candidate")
+    print(f"Core signal-set ID: {signal.signal_set_id}")
+    print(
+        "Core created at: "
+        + signal.created_at.isoformat().replace("+00:00", "Z")
+    )
+    print(f"Core class ID: {signal.class_id}")
+    print(
+        "authorized selected review: revision "
+        f"{eligibility.review_reference.review_revision} | "
+        f"SHA-256 {eligibility.review_reference.review_sha256}"
+    )
+    print(
+        "authorized #38 derivation: "
+        f"{eligibility.derivation_reference.derivation_id} | "
+        f"SHA-256 {eligibility.derivation_reference.derivation_sha256}"
+    )
+    print(
+        "Core source binding: "
+        f"{signal.source.module_id}/"
+        f"{signal.source.snapshot_id}@{signal.source.snapshot_digest}"
+    )
+    print(
+        "Core candidate contributors: "
+        + (", ".join(preview.contributing_student_ids) or "none")
+    )
+    print(
+        "Core candidate noncontributors: "
+        + (", ".join(preview.noncontributing_student_ids) or "none")
+    )
+    print("Core candidate student bands:")
+    for item in signal.student_bands:
+        print(f"  {item.student_id}: {item.dimension_id}={item.band}")
+    print("final Core revalidation before write: required")
+    print("NO CORE GROUPING SIGNAL WRITTEN")
+    print("NO MERIDIAN EXPORT RECEIPT WRITTEN")
+    print("NO CSV EXPORTED")
+    print("NO REVIEW STATE CHANGED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_csv_export_plan(
+    preview: PlanningSignalCoreExportPreview,
+    destination: Path,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "core_export_preview"
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
+            preview
+        )
+        data["export_authorization"] = (
+            _planning_signal_core_export_authorization_to_dict(preview)
+        )
+        data["csv_plan"] = {
+            "requested": True,
+            "destination": str(destination),
+            "contract": "grouping_signal_csv_v1",
+            "source": "exact_stored_core_signal_after_receipt",
+        }
+        data["final_core_revalidation_required"] = True
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": "not_performed",
+            "review_selection": "not_performed",
+            "core_export": "not_performed",
+            "export_receipt": "not_performed",
+            "csv_export": "not_performed",
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    print("Create Planning Signal — #40 final export preview")
+    print(format_grouping_signal_teacher_projection(preview.projection))
+    print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
+    print(f"planned Core-native CSV destination: {destination}")
+    print("planned CSV contract: grouping_signal_csv_v1")
+    print("CSV source after confirmation: exact stored Core signal + receipt")
+    print("final Core revalidation before write: required")
+    print("NO CORE GROUPING SIGNAL WRITTEN")
+    print("NO MERIDIAN EXPORT RECEIPT WRITTEN")
+    print("NO CSV EXPORTED")
+    print("NO REVIEW STATE CHANGED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_csv_export_result(
+    preview: PlanningSignalCoreExportPreview,
+    result: PlanningSignalExportCommitResult,
+    output_format: str,
+) -> None:
+    csv_result = result.csv
+    if csv_result is None:
+        raise RuntimeError("CSV export result unexpectedly missing.")
+
+    core = result.core
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "core_export_committed"
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
+            preview
+        )
+        data["export_authorization"] = (
+            _planning_signal_core_export_authorization_to_dict(preview)
+        )
+        data["result"] = {
+            "core_write_disposition": core.core_write_disposition,
+            "core_signal_digest": core.core_signal_digest,
+            "receipt_write_disposition": core.receipt_write_disposition,
+            "receipt_sha256": core.receipt_sha256,
+        }
+        data["csv_export"] = {
+            "destination": str(csv_result.destination),
+            "disposition": csv_result.disposition,
+            "byte_length": csv_result.byte_length,
+            "csv_sha256": csv_result.csv_sha256,
+            "contract": "grouping_signal_csv_v1",
+        }
+        data["final_core_revalidation_completed"] = True
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": "not_performed",
+            "review_selection": "not_performed",
+            "core_export": result.core_export_action,
+            "export_receipt": result.export_receipt_action,
+            "csv_export": result.csv_export_action,
+        }
+        data["concord_action"] = result.concord_action
+        _print_json(data)
+        return
+
+    print("Create Planning Signal — #40 Core export + CSV committed")
+    print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
+    print(f"Core write disposition: {core.core_write_disposition}")
+    print(f"Core signal SHA-256: {core.core_signal_digest}")
+    print(
+        "Meridian export receipt disposition: "
+        f"{core.receipt_write_disposition}"
+    )
+    print(f"Meridian export receipt SHA-256: {core.receipt_sha256}")
+    print(f"CSV destination: {csv_result.destination}")
+    print(f"CSV write disposition: {csv_result.disposition}")
+    print(f"CSV byte length: {csv_result.byte_length}")
+    print(f"CSV SHA-256: {csv_result.csv_sha256}")
+    print("CSV contract: grouping_signal_csv_v1")
+    print("NO REVIEW STATE CHANGED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_csv_export_partial_success(
+    preview: PlanningSignalCoreExportPreview,
+    error: PlanningSignalCsvExportPartialSuccessError,
+    output_format: str,
+) -> None:
+    core = error.core_result
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "csv_export_partial_success"
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
+            preview
+        )
+        data["export_authorization"] = (
+            _planning_signal_core_export_authorization_to_dict(preview)
+        )
+        data["partial_success"] = {
+            "signal_set_id": preview.signal_set.signal_set_id,
+            "core_write_disposition": core.core_write_disposition,
+            "core_signal_digest": core.core_signal_digest,
+            "receipt_write_disposition": core.receipt_write_disposition,
+            "receipt_sha256": core.receipt_sha256,
+            "csv_error_code": error.csv_error_code,
+            "csv_destination": str(error.csv_destination),
+        }
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": "not_performed",
+            "review_selection": "not_performed",
+            "core_export": "performed",
+            "export_receipt": "performed",
+            "csv_export": "failed_after_core_and_receipt",
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    print("Create Planning Signal — CSV PARTIAL SUCCESS")
+    print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
+    print(f"Core write disposition: {core.core_write_disposition}")
+    print(f"Core signal SHA-256: {core.core_signal_digest}")
+    print(
+        "Meridian export receipt disposition: "
+        f"{core.receipt_write_disposition}"
+    )
+    print(f"Meridian export receipt SHA-256: {core.receipt_sha256}")
+    print(f"CSV failure code: {error.csv_error_code}")
+    print(f"CSV destination: {error.csv_destination}")
+    print("CORE AND RECEIPT REMAIN DURABLE")
+    print("CSV was not verified; resolve the destination problem and retry.")
+    print("NO REVIEW STATE CHANGED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_core_export_result(
+    preview: PlanningSignalCoreExportPreview,
+    result: PlanningSignalCoreExportCommitResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "core_export_committed"
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
+            preview
+        )
+        data["export_authorization"] = (
+            _planning_signal_core_export_authorization_to_dict(preview)
+        )
+        data["result"] = {
+            "core_write_disposition": result.core_write_disposition,
+            "core_signal_digest": result.core_signal_digest,
+            "receipt_write_disposition": result.receipt_write_disposition,
+            "receipt_sha256": result.receipt_sha256,
+        }
+        data["final_core_revalidation_completed"] = True
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": result.review_write_action,
+            "review_selection": result.review_selection_action,
+            "core_export": result.core_export_action,
+            "export_receipt": result.export_receipt_action,
+            "csv_export": result.csv_export_action,
+        }
+        data["concord_action"] = result.concord_action
+        _print_json(data)
+        return
+
+    print("Create Planning Signal — #40 Core export committed")
+    print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
+    print(f"Core write disposition: {result.core_write_disposition}")
+    print(f"Core signal SHA-256: {result.core_signal_digest}")
+    print(
+        "Meridian export receipt disposition: "
+        f"{result.receipt_write_disposition}"
+    )
+    print(f"Meridian export receipt SHA-256: {result.receipt_sha256}")
+    print("final Core authorization revalidation: completed")
+    print("NO CSV EXPORTED")
+    print("NO REVIEW STATE CHANGED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_core_export_partial_success(
+    preview: PlanningSignalCoreExportPreview,
+    error: PlanningSignalCoreExportCommitPartialSuccessError,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "core_export_partial_success"
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
+            preview
+        )
+        data["export_authorization"] = (
+            _planning_signal_core_export_authorization_to_dict(preview)
+        )
+        data["partial_success"] = {
+            "signal_set_id": error.signal_set_id,
+            "core_digest_algorithm": error.core_digest_algorithm,
+            "core_signal_digest": error.core_signal_digest,
+            "core_disposition": error.core_disposition,
+            "recovery": "retry_exact_same_export_request",
+        }
+        data["final_core_revalidation_completed"] = True
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": "not_performed",
+            "review_selection": "not_performed",
+            "core_export": "performed",
+            "export_receipt": "failed_after_core_write",
+            "csv_export": "not_performed",
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    print("Create Planning Signal — #40 PARTIAL SUCCESS")
+    print(f"Core signal-set ID: {error.signal_set_id}")
+    print(f"Core write disposition: {error.core_disposition}")
+    print(
+        "Core signal digest: "
+        f"{error.core_digest_algorithm}:{error.core_signal_digest}"
+    )
+    print(f"Core signal SHA-256: {error.core_signal_digest}")
+    print("MERIDIAN EXPORT RECEIPT NOT VERIFIED")
+    print(
+        "Recovery: retry the exact same export request to reconcile the "
+        "immutable Meridian receipt."
+    )
+    print("NO CSV EXPORTED")
+    print("NO REVIEW STATE CHANGED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _planning_signal_review_selection_target_to_dict(
+    preview: PlanningSignalReviewSelectionPreview,
+) -> dict[str, object]:
+    review = preview.target.review
+    applicability = preview.target_applicability
+    return {
+        "class_id": review.class_id,
+        "derivation_id": review.derivation_reference.derivation_id,
+        "preview_id": review.preview_reference.preview_id,
+        "review_revision": review.review_revision,
+        "review_sha256": preview.target.review_sha256,
+        "decision": review.decision,
+        "acknowledged_warning_ids": list(review.acknowledged_warning_ids),
+        "actor": {
+            "kind": review.actor.kind,
+            "actor_id": review.actor.actor_id,
+        },
+        "reviewed_at": review.reviewed_at.isoformat().replace("+00:00", "Z"),
+        "applicability": {
+            "status": applicability.status,
+            "reason_codes": list(applicability.reason_codes),
+        },
+        "expected_current_review_revision": (
+            preview.expected_current_review_revision
+        ),
+    }
+
+
+def _render_planning_signal_review_selection_preview(
+    preview: PlanningSignalReviewSelectionPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "review_selection_preview"
+        data["review_selection_confirmed"] = confirmation_supplied
+        data["selection_target"] = (
+            _planning_signal_review_selection_target_to_dict(preview)
+        )
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": preview.review_write_action,
+            "review_selection": preview.review_selection_action,
+            "core_export": preview.core_export_action,
+            "csv_export": preview.csv_export_action,
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    review = preview.target.review
+    applicability = preview.target_applicability
+    print("Create Planning Signal — #39 review selection")
+    print(format_grouping_signal_teacher_projection(preview.projection))
+    print("Review selection target")
+    print(f"target review revision: {review.review_revision}")
+    print(f"target review SHA-256: {preview.target.review_sha256}")
+    print(f"target decision: {review.decision}")
+    print(
+        "target acknowledged warning IDs: "
+        + (", ".join(review.acknowledged_warning_ids) or "none")
+    )
+    print(f"target teacher actor: {review.actor.actor_id}")
+    print(
+        "target reviewed at: "
+        + review.reviewed_at.isoformat().replace("+00:00", "Z")
+    )
+    print(f"target applicability: {applicability.status}")
+    print(
+        "target applicability reasons: "
+        + (", ".join(applicability.reason_codes) or "none")
+    )
+    current = preview.expected_current_review_revision
+    print(
+        "currently selected review revision: "
+        f"{current if current is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("review selection confirmation supplied: yes")
+        print(
+            "CAS-selecting only this exact persisted #39 review revision"
+        )
+    else:
+        print("review selection confirmation supplied: no")
+        print("NO REVIEW SELECTION CHANGED")
+        print(
+            "rerun with --confirm-review-select to authorize current-review "
+            "pointer mutation"
+        )
+    print("NO TEACHER REVIEW WRITTEN BY THIS COMMAND")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_review_selection_result(
+    preview: PlanningSignalReviewSelectionPreview,
+    result: PlanningSignalReviewSelectionWorkflowResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "review_selected"
+        data["review_selection_confirmed"] = True
+        data["selection_target"] = (
+            _planning_signal_review_selection_target_to_dict(preview)
+        )
+        data["selection"] = {
+            "selection_disposition": result.selection_disposition,
+            "previous_current_review_revision": (
+                result.previous_current_review_revision
+            ),
+            "selected_review_revision": result.selected_review_revision,
+            "selected_review_sha256": result.selected_review_sha256,
+            "selected_decision": result.selected_decision,
+        }
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": result.review_write_action,
+            "review_selection": result.review_selection_action,
+            "core_export": result.core_export_action,
+            "csv_export": result.csv_export_action,
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    print(
+        f"#39 review selected: revision {result.selected_review_revision} "
+        f"({result.selection_disposition})"
+    )
+    print(f"selected review SHA-256: {result.selected_review_sha256}")
+    print(f"selected decision: {result.selected_decision}")
+    previous = result.previous_current_review_revision
+    print(
+        "previous current review revision: "
+        f"{previous if previous is not None else 'none'}"
+    )
+    print("NO TEACHER REVIEW WRITTEN BY THIS COMMAND")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _planning_signal_review_candidate_to_dict(
+    preview: PlanningSignalReviewAuthoringPreview,
+) -> dict[str, object]:
+    candidate = preview.candidate
+    return {
+        "class_id": candidate.class_id,
+        "derivation_id": candidate.derivation_reference.derivation_id,
+        "preview_id": candidate.preview_reference.preview_id,
+        "review_revision": candidate.review_revision,
+        "supersedes_revision": candidate.supersedes_revision,
+        "decision": candidate.decision,
+        "required_warning_ids": list(preview.warning_diagnostic_ids),
+        "blocking_diagnostic_ids": list(preview.blocking_diagnostic_ids),
+        "acknowledged_warning_ids": list(candidate.acknowledged_warning_ids),
+        "actor": {
+            "kind": candidate.actor.kind,
+            "actor_id": candidate.actor.actor_id,
+        },
+        "reviewed_at": candidate.reviewed_at.isoformat().replace(
+            "+00:00", "Z"
+        ),
+        "verified_history": list(preview.history),
+        "expected_current_review_revision": (
+            preview.expected_current_review_revision
+        ),
+    }
+
+
+def _render_planning_signal_review_authoring_preview(
+    preview: PlanningSignalReviewAuthoringPreview,
+    output_format: str,
+    *,
+    confirmation_supplied: bool,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "review_write_preview"
+        data["review_write_confirmed"] = confirmation_supplied
+        data["review_candidate"] = _planning_signal_review_candidate_to_dict(
+            preview
+        )
+        _print_json(data)
+        return
+
+    candidate = preview.candidate
+    print("Create Planning Signal — #39 teacher review")
+    print(f"exact #39 preview: {candidate.preview_reference.preview_id}")
+    print(f"preview SHA-256: {candidate.preview_reference.preview_sha256}")
+    print(format_grouping_signal_teacher_projection(preview.projection))
+    print("Review candidate")
+    print(f"candidate review revision: {candidate.review_revision}")
+    print(
+        "supersedes review revision: "
+        f"{candidate.supersedes_revision if candidate.supersedes_revision else 'none'}"
+    )
+    print(f"decision: {candidate.decision}")
+    print(
+        "required warning acknowledgments: "
+        + (", ".join(preview.warning_diagnostic_ids) or "none")
+    )
+    print(
+        "blocking diagnostics: "
+        + (", ".join(preview.blocking_diagnostic_ids) or "none")
+    )
+    print(
+        "acknowledged warning IDs: "
+        + (", ".join(candidate.acknowledged_warning_ids) or "none")
+    )
+    print(f"teacher actor: {candidate.actor.actor_id}")
+    print(
+        "reviewed at: "
+        + candidate.reviewed_at.isoformat().replace("+00:00", "Z")
+    )
+    selected = preview.expected_current_review_revision
+    print(
+        "currently selected review revision: "
+        f"{selected if selected is not None else 'none'}"
+    )
+    if confirmation_supplied:
+        print("review write confirmation supplied: yes")
+        print(
+            "writing only this exact immutable #39 review after live "
+            "history/currentness revalidation"
+        )
+    else:
+        print("review write confirmation supplied: no")
+        print("NO TEACHER REVIEW WRITTEN")
+        print("rerun with --confirm-review-write to authorize the review write")
+    print("NO REVIEW SELECTION CHANGED")
+    print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
+    print("NO CONCORD GROUP OR GROUPPLAN CREATED")
+
+
+def _render_planning_signal_review_authoring_result(
+    preview: PlanningSignalReviewAuthoringPreview,
+    result: PlanningSignalReviewAuthoringResult,
+    output_format: str,
+) -> None:
+    if output_format == "json":
+        data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
+        data["mode"] = "review_written"
+        data["review_write_confirmed"] = True
+        data["review_candidate"] = _planning_signal_review_candidate_to_dict(
+            preview
+        )
+        data["review"] = {
+            "review_revision": result.review_revision,
+            "review_sha256": result.review_sha256,
+            "decision": result.decision,
+            "write_disposition": result.write_disposition,
+            "selected_revision_before_write": (
+                result.selected_revision_before_write
+            ),
+            "selected_revision_after_write": (
+                result.selected_revision_after_write
+            ),
+            "selection_changed_during_write": (
+                result.selection_changed_during_write
+            ),
+        }
+        data["actions"] = {
+            "derivation_write": "not_performed",
+            "preview_write": "not_performed",
+            "review_write": "performed",
+            "review_selection": result.review_selection_action,
+            "core_export": result.core_export_action,
+            "csv_export": result.csv_export_action,
+        }
+        data["concord_action"] = "not_performed"
+        _print_json(data)
+        return
+
+    print(
+        f"#39 review persisted: revision {result.review_revision} "
+        f"({result.write_disposition})"
+    )
+    print(f"review SHA-256: {result.review_sha256}")
+    print(f"decision: {result.decision}")
+    before = result.selected_revision_before_write
+    after = result.selected_revision_after_write
+    print(
+        "selected review revision before write: "
+        f"{before if before is not None else 'none'}"
+    )
+    print(
+        "selected review revision after write: "
+        f"{after if after is not None else 'none'}"
+    )
+    if result.selection_changed_during_write:
+        print(
+            "WARNING: explicit review selection changed independently while "
+            "the review write completed"
+        )
+    print("NO REVIEW SELECTION CHANGED BY THIS COMMAND")
     print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
     print("NO CONCORD GROUP OR GROUPPLAN CREATED")
 
@@ -7297,7 +8659,14 @@ def main(
         return 0
     try:
         return int(handler(args, dependencies))
-    except PlanningSignalPreviewWriteScopeError as error:
+    except (
+        PlanningSignalPreviewWriteScopeError,
+        PlanningSignalCoreExportCommitScopeError,
+        PlanningSignalCoreExportPreviewScopeError,
+        PlanningSignalPreviewDiagnosticsScopeError,
+        PlanningSignalReviewAuthoringScopeError,
+        PlanningSignalReviewSelectionScopeError,
+    ) as error:
         print(f"error: {error.code}: {error}", file=sys.stderr)
         return 1
     except (
@@ -7327,6 +8696,12 @@ def main(
         PlanningSignalWorkflowError,
         PlanningSignalDerivationPersistenceError,
         PlanningSignalPreviewWriteError,
+        PlanningSignalCoreExportCommitError,
+        PlanningSignalCoreExportPreviewError,
+        PlanningSignalExportCommitError,
+        PlanningSignalPreviewDiagnosticsError,
+        PlanningSignalReviewAuthoringError,
+        PlanningSignalReviewSelectionError,
         AttemptDecisionWorkflowError,
         AttemptPolicyAuthoringWorkflowError,
         AttemptPolicySelectionWorkflowError,

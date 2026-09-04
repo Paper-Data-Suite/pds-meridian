@@ -101,7 +101,11 @@ def test_issue39_architecture_preserves_review_and_export_boundaries() -> None:
         "display names",
         "#39 grouping-signal preview and diagnostics — implemented",
         "#40 Core/CSV grouping-signal export — implemented",
-        "#41 teacher eligibility, proficiency, and planning-export workflows — next",
+        (
+            "#41 teacher eligibility, proficiency, and planning-export "
+            "workflows — implemented"
+        ),
+        "#42 proficiency and planning-export explanation/trace views — next",
     ):
         assert statement in document
 

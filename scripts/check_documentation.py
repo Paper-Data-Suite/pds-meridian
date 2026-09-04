@@ -37,6 +37,10 @@ EXPECTED = (
     Path("docs/architecture/grouping-signal-generation.md"),
     Path("docs/architecture/grouping-signal-preview-diagnostics.md"),
     Path("docs/architecture/grouping-signal-core-export.md"),
+    Path(
+        "docs/architecture/"
+        "teacher-eligibility-proficiency-planning-workflows.md"
+    ),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -84,6 +88,7 @@ REQUIRED_TEXT = {
         "Deterministic content-addressed grouping-signal generation",
         "Issue #39 grouping-signal preview and diagnostics",
         "Issue #40 immutable Core/CSV grouping-signal export",
+        "Issue #41 task-oriented teacher workflows",
     ),
     Path("README"): (
         "0.1.1",
@@ -120,6 +125,9 @@ REQUIRED_TEXT = {
         "meridian.grouping_signal_preview",
         "accepted_for_export",
         "content-addressed",
+        "seven #41 task-oriented teacher workflows",
+        "meridian workflow create-planning-signal",
+        "teacher-eligibility-proficiency-planning-workflows.md",
     ),
     Path("docs/README.md"): (
         "Four accepted ADRs govern the repository:",
@@ -151,7 +159,10 @@ REQUIRED_TEXT = {
         "issue #38 — implemented",
         "issue #39 — implemented",
         "issue #40 — implemented",
-        "issue #41 — next",
+        "issue #41 — implemented",
+        "issue #42 — next",
+        "Task-oriented teacher workflows",
+        "teacher-eligibility-proficiency-planning-workflows.md",
         "Deterministic grouping-signal generation",
         "Grouping-signal preview, diagnostics, and teacher review",
         "meridian.grouping_signal_preview",
@@ -375,7 +386,11 @@ REQUIRED_TEXT = {
         "#38 deterministic grouping-signal generation — implemented",
         "#39 grouping-signal preview and diagnostics — implemented",
         "#40 Core/CSV grouping-signal export — implemented",
-        "#41 teacher eligibility, proficiency, and planning-export workflows — next",
+        (
+            "#41 teacher eligibility, proficiency, and planning-export "
+            "workflows — implemented"
+        ),
+        "#42 proficiency and planning-export explanation/trace views — next",
     ),
     Path("docs/architecture/grouping-signal-preview-diagnostics.md"): (
         "GroupingSignalPreviewSnapshot",
@@ -389,7 +404,26 @@ REQUIRED_TEXT = {
         "Accepting does not export.",
         "#39 grouping-signal preview and diagnostics — implemented",
         "#40 Core/CSV grouping-signal export — implemented",
-        "#41 teacher eligibility, proficiency, and planning-export workflows — next",
+        (
+            "#41 teacher eligibility, proficiency, and planning-export "
+            "workflows — implemented"
+        ),
+        "#42 proficiency and planning-export explanation/trace views — next",
+    ),
+    Path(
+        "docs/architecture/"
+        "teacher-eligibility-proficiency-planning-workflows.md"
+    ): (
+        "seven independently invocable teacher tasks",
+        "write immutable revision != select revision as current",
+        "Cancel -> no persisted change",
+        "explicit teacher actor identifier",
+        "final #40 live revalidation",
+        "No Concord runtime dependency",
+        "#42 owns deeper proficiency and planning-export explanation/trace views",
+        "#43 owns Meridian-wide attention summaries",
+        "future v0.3 main menu",
+        "Installed issue #41 teacher-workflow smoke",
     ),
     Path("docs/architecture/grouping-signal-core-export.md"): (
         "accepted_for_export",
@@ -401,7 +435,11 @@ REQUIRED_TEXT = {
         "representation_scope = complete_signal",
         "No Concord dependency",
         "#40 Core/CSV grouping-signal export — implemented",
-        "#41 teacher eligibility, proficiency, and planning-export workflows — next",
+        (
+            "#41 teacher eligibility, proficiency, and planning-export "
+            "workflows — implemented"
+        ),
+        "#42 proficiency and planning-export explanation/trace views — next",
     ),
     Path("docs/architecture/core-grouping-signal-interchange.md"): (
         "grouping_signal_set_v1",

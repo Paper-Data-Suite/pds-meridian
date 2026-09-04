@@ -285,7 +285,8 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
     assert document in sdist_checker
     assert "issue #39 — implemented" in documentation_checker
     assert "issue #40 — implemented" in documentation_checker
-    assert "issue #41 — next" in documentation_checker
+    assert "issue #41 — implemented" in documentation_checker
+    assert "issue #42 — next" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_currentness.py",
@@ -315,7 +316,8 @@ def test_grouping_signal_export_release_is_guarded() -> None:
     assert "grouping-signal-core-export.md" in documentation_checker
     assert "grouping-signal-core-export.md" in sdist_checker
     assert "issue #40 — implemented" in documentation_checker
-    assert "issue #41 — next" in documentation_checker
+    assert "issue #41 — implemented" in documentation_checker
+    assert "issue #42 — next" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_export.py",
@@ -331,3 +333,59 @@ def test_grouping_signal_export_release_is_guarded() -> None:
 
     assert "smoke_test_grouping_signal_export_wheel.py" in validator
     assert "smoke_program_grouping_signal_export.py" in sdist_checker
+
+def test_teacher_workflow_release_is_guarded() -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    wheel_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    docs_readme = Path("docs/README.md").read_text(encoding="utf-8")
+
+    document = (
+        "docs/architecture/"
+        "teacher-eligibility-proficiency-planning-workflows.md"
+    )
+    assert (
+        "teacher-eligibility-proficiency-planning-workflows.md"
+        in documentation_checker
+    )
+    assert document in sdist_checker
+    assert "issue #41 — implemented" in documentation_checker
+    assert "issue #42 — next" in documentation_checker
+    assert "issue #42 — next" in docs_readme
+
+    for member in (
+        "meridian/planning_signal_preview_diagnostics_workflow.py",
+        "meridian/planning_signal_review_authoring_workflow.py",
+        "meridian/planning_signal_review_selection_workflow.py",
+        "meridian/planning_signal_core_export_preview_workflow.py",
+        "meridian/planning_signal_core_export_commit_workflow.py",
+        "meridian/planning_signal_export_commit_workflow.py",
+    ):
+        assert member in wheel_checker
+        assert member in sdist_checker
+
+    smoke = "scripts/smoke_test_teacher_workflows_wheel.py"
+    program = "scripts/smoke_program_teacher_workflows.py"
+    assert smoke in validator
+    assert smoke in sdist_checker
+    assert program in sdist_checker
+
+    for member in (
+        "tests/test_planning_signal_preview_diagnostics_workflow.py",
+        "tests/test_cli_planning_signal_preview_diagnostics.py",
+        "tests/test_planning_signal_review_authoring_workflow.py",
+        "tests/test_cli_planning_signal_review_authoring.py",
+        "tests/test_planning_signal_review_selection_workflow.py",
+        "tests/test_cli_planning_signal_review_selection.py",
+        "tests/test_planning_signal_core_export_preview_workflow.py",
+        "tests/test_cli_planning_signal_core_export_preview.py",
+        "tests/test_planning_signal_core_export_commit_workflow.py",
+        "tests/test_cli_planning_signal_core_export_commit.py",
+        "tests/test_planning_signal_export_commit_workflow.py",
+        "tests/test_cli_planning_signal_csv_export.py",
+        "tests/test_issue41_workflow_acceptance.py",
+    ):
+        assert member in sdist_checker
