@@ -20,9 +20,11 @@ Grade Item-level and Academic Period standards proficiency, and persist/select
 exact immutable `meridian.grouping_signal_policy` revisions, and generate
 immutable `meridian.grouping_signal_derivation` snapshots without mutating
 historical state, preview/review them deliberately, and export approved signals
-through Core with immutable receipts and optional Core-native CSV. It does not
-yet calculate Grades, provide #41 task-oriented teacher workflows, generate
-reports, create subscriptions, or deliver reports.
+through Core with immutable receipts and optional Core-native CSV. It now exposes the seven #41 task-oriented teacher workflows through
+`meridian workflow`, preserving preview-before-write and separate write/select
+boundaries through final Core/receipt export with optional Core-native CSV. It
+does not yet calculate conventional Grades, generate reports, create
+subscriptions, or deliver reports.
 
 ## Purpose
 
@@ -55,6 +57,9 @@ The current package provides:
 - one authoritative version declaration and the Core v0.6 dependency boundary;
 - the side-effect-free `meridian` help/version command and read-only
   publication/evidence diagnostics;
+- seven independently invocable `meridian workflow` teacher tasks for New
+  Evidence, Grade Items, Attempt Decisions, Exclusions, Standards Review,
+  Calculation Preview, and Create Planning Signal;
 - strict mypy, Ruff, pytest, package, and cross-platform CI validation;
 - immutable `meridian.evidence` models preserving exact native meaning;
 - immutable `meridian.adapters` exact keys, descriptors, requests, and registry;
@@ -116,11 +121,48 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- Grade calculations or task-oriented #41 teacher planning-export workflows;
+- conventional or hybrid Grade calculations;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
 Package installation alone does not enable publication ingestion.
+
+## Teacher workflows
+
+Issue #41 composes the existing #27-#40 models, storage, calculation, review, and
+export services into seven independently invocable CLI tasks:
+
+```text
+meridian workflow new-evidence
+meridian workflow grade-items
+meridian workflow attempt-decisions
+meridian workflow exclusions
+meridian workflow standards-review
+meridian workflow calculation-preview
+meridian workflow create-planning-signal
+```
+
+The workflow layer remains thin. It does not create parallel academic truth or
+infer teacher identity, Grade Item membership, evidence eligibility, attempt
+preference, Standard association, mapping-profile choice, Academic Period
+membership, current-result selection, or Concord planning state.
+
+Consequential operations preserve preview-before-write and explicit selection
+boundaries. Create Planning Signal keeps #38 derivation, #39 preview/review,
+warning acknowledgment, accepted review, explicit review selection, final #40
+live revalidation, Core `grouping_signal_set_v1` persistence, privacy-minimal
+Meridian receipt reconciliation, and optional Core-native
+`grouping_signal_csv_v1` as distinct stages. CSV is generated only from the
+exact stored Core signal plus its matching Meridian receipt. No Concord
+`GroupPlan`, `Group`, or `GroupMembership` is created.
+
+See
+[Teacher eligibility, proficiency, and planning-export workflows](docs/architecture/teacher-eligibility-proficiency-planning-workflows.md)
+for the application-layer, cancellation, authorization, revalidation, privacy,
+and issue-boundary contract.
+
+The next v0.2 boundary is issue #42: proficiency and planning-export
+explanation/trace views.
 
 ## Typed evidence inventory
 

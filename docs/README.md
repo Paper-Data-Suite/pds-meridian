@@ -31,9 +31,9 @@ issue #37 adds the separate immutable teacher-controlled grouping-signal
 derivation-policy layer, and issue #38 now generates deterministic immutable
 content-addressed Meridian derivations without writing Core signals. Issue #39
 implements preview/diagnostics/review, issue #40 implements immutable Core/CSV
-export, and issue #41 is the next teacher-workflow boundary. The package
-version remains `0.1.1` until the v0.2 release sequence reaches its release
-issue.
+export, and issue #41 now implements the seven task-oriented teacher workflows
+over those canonical layers. The package version remains `0.1.1` until the
+v0.2 release sequence reaches its release issue.
 
 ## Recommended reading order
 
@@ -80,6 +80,7 @@ The package foundation provides:
 - exact optional `pds-concord==0.3.0` adapter support;
 - exact authentication of the official Core v0.6.3 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;
+- seven independently invocable issue #41 task-oriented teacher workflows;
 - strict mypy and Ruff checks;
 - privacy-safe fixtures and tests;
 - wheel and source-distribution checks;
@@ -93,6 +94,42 @@ composition.
 
 Issue #33 raises the supported Core floor to `pds-core>=0.6.3,<0.7` so current
 standards-framework metadata and durable standard resolution are available.
+
+## Task-oriented teacher workflows
+
+Issue #41 exposes seven installed CLI tasks while keeping application/controller
+logic reusable outside the terminal:
+
+```text
+meridian workflow new-evidence
+meridian workflow grade-items
+meridian workflow attempt-decisions
+meridian workflow exclusions
+meridian workflow standards-review
+meridian workflow calculation-preview
+meridian workflow create-planning-signal
+```
+
+The workflows reuse #27-#40 canonical state. Revision write is not current
+selection; calculation is not export; and grouping signal is not a Concord
+`GroupPlan`. Protected evidence still requires the deployment authorization
+boundary, teacher-authored records require explicit actor identity, and generic
+workflow controllers remain producer-neutral.
+
+Create Planning Signal keeps generation, #39 review and warning acknowledgment,
+explicit review selection, final #40 live revalidation, Core
+`grouping_signal_set_v1` persistence, privacy-minimal Meridian receipt
+reconciliation, and optional `grouping_signal_csv_v1` file emission as distinct
+stages. The CSV comes from the exact stored Core signal and matching receipt.
+No Concord runtime dependency or Group/GroupMembership creation is introduced.
+
+See
+[Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
+for the full application-layer, cancellation, authorization, revalidation,
+privacy, installed-acceptance, and issue-boundary contract.
+
+The next v0.2 boundary is issue #42: proficiency and planning-export
+explanation/trace views.
 
 ## Typed evidence inventory
 
@@ -481,8 +518,10 @@ shared planning-signal boundary. Issue #37 implements the separate
 teacher-controlled grouping-signal derivation policy. Issue #38 implements
 deterministic immutable grouping-signal derivation, and issue #39 now implements
 preview, diagnostics, deliberate teacher review, and read-only projection.
-Issue #40 now implements the explicit Core/CSV export boundary. Issue #41 is
-the next task-oriented teacher eligibility/proficiency/planning-export workflow.
+Issue #40 now implements the explicit Core/CSV export boundary. Issue #41 now
+composes #27-#40 into seven task-oriented teacher
+eligibility/proficiency/planning-export workflows while preserving their
+separate write, selection, revalidation, privacy, and Concord boundaries.
 
 ## Architecture decisions
 
@@ -534,9 +573,12 @@ The v0.2.0 implementation sequence now begins:
 13. deterministic grouping-signal generation — issue #38 — implemented;
 14. grouping-signal preview and diagnostics — issue #39 — implemented;
 15. Core/CSV grouping-signal export — issue #40 — implemented;
-16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — next;
-17. cross-producer and installed acceptance; and
-18. the v0.2.0 policy, fairness, privacy, interoperability, and release audit.
+16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — implemented;
+17. proficiency and planning-export explanation/trace views — issue #42 — next;
+18. Meridian proficiency attention summaries — issue #43;
+19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44;
+20. installed proficiency and signal-export acceptance without Concord — issue #45; and
+21. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46.
 
 Implementing Grade Item membership does not make evidence eligibility, attempt
 selection, reassessment, proficiency, Grade calculation, or planning export

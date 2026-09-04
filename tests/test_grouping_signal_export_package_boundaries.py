@@ -76,6 +76,10 @@ def test_issue40_handoff_and_boundaries() -> None:
         "representation_scope = complete_signal",
         "No Concord dependency",
         "#40 Core/CSV grouping-signal export — implemented",
-        "#41 teacher eligibility, proficiency, and planning-export workflows — next",
+        (
+            "#41 teacher eligibility, proficiency, and planning-export "
+            "workflows — implemented"
+        ),
+        "#42 proficiency and planning-export explanation/trace views — next",
     ):
         assert statement in text
