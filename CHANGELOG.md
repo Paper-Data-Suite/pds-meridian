@@ -4,6 +4,20 @@
 
 ### Added
 
+- Issue #42 proficiency and planning-export explanation/trace views: five
+  deterministic read-only text/JSON trace targets covering exact Grade Item and
+  Academic Period proficiency, content-addressed planning derivation, exact
+  preview/review state, and one exact Meridian-generated Core grouping signal.
+  The trace layer verifies digest-bound #33-#40 provenance, preserves explicit
+  historical/current selection semantics, distinguishes academic
+  noncontribution from integrity failure, reconciles every exported Core band
+  against its exact #38 derivation, and adds optional authorization-gated
+  evidence-detail availability without opening raw producer evidence by default.
+  Focused installed-wheel acceptance uses only Core 0.6.3 plus the candidate
+  Meridian wheel outside the source checkout and proves deterministic output,
+  historical traceability, producer/Concord independence, Core signal
+  minimality, and zero trace-induced writes.
+
 - Issue #41 task-oriented teacher workflows: seven independently invocable
   `meridian workflow` tasks over canonical #27-#40 services, preserving explicit
   teacher actor provenance, authorization, immutable revision/write versus

@@ -80,6 +80,7 @@ def test_issue40_handoff_and_boundaries() -> None:
             "#41 teacher eligibility, proficiency, and planning-export "
             "workflows — implemented"
         ),
-        "#42 proficiency and planning-export explanation/trace views — next",
+        "#42 proficiency and planning-export explanation/trace views — implemented",
+        "#43 Meridian proficiency attention summaries — next",
     ):
         assert statement in text

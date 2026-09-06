@@ -41,6 +41,7 @@ EXPECTED = (
         "docs/architecture/"
         "teacher-eligibility-proficiency-planning-workflows.md"
     ),
+    Path("docs/architecture/proficiency-planning-export-explanation-traces.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -89,6 +90,7 @@ REQUIRED_TEXT = {
         "Issue #39 grouping-signal preview and diagnostics",
         "Issue #40 immutable Core/CSV grouping-signal export",
         "Issue #41 task-oriented teacher workflows",
+        "Issue #42 proficiency and planning-export explanation/trace views",
     ),
     Path("README"): (
         "0.1.1",
@@ -128,6 +130,11 @@ REQUIRED_TEXT = {
         "seven #41 task-oriented teacher workflows",
         "meridian workflow create-planning-signal",
         "teacher-eligibility-proficiency-planning-workflows.md",
+        "proficiency-planning-export-explanation-traces.md",
+        "meridian trace grade-item-proficiency",
+        "meridian trace planning-export",
+        "#42 proficiency and planning-export explanation/trace views — implemented",
+        "#43 Meridian proficiency attention summaries — next",
     ),
     Path("docs/README.md"): (
         "Four accepted ADRs govern the repository:",
@@ -160,8 +167,11 @@ REQUIRED_TEXT = {
         "issue #39 — implemented",
         "issue #40 — implemented",
         "issue #41 — implemented",
-        "issue #42 — next",
+        "issue #42 — implemented",
+        "issue #43 — next",
         "Task-oriented teacher workflows",
+        "Proficiency and planning-export explanation traces",
+        "proficiency-planning-export-explanation-traces.md",
         "teacher-eligibility-proficiency-planning-workflows.md",
         "Deterministic grouping-signal generation",
         "Grouping-signal preview, diagnostics, and teacher review",
@@ -408,7 +418,8 @@ REQUIRED_TEXT = {
             "#41 teacher eligibility, proficiency, and planning-export "
             "workflows — implemented"
         ),
-        "#42 proficiency and planning-export explanation/trace views — next",
+        "#42 proficiency and planning-export explanation/trace views — implemented",
+        "#43 Meridian proficiency attention summaries — next",
     ),
     Path(
         "docs/architecture/"
@@ -420,7 +431,7 @@ REQUIRED_TEXT = {
         "explicit teacher actor identifier",
         "final #40 live revalidation",
         "No Concord runtime dependency",
-        "#42 owns deeper proficiency and planning-export explanation/trace views",
+        "Issue #42 now implements the deeper proficiency and planning-export",
         "#43 owns Meridian-wide attention summaries",
         "future v0.3 main menu",
         "Installed issue #41 teacher-workflow smoke",
@@ -439,7 +450,25 @@ REQUIRED_TEXT = {
             "#41 teacher eligibility, proficiency, and planning-export "
             "workflows — implemented"
         ),
-        "#42 proficiency and planning-export explanation/trace views — next",
+        "#42 proficiency and planning-export explanation/trace views — implemented",
+        "#43 Meridian proficiency attention summaries — next",
+    ),
+    Path(
+        "docs/architecture/"
+        "proficiency-planning-export-explanation-traces.md"
+    ): (
+        "meridian trace grade-item-proficiency",
+        "meridian trace academic-period-proficiency",
+        "meridian trace planning-derivation",
+        "meridian trace planning-preview-review",
+        "meridian trace planning-export",
+        "explicit exact historical revision",
+        "authorized_detail",
+        "exported band != derived band",
+        "Core remains minimal",
+        "pds-core 0.6.3",
+        "#42 proficiency and planning-export explanation/trace views — implemented",
+        "#43 Meridian proficiency attention summaries — next",
     ),
     Path("docs/architecture/core-grouping-signal-interchange.md"): (
         "grouping_signal_set_v1",

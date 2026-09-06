@@ -498,7 +498,8 @@ At completion of #39:
 #39 grouping-signal preview and diagnostics — implemented
 #40 Core/CSV grouping-signal export — implemented
 #41 teacher eligibility, proficiency, and planning-export workflows — implemented
-#42 proficiency and planning-export explanation/trace views — next
+#42 proficiency and planning-export explanation/trace views — implemented
+#43 Meridian proficiency attention summaries — next
 ```
 
 Issue #40 alone owns projection into Core `grouping_signal_set_v1`, optional

@@ -35,6 +35,13 @@ from meridian.academic_period_proficiency import (
     AcademicPeriodProficiencyAggregationPolicyReference,
     AcademicPeriodProficiencyTarget,
 )
+from meridian.academic_period_proficiency_explanation import (
+    AcademicPeriodProficiencyTargetSelection,
+    AcademicPeriodProficiencyTraceTarget,
+    academic_period_proficiency_explanation_to_dict,
+    explain_academic_period_proficiency,
+    render_academic_period_proficiency_explanation_text,
+)
 from meridian.academic_period_result_persistence_workflow import (
     AcademicPeriodResultPersistenceError,
     AcademicPeriodResultPersistencePreview,
@@ -191,6 +198,14 @@ from meridian.grade_item_memberships import (
     GradeItemAcademicPeriodAssignment,
     GradeItemMembershipValidationError,
 )
+from meridian.grade_item_proficiency_explanation import (
+    ExplanationTraceError,
+    GradeItemProficiencyTargetSelection,
+    GradeItemProficiencyTraceTarget,
+    explain_grade_item_proficiency,
+    grade_item_proficiency_explanation_to_dict,
+    render_grade_item_proficiency_explanation_text,
+)
 from meridian.grade_item_selection_workflow import (
     GradeItemSelectionPreview,
     GradeItemSelectionWorkflowError,
@@ -248,6 +263,12 @@ from meridian.planning_signal_core_export_preview_workflow import (
     PlanningSignalCoreExportPreviewScopeError,
     preview_planning_signal_core_export,
 )
+from meridian.planning_signal_derivation_explanation import (
+    PlanningSignalDerivationTraceTarget,
+    explain_planning_signal_derivation,
+    planning_signal_derivation_explanation_to_dict,
+    render_planning_signal_derivation_explanation_text,
+)
 from meridian.planning_signal_derivation_persistence_workflow import (
     PlanningSignalDerivationPersistenceError,
     PlanningSignalDerivationPersistencePreview,
@@ -261,10 +282,23 @@ from meridian.planning_signal_export_commit_workflow import (
     PlanningSignalExportCommitResult,
     commit_planning_signal_export,
 )
+from meridian.planning_signal_export_explanation import (
+    PlanningSignalExportTraceTarget,
+    explain_planning_signal_export,
+    planning_signal_export_explanation_to_dict,
+    render_planning_signal_export_explanation_text,
+)
 from meridian.planning_signal_preview_diagnostics_workflow import (
     PlanningSignalPreviewDiagnosticsError,
     PlanningSignalPreviewDiagnosticsScopeError,
     project_planning_signal_preview_diagnostics,
+)
+from meridian.planning_signal_preview_review_explanation import (
+    PlanningPreviewReviewSelection,
+    PlanningSignalPreviewReviewTraceTarget,
+    explain_planning_signal_preview_review,
+    planning_signal_preview_review_explanation_to_dict,
+    render_planning_signal_preview_review_explanation_text,
 )
 from meridian.planning_signal_preview_write_workflow import (
     PlanningSignalPreviewWriteError,
@@ -506,6 +540,154 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     evidence.set_defaults(show_group_help=evidence)
+
+    trace = groups.add_parser(
+        "trace",
+        help="Trace exact proficiency and planning provenance.",
+        description=(
+            "Inspect deterministic read-only issue #42 explanation views over "
+            "exact canonical Meridian/Core state."
+        ),
+    )
+    trace_commands = trace.add_subparsers(dest="trace_command")
+    grade_item_trace_parser = trace_commands.add_parser(
+        "grade-item-proficiency",
+        help="Explain one exact Grade Item standards-proficiency result.",
+        description=(
+            "Explain one exact #34 Grade Item proficiency result and verify its "
+            "stored provenance. This command is read-only and never recalculates "
+            "or selects academic state."
+        ),
+    )
+    grade_item_trace_parser.add_argument("class_id")
+    grade_item_trace_parser.add_argument("grade_item_id")
+    grade_item_trace_parser.add_argument("student_id")
+    grade_item_trace_parser.add_argument("standard_id")
+    _add_workspace_argument(grade_item_trace_parser)
+    grade_item_target = grade_item_trace_parser.add_mutually_exclusive_group(
+        required=True
+    )
+    grade_item_target.add_argument(
+        "--current",
+        action="store_true",
+        help="Resolve the canonical explicitly selected current result.",
+    )
+    grade_item_target.add_argument(
+        "--result-revision",
+        type=_positive_integer,
+        help="Explain exactly this historical result revision.",
+    )
+    _add_format_argument(grade_item_trace_parser)
+    grade_item_trace_parser.set_defaults(
+        handler=_handle_grade_item_proficiency_trace,
+        show_group_help=None,
+    )
+
+    academic_period_trace_parser = trace_commands.add_parser(
+        "academic-period-proficiency",
+        help="Explain one exact Academic Period standards-proficiency result.",
+        description=(
+            "Explain one exact #35 Academic Period proficiency result and verify "
+            "its stored provenance, including exact #34 Grade Item drill-downs. "
+            "This command is read-only and never recalculates or selects academic "
+            "state."
+        ),
+    )
+    academic_period_trace_parser.add_argument("class_id")
+    academic_period_trace_parser.add_argument("school_year")
+    academic_period_trace_parser.add_argument("period_id")
+    academic_period_trace_parser.add_argument("student_id")
+    academic_period_trace_parser.add_argument("standard_id")
+    _add_workspace_argument(academic_period_trace_parser)
+    academic_period_target = academic_period_trace_parser.add_mutually_exclusive_group(
+        required=True
+    )
+    academic_period_target.add_argument(
+        "--current",
+        action="store_true",
+        help="Resolve the canonical explicitly selected current #35 result.",
+    )
+    academic_period_target.add_argument(
+        "--result-revision",
+        type=_positive_integer,
+        help="Explain exactly this historical #35 result revision.",
+    )
+    _add_format_argument(academic_period_trace_parser)
+    academic_period_trace_parser.set_defaults(
+        handler=_handle_academic_period_proficiency_trace,
+        show_group_help=None,
+    )
+
+    planning_derivation_trace_parser = trace_commands.add_parser(
+        "planning-derivation",
+        help="Explain one exact planning-signal derivation.",
+        description=(
+            "Explain one exact immutable #38 planning-signal derivation and "
+            "verify its exact #37 policy, scale, and #35 source-result lineage. "
+            "This command is read-only and never resolves a latest derivation."
+        ),
+    )
+    planning_derivation_trace_parser.add_argument("class_id")
+    planning_derivation_trace_parser.add_argument("derivation_id")
+    _add_workspace_argument(planning_derivation_trace_parser)
+    _add_format_argument(planning_derivation_trace_parser)
+    planning_derivation_trace_parser.set_defaults(
+        handler=_handle_planning_signal_derivation_trace,
+        show_group_help=None,
+    )
+
+    planning_preview_review_trace_parser = trace_commands.add_parser(
+        "planning-preview-review",
+        help="Explain one exact planning preview/review path.",
+        description=(
+            "Explain one exact immutable #39 planning preview plus either the "
+            "explicitly selected review or one exact review revision. The view "
+            "verifies exact #38 lineage and uses existing live export-eligibility "
+            "semantics without writing or selecting state."
+        ),
+    )
+    planning_preview_review_trace_parser.add_argument("class_id")
+    planning_preview_review_trace_parser.add_argument("preview_id")
+    _add_workspace_argument(planning_preview_review_trace_parser)
+    planning_review_target = (
+        planning_preview_review_trace_parser.add_mutually_exclusive_group(
+            required=True
+        )
+    )
+    planning_review_target.add_argument(
+        "--selected-review",
+        action="store_true",
+        help="Explain the canonical explicitly selected review, if one exists.",
+    )
+    planning_review_target.add_argument(
+        "--review-revision",
+        type=_positive_integer,
+        help="Explain exactly this historical #39 review revision.",
+    )
+    _add_format_argument(planning_preview_review_trace_parser)
+    planning_preview_review_trace_parser.set_defaults(
+        handler=_handle_planning_signal_preview_review_trace,
+        show_group_help=None,
+    )
+
+    planning_export_trace_parser = trace_commands.add_parser(
+        "planning-export",
+        help="Explain one exact exported Core planning signal.",
+        description=(
+            "Explain one exact immutable Core grouping_signal_set_v1 export and "
+            "its Meridian receipt-bound #39/#38 lineage. The view verifies exact "
+            "digest and per-student band reconciliation without writing state."
+        ),
+    )
+    planning_export_trace_parser.add_argument("class_id")
+    planning_export_trace_parser.add_argument("signal_set_id")
+    _add_workspace_argument(planning_export_trace_parser)
+    _add_format_argument(planning_export_trace_parser)
+    planning_export_trace_parser.set_defaults(
+        handler=_handle_planning_signal_export_trace,
+        show_group_help=None,
+    )
+    trace.set_defaults(show_group_help=trace)
 
     workflow = groups.add_parser(
         "workflow",
@@ -3659,6 +3841,136 @@ def _handle_grade_items_review(
         args.class_id,
     )
     _render_grade_items_review(review, args.format)
+    return 0
+
+
+def _handle_grade_item_proficiency_trace(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    selection: GradeItemProficiencyTargetSelection = (
+        "current" if args.current else "revision"
+    )
+    target = GradeItemProficiencyTraceTarget(
+        class_id=args.class_id,
+        grade_item_id=args.grade_item_id,
+        student_id=args.student_id,
+        standard_id=args.standard_id,
+        selection=selection,
+        result_revision=args.result_revision,
+    )
+    explanation = explain_grade_item_proficiency(
+        str(args.workspace),
+        target,
+    )
+    if args.format == "json":
+        _print_json(grade_item_proficiency_explanation_to_dict(explanation))
+    else:
+        sys.stdout.write(
+            render_grade_item_proficiency_explanation_text(explanation)
+        )
+    return 0
+
+
+def _handle_academic_period_proficiency_trace(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    selection: AcademicPeriodProficiencyTargetSelection = (
+        "current" if args.current else "revision"
+    )
+    target = AcademicPeriodProficiencyTraceTarget(
+        class_id=args.class_id,
+        school_year=args.school_year,
+        period_id=args.period_id,
+        student_id=args.student_id,
+        standard_id=args.standard_id,
+        selection=selection,
+        result_revision=args.result_revision,
+    )
+    explanation = explain_academic_period_proficiency(
+        str(args.workspace),
+        target,
+    )
+    if args.format == "json":
+        _print_json(academic_period_proficiency_explanation_to_dict(explanation))
+    else:
+        sys.stdout.write(
+            render_academic_period_proficiency_explanation_text(explanation)
+        )
+    return 0
+
+
+def _handle_planning_signal_derivation_trace(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    target = PlanningSignalDerivationTraceTarget(
+        class_id=args.class_id,
+        derivation_id=args.derivation_id,
+    )
+    explanation = explain_planning_signal_derivation(
+        str(args.workspace),
+        target,
+    )
+    if args.format == "json":
+        _print_json(planning_signal_derivation_explanation_to_dict(explanation))
+    else:
+        sys.stdout.write(
+            render_planning_signal_derivation_explanation_text(explanation)
+        )
+    return 0
+
+
+def _handle_planning_signal_preview_review_trace(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    selection: PlanningPreviewReviewSelection = (
+        "selected" if args.selected_review else "revision"
+    )
+    target = PlanningSignalPreviewReviewTraceTarget(
+        class_id=args.class_id,
+        preview_id=args.preview_id,
+        review_selection=selection,
+        review_revision=args.review_revision,
+    )
+    explanation = explain_planning_signal_preview_review(
+        str(args.workspace),
+        target,
+    )
+    if args.format == "json":
+        _print_json(
+            planning_signal_preview_review_explanation_to_dict(explanation)
+        )
+    else:
+        sys.stdout.write(
+            render_planning_signal_preview_review_explanation_text(explanation)
+        )
+    return 0
+
+
+def _handle_planning_signal_export_trace(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    del dependencies
+    target = PlanningSignalExportTraceTarget(
+        class_id=args.class_id,
+        signal_set_id=args.signal_set_id,
+    )
+    explanation = explain_planning_signal_export(
+        str(args.workspace),
+        target,
+    )
+    if args.format == "json":
+        _print_json(planning_signal_export_explanation_to_dict(explanation))
+    else:
+        sys.stdout.write(render_planning_signal_export_explanation_text(explanation))
     return 0
 
 
@@ -8677,6 +8989,7 @@ def main(
         NewEvidenceEligibilitySelectionError,
         NewEvidenceWorkflowError,
         EvidenceEligibilityStorageError,
+        ExplanationTraceError,
         AttemptDecisionAuthoringWorkflowError,
         AttemptDecisionSelectionWorkflowError,
         ExclusionsWorkflowError,
