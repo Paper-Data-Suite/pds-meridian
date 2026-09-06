@@ -31,9 +31,10 @@ issue #37 adds the separate immutable teacher-controlled grouping-signal
 derivation-policy layer, and issue #38 now generates deterministic immutable
 content-addressed Meridian derivations without writing Core signals. Issue #39
 implements preview/diagnostics/review, issue #40 implements immutable Core/CSV
-export, and issue #41 now implements the seven task-oriented teacher workflows
-over those canonical layers. The package version remains `0.1.1` until the
-v0.2 release sequence reaches its release issue.
+export, issue #41 implements the seven task-oriented teacher workflows, and
+issue #42 now implements deterministic read-only proficiency and planning-export
+explanation/trace views over exact canonical provenance. The package version
+remains `0.1.1` until the v0.2 release sequence reaches its release issue.
 
 ## Recommended reading order
 
@@ -57,17 +58,21 @@ v0.2 release sequence reaches its release issue.
 18. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
 19. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
 20. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
-21. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-22. [ScoreForm adapter](architecture/scoreform-adapter.md)
-23. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-24. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
-25. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-26. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-27. [ADR index](decisions/README.md)
-28. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-29. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-30. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-31. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+21. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
+22. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
+23. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
+24. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
+25. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+26. [ScoreForm adapter](architecture/scoreform-adapter.md)
+27. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+28. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
+29. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+30. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+31. [ADR index](decisions/README.md)
+32. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+33. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+34. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+35. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -81,6 +86,7 @@ The package foundation provides:
 - exact authentication of the official Core v0.6.3 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;
 - seven independently invocable issue #41 task-oriented teacher workflows;
+- five independently invocable issue #42 read-only explanation/trace targets;
 - strict mypy and Ruff checks;
 - privacy-safe fixtures and tests;
 - wheel and source-distribution checks;
@@ -128,8 +134,31 @@ See
 for the full application-layer, cancellation, authorization, revalidation,
 privacy, installed-acceptance, and issue-boundary contract.
 
-The next v0.2 boundary is issue #42: proficiency and planning-export
-explanation/trace views.
+## Proficiency and planning-export explanation traces
+
+Issue #42 exposes five installed `meridian trace` targets that traverse exact
+canonical provenance without recalculation or writes:
+
+```text
+grade-item-proficiency
+academic-period-proficiency
+planning-derivation
+planning-preview-review
+planning-export
+```
+
+Exact historical revisions remain historical; current state is resolved only
+through explicit canonical selectors. Default traces do not open raw producer
+evidence. Optional richer source detail continues through the existing
+authorization-gated evidence-reader boundary, and authorization failure remains
+separate from academic missing/excluded state.
+
+See
+[Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
+for exact-target semantics, integrity rules, nested provenance, export
+reconciliation, privacy, and focused installed-wheel acceptance.
+
+The next v0.2 boundary is issue #43: Meridian proficiency attention summaries.
 
 ## Typed evidence inventory
 
@@ -574,8 +603,8 @@ The v0.2.0 implementation sequence now begins:
 14. grouping-signal preview and diagnostics — issue #39 — implemented;
 15. Core/CSV grouping-signal export — issue #40 — implemented;
 16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — implemented;
-17. proficiency and planning-export explanation/trace views — issue #42 — next;
-18. Meridian proficiency attention summaries — issue #43;
+17. proficiency and planning-export explanation/trace views — issue #42 — implemented;
+18. Meridian proficiency attention summaries — issue #43 — next;
 19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44;
 20. installed proficiency and signal-export acceptance without Concord — issue #45; and
 21. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46.

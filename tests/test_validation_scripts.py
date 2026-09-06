@@ -286,7 +286,8 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
     assert "issue #39 — implemented" in documentation_checker
     assert "issue #40 — implemented" in documentation_checker
     assert "issue #41 — implemented" in documentation_checker
-    assert "issue #42 — next" in documentation_checker
+    assert "issue #42 — implemented" in documentation_checker
+    assert "issue #43 — next" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_currentness.py",
@@ -317,7 +318,8 @@ def test_grouping_signal_export_release_is_guarded() -> None:
     assert "grouping-signal-core-export.md" in sdist_checker
     assert "issue #40 — implemented" in documentation_checker
     assert "issue #41 — implemented" in documentation_checker
-    assert "issue #42 — next" in documentation_checker
+    assert "issue #42 — implemented" in documentation_checker
+    assert "issue #43 — next" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_export.py",
@@ -353,8 +355,10 @@ def test_teacher_workflow_release_is_guarded() -> None:
     )
     assert document in sdist_checker
     assert "issue #41 — implemented" in documentation_checker
-    assert "issue #42 — next" in documentation_checker
-    assert "issue #42 — next" in docs_readme
+    assert "issue #42 — implemented" in documentation_checker
+    assert "issue #43 — next" in documentation_checker
+    assert "issue #42 — implemented" in docs_readme
+    assert "issue #43 — next" in docs_readme
 
     for member in (
         "meridian/planning_signal_preview_diagnostics_workflow.py",

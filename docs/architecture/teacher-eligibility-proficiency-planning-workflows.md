@@ -417,7 +417,8 @@ teacher-workflow smoke.
 
 ## Boundary with #42
 
-#42 owns deeper proficiency and planning-export explanation/trace views.
+Issue #42 now implements the deeper proficiency and planning-export
+explanation/trace layer over the exact identities retained by #41.
 
 Issue #41 answers:
 
@@ -432,8 +433,7 @@ Why exactly did Meridian reach this academic/provenance result,
 and what contributed at every stage?
 ```
 
-The #41 projections retain exact identities and references so #42 can build
-deeper trace views without rewriting workflow behavior.
+The trace layer does not reopen or rewrite #41 workflow behavior.
 
 ## Boundary with #43
 
@@ -447,8 +447,8 @@ but it does not build the global attention dashboard.
 The next v0.2 sequence is:
 
 ```text
-#42 proficiency and planning-export explanation/trace views
-#43 Meridian proficiency attention summaries
+#42 proficiency and planning-export explanation/trace views — implemented
+#43 Meridian proficiency attention summaries — next
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios
 #45 installed proficiency and signal-export acceptance without Concord
 #46 v0.2.0 policy, fairness, privacy, interoperability, and release audit

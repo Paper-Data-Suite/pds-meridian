@@ -23,8 +23,11 @@ historical state, preview/review them deliberately, and export approved signals
 through Core with immutable receipts and optional Core-native CSV. It now exposes the seven #41 task-oriented teacher workflows through
 `meridian workflow`, preserving preview-before-write and separate write/select
 boundaries through final Core/receipt export with optional Core-native CSV. It
-does not yet calculate conventional Grades, generate reports, create
-subscriptions, or deliver reports.
+also exposes five issue #42 read-only explanation/trace targets through
+`meridian trace`, from exact Grade Item and Academic Period proficiency through
+planning derivation/review and exact Core export provenance. It does not yet
+calculate conventional Grades, generate reports, create subscriptions, or
+deliver reports.
 
 ## Purpose
 
@@ -60,6 +63,9 @@ The current package provides:
 - seven independently invocable `meridian workflow` teacher tasks for New
   Evidence, Grade Items, Attempt Decisions, Exclusions, Standards Review,
   Calculation Preview, and Create Planning Signal;
+- five independently invocable `meridian trace` targets for exact Grade Item
+  proficiency, Academic Period proficiency, planning derivation, planning
+  preview/review, and exported Core grouping-signal provenance;
 - strict mypy, Ruff, pytest, package, and cross-platform CI validation;
 - immutable `meridian.evidence` models preserving exact native meaning;
 - immutable `meridian.adapters` exact keys, descriptors, requests, and registry;
@@ -161,8 +167,35 @@ See
 for the application-layer, cancellation, authorization, revalidation, privacy,
 and issue-boundary contract.
 
-The next v0.2 boundary is issue #42: proficiency and planning-export
-explanation/trace views.
+## Proficiency and planning-export explanation traces
+
+Issue #42 adds deterministic read-only trace projections over exact persisted
+Meridian/Core provenance. The installed CLI exposes:
+
+```text
+meridian trace grade-item-proficiency ...
+meridian trace academic-period-proficiency ...
+meridian trace planning-derivation ...
+meridian trace planning-preview-review ...
+meridian trace planning-export ...
+```
+
+Historical revisions remain historical, current selection is resolved only when
+explicitly requested, and immutable planning/export targets require exact IDs.
+Default traces remain privacy-minimal; optional richer Grade Item source detail
+continues through Meridian's existing authorization boundary. Trace generation
+is read-only and preserves integrity failures rather than translating corruption
+into academic reason codes.
+
+See [Proficiency and planning-export explanation traces](docs/architecture/proficiency-planning-export-explanation-traces.md)
+for the exact #34 -> #35 -> #38 -> #39 -> Core/receipt provenance chain,
+authorization behavior, deterministic text/JSON projection, and installed-wheel
+qualification boundary.
+
+```text
+#42 proficiency and planning-export explanation/trace views — implemented
+#43 Meridian proficiency attention summaries — next
+```
 
 ## Typed evidence inventory
 
