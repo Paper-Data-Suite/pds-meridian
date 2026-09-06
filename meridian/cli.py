@@ -97,6 +97,11 @@ from meridian.attempt_selection_storage import (
     AttemptSelectionStorageError,
     derive_attempt_candidates,
 )
+from meridian.attention_service import (
+    MeridianAttentionInspection,
+    MeridianAttentionReadError,
+    inspect_meridian_attention,
+)
 from meridian.calculation_preview_assembly_workflow import (
     BoundedCalculationPreview,
     CalculationPreviewAssemblyDependencyError,
@@ -329,6 +334,10 @@ from meridian.planning_signal_workflow import (
     PlanningSignalWorkflowError,
     project_planning_signal_readiness,
 )
+from meridian.proficiency_attention import (
+    attention_definition,
+    meridian_attention_summary_to_dict,
+)
 from meridian.proficiency_mapping import (
     NativeValueMappingProfileReference,
     ProficiencyScaleReference,
@@ -438,6 +447,27 @@ def build_parser() -> argparse.ArgumentParser:
         version=f"%(prog)s {__version__}",
     )
     groups = parser.add_subparsers(dest="command_group")
+
+    attention = groups.add_parser(
+        "attention",
+        help="Show privacy-minimal proficiency attention summaries.",
+        description=(
+            "Show read-only Meridian proficiency attention summaries "
+            "without exposing student-level proficiency data."
+        ),
+    )
+    _add_workspace_argument(attention)
+    attention.add_argument(
+        "--school-year",
+        dest="school_year",
+        help="Optional exact YYYY-YYYY school-year scope.",
+    )
+    attention.add_argument(
+        "--class-id",
+        help="Optional exact class scope; omit for workspace-wide attention.",
+    )
+    _add_format_argument(attention)
+    attention.set_defaults(handler=_handle_attention)
 
     publications = groups.add_parser(
         "publications",
@@ -2009,6 +2039,112 @@ def _dependencies(
     supplied: DiagnosticsDependencies | None,
 ) -> DiagnosticsDependencies:
     return supplied if supplied is not None else default_diagnostics_dependencies()
+
+
+def _handle_attention(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    """Render native read-only Meridian attention for one requested scope."""
+
+    _ = dependencies
+    try:
+        inspection = inspect_meridian_attention(
+            args.workspace,
+            class_id=args.class_id,
+            active_school_year=args.school_year,
+        )
+    except MeridianAttentionReadError:
+        print(
+            "Meridian attention scope could not be inspected safely.",
+            file=sys.stderr,
+        )
+        return 2
+
+    if args.format == "json":
+        print(
+            json.dumps(
+                _attention_inspection_to_dict(
+                    inspection,
+                    class_id=args.class_id,
+                    active_school_year=args.school_year,
+                ),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+    else:
+        _render_attention_text(
+            inspection,
+            class_id=args.class_id,
+            active_school_year=args.school_year,
+        )
+    return 0
+
+
+def _attention_inspection_to_dict(
+    inspection: MeridianAttentionInspection,
+    *,
+    class_id: str | None,
+    active_school_year: str | None,
+) -> dict[str, object]:
+    """Return deterministic privacy-minimal JSON data for native attention."""
+
+    summary = meridian_attention_summary_to_dict(inspection.summary)
+    return {
+        "schema_version": summary["schema_version"],
+        "evaluation": "evaluated",
+        "scope": {
+            "class_id": class_id,
+            "active_school_year": active_school_year,
+        },
+        "coverage": {
+            "evaluated_class_count": inspection.evaluated_class_count,
+            "failed_scope_count": inspection.failed_scope_count,
+            "partial": inspection.partial,
+        },
+        "items": summary["items"],
+    }
+
+
+def _render_attention_text(
+    inspection: MeridianAttentionInspection,
+    *,
+    class_id: str | None,
+    active_school_year: str | None,
+) -> None:
+    """Render deterministic human-readable attention without priority claims."""
+
+    scope = class_id if class_id is not None else "workspace"
+    school_year = (
+        active_school_year
+        if active_school_year is not None
+        else "all"
+    )
+    print("Meridian attention")
+    print(f"scope: {scope}")
+    print(f"school_year: {school_year}")
+    print(
+        "coverage: "
+        f"{inspection.evaluated_class_count} class(es) evaluated; "
+        f"{inspection.failed_scope_count} failed scope(s)"
+    )
+    print(f"partial: {'yes' if inspection.partial else 'no'}")
+    if not inspection.summary.items:
+        print("items: none")
+        return
+
+    print("items:")
+    for item in inspection.summary.items:
+        definition = attention_definition(item.code)
+        item_scope = item.class_id if item.class_id is not None else "workspace"
+        print(
+            f"  {item.code} | {definition.label} | "
+            f"count={item.count} {definition.count_unit} | "
+            f"task={definition.task_id} | "
+            f"action={definition.action_id} | "
+            f"class={item_scope}"
+        )
 
 
 def _handle_publication_list(

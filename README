@@ -192,9 +192,22 @@ for the exact #34 -> #35 -> #38 -> #39 -> Core/receipt provenance chain,
 authorization behavior, deterministic text/JSON projection, and installed-wheel
 qualification boundary.
 
+## Proficiency attention summaries
+
+Issue #43 adds deterministic read-only `meridian attention` over current
+Core/Meridian state and adapts the same bounded facts through Core v1
+`paper_data_suite.module_operations`. It preserves #41 task routing, #42 trace
+separation, canonical currentness, privacy-minimal counts, exact class/workspace
+scope, and the protected-evidence authorization boundary.
+
+See [Proficiency attention summaries](docs/architecture/proficiency-attention-summaries.md)
+for category semantics, authorization, currentness, Core adaptation, native CLI,
+and installed qualification.
+
 ```text
 #42 proficiency and planning-export explanation/trace views — implemented
-#43 Meridian proficiency attention summaries — next
+#43 Meridian proficiency attention summaries — implemented
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
 ```
 
 ## Typed evidence inventory

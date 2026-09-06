@@ -437,10 +437,9 @@ The trace layer does not reopen or rewrite #41 workflow behavior.
 
 ## Boundary with #43
 
-#43 owns Meridian-wide attention summaries across classes and Grade Items.
-
-Issue #41 may show unresolved or stale state inside the task the teacher opened,
-but it does not build the global attention dashboard.
+Issue #43 now implements Meridian-wide bounded current attention while preserving
+#41 task identities and mutation boundaries. It summarizes only what current
+canonical state safely proves and routes back to existing #41 tasks.
 
 ## Boundary with later v0.2 acceptance
 
@@ -448,8 +447,8 @@ The next v0.2 sequence is:
 
 ```text
 #42 proficiency and planning-export explanation/trace views — implemented
-#43 Meridian proficiency attention summaries — next
-#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios
+#43 Meridian proficiency attention summaries — implemented
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
 #45 installed proficiency and signal-export acceptance without Concord
 #46 v0.2.0 policy, fairness, privacy, interoperability, and release audit
 ```

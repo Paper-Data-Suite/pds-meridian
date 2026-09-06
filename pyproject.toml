@@ -46,6 +46,9 @@ dev = [
 [project.scripts]
 meridian = "meridian.cli:main"
 
+[project.entry-points."paper_data_suite.module_operations"]
+meridian = "meridian.pds_operations:get_module_operations_profile"
+
 [project.urls]
 Documentation = "https://github.com/Paper-Data-Suite/pds-meridian/tree/main/docs"
 Repository = "https://github.com/Paper-Data-Suite/pds-meridian"

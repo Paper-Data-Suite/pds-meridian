@@ -21,7 +21,18 @@ EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.11.0; extra == 'scoreform'")
 EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.0; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
-ALLOWED_ENTRY_POINT_GROUPS = frozenset({"console_scripts"})
+EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
+    "paper_data_suite.module_operations"
+)
+EXPECTED_OPERATIONS_ENTRY_POINT = (
+    "meridian.pds_operations:get_module_operations_profile"
+)
+ALLOWED_ENTRY_POINT_GROUPS = frozenset(
+    {
+        "console_scripts",
+        EXPECTED_OPERATIONS_ENTRY_POINT_GROUP,
+    }
+)
 FORBIDDEN_PREFIXES = (
     "tests/",
     "pds_core/",
@@ -170,13 +181,24 @@ def validate_wheel(path: str | Path) -> None:
     groups = frozenset(entry_points.sections())
     if groups != ALLOWED_ENTRY_POINT_GROUPS:
         raise PackageValidationError(
-            "Only the console_scripts entry-point group is permitted; "
+            "Only the expected entry-point groups are permitted; "
             f"found {sorted(groups)!r}."
         )
     if entry_points.get("console_scripts", "meridian", fallback=None) != (
         "meridian.cli:main"
     ):
         raise PackageValidationError("The meridian console script is missing.")
+
+    operations_entry_point = entry_points.get(
+        EXPECTED_OPERATIONS_ENTRY_POINT_GROUP,
+        "meridian",
+        fallback=None,
+    )
+    if operations_entry_point != EXPECTED_OPERATIONS_ENTRY_POINT:
+        raise PackageValidationError(
+            "The Meridian Core module-operations entry point is missing "
+            "or incorrect."
+        )
 
     required = {
         "meridian/__init__.py",
@@ -198,6 +220,12 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/planning_signal_review_selection_workflow.py",
         "meridian/academic_period_calculation_assembly_workflow.py",
         "meridian/academic_period_proficiency_storage.py",
+        "meridian/academic_period_attention.py",
+        "meridian/attention_provider.py",
+        "meridian/attention_service.py",
+        "meridian/pds_operations.py",
+        "meridian/planning_attention.py",
+        "meridian/proficiency_attention.py",
         "meridian/grade_item_proficiency_explanation.py",
         "meridian/academic_period_proficiency_explanation.py",
         "meridian/planning_signal_derivation_explanation.py",
