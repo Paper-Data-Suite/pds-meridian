@@ -30,13 +30,18 @@ def test_issue43_handoff_is_current() -> None:
     implemented = (
         "#43 Meridian proficiency attention summaries — implemented"
     )
-    next_item = (
+    issue44 = (
         "#44 ScoreForm/Quillan/Concord cross-producer proficiency "
-        "scenarios — next"
+        "scenarios — implemented"
+    )
+    next_item = (
+        "#45 installed proficiency and signal-export acceptance without "
+        "Concord — next"
     )
     for path in targets:
         text = path.read_text(encoding="utf-8")
         assert implemented in text
+        assert issue44 in text
         assert next_item in text
 
 

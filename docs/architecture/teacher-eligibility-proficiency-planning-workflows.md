@@ -448,12 +448,16 @@ The next v0.2 sequence is:
 ```text
 #42 proficiency and planning-export explanation/trace views — implemented
 #43 Meridian proficiency attention summaries — implemented
-#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
-#45 installed proficiency and signal-export acceptance without Concord
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
+#45 installed proficiency and signal-export acceptance without Concord — next
 #46 v0.2.0 policy, fairness, privacy, interoperability, and release audit
 ```
 
 The focused #41 smoke is intentionally narrower than #44 and #45.
+
+Issue #44 now supplies the source-level cross-producer semantic qualification;
+see [Cross-producer proficiency scenarios](cross-producer-proficiency-scenarios.md).
+Issue #45 remains the installed end-to-end proficiency/signal-export acceptance.
 
 ## Boundary with future v0.3
 

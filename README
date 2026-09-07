@@ -207,8 +207,24 @@ and installed qualification.
 ```text
 #42 proficiency and planning-export explanation/trace views — implemented
 #43 Meridian proficiency attention summaries — implemented
-#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
+#45 installed proficiency and signal-export acceptance without Concord — next
+#46 final v0.2.0 audit
 ```
+
+## Cross-producer proficiency scenarios
+
+Issue #44 qualifies the released ScoreForm v0.11.0, Quillan v0.10.0, and
+Concord v0.3.0 academic-result contracts together through Meridian's existing
+teacher-controlled proficiency pipeline. The source-level acceptance preserves
+producer-native values/states, exact mapping signatures, explicit
+attempt/reassessment decisions, student versus nonstudent Concord targets,
+Core correction/withdrawal history, mixed Grade Item and Academic Period
+calculation, and exact #42 traces without introducing grouping circularity.
+
+See [Cross-producer proficiency scenarios](docs/architecture/cross-producer-proficiency-scenarios.md).
+Issue #45 owns the later installed proficiency and signal-export acceptance
+without Concord.
 
 ## Typed evidence inventory
 
@@ -736,6 +752,7 @@ See:
 - [Adapter interface and registry](docs/architecture/adapter-interface-and-registry.md)
 - [Catalog discovery and canonical verification](docs/architecture/catalog-discovery-and-canonical-verification.md)
 - [Evidence inventory and diagnostics](docs/architecture/evidence-inventory-and-diagnostics.md)
+- [Cross-producer proficiency scenarios](docs/architecture/cross-producer-proficiency-scenarios.md)
 - [Architecture Decision Record index](docs/decisions/README.md)
 - [ADR 0001](docs/decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
 - [ADR 0002](docs/decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)

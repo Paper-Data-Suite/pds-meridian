@@ -26,6 +26,7 @@ EXPECTED = (
     Path("docs/architecture/quillan-adapter.md"),
     Path("docs/architecture/concord-adapter.md"),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
+    Path("docs/architecture/cross-producer-proficiency-scenarios.md"),
     Path("docs/architecture/attempt-selection-policy-and-decisions.md"),
     Path("docs/architecture/reassessment-and-replacement-relationships.md"),
     Path("docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md"),
@@ -93,6 +94,7 @@ REQUIRED_TEXT = {
         "Issue #41 task-oriented teacher workflows",
         "Issue #42 proficiency and planning-export explanation/trace views",
         "Issue #43 Meridian proficiency attention summaries",
+        "Issue #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios",
     ),
     Path("README"): (
         "0.1.1",
@@ -137,7 +139,12 @@ REQUIRED_TEXT = {
         "meridian trace planning-export",
         "#42 proficiency and planning-export explanation/trace views — implemented",
         "#43 Meridian proficiency attention summaries — implemented",
-        "#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next",
+        (
+            "#44 ScoreForm/Quillan/Concord cross-producer "
+            "proficiency scenarios — implemented"
+        ),
+        "#45 installed proficiency and signal-export acceptance without Concord — next",
+        "cross-producer-proficiency-scenarios.md",
         "proficiency-attention-summaries.md",
     ),
     Path("docs/README.md"): (
@@ -173,7 +180,15 @@ REQUIRED_TEXT = {
         "issue #41 — implemented",
         "issue #42 — implemented",
         "issue #43 — implemented",
-        "issue #44 — next",
+        (
+            "#44 ScoreForm/Quillan/Concord cross-producer "
+            "proficiency scenarios — implemented"
+        ),
+        (
+            "#45 installed proficiency and signal-export acceptance "
+            "without Concord — next"
+        ),
+        "cross-producer-proficiency-scenarios.md",
         "Proficiency attention summaries",
         "proficiency-attention-summaries.md",
         "Task-oriented teacher workflows",
@@ -248,6 +263,21 @@ REQUIRED_TEXT = {
         "Academic Period definition != ingestion-time Grade-period assignment",
         "Authorization isolation",
         "verified producer-neutral ingestion foundation",
+    ),
+    Path("docs/architecture/cross-producer-proficiency-scenarios.md"): (
+        "same numeric value",
+        "selected_response_state",
+        "returned_without_full_review",
+        "excluded: nonstudent_target",
+        "NativePointValue",
+        "NativeScaledValue",
+        "blocking_native_state",
+        "Core publication lifecycle remains canonical.",
+        "No grouping circularity",
+        "Producer-neutral runtime and dependency direction",
+        "pds-core>=0.6.3,<0.7",
+        "Synthetic-data boundary",
+        "#45 installed proficiency and signal-export acceptance",
     ),
     Path("docs/architecture/grade-items-and-canonical-storage.md"): (
         "stable grade_item_id",
@@ -440,8 +470,12 @@ REQUIRED_TEXT = {
         "No Concord runtime dependency",
         "Issue #42 now implements the deeper proficiency and planning-export",
         "Issue #43 now implements Meridian-wide bounded current attention",
-        "#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next",
+        (
+            "#44 ScoreForm/Quillan/Concord cross-producer "
+            "proficiency scenarios — implemented"
+        ),
         "future v0.3 main menu",
+        "#45 installed proficiency and signal-export acceptance without Concord — next",
         "Installed issue #41 teacher-workflow smoke",
     ),
     Path("docs/architecture/grouping-signal-core-export.md"): (
@@ -477,7 +511,11 @@ REQUIRED_TEXT = {
         "pds-core 0.6.3",
         "#42 proficiency and planning-export explanation/trace views — implemented",
         "#43 Meridian proficiency attention summaries — implemented",
-        "#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next",
+        (
+            "#44 ScoreForm/Quillan/Concord cross-producer "
+            "proficiency scenarios — implemented"
+        ),
+        "#45 installed proficiency and signal-export acceptance without Concord — next",
     ),
     Path("docs/architecture/proficiency-attention-summaries.md"): (
         "What Meridian work currently needs my attention?",
@@ -490,7 +528,11 @@ REQUIRED_TEXT = {
         "Low proficiency is never translated into attention severity or risk.",
         "producer/Concord absence",
         "#43 Meridian proficiency attention summaries — implemented",
-        "#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next",
+        (
+            "#44 ScoreForm/Quillan/Concord cross-producer "
+            "proficiency scenarios — implemented"
+        ),
+        "#45 installed proficiency and signal-export acceptance without Concord — next",
     ),
     Path("docs/architecture/core-grouping-signal-interchange.md"): (
         "grouping_signal_set_v1",
