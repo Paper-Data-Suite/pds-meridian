@@ -33,8 +33,10 @@ content-addressed Meridian derivations without writing Core signals. Issue #39
 implements preview/diagnostics/review, issue #40 implements immutable Core/CSV
 export, issue #41 implements the seven task-oriented teacher workflows, and
 issue #42 now implements deterministic read-only proficiency and planning-export
-explanation/trace views over exact canonical provenance. The package version
-remains `0.1.1` until the v0.2 release sequence reaches its release issue.
+explanation/trace views over exact canonical provenance, and issue #43 now adds
+deterministic read-only privacy-minimal Meridian attention summaries plus the
+Core v1 module-operations adapter. The package version remains `0.1.1` until
+the v0.2 release sequence reaches its release issue.
 
 ## Recommended reading order
 
@@ -62,17 +64,18 @@ remains `0.1.1` until the v0.2 release sequence reaches its release issue.
 22. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
 23. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
 24. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
-25. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-26. [ScoreForm adapter](architecture/scoreform-adapter.md)
-27. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-28. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
-29. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-30. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-31. [ADR index](decisions/README.md)
-32. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-33. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-34. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-35. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+25. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
+26. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+27. [ScoreForm adapter](architecture/scoreform-adapter.md)
+28. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+29. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
+30. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+31. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+32. [ADR index](decisions/README.md)
+33. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+34. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+35. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+36. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -158,7 +161,19 @@ See
 for exact-target semantics, integrity rules, nested provenance, export
 reconciliation, privacy, and focused installed-wheel acceptance.
 
-The next v0.2 boundary is issue #43: Meridian proficiency attention summaries.
+## Proficiency attention summaries
+
+Issue #43 adds deterministic read-only `meridian attention` and Core v1
+`paper_data_suite.module_operations` attention adaptation. The neutral Core
+request does not carry Meridian protected-evidence authorization, so the provider
+never bypasses the authorization boundary merely to fill a dashboard.
+
+See [Proficiency attention summaries](architecture/proficiency-attention-summaries.md).
+
+```text
+#43 Meridian proficiency attention summaries — implemented
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
+```
 
 ## Typed evidence inventory
 
@@ -604,8 +619,8 @@ The v0.2.0 implementation sequence now begins:
 15. Core/CSV grouping-signal export — issue #40 — implemented;
 16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — implemented;
 17. proficiency and planning-export explanation/trace views — issue #42 — implemented;
-18. Meridian proficiency attention summaries — issue #43 — next;
-19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44;
+18. Meridian proficiency attention summaries — issue #43 — implemented;
+19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44 — next;
 20. installed proficiency and signal-export acceptance without Concord — issue #45; and
 21. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46.
 

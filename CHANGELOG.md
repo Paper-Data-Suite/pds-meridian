@@ -4,6 +4,16 @@
 
 ### Added
 
+- Issue #43 Meridian proficiency attention summaries: deterministic read-only
+  workspace/class attention with stable #41 task routing, canonical planning and
+  Academic Period currentness, privacy-minimal Core v1 module-operations
+  adaptation, and deterministic `meridian attention` text/JSON. Protected
+  evidence authorization is never bypassed to populate attention. Focused
+  installed-wheel acceptance uses only exact Core 0.6.3 plus the candidate
+  Meridian wheel, validates Core provider discovery/invocation, keeps readiness
+  absent, proves successful-empty versus unavailable, keeps producer/Concord
+  packages absent, passes `pip check`, and verifies zero provider/CLI writes.
+
 - Issue #42 proficiency and planning-export explanation/trace views: five
   deterministic read-only text/JSON trace targets covering exact Grade Item and
   Academic Period proficiency, content-addressed planning derivation, exact

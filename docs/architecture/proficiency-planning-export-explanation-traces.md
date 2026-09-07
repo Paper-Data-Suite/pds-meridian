@@ -12,7 +12,9 @@ Why exactly did Meridian reach this result?
 without creating a second academic truth, recalculating results, changing
 selection, exporting new state, or persisting an explanation log.
 
-The next v0.2 boundary is issue #43: Meridian proficiency attention summaries.
+Issue #43 now implements Meridian proficiency attention summaries. The next
+v0.2 boundary is issue #44: ScoreForm/Quillan/Concord cross-producer
+proficiency scenarios.
 
 ## Trace surfaces
 
@@ -346,14 +348,16 @@ What contributed?
 Which exact decisions, mappings, policies, scales, and reviews produced it?
 ```
 
-Issue #43 owns Meridian-wide attention summaries rather than one selected exact
-trace. Issue #44 owns the broad cross-producer adversarial scenario matrix, and
-#45 owns the full installed end-to-end acceptance.
+Issue #43 now implements Meridian-wide bounded current attention summaries
+rather than one selected exact trace. Issue #44 owns the broad cross-producer
+adversarial scenario matrix, and #45 owns the full installed end-to-end
+acceptance.
 
 At completion:
 
 ```text
 #41 teacher eligibility, proficiency, and planning-export workflows — implemented
 #42 proficiency and planning-export explanation/trace views — implemented
-#43 Meridian proficiency attention summaries — next
+#43 Meridian proficiency attention summaries — implemented
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
 ```

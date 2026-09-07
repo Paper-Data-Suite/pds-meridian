@@ -14,7 +14,8 @@ def test_issue42_documentation_is_release_guarded() -> None:
     assert DOC in documentation_checker
     assert DOC in sdist_checker
     assert "issue #42 — implemented" in documentation_checker
-    assert "issue #43 — next" in documentation_checker
+    assert "issue #43 — implemented" in documentation_checker
+    assert "issue #44 — next" in documentation_checker
 
 
 def test_issue42_status_is_consistent_across_release_docs() -> None:
@@ -37,7 +38,15 @@ def test_issue42_status_is_consistent_across_release_docs() -> None:
         in root
     )
     assert "issue #42 — implemented" in docs
-    assert "#43 Meridian proficiency attention summaries — next" in root
-    assert "issue #43 — next" in docs
+    assert (
+        "#43 Meridian proficiency attention summaries — implemented"
+        in root
+    )
+    assert (
+        "#44 ScoreForm/Quillan/Concord cross-producer "
+        "proficiency scenarios — next" in root
+    )
+    assert "issue #43 — implemented" in docs
+    assert "issue #44 — next" in docs
     assert "authorized_detail" in architecture
     assert "exported band != derived band" in architecture
