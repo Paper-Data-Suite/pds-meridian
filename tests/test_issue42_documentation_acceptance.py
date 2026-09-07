@@ -15,7 +15,16 @@ def test_issue42_documentation_is_release_guarded() -> None:
     assert DOC in sdist_checker
     assert "issue #42 — implemented" in documentation_checker
     assert "issue #43 — implemented" in documentation_checker
-    assert "issue #44 — next" in documentation_checker
+    assert (
+        "#44 ScoreForm/Quillan/Concord cross-producer "
+        in documentation_checker
+    )
+    assert "proficiency scenarios — implemented" in documentation_checker
+    assert (
+        "#45 installed proficiency and signal-export acceptance "
+        in documentation_checker
+    )
+    assert "without Concord — next" in documentation_checker
 
 
 def test_issue42_status_is_consistent_across_release_docs() -> None:
@@ -44,9 +53,20 @@ def test_issue42_status_is_consistent_across_release_docs() -> None:
     )
     assert (
         "#44 ScoreForm/Quillan/Concord cross-producer "
-        "proficiency scenarios — next" in root
+        "proficiency scenarios — implemented" in root
+    )
+    assert (
+        "#45 installed proficiency and signal-export acceptance "
+        "without Concord — next" in root
     )
     assert "issue #43 — implemented" in docs
-    assert "issue #44 — next" in docs
+    assert (
+        "#44 ScoreForm/Quillan/Concord cross-producer "
+        "proficiency scenarios — implemented" in docs
+    )
+    assert (
+        "#45 installed proficiency and signal-export acceptance "
+        "without Concord — next" in docs
+    )
     assert "authorized_detail" in architecture
     assert "exported band != derived band" in architecture

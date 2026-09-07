@@ -35,8 +35,11 @@ export, issue #41 implements the seven task-oriented teacher workflows, and
 issue #42 now implements deterministic read-only proficiency and planning-export
 explanation/trace views over exact canonical provenance, and issue #43 now adds
 deterministic read-only privacy-minimal Meridian attention summaries plus the
-Core v1 module-operations adapter. The package version remains `0.1.1` until
-the v0.2 release sequence reaches its release issue.
+Core v1 module-operations adapter. Issue #44 now qualifies the released
+ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 evidence together
+through the existing Grade Item and Academic Period proficiency chain.
+The package version remains `0.1.1` until the v0.2 release sequence reaches
+its release issue.
 
 ## Recommended reading order
 
@@ -70,12 +73,13 @@ the v0.2 release sequence reaches its release issue.
 28. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
 29. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
 30. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-31. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-32. [ADR index](decisions/README.md)
-33. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-34. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-35. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-36. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+31. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
+32. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+33. [ADR index](decisions/README.md)
+34. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+35. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+36. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+37. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -172,7 +176,9 @@ See [Proficiency attention summaries](architecture/proficiency-attention-summari
 
 ```text
 #43 Meridian proficiency attention summaries — implemented
-#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — next
+#44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
+#45 installed proficiency and signal-export acceptance without Concord — next
+#46 final v0.2.0 audit
 ```
 
 ## Typed evidence inventory

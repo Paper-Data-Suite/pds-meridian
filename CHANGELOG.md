@@ -4,6 +4,19 @@
 
 ### Added
 
+- Issue #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios:
+  source-level qualification of the released ScoreForm v0.11.0, Quillan
+  v0.10.0, and Concord v0.3.0 academic-result contracts through Meridian's
+  existing teacher-controlled Grade Item and Academic Period proficiency
+  pipeline. Acceptance preserves repeated attempts, native non-score states,
+  exact source-signature/scale mappings, student/nonstudent Concord targets,
+  explicit reassessment, deterministic mixed-producer calculation, Core
+  correction/withdrawal history, and exact #42 historical/current traces.
+  Boundary guards prove `nonstudent_target` anti-circularity, producer-neutral
+  proficiency runtime/dependency direction, optional producer readers, and
+  synthetic-only scenario identities. Full installed proficiency and
+  signal-export acceptance remains issue #45.
+
 - Issue #43 Meridian proficiency attention summaries: deterministic read-only
   workspace/class attention with stable #41 task routing, canonical planning and
   Academic Period currentness, privacy-minimal Core v1 module-operations
