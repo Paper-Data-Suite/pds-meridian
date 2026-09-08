@@ -208,8 +208,8 @@ and installed qualification.
 #42 proficiency and planning-export explanation/trace views — implemented
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
-#45 installed proficiency and signal-export acceptance without Concord — next
-#46 final v0.2.0 audit
+#45 installed proficiency and signal-export acceptance without Concord — implemented
+#46 final v0.2.0 audit — next
 ```
 
 ## Cross-producer proficiency scenarios
@@ -223,8 +223,20 @@ Core correction/withdrawal history, mixed Grade Item and Academic Period
 calculation, and exact #42 traces without introducing grouping circularity.
 
 See [Cross-producer proficiency scenarios](docs/architecture/cross-producer-proficiency-scenarios.md).
-Issue #45 owns the later installed proficiency and signal-export acceptance
-without Concord.
+
+## Installed proficiency and signal-export acceptance without Concord
+
+Issue #45 now proves one connected installed ScoreForm/Quillan -> Core ->
+Meridian proficiency -> planning-signal workflow from exact released wheels,
+with Concord absent from that dedicated environment. The acceptance crosses
+explicit Grade Item membership, eligibility, ScoreForm attempt selection and
+reassessment, Standard association, source-scoped mappings, persisted #34/#35
+proficiency and #42 explanations, #37-#40 derivation/review/Core export,
+canonical Core JSON and Core-native CSV round trips, and a second-process
+persisted-history reload. Producer-owned evidence/manifests and the original
+Core Publication Records remain immutable.
+
+See [Installed proficiency and signal-export acceptance without Concord](docs/architecture/installed-proficiency-signal-export-acceptance.md).
 
 ## Typed evidence inventory
 

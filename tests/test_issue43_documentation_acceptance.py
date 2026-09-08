@@ -36,13 +36,14 @@ def test_issue43_handoff_is_current() -> None:
     )
     next_item = (
         "#45 installed proficiency and signal-export acceptance without "
-        "Concord — next"
+        "Concord — implemented"
     )
     for path in targets:
         text = path.read_text(encoding="utf-8")
         assert implemented in text
         assert issue44 in text
         assert next_item in text
+        assert "#46 final v0.2.0 audit — next" in text
 
 
 def test_issue43_docs_preserve_required_boundaries() -> None:

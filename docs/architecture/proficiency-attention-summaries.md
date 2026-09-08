@@ -259,8 +259,8 @@ producer/Concord absence, and no provider/CLI workspace mutation.
 #42 proficiency and planning-export explanation/trace views — implemented
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
-#45 installed proficiency and signal-export acceptance without Concord — next
-#46 final v0.2.0 audit
+#45 installed proficiency and signal-export acceptance without Concord — implemented
+#46 final v0.2.0 audit — next
 ```
 
 Issue #45 owns the later full installed proficiency/signal-export acceptance

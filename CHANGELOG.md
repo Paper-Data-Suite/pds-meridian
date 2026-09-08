@@ -4,6 +4,24 @@
 
 ### Added
 
+- Issue #45 installed proficiency and signal-export acceptance without Concord:
+  one connected isolated-wheel acceptance from real released ScoreForm v0.11.0
+  and Quillan v0.10.0 producer publications through exact Core v0.6.3,
+  installed Meridian projection, explicit Grade Item membership/eligibility,
+  ScoreForm attempt selection and reassessment, Standard association,
+  source-scoped mappings, persisted/explained #34 Grade Item and #35 Academic
+  Period proficiency, #37-#40 grouping-signal policy/derivation/preview/review,
+  immutable privacy-minimal Core `grouping_signal_set_v1`, canonical Core JSON
+  and `grouping_signal_csv_v1` round trips, and a fresh-process persisted-history
+  reload. The contributing student is exported while the deliberately
+  insufficient second roster student remains noncontributing with no sentinel
+  band. Producer-owned source/manifests and original Core Publication Records
+  are byte/digest stable across the full workflow. The dedicated smoke installs
+  no `pds-concord`, has no Concord wheel parameter, and proves `concord` remains
+  unimportable, while repository-wide validation retains exact Concord v0.3.0
+  adapter qualification. The new smoke/tests/documentation are sdist-guarded
+  and do not enlarge the runtime wheel or unconditional dependency set.
+
 - Issue #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios:
   source-level qualification of the released ScoreForm v0.11.0, Quillan
   v0.10.0, and Concord v0.3.0 academic-result contracts through Meridian's
@@ -14,8 +32,8 @@
   correction/withdrawal history, and exact #42 historical/current traces.
   Boundary guards prove `nonstudent_target` anti-circularity, producer-neutral
   proficiency runtime/dependency direction, optional producer readers, and
-  synthetic-only scenario identities. Full installed proficiency and
-  signal-export acceptance remains issue #45.
+  synthetic-only scenario identities. The installed proficiency and
+  signal-export acceptance is completed by issue #45 above.
 
 - Issue #43 Meridian proficiency attention summaries: deterministic read-only
   workspace/class attention with stable #41 task routing, canonical planning and
