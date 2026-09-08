@@ -38,6 +38,10 @@ deterministic read-only privacy-minimal Meridian attention summaries plus the
 Core v1 module-operations adapter. Issue #44 now qualifies the released
 ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 evidence together
 through the existing Grade Item and Academic Period proficiency chain.
+Issue #45 now proves the installed end-to-end ScoreForm/Quillan -> Core ->
+Meridian proficiency -> planning-signal export path, including fresh-process
+history reload and deliberate Concord absence in the dedicated acceptance
+environment.
 The package version remains `0.1.1` until the v0.2 release sequence reaches
 its release issue.
 
@@ -74,12 +78,13 @@ its release issue.
 29. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
 30. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
 31. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
-32. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-33. [ADR index](decisions/README.md)
-34. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-35. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-36. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-37. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+32. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
+33. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+34. [ADR index](decisions/README.md)
+35. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+36. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+37. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+38. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -177,9 +182,23 @@ See [Proficiency attention summaries](architecture/proficiency-attention-summari
 ```text
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
-#45 installed proficiency and signal-export acceptance without Concord — next
-#46 final v0.2.0 audit
+#45 installed proficiency and signal-export acceptance without Concord — implemented
+#46 final v0.2.0 audit — next
 ```
+
+## Installed proficiency and signal-export acceptance
+
+Issue #45 composes the released ScoreForm v0.11.0 and Quillan v0.10.0
+publication contracts with exact Core v0.6.3 and the candidate Meridian wheel in
+one fresh installed environment. It proves the complete explicit
+teacher-decision, #34/#35 proficiency, #42 explanation, #37-#40 planning/export,
+Core JSON/CSV, producer-immutability, and second-process reload chain while
+`pds-concord` is not installed.
+
+The repository-wide validator separately retains Concord v0.3.0 adapter
+qualification; the dedicated issue #45 smoke itself accepts no Concord wheel.
+
+See [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md).
 
 ## Typed evidence inventory
 

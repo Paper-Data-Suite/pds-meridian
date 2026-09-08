@@ -27,6 +27,7 @@ EXPECTED = (
     Path("docs/architecture/concord-adapter.md"),
     Path("docs/architecture/cross-producer-synthetic-ingestion.md"),
     Path("docs/architecture/cross-producer-proficiency-scenarios.md"),
+    Path("docs/architecture/installed-proficiency-signal-export-acceptance.md"),
     Path("docs/architecture/attempt-selection-policy-and-decisions.md"),
     Path("docs/architecture/reassessment-and-replacement-relationships.md"),
     Path("docs/architecture/proficiency-scales-and-native-value-mapping-profiles.md"),
@@ -95,6 +96,7 @@ REQUIRED_TEXT = {
         "Issue #42 proficiency and planning-export explanation/trace views",
         "Issue #43 Meridian proficiency attention summaries",
         "Issue #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios",
+        "Issue #45 installed proficiency and signal-export acceptance without Concord",
     ),
     Path("README"): (
         "0.1.1",
@@ -143,8 +145,12 @@ REQUIRED_TEXT = {
             "#44 ScoreForm/Quillan/Concord cross-producer "
             "proficiency scenarios — implemented"
         ),
-        "#45 installed proficiency and signal-export acceptance without Concord — next",
+        (
+            "#45 installed proficiency and signal-export acceptance "
+            "without Concord — implemented"
+        ),
         "cross-producer-proficiency-scenarios.md",
+        "installed-proficiency-signal-export-acceptance.md",
         "proficiency-attention-summaries.md",
     ),
     Path("docs/README.md"): (
@@ -186,9 +192,10 @@ REQUIRED_TEXT = {
         ),
         (
             "#45 installed proficiency and signal-export acceptance "
-            "without Concord — next"
+            "without Concord — implemented"
         ),
         "cross-producer-proficiency-scenarios.md",
+        "installed-proficiency-signal-export-acceptance.md",
         "Proficiency attention summaries",
         "proficiency-attention-summaries.md",
         "Task-oriented teacher workflows",
@@ -278,6 +285,29 @@ REQUIRED_TEXT = {
         "pds-core>=0.6.3,<0.7",
         "Synthetic-data boundary",
         "#45 installed proficiency and signal-export acceptance",
+    ),
+    Path(
+        "docs/architecture/"
+        "installed-proficiency-signal-export-acceptance.md"
+    ): (
+        "pds-core     0.6.3",
+        "scoreform    0.11.0",
+        "quillan      0.10.0",
+        "no `pds-concord`",
+        "CONCORD_WHEEL",
+        "reassessment_noncontributing",
+        "insufficient_evidence",
+        "grouping_signal_set_v1",
+        "Core canonical JSON bytes",
+        "grouping_signal_csv_v1",
+        "Fresh-process persisted-history reload",
+        "Producer-source and publication immutability",
+        "privacy/minimality",
+        (
+            "#45 installed proficiency and signal-export acceptance "
+            "without Concord — implemented"
+        ),
+        "#46 final v0.2.0 audit — next",
     ),
     Path("docs/architecture/grade-items-and-canonical-storage.md"): (
         "stable grade_item_id",
@@ -475,7 +505,10 @@ REQUIRED_TEXT = {
             "proficiency scenarios — implemented"
         ),
         "future v0.3 main menu",
-        "#45 installed proficiency and signal-export acceptance without Concord — next",
+        (
+            "#45 installed proficiency and signal-export acceptance "
+            "without Concord — implemented"
+        ),
         "Installed issue #41 teacher-workflow smoke",
     ),
     Path("docs/architecture/grouping-signal-core-export.md"): (
@@ -515,7 +548,10 @@ REQUIRED_TEXT = {
             "#44 ScoreForm/Quillan/Concord cross-producer "
             "proficiency scenarios — implemented"
         ),
-        "#45 installed proficiency and signal-export acceptance without Concord — next",
+        (
+            "#45 installed proficiency and signal-export acceptance "
+            "without Concord — implemented"
+        ),
     ),
     Path("docs/architecture/proficiency-attention-summaries.md"): (
         "What Meridian work currently needs my attention?",
@@ -532,7 +568,10 @@ REQUIRED_TEXT = {
             "#44 ScoreForm/Quillan/Concord cross-producer "
             "proficiency scenarios — implemented"
         ),
-        "#45 installed proficiency and signal-export acceptance without Concord — next",
+        (
+            "#45 installed proficiency and signal-export acceptance "
+            "without Concord — implemented"
+        ),
     ),
     Path("docs/architecture/core-grouping-signal-interchange.md"): (
         "grouping_signal_set_v1",

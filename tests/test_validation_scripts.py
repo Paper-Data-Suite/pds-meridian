@@ -297,7 +297,7 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
         "#45 installed proficiency and signal-export acceptance "
         in documentation_checker
     )
-    assert "without Concord — next" in documentation_checker
+    assert "without Concord — implemented" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_currentness.py",
@@ -339,7 +339,7 @@ def test_grouping_signal_export_release_is_guarded() -> None:
         "#45 installed proficiency and signal-export acceptance "
         in documentation_checker
     )
-    assert "without Concord — next" in documentation_checker
+    assert "without Concord — implemented" in documentation_checker
 
     for member in (
         "meridian/grouping_signal_export.py",
@@ -386,7 +386,7 @@ def test_teacher_workflow_release_is_guarded() -> None:
         "#45 installed proficiency and signal-export acceptance "
         in documentation_checker
     )
-    assert "without Concord — next" in documentation_checker
+    assert "without Concord — implemented" in documentation_checker
     assert "issue #42 — implemented" in docs_readme
     assert "issue #43 — implemented" in docs_readme
     assert (
@@ -396,7 +396,7 @@ def test_teacher_workflow_release_is_guarded() -> None:
     )
     assert (
         "#45 installed proficiency and signal-export acceptance "
-        "without Concord — next"
+        "without Concord — implemented"
         in docs_readme
     )
 

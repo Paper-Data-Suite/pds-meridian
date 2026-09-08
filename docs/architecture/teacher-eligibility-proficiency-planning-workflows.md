@@ -449,7 +449,7 @@ The next v0.2 sequence is:
 #42 proficiency and planning-export explanation/trace views — implemented
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
-#45 installed proficiency and signal-export acceptance without Concord — next
+#45 installed proficiency and signal-export acceptance without Concord — implemented
 #46 v0.2.0 policy, fairness, privacy, interoperability, and release audit
 ```
 
@@ -515,3 +515,10 @@ The generic workflow runtime depends only on Core/Meridian contracts and remains
 producer-neutral. Optional producer packages are present in the full
 repository-validation environment for existing adapter qualification, not
 because the #41 workflow layer imports them.
+
+## Issue #45 handoff
+
+```text
+#45 installed proficiency and signal-export acceptance without Concord — implemented
+#46 final v0.2.0 audit — next
+```

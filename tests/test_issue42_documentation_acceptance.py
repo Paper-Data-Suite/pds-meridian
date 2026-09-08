@@ -24,7 +24,7 @@ def test_issue42_documentation_is_release_guarded() -> None:
         "#45 installed proficiency and signal-export acceptance "
         in documentation_checker
     )
-    assert "without Concord — next" in documentation_checker
+    assert "without Concord — implemented" in documentation_checker
 
 
 def test_issue42_status_is_consistent_across_release_docs() -> None:
@@ -57,7 +57,7 @@ def test_issue42_status_is_consistent_across_release_docs() -> None:
     )
     assert (
         "#45 installed proficiency and signal-export acceptance "
-        "without Concord — next" in root
+        "without Concord — implemented" in root
     )
     assert "issue #43 — implemented" in docs
     assert (
@@ -66,7 +66,7 @@ def test_issue42_status_is_consistent_across_release_docs() -> None:
     )
     assert (
         "#45 installed proficiency and signal-export acceptance "
-        "without Concord — next" in docs
+        "without Concord — implemented" in docs
     )
     assert "authorized_detail" in architecture
     assert "exported band != derived band" in architecture
