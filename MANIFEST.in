@@ -2,5 +2,6 @@ include CHANGELOG.md
 include Security.md
 include run_tests.ps1
 recursive-include docs *.md
+exclude docs/development/v0.2.0-release-audit.md
 recursive-include scripts *.py
 recursive-include tests *.py *.json

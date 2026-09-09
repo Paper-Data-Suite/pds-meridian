@@ -1,49 +1,27 @@
 # Meridian documentation
 
-Meridian v0.1.1 is the released executable publication-ingestion and typed-evidence
-diagnostics foundation. The installable `0.1.1` package, strict typing, tests, CI,
-validation tooling, immutable typed evidence inventory, exact consumer adapter
-registry, bounded Core discovery and canonical verification, exact evidence
-serialization, immutable projection-cache layers, and the read-only
-publication/evidence diagnostics surface are established. The exact optional
-ScoreForm v0.10.0, Quillan v0.9.0, and Concord v0.2.0 adapters were implemented
-in the released v0.1.1 foundation,
-and the cross-producer synthetic ingestion acceptance suite documents the
-verified no-grading boundary. Current unreleased v0.2 development now
-qualifies ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 while
-preserving that historical v0.1.1 fact.
+Meridian v0.2.0 is the installable release candidate for the complete v0.2
+teacher-controlled evidence-policy, standards-proficiency, explanation,
+attention, and planning-export architecture.
 
-Phase 2 now builds on that released foundation. ADR 0004 adopts the v0.2
-evidence-policy, proficiency, and planning-export architecture. Issues #27
-through #35 add the executable v0.2 interpretation records: immutable
-Grade Item revisions, canonical digest-bound Grade Item storage,
-revisioned Grade Item membership with exact Core Academic Period assignment,
-canonical evidence-eligibility decision history over exact authorized projection
-sources, explicit versioned attempt-selection policy/decisions, explicit
-reassessment/replacement relationships over exact #30 selections,
-teacher-defined proficiency scales/native-value mapping profiles, explicit
-standards-evidence association and bounded aggregation inputs, and pure
-Grade Item-level standards-proficiency policy/calculation/result persistence
-with explicit selection and staleness diagnostics, plus exact Academic Period
-proficiency aggregation over immutable #34 results. Issue #36 formally adopts
-Core's neutral `grouping_signal_set_v1` contract against exact Core 0.6.3, and
-issue #37 adds the separate immutable teacher-controlled grouping-signal
-derivation-policy layer, and issue #38 now generates deterministic immutable
-content-addressed Meridian derivations without writing Core signals. Issue #39
-implements preview/diagnostics/review, issue #40 implements immutable Core/CSV
-export, issue #41 implements the seven task-oriented teacher workflows, and
-issue #42 now implements deterministic read-only proficiency and planning-export
-explanation/trace views over exact canonical provenance, and issue #43 now adds
-deterministic read-only privacy-minimal Meridian attention summaries plus the
-Core v1 module-operations adapter. Issue #44 now qualifies the released
-ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 evidence together
-through the existing Grade Item and Academic Period proficiency chain.
-Issue #45 now proves the installed end-to-end ScoreForm/Quillan -> Core ->
-Meridian proficiency -> planning-signal export path, including fresh-process
-history reload and deliberate Concord absence in the dedicated acceptance
-environment.
-The package version remains `0.1.1` until the v0.2 release sequence reaches
-its release issue.
+The released v0.1.1 foundation established publication ingestion, typed native
+evidence, exact consumer-side adapters, canonical Core verification, immutable
+projection caching, and read-only diagnostics. The v0.2.0 release boundary
+retains that history while qualifying exact Core v0.6.3 plus optional ScoreForm
+v0.11.0, Quillan v0.10.0, and Concord v0.3.0 readers.
+
+Issues #27 through #45 now implement and qualify the complete v0.2 chain:
+teacher-defined Grade Items and membership, evidence eligibility, explicit
+attempt/reassessment decisions, proficiency scales/mappings, Standards
+association, Grade Item and Academic Period proficiency, Core-neutral
+contextual planning signals, preview/review/export, task-oriented workflows,
+deterministic explanation traces, privacy-minimal attention, cross-producer
+scenarios, and installed end-to-end acceptance without Concord. Issue #46 has
+completed the substantive release audit with zero blockers and moved the branch
+into release preparation.
+
+Conventional/hybrid Grade policy, weighting execution, overrides, reporting
+snapshots, report delivery, and SIS/report-card exports remain outside v0.2.
 
 ## Recommended reading order
 
@@ -79,12 +57,14 @@ its release issue.
 30. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
 31. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
 32. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
-33. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-34. [ADR index](decisions/README.md)
-35. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-36. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-37. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-38. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+33. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
+34. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
+35. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+36. [ADR index](decisions/README.md)
+37. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+38. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+39. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+40. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 
 ## Development foundation
 
@@ -183,7 +163,7 @@ See [Proficiency attention summaries](architecture/proficiency-attention-summari
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
 #45 installed proficiency and signal-export acceptance without Concord — implemented
-#46 final v0.2.0 audit — next
+#46 final v0.2.0 audit — implemented; release preparation qualified
 ```
 
 ## Installed proficiency and signal-export acceptance

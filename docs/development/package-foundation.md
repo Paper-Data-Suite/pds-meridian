@@ -2,10 +2,16 @@
 
 ## Status
 
-Meridian has an installable package at `0.1.1`. The package is
-an executable foundation with exact optional ScoreForm, Quillan, and Concord
-adapters and a read-only `meridian.diagnostics` publication/evidence command surface. It does
-not calculate proficiency or Grades or generate reports.
+Meridian v0.2.0 is the installable release candidate for the complete v0.2
+teacher-controlled evidence-policy, standards-proficiency, explanation,
+attention, and planning-export surface. The released v0.1.1 package remains the
+historical publication-ingestion foundation.
+
+The v0.2 package retains read-only publication/evidence diagnostics and exact
+optional producer adapters while adding explicit Grade Item, eligibility,
+attempt/reassessment, Standards, proficiency, and contextual planning workflows.
+It still does not calculate conventional Grades, apply overrides, or generate
+issued reports.
 
 ## Requirements
 
@@ -14,7 +20,7 @@ not calculate proficiency or Grades or generate reports.
 - the exact Core v0.6.3 wheel for current development and qualification checks
 - the exact authenticated ScoreForm v0.11.0 wheel for current adapter validation
 - the exact authenticated Quillan v0.10.0 wheel for adapter validation
-- the exact authenticated Concord v0.2.0 wheel for adapter validation
+- the exact authenticated Concord v0.3.0 wheel for adapter validation
 
 The runtime dependency is:
 
@@ -31,7 +37,7 @@ PyPI. Install the verified wheel before installing Meridian:
 python -m pip install .\pds_core-0.6.3-py3-none-any.whl
 python -m pip install .\scoreform-0.11.0-py3-none-any.whl
 python -m pip install .\quillan-0.10.0-py3-none-any.whl
-python -m pip install .\pds_concord-0.2.0-py3-none-any.whl
+python -m pip install .\pds_concord-0.3.0-py3-none-any.whl
 python -m pip install -e ".[dev,scoreform,quillan,concord]"
 python -m pip check
 meridian --version
@@ -49,7 +55,7 @@ From an activated repository virtual environment:
   -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
   -ScoreFormWheel C:\path\to\scoreform-0.11.0-py3-none-any.whl `
   -QuillanWheel C:\path\to\quillan-0.10.0-py3-none-any.whl `
-  -ConcordWheel C:\path\to\pds_concord-0.2.0-py3-none-any.whl
+  -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl
 ```
 
 The cross-platform authority is:
@@ -79,8 +85,8 @@ paper_data_suite.modules
 paper_data_suite.publication_producers
 ```
 
-It also exposes no adapter plugin group in this foundation issue. Adapter
-selection and loading belong to issue #7.
+It also exposes no adapter plugin group. Producer readers remain exact
+optional dependencies composed explicitly by Meridian.
 
 ## Read-only baseline
 

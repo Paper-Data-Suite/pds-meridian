@@ -99,7 +99,7 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             from pds_core.rosters import create_roster
 
             assert importlib.metadata.version("pds-core") == "0.6.3"
-            assert importlib.metadata.version("pds-meridian") == "0.1.1"
+            assert importlib.metadata.version("pds-meridian") == "0.2.0"
             assert GROUPING_SIGNAL_CONTRACT_NAME == "grouping_signal_set_v1"
             assert GROUPING_SIGNAL_CSV_CONTRACT_NAME == "grouping_signal_csv_v1"
 

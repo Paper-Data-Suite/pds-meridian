@@ -96,7 +96,7 @@ def verify_concord_wheel(path: str | Path) -> None:
         )
     if metadata["Version"] != EXPECTED_CONCORD_VERSION:
         raise ConcordVerificationError(
-            "Concord wheel version is not exactly 0.2.0."
+            "Concord wheel version is not exactly 0.3.0."
         )
     missing_members = sorted(EXPECTED_PUBLIC_MEMBERS - set(names))
     if missing_members:
@@ -128,7 +128,7 @@ def verify_installed_concord() -> None:
         ) from error
     if version != EXPECTED_CONCORD_VERSION:
         raise ConcordVerificationError(
-            f"Installed pds-concord must be exactly 0.2.0; found {version}."
+            f"Installed pds-concord must be exactly 0.3.0; found {version}."
         )
 
     import concord

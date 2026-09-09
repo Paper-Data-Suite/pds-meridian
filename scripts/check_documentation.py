@@ -16,6 +16,8 @@ EXPECTED = (
     Path("docs/development/package-foundation.md"),
     Path("docs/development/synthetic-data.md"),
     Path("docs/development/v0.1.1-release-audit.md"),
+    Path("docs/development/v0.2.0-release-audit.md"),
+    Path("docs/development/v0.2.0-release-notes.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
@@ -67,6 +69,17 @@ EXPECTED = (
 )
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
+    Path("docs/development/v0.2.0-release-audit.md"): (
+        "Release-preparation authorization — AUTHORIZED",
+        "Substantive blocker count: **0**",
+        "Final release SHA and final artifact hashes therefore remain pending.",
+    ),
+    Path("docs/development/v0.2.0-release-notes.md"): (
+        "pds-meridian v0.2.0 release notes",
+        "Planning bands are contextual ordinal instructional-planning signals.",
+        "zero blockers",
+        "stable, non-self-referential digest",
+    ),
     Path("CHANGELOG.md"): (
         "## Unreleased",
         "Teacher-controlled grouping-signal derivation policy",
@@ -99,9 +112,10 @@ REQUIRED_TEXT = {
         "Issue #45 installed proficiency and signal-export acceptance without Concord",
     ),
     Path("README"): (
+        "#46 final v0.2.0 audit — implemented",
         "0.1.1",
         "pds-core>=0.6.3,<0.7",
-        "released `0.1.1` baseline",
+        "Meridian v0.2.0 is the installable release candidate",
         "Core v0.6.0 and Quillan v0.9.0",
         "Core v0.6.3",
         "ScoreForm v0.11.0",
@@ -154,12 +168,13 @@ REQUIRED_TEXT = {
         "proficiency-attention-summaries.md",
     ),
     Path("docs/README.md"): (
+        "#46 final v0.2.0 audit — implemented",
         "Four accepted ADRs govern the repository:",
         "ADR 0004",
         "pds-core>=0.6.3,<0.7",
         "scoreform==0.11.0",
         "pds-concord==0.3.0",
-        "Quillan v0.9.0, and Concord v0.2.0 adapters were implemented",
+        "Meridian v0.2.0 is the installable release candidate",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
         "membership != evidence eligibility",
@@ -307,7 +322,7 @@ REQUIRED_TEXT = {
             "#45 installed proficiency and signal-export acceptance "
             "without Concord — implemented"
         ),
-        "#46 final v0.2.0 audit — next",
+        "#46 final v0.2.0 audit — implemented; release preparation qualified",
     ),
     Path("docs/architecture/grade-items-and-canonical-storage.md"): (
         "stable grade_item_id",
@@ -747,7 +762,7 @@ def check_current_status() -> None:
             fail(f"active documentation contains stale status text: {phrase!r}")
     required = (
         "installable",
-        "0.1.1.dev0",
+        "0.2.0",
         "typed evidence inventory",
         "adapter",
         "canonical verification",

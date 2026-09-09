@@ -432,7 +432,9 @@ def test_policy_mapping_rejects_missing_unknown_and_nonstring_keys() -> None:
     ):
         academic_period_proficiency_aggregation_policy_from_dict(unknown)
 
-    nonstring: dict[object, object] = dict(data)
+    nonstring: dict[object, object] = {}
+    for key, value in data.items():
+        nonstring[key] = value
     nonstring[1] = "value"
     with pytest.raises(
         AcademicPeriodProficiencyValidationError,

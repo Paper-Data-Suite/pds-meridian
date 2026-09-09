@@ -39,7 +39,10 @@ def test_issue44_handoff_is_current() -> None:
         text = path.read_text(encoding="utf-8")
         assert IMPLEMENTED in text
         assert NEXT in text
-        assert "#46 final v0.2.0 audit — next" in text
+        assert (
+            "#46 final v0.2.0 audit — implemented; "
+            "release preparation qualified"
+        ) in text
 
 
 def test_issue44_docs_preserve_cross_producer_boundaries() -> None:
