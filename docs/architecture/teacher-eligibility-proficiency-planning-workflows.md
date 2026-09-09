@@ -450,7 +450,7 @@ The next v0.2 sequence is:
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
 #45 installed proficiency and signal-export acceptance without Concord — implemented
-#46 v0.2.0 policy, fairness, privacy, interoperability, and release audit
+#46 final v0.2.0 audit — implemented; release preparation qualified
 ```
 
 The focused #41 smoke is intentionally narrower than #44 and #45.
@@ -520,5 +520,5 @@ because the #41 workflow layer imports them.
 
 ```text
 #45 installed proficiency and signal-export acceptance without Concord — implemented
-#46 final v0.2.0 audit — next
+#46 final v0.2.0 audit — implemented; release preparation qualified
 ```

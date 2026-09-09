@@ -43,7 +43,10 @@ def test_issue43_handoff_is_current() -> None:
         assert implemented in text
         assert issue44 in text
         assert next_item in text
-        assert "#46 final v0.2.0 audit — next" in text
+        assert (
+            "#46 final v0.2.0 audit — implemented; "
+            "release preparation qualified"
+        ) in text
 
 
 def test_issue43_docs_preserve_required_boundaries() -> None:

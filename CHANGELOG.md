@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 0.2.0 — 2026-09-07
+
 ### Added
+
+- Issue #46 v0.2.0 release audit: skeptical policy, fairness, privacy, history, interoperability, workflow, explanation, packaging, and v0.3-boundary review completed with zero substantive blockers; release preparation promotes the package to 0.2.0 while final post-merge artifact hashes remain pending.
 
 - Issue #45 installed proficiency and signal-export acceptance without Concord:
   one connected isolated-wheel acceptance from real released ScoreForm v0.11.0

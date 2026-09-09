@@ -11,6 +11,7 @@ from scripts.check_sdist import (
     EXPECTED_ROOT,
     EXPECTED_SDIST_FILENAME,
     EXPECTED_SUMMARY,
+    EXPECTED_VERSION,
     REQUIRED_MEMBERS,
     SdistValidationError,
     validate_sdist,
@@ -59,13 +60,13 @@ def _write_minimal_sdist(
             "Security.md": b"# Security\n",
             "pyproject.toml": b"[build-system]\n",
             "docs/README.md": b"# Documentation\n",
-            "meridian/_version.py": b'__version__ = "0.1.1"\n',
+            "meridian/_version.py": f'__version__ = "{EXPECTED_VERSION}"\n'.encode(),
         }
     )
     pkg_info = (
         "Metadata-Version: 2.4\n"
         "Name: pds-meridian\n"
-        "Version: 0.1.1\n"
+        f"Version: {EXPECTED_VERSION}\n"
         f"Summary: {summary}\n\n"
     ).encode()
     with tarfile.open(path, "w:gz") as archive:

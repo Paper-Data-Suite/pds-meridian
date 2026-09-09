@@ -9,9 +9,10 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.1.1"
+EXPECTED_VERSION = "0.2.0"
 EXPECTED_SUMMARY = (
-    "Publication ingestion and typed evidence diagnostics for Paper Data Suite"
+    "Teacher-controlled evidence, proficiency, and planning exports "
+    "for Paper Data Suite"
 )
 EXPECTED_SDIST_FILENAME = f"pds_meridian-{EXPECTED_VERSION}.tar.gz"
 EXPECTED_ROOT = f"pds_meridian-{EXPECTED_VERSION}"
@@ -25,6 +26,7 @@ REQUIRED_MEMBERS = frozenset(
         "Security.md",
         "pyproject.toml",
         "docs/README.md",
+        "docs/development/v0.2.0-release-notes.md",
         "docs/architecture/attempt-selection-policy-and-decisions.md",
         "docs/architecture/evidence-eligibility-decisions.md",
         "docs/architecture/grade-item-membership-and-academic-period-assignment.md",
@@ -314,6 +316,12 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_issue45_documentation_acceptance.py",
         "tests/test_issue45_packaging_acceptance.py",
         "tests/test_validation_scripts.py",
+        "tests/test_v02_release_audit_policy_fairness.py",
+        "tests/test_v02_release_audit_privacy_export.py",
+        "tests/test_v02_release_audit_calculation_history.py",
+        "tests/test_v02_release_audit_interoperability_boundaries.py",
+        "tests/test_v02_release_audit_explanations_attention.py",
+        "tests/test_v02_release_preparation.py",
         "tests/test_teacher_workflows.py",
         "tests/test_standards_review_workflow.py",
         "tests/test_standards_association_authoring_workflow.py",
@@ -338,6 +346,11 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_new_evidence_workflow.py",
         "tests/test_new_evidence_eligibility_workflow.py",
         "tests/test_new_evidence_eligibility_selection_workflow.py",
+    }
+)
+FORBIDDEN_EXACT_MEMBERS = frozenset(
+    {
+        "docs/development/v0.2.0-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (
@@ -428,6 +441,11 @@ def validate_sdist(path: str | Path) -> None:
                 normalized = relative.as_posix()
                 lowered = normalized.lower()
                 components = {part.lower() for part in relative.parts}
+                if normalized in FORBIDDEN_EXACT_MEMBERS:
+                    raise SdistValidationError(
+                        "Source distribution contains a repository-only "
+                        f"release record: {normalized}"
+                    )
                 if lowered.startswith(FORBIDDEN_PREFIXES):
                     raise SdistValidationError(
                         f"Source distribution contains forbidden content: {normalized}"

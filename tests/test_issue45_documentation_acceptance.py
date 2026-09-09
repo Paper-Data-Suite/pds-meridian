@@ -5,7 +5,7 @@ IMPLEMENTED = (
     "#45 installed proficiency and signal-export acceptance without "
     "Concord — implemented"
 )
-NEXT = "#46 final v0.2.0 audit — next"
+NEXT = "#46 final v0.2.0 audit — implemented; release preparation qualified"
 
 
 def test_issue45_documentation_is_release_guarded() -> None:

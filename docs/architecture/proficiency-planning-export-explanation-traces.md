@@ -361,5 +361,5 @@ At completion:
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
 #45 installed proficiency and signal-export acceptance without Concord — implemented
-#46 final v0.2.0 audit — next
+#46 final v0.2.0 audit — implemented; release preparation qualified
 ```
