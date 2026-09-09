@@ -1,27 +1,31 @@
 # Meridian documentation
 
-Meridian v0.2.0 is the installable release candidate for the complete v0.2
+Meridian v0.2.0 is the current released baseline and remains installable for the complete v0.2
 teacher-controlled evidence-policy, standards-proficiency, explanation,
 attention, and planning-export architecture.
 
 The released v0.1.1 foundation established publication ingestion, typed native
 evidence, exact consumer-side adapters, canonical Core verification, immutable
-projection caching, and read-only diagnostics. The v0.2.0 release boundary
+projection caching, and read-only diagnostics. The verified v0.2.0 release
 retains that history while qualifying exact Core v0.6.3 plus optional ScoreForm
 v0.11.0, Quillan v0.10.0, and Concord v0.3.0 readers.
 
-Issues #27 through #45 now implement and qualify the complete v0.2 chain:
-teacher-defined Grade Items and membership, evidence eligibility, explicit
-attempt/reassessment decisions, proficiency scales/mappings, Standards
-association, Grade Item and Academic Period proficiency, Core-neutral
-contextual planning signals, preview/review/export, task-oriented workflows,
-deterministic explanation traces, privacy-minimal attention, cross-producer
-scenarios, and installed end-to-end acceptance without Concord. Issue #46 has
-completed the substantive release audit with zero blockers and moved the branch
-into release preparation.
+Issues #27 through #46 implement, qualify, audit, publish, and verify the complete
+v0.2 chain. For historical continuity, the pre-release v0.2 handoff record remains:
 
-Conventional/hybrid Grade policy, weighting execution, overrides, reporting
-snapshots, report delivery, and SIS/report-card exports remain outside v0.2.
+```text
+#46 final v0.2.0 audit — implemented; release preparation qualified
+```
+
+That line records the earlier handoff state; the current v0.3 status below is authoritative.
+
+Current development begins v0.3 under issue #48 with accepted
+architecture for Grade policy, advisory Grade previews, immutable teacher
+overrides, Meridian-owned immutable ReportingSnapshots, and explicit local
+exports.
+
+Grade, override, snapshot, and Grade/report export runtime remain downstream
+v0.3 work.
 
 ## Recommended reading order
 
@@ -65,6 +69,7 @@ snapshots, report delivery, and SIS/report-card exports remain outside v0.2.
 38. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
 39. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 40. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+41. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
 
 ## Development foundation
 
@@ -163,7 +168,7 @@ See [Proficiency attention summaries](architecture/proficiency-attention-summari
 #43 Meridian proficiency attention summaries — implemented
 #44 ScoreForm/Quillan/Concord cross-producer proficiency scenarios — implemented
 #45 installed proficiency and signal-export acceptance without Concord — implemented
-#46 final v0.2.0 audit — implemented; release preparation qualified
+#46 final v0.2.0 audit — implemented; released and verified
 ```
 
 ## Installed proficiency and signal-export acceptance
@@ -574,19 +579,20 @@ separate write, selection, revalidation, privacy, and Concord boundaries.
 
 ## Architecture decisions
 
-Four accepted ADRs govern the repository:
+Five accepted ADRs govern the repository:
 
 - ADR 0001 assigns policy-driven proficiency and Grade calculation to Meridian.
 - ADR 0002 adopts provenance-bound report snapshots and subscriptions.
 - ADR 0003 adopts consumer-side producer adapters and one-way dependencies.
 - ADR 0004 adopts the v0.2 evidence-policy, proficiency, and planning-export
-  architecture, including immutable revision history, pure deterministic
-  proficiency calculation, and the Meridian -> Core -> optional Concord
-  planning boundary.
+  architecture.
+- ADR 0005 adopts v0.3 Grade-preview and ReportingSnapshot architecture,
+  keeping snapshots Meridian-owned, exports explicit/local, and official-system
+  authority external.
 
-ADR 0004 specializes ADRs 0001 and 0003; it does not supersede either one. The
-Core v0.6 reconciliation amendments remain part of the accepted context for
-ADRs 0001 and 0002.
+ADR 0005 specializes ADRs 0001, 0002, 0003, and 0004 without rewriting their
+historical decisions. The Core v0.6 reconciliation amendments remain part of the
+accepted context for ADRs 0001 and 0002.
 
 ## Implementation sequence
 
@@ -625,13 +631,27 @@ The v0.2.0 implementation sequence now begins:
 16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — implemented;
 17. proficiency and planning-export explanation/trace views — issue #42 — implemented;
 18. Meridian proficiency attention summaries — issue #43 — implemented;
-19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44 — next;
-20. installed proficiency and signal-export acceptance without Concord — issue #45; and
-21. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46.
+19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44 — implemented;
+20. installed proficiency and signal-export acceptance without Concord — issue #45 — implemented; and
+21. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46 — released and verified.
+
+The v0.3.0 implementation sequence now begins:
+
+1. Grade-preview and ReportingSnapshot architecture — ADR 0005 / issue #48 —
+   accepted;
+2. versioned Grade policy models/storage — issue #49;
+3. conventional Grade calculation — issue #50;
+4. standards-based Grade calculation — issue #51;
+5. bounded hybrid Grade calculation — issue #52;
+6. teacher override records/precedence — issue #53;
+7. Grade/report preview explanations — issue #54;
+8. immutable ReportingSnapshots — issue #55; and
+9. reusable Export Profiles and approved Grade/report exports — issue #56.
 
 Implementing Grade Item membership does not make evidence eligibility, attempt
 selection, reassessment, proficiency, Grade calculation, or planning export
-runtime capabilities.
+runtime capabilities. Accepting ADR 0005 likewise does not implement downstream
+v0.3 Grade, override, snapshot, or export runtime.
 
 ## Exact projection snapshots and cache
 

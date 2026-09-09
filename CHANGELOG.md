@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #48 v0.3 Grade-preview and ReportingSnapshot architecture: accepted
+  explicit Grade-policy/calculation authority, advisory Grade-preview semantics,
+  immutable override precedence, Meridian-owned immutable ReportingSnapshots,
+  coherent snapshot generation, snapshot/export separation, teacher-controlled
+  local transfer, official-system non-authority, and latest-release
+  requalification. The reviewed baseline is Core v0.6.3, ScoreForm v0.11.0,
+  Quillan v0.10.0, Concord v0.3.0, and released Meridian v0.2.0.
+
+
 ## 0.2.0 — 2026-09-07
 
 ### Added
