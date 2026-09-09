@@ -64,6 +64,10 @@ EXPECTED = (
         "docs/decisions/"
         "0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md"
     ),
+    Path(
+        "docs/decisions/"
+        "0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
+    ),
     Path("docs/decisions/amendments/0001-core-v0.6-ingestion-reconciliation.md"),
     Path("docs/decisions/amendments/0002-core-v0.6-ingestion-reconciliation.md"),
 )
@@ -82,6 +86,7 @@ REQUIRED_TEXT = {
     ),
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "Issue #48 v0.3 Grade-preview and ReportingSnapshot architecture",
         "Teacher-controlled grouping-signal derivation policy",
         "same_level_same_band",
         "grouping_signal_set_v1",
@@ -115,7 +120,7 @@ REQUIRED_TEXT = {
         "#46 final v0.2.0 audit — implemented",
         "0.1.1",
         "pds-core>=0.6.3,<0.7",
-        "Meridian v0.2.0 is the installable release candidate",
+        "Meridian v0.2.0 is the current released baseline",
         "Core v0.6.0 and Quillan v0.9.0",
         "Core v0.6.3",
         "ScoreForm v0.11.0",
@@ -169,12 +174,12 @@ REQUIRED_TEXT = {
     ),
     Path("docs/README.md"): (
         "#46 final v0.2.0 audit — implemented",
-        "Four accepted ADRs govern the repository:",
+        "Five accepted ADRs govern the repository:",
         "ADR 0004",
         "pds-core>=0.6.3,<0.7",
         "scoreform==0.11.0",
         "pds-concord==0.3.0",
-        "Meridian v0.2.0 is the installable release candidate",
+        "Meridian v0.2.0 is the current released baseline",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
         "membership != evidence eligibility",
@@ -222,6 +227,25 @@ REQUIRED_TEXT = {
         "meridian.grouping_signal_preview",
         "grouping-signal-generation.md",
         "meridian.grouping_signal_generation",
+    ),
+    Path(
+        "docs/decisions/"
+        "0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
+    ): (
+        "GradeItemRevision.weighting metadata != executable Grade policy",
+        "missing or unresolved state != numeric zero",
+        "Grade preview != ReportingSnapshot",
+        "Grade preview != official Grade",
+        "ReportingSnapshot != Core Publication Record",
+        "ReportingSnapshot != Vitrine Portfolio Snapshot / Edition",
+        "ReportingSnapshot != rendered/export artifact",
+        "export != external-system write",
+        "check the latest non-prerelease GitHub Release",
+        "newest compatible released contract",
+        "pds-core 0.6.3",
+        "scoreform 0.11.0",
+        "quillan 0.10.0",
+        "pds-concord 0.3.0",
     ),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"): (
         "Canonical verification precedes producer parsing",

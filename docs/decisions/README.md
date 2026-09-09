@@ -41,11 +41,25 @@ derivation remain Meridian-owned. Core owns the neutral
 `grouping_signal_set_v1` interchange, while Concord owns Group planning and
 application.
 
+### ADR 0005
+
+[Adopt v0.3 Grade Preview and Reporting Snapshot Architecture](0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+
+Meridian v0.3 adds explicit Grade policy, advisory Grade previews, immutable
+teacher overrides, Meridian-owned immutable ReportingSnapshots, and explicit
+local export semantics without transferring official-system authority or
+creating a new Core publication kind.
+
 ## Decision relationship
 
 ADR 0003 supplements ADRs 0001 and 0002 by freezing the consumer-side producer
 handoff. ADR 0004 specializes ADRs 0001 and 0003 for the v0.2 evidence-policy,
 proficiency, and planning-export implementation sequence.
+
+ADR 0005 specializes ADRs 0001, 0002, 0003, and 0004 for the v0.3 Grade-preview,
+override, immutable ReportingSnapshot, and explicit local-export boundary. It
+keeps ReportingSnapshots Meridian-owned rather than Core-published and narrows
+ADR 0002's broader subscription/delivery architecture to v0.3 release scope.
 
 ADR 0004 does not supersede ADR 0001's broader assignment of policy-driven
 proficiency and Grade authority to Meridian, nor ADR 0003's one-way producer

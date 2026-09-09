@@ -1,24 +1,24 @@
 # PDS Meridian
 
-Meridian v0.2.0 is the installable release candidate for the teacher-controlled academic
-interpretation, standards-proficiency, explanation, attention, and
+Meridian v0.2.0 is the current released baseline and remains installable for the teacher-controlled
+academic interpretation, standards-proficiency, explanation, attention, and
 planning-signal workflow built on the released v0.1.1 publication-ingestion
 foundation.
 
-The v0.2.0 boundary consumes exact released Core v0.6.3 state and exact optional
-ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 Academic Result reader
-contracts. It implements the explicit #27-#35 interpretation layers, Core's
-neutral `grouping_signal_set_v1` interchange, #37-#40 planning policy through
-reviewed export, the seven #41 task-oriented teacher workflows, five #42 explanation/trace
-targets, #43 privacy-minimal attention, #44 released cross-producer
-qualification, and #45 installed end-to-end proficiency/signal-export
-acceptance without Concord.
+The verified v0.2.0 boundary consumes exact released Core v0.6.3 state and exact
+optional ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 Academic Result
+reader contracts. Issues #27-#46 implement, qualify, audit, publish, and verify
+that release.
 
-Meridian preserves producer evidence, teacher interpretation, proficiency,
-planning bands, Core planning signals, and downstream grouping state as
-separate authorities. It does not yet calculate conventional Grades, implement
-teacher Grade/proficiency overrides, issue reporting snapshots, create Concord
-GroupPlan/Group/GroupMembership state, or deliver reports.
+The released v0.2.0 capability set includes the seven #41 task-oriented teacher workflows
+and the five #42 explanation/trace targets preserved by the existing runtime.
+
+The released v0.2.0 runtime does not yet calculate conventional Grades or implement teacher Grade/proficiency overrides; ADR 0005 defines the architecture for downstream v0.3 Grade work without claiming that runtime capability is already implemented.
+
+Current development begins v0.3 under accepted ADR 0005 / issue #48. It keeps
+Grade policy, advisory Grade previews, immutable teacher overrides,
+Meridian-owned immutable ReportingSnapshots, explicit local exports, producer/
+Core authority, and official school-system authority separate.
 
 ## Purpose
 
