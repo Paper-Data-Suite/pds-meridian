@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #49 versioned Grade-policy models and storage: immutable canonical
+  `conventional`, `standards_based`, and bounded `hybrid` policy revisions;
+  exact Grade Item/scale/standard dependencies; explicit Decimal weighting,
+  non-Grade state treatment, reassessment authority, and final rounding;
+  SHA-256-bound canonical storage with CAS family-current selection; and a
+  separate immutable Core Academic-Period activation history with explicit
+  `unconfigured`, `deactivated`, and `activated` resolution. GradePolicy family
+  current != GradePolicy activation, and #49 performs no Grade calculation.
+
 - Issue #48 v0.3 Grade-preview and ReportingSnapshot architecture: accepted
   explicit Grade-policy/calculation authority, advisory Grade-preview semantics,
   immutable override precedence, Meridian-owned immutable ReportingSnapshots,

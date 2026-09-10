@@ -24,8 +24,12 @@ architecture for Grade policy, advisory Grade previews, immutable teacher
 overrides, Meridian-owned immutable ReportingSnapshots, and explicit local
 exports.
 
-Grade, override, snapshot, and Grade/report export runtime remain downstream
-v0.3 work.
+Issue #49 implements the versioned Grade-policy model/storage layer plus
+separate exact Academic Period activation decisions. GradePolicy family current
+!= GradePolicy activation; writing or selecting a policy family revision never
+silently activates it for a period. Conventional, standards-based, and hybrid
+Grade calculations, overrides, snapshots, and Grade/report exports remain
+downstream v0.3 work.
 
 ## Recommended reading order
 
@@ -38,38 +42,40 @@ v0.3 work.
 7. [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md)
 8. [Evidence inventory and diagnostics](architecture/evidence-inventory-and-diagnostics.md)
 9. [Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
-10. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
-11. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
-12. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
-13. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
-14. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
-15. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
-16. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
-17. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
-18. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
-19. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
-20. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
-21. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
-22. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
-23. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
-24. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
-25. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
-26. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-27. [ScoreForm adapter](architecture/scoreform-adapter.md)
-28. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-29. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
-30. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-31. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
-32. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
-33. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
-34. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
-35. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-36. [ADR index](decisions/README.md)
-37. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-38. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-39. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-40. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
-41. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+10. [Grade policies, storage, and Academic Period activation](architecture/grade-policy-models-storage-and-activation.md)
+11. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
+12. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
+13. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
+14. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
+15. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
+16. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
+17. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
+18. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
+19. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
+20. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
+21. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
+22. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
+23. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
+24. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
+25. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
+26. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
+27. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+28. [ScoreForm adapter](architecture/scoreform-adapter.md)
+29. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+30. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
+31. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+32. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
+33. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
+34. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
+35. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
+36. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+37. [ADR index](decisions/README.md)
+38. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+39. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+40. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+41. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+42. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+
 
 ## Development foundation
 
@@ -256,6 +262,39 @@ membership != evidence eligibility
 See
 [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
 for the exact decision, provenance, storage, and conflict contracts.
+
+## Grade policies, storage, and Academic Period activation
+
+`meridian.grade_policy` defines immutable v0.3 Grade-policy revisions for
+`conventional`, `standards_based`, and bounded `hybrid` calculation families.
+Policy-owned Grade Item participation, exact Decimal weights, proficiency-scale
+conversion, explicit non-Grade state treatment, v0.2 reassessment authority, and
+final-result rounding are materialized into the exact policy revision. Existing
+Grade Item weighting metadata remains non-executable metadata.
+
+`meridian.grade_policy_storage` persists SHA-256-bound contiguous policy history
+with explicit compare-and-swap family-current selection and exact Grade Item,
+Core Standard, and proficiency-scale dependency validation. A newer policy
+revision is never selected implicitly.
+
+`meridian.grade_policy_activation` and
+`meridian.grade_policy_activation_storage` define a separate immutable
+teacher-controlled binding from one exact Core `AcademicPeriodRef` and calendar
+revision to one exact Grade-policy revision/digest. Activation currentness is
+explicit and preserves distinct `unconfigured`, `deactivated`, and `activated`
+states. Policy-family current selection does not change period activation, and
+period hierarchy does not create inheritance.
+
+The controlling boundaries are:
+
+```text
+GradeItemRevision.weighting metadata != executable Grade policy
+GradePolicy family current != GradePolicy activation
+missing or unresolved state != numeric zero
+Grade policy != Grade calculation
+```
+
+See [Grade policies, storage, and Academic Period activation](architecture/grade-policy-models-storage-and-activation.md).
 
 ## Evidence eligibility decisions
 
