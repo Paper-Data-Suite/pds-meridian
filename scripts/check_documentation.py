@@ -53,6 +53,7 @@ EXPECTED = (
         "docs/architecture/"
         "grade-item-membership-and-academic-period-assignment.md"
     ),
+    Path("docs/architecture/grade-policy-models-storage-and-activation.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -87,6 +88,7 @@ REQUIRED_TEXT = {
     Path("CHANGELOG.md"): (
         "## Unreleased",
         "Issue #48 v0.3 Grade-preview and ReportingSnapshot architecture",
+        "Issue #49 versioned Grade-policy models and storage",
         "Teacher-controlled grouping-signal derivation policy",
         "same_level_same_band",
         "grouping_signal_set_v1",
@@ -121,6 +123,7 @@ REQUIRED_TEXT = {
         "0.1.1",
         "pds-core>=0.6.3,<0.7",
         "Meridian v0.2.0 is the current released baseline",
+        "Issue #49 now implements versioned Grade-policy models",
         "Core v0.6.0 and Quillan v0.9.0",
         "Core v0.6.3",
         "ScoreForm v0.11.0",
@@ -180,6 +183,8 @@ REQUIRED_TEXT = {
         "scoreform==0.11.0",
         "pds-concord==0.3.0",
         "Meridian v0.2.0 is the current released baseline",
+        "Issue #49 implements the versioned Grade-policy model/storage layer",
+        "GradePolicy family current != GradePolicy activation",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
         "membership != evidence eligibility",
@@ -227,6 +232,18 @@ REQUIRED_TEXT = {
         "meridian.grouping_signal_preview",
         "grouping-signal-generation.md",
         "meridian.grouping_signal_generation",
+    ),
+    Path("docs/architecture/grade-policy-models-storage-and-activation.md"): (
+        "GradeItemRevision.weighting metadata != executable Grade policy",
+        "GradePolicy family",
+        "selected revision within that family",
+        "activated GradePolicy for an Academic Period",
+        "missing or unresolved state != numeric zero",
+        "policy family's current revision changes",
+        "unconfigured",
+        "deactivated",
+        "activated",
+        "#50 conventional Grade calculation",
     ),
     Path(
         "docs/decisions/"

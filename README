@@ -20,6 +20,12 @@ Grade policy, advisory Grade previews, immutable teacher overrides,
 Meridian-owned immutable ReportingSnapshots, explicit local exports, producer/
 Core authority, and official school-system authority separate.
 
+Issue #49 now implements versioned Grade-policy models, canonical policy
+storage, exact dependency validation, explicit family-current selection, and a
+separate immutable Academic Period activation history. Policy-family current
+selection does not activate a policy for a period, and #49 still does not
+calculate a Grade.
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into

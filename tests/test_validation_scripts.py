@@ -87,9 +87,7 @@ def test_quillan_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
 
 def test_concord_verifier_targets_exact_030_release() -> None:
     assert EXPECTED_CONCORD_VERSION == "0.3.0"
-    assert EXPECTED_CONCORD_WHEEL_FILENAME == (
-        "pds_concord-0.3.0-py3-none-any.whl"
-    )
+    assert EXPECTED_CONCORD_WHEEL_FILENAME == ("pds_concord-0.3.0-py3-none-any.whl")
     assert EXPECTED_CONCORD_WHEEL_SHA256 == (
         "dd827f7059c91c79bd69b6190b3c673d6b3bbc02bc25fa666286bbf5883c5e12"
     )
@@ -116,11 +114,11 @@ def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:
     with pytest.raises(PackageValidationError, match="readable ZIP"):
         validate_wheel(path)
 
+
 def test_ci_wires_exact_scoreform_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-scoreform/releases/download/v0.11.0/"
-        "scoreform-0.11.0-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.11.0/scoreform-0.11.0-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"' in workflow
     assert '--scoreform-wheel "$env:SCOREFORM_WHEEL"' in workflow
@@ -129,8 +127,7 @@ def test_ci_wires_exact_scoreform_release_artifact() -> None:
 def test_ci_wires_exact_concord_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-concord/releases/download/v0.3.0/"
-        "pds_concord-0.3.0-py3-none-any.whl"
+        "pds-concord/releases/download/v0.3.0/pds_concord-0.3.0-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"' in workflow
     assert '".[dev,scoreform,quillan,concord]"' in workflow
@@ -146,6 +143,7 @@ def test_cross_producer_acceptance_document_is_validation_guarded() -> None:
         "Academic Period definition != ingestion-time Grade-period assignment"
         in checker
     )
+
 
 def test_academic_period_proficiency_installed_smoke_is_release_guarded() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
@@ -188,8 +186,7 @@ def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> 
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
 
     assert (
-        "pds-core/releases/download/v0.6.3/"
-        "pds_core-0.6.3-py3-none-any.whl"
+        "pds-core/releases/download/v0.6.3/pds_core-0.6.3-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_core_wheel.py "$env:PDS_CORE_WHEEL"' in workflow
     assert "python scripts/validate_repository.py" in workflow
@@ -224,8 +221,10 @@ def test_grouping_signal_policy_architecture_document_is_release_guarded() -> No
     assert "issue #38 — implemented" in documentation_checker
     assert "issue #39 — implemented" in documentation_checker
 
-def test_grouping_signal_generation_architecture_and_package_are_release_guarded(
-) -> None:
+
+def test_grouping_signal_generation_architecture_and_package_are_release_guarded() -> (
+    None
+):
     documentation_checker = Path("scripts/check_documentation.py").read_text(
         encoding="utf-8"
     )
@@ -260,12 +259,8 @@ def test_grouping_signal_generation_architecture_and_package_are_release_guarded
 
 
 def test_grouping_signal_generation_installed_smoke_is_release_guarded() -> None:
-    validator = Path("scripts/validate_repository.py").read_text(
-        encoding="utf-8"
-    )
-    sdist_checker = Path("scripts/check_sdist.py").read_text(
-        encoding="utf-8"
-    )
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
 
     assert "smoke_test_grouping_signal_generation_wheel.py" in validator
     assert "smoke_test_grouping_signal_generation_wheel.py" in sdist_checker
@@ -288,10 +283,7 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
     assert "issue #41 — implemented" in documentation_checker
     assert "issue #42 — implemented" in documentation_checker
     assert "issue #43 — implemented" in documentation_checker
-    assert (
-        "#44 ScoreForm/Quillan/Concord cross-producer "
-        in documentation_checker
-    )
+    assert "#44 ScoreForm/Quillan/Concord cross-producer " in documentation_checker
     assert "proficiency scenarios — implemented" in documentation_checker
     assert (
         "#45 installed proficiency and signal-export acceptance "
@@ -316,6 +308,7 @@ def test_grouping_signal_preview_review_release_is_guarded() -> None:
     assert "smoke_test_grouping_signal_preview_review_wheel.py" in sdist_checker
     assert "smoke_program_grouping_signal_preview_review.py" in sdist_checker
 
+
 def test_grouping_signal_export_release_is_guarded() -> None:
     documentation_checker = Path("scripts/check_documentation.py").read_text(
         encoding="utf-8"
@@ -330,10 +323,7 @@ def test_grouping_signal_export_release_is_guarded() -> None:
     assert "issue #41 — implemented" in documentation_checker
     assert "issue #42 — implemented" in documentation_checker
     assert "issue #43 — implemented" in documentation_checker
-    assert (
-        "#44 ScoreForm/Quillan/Concord cross-producer "
-        in documentation_checker
-    )
+    assert "#44 ScoreForm/Quillan/Concord cross-producer " in documentation_checker
     assert "proficiency scenarios — implemented" in documentation_checker
     assert (
         "#45 installed proficiency and signal-export acceptance "
@@ -356,6 +346,7 @@ def test_grouping_signal_export_release_is_guarded() -> None:
     assert "smoke_test_grouping_signal_export_wheel.py" in validator
     assert "smoke_program_grouping_signal_export.py" in sdist_checker
 
+
 def test_teacher_workflow_release_is_guarded() -> None:
     documentation_checker = Path("scripts/check_documentation.py").read_text(
         encoding="utf-8"
@@ -365,22 +356,15 @@ def test_teacher_workflow_release_is_guarded() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
     docs_readme = Path("docs/README.md").read_text(encoding="utf-8")
 
-    document = (
-        "docs/architecture/"
-        "teacher-eligibility-proficiency-planning-workflows.md"
-    )
+    document = "docs/architecture/teacher-eligibility-proficiency-planning-workflows.md"
     assert (
-        "teacher-eligibility-proficiency-planning-workflows.md"
-        in documentation_checker
+        "teacher-eligibility-proficiency-planning-workflows.md" in documentation_checker
     )
     assert document in sdist_checker
     assert "issue #41 — implemented" in documentation_checker
     assert "issue #42 — implemented" in documentation_checker
     assert "issue #43 — implemented" in documentation_checker
-    assert (
-        "#44 ScoreForm/Quillan/Concord cross-producer "
-        in documentation_checker
-    )
+    assert "#44 ScoreForm/Quillan/Concord cross-producer " in documentation_checker
     assert "proficiency scenarios — implemented" in documentation_checker
     assert (
         "#45 installed proficiency and signal-export acceptance "
@@ -391,13 +375,11 @@ def test_teacher_workflow_release_is_guarded() -> None:
     assert "issue #43 — implemented" in docs_readme
     assert (
         "#44 ScoreForm/Quillan/Concord cross-producer "
-        "proficiency scenarios — implemented"
-        in docs_readme
+        "proficiency scenarios — implemented" in docs_readme
     )
     assert (
         "#45 installed proficiency and signal-export acceptance "
-        "without Concord — implemented"
-        in docs_readme
+        "without Concord — implemented" in docs_readme
     )
 
     for member in (
@@ -433,3 +415,37 @@ def test_teacher_workflow_release_is_guarded() -> None:
         "tests/test_issue41_workflow_acceptance.py",
     ):
         assert member in sdist_checker
+
+
+def test_issue49_grade_policy_release_surface_is_package_guarded() -> None:
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
+    wheel_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+
+    document = "docs/architecture/grade-policy-models-storage-and-activation.md"
+    assert document in documentation_checker
+    assert document in sdist_checker
+
+    for member in (
+        "meridian/grade_policy.py",
+        "meridian/grade_policy_storage.py",
+        "meridian/grade_policy_activation.py",
+        "meridian/grade_policy_activation_storage.py",
+    ):
+        assert member in wheel_checker
+        assert member in sdist_checker
+
+    for member in (
+        "tests/test_grade_policy.py",
+        "tests/test_grade_policy_storage.py",
+        "tests/test_grade_policy_activation.py",
+        "tests/test_grade_policy_activation_storage.py",
+        "tests/test_issue49_documentation_acceptance.py",
+    ):
+        assert member in sdist_checker
+
+    assert (
+        "GradePolicy family current != GradePolicy activation" in documentation_checker
+    )
