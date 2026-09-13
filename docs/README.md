@@ -31,6 +31,14 @@ silently activates it for a period. Conventional, standards-based, and hybrid
 Grade calculations, overrides, snapshots, and Grade/report exports remain
 downstream v0.3 work.
 
+Issue #50 implements the conventional points/percentage calculation layer:
+exact activated policy, exact Academic Period/calendar scope, exact #28/#29/#30/#31
+authority, point-only producer semantics, immutable result history, explicit CAS
+selection, and non-mutating freshness diagnostics. The released ScoreForm v0.11.0
+path is qualified through fresh-process result reproduction; Quillan v0.10.0 and
+Concord v0.3.0 scaled values remain non-points. Grade preview, override, and
+ReportingSnapshot work remain downstream.
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -43,38 +51,39 @@ downstream v0.3 work.
 8. [Evidence inventory and diagnostics](architecture/evidence-inventory-and-diagnostics.md)
 9. [Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
 10. [Grade policies, storage, and Academic Period activation](architecture/grade-policy-models-storage-and-activation.md)
-11. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
-12. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
-13. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
-14. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
-15. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
-16. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
-17. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
-18. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
-19. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
-20. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
-21. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
-22. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
-23. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
-24. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
-25. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
-26. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
-27. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-28. [ScoreForm adapter](architecture/scoreform-adapter.md)
-29. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-30. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
-31. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-32. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
-33. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
-34. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
-35. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
-36. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-37. [ADR index](decisions/README.md)
-38. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-39. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-40. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-41. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
-42. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+11. [Conventional points/percentage Grade calculation](architecture/conventional-grade-calculation.md)
+12. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
+13. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
+14. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
+15. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
+16. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
+17. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
+18. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
+19. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
+20. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
+21. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
+22. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
+23. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
+24. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
+25. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
+26. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
+27. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
+28. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+29. [ScoreForm adapter](architecture/scoreform-adapter.md)
+30. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+31. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
+32. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+33. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
+34. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
+35. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
+36. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
+37. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+38. [ADR index](decisions/README.md)
+39. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+40. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+41. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+42. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+43. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
 
 
 ## Development foundation
@@ -647,8 +656,8 @@ The v0.1.1 foundation is complete and released:
 8. inventory and diagnostics commands — complete;
 9. exact cache and snapshot rules — complete;
 10. Concord adapter — complete;
-11. cross-producer scenarios — complete; and
-12. foundation audit and v0.1.1 release — complete.
+12. cross-producer scenarios — complete; and
+13. foundation audit and v0.1.1 release — complete.
 
 The v0.2.0 implementation sequence now begins:
 
@@ -662,17 +671,17 @@ The v0.2.0 implementation sequence now begins:
 8. standards evidence association and aggregation inputs — issue #33 — implemented;
 9. pure standards-proficiency calculation — issue #34 — implemented;
 10. Academic Period proficiency aggregation — issue #35 — implemented;
-11. Core grouping-signal adoption — issue #36 — implemented;
-12. teacher-controlled grouping-signal derivation policy — issue #37 — implemented;
-13. deterministic grouping-signal generation — issue #38 — implemented;
-14. grouping-signal preview and diagnostics — issue #39 — implemented;
-15. Core/CSV grouping-signal export — issue #40 — implemented;
-16. teacher eligibility, proficiency, and planning-export workflows — issue #41 — implemented;
-17. proficiency and planning-export explanation/trace views — issue #42 — implemented;
-18. Meridian proficiency attention summaries — issue #43 — implemented;
-19. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44 — implemented;
-20. installed proficiency and signal-export acceptance without Concord — issue #45 — implemented; and
-21. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46 — released and verified.
+12. Core grouping-signal adoption — issue #36 — implemented;
+13. teacher-controlled grouping-signal derivation policy — issue #37 — implemented;
+14. deterministic grouping-signal generation — issue #38 — implemented;
+15. grouping-signal preview and diagnostics — issue #39 — implemented;
+16. Core/CSV grouping-signal export — issue #40 — implemented;
+17. teacher eligibility, proficiency, and planning-export workflows — issue #41 — implemented;
+18. proficiency and planning-export explanation/trace views — issue #42 — implemented;
+19. Meridian proficiency attention summaries — issue #43 — implemented;
+20. ScoreForm/Quillan/Concord cross-producer proficiency scenarios — issue #44 — implemented;
+21. installed proficiency and signal-export acceptance without Concord — issue #45 — implemented; and
+22. the v0.2.0 policy, fairness, privacy, interoperability, and release audit — issue #46 — released and verified.
 
 The v0.3.0 implementation sequence now begins:
 

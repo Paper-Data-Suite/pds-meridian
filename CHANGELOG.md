@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Issue #50 conventional points/percentage Grade calculation: exact activated
+  conventional Grade policies now consume exact Academic Period/calendar scope,
+  exact Grade Item membership, canonical evidence eligibility, and existing
+  #30/#31 attempt/reassessment authority to calculate total-points, weighted-item,
+  and weighted-category Grades with exact Decimal arithmetic and final-only
+  rounding. Only `NativePointValue` is conventional points; policy-owned
+  `possible_points` must match points-based producer denominators. Results are
+  immutable SHA-bound histories with explicit CAS selection and pure freshness
+  diagnostics. Released ScoreForm v0.11.0 acceptance covers authorization through
+  explicit reassessment, persistence, selection, fresh-process reproduction, and
+  producer-source immutability; Quillan v0.10.0 and Concord v0.3.0 regressions
+  preserve scaled/nonstudent evidence as non-points.
+
 - Issue #49 versioned Grade-policy models and storage: immutable canonical
   `conventional`, `standards_based`, and bounded `hybrid` policy revisions;
   exact Grade Item/scale/standard dependencies; explicit Decimal weighting,

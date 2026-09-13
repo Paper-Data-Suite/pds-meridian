@@ -174,7 +174,14 @@ def policy(
         calculation_family="conventional",
         configuration=ConventionalGradeConfiguration(
             "total_points",
-            (GradePolicyItemParticipation(item_reference, None, None),),
+            (
+                GradePolicyItemParticipation(
+                    item_reference,
+                    None,
+                    None,
+                    Decimal("100"),
+                ),
+            ),
             (),
         ),
         state_treatment=state_treatment(),

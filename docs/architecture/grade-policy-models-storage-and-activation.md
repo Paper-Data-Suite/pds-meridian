@@ -128,20 +128,31 @@ weighted_items
 weighted_categories
 ```
 
-`total_points` lists exact participating Grade Item revisions and stores no item
-or category weights.
+`total_points` lists exact participating Grade Item revisions. Every item carries
+an exact positive finite policy-owned `possible_points` Decimal; item and
+category weights are not used.
 
 `weighted_items` requires one explicit positive finite Decimal weight for every
-participating Grade Item. The complete weight set must sum exactly to `1`.
-Malformed input is rejected rather than normalized.
+participating Grade Item. The complete weight set must sum exactly to `1`, and
+`possible_points` is null because each operative producer point observation
+supplies its own denominator. Malformed input is rejected rather than normalized.
 
 `weighted_categories` defines exact category records and category weights that
-sum exactly to `1`. Each participating Grade Item explicitly names its category.
-Within-category calculation remains the bounded points-based calculation owned
-by issue #50; issue #49 stores configuration only.
+sum exactly to `1`. Each participating Grade Item explicitly names its category
+and carries exact positive finite policy-owned `possible_points`. Within-category
+calculation remains the bounded points-based calculation owned by issue #50;
+issue #49 stores configuration only.
 
-All weights are exact `Decimal` values. Binary floating-point values are not
-accepted as Grade-policy weights.
+```text
+total_points / weighted_categories
+    -> exact policy-owned possible_points
+
+weighted_items
+    -> exact policy-owned item weight
+```
+
+All weights and policy-owned possible-point denominators are exact `Decimal`
+values. Binary floating-point values are not accepted.
 
 ### Standards-based configuration
 

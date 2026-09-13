@@ -116,7 +116,7 @@ _ITEM_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
     }
 )
 _ITEM_PARTICIPATION_KEYS: Final[frozenset[str]] = frozenset(
-    {"grade_item", "category_id", "weight"}
+    {"grade_item", "category_id", "weight", "possible_points"}
 )
 _CATEGORY_KEYS: Final[frozenset[str]] = frozenset(
     {"category_id", "title", "weight"}
@@ -255,6 +255,7 @@ class GradePolicyItemParticipation:
     grade_item: GradePolicyItemReference
     category_id: str | None
     weight: Decimal | None
+    possible_points: Decimal | None
 
     def __post_init__(self) -> None:
         if not isinstance(self.grade_item, GradePolicyItemReference):
@@ -267,8 +268,15 @@ class GradePolicyItemParticipation:
         weight = self.weight
         if weight is not None:
             weight = _positive_decimal(weight, "weight")
+        possible_points = self.possible_points
+        if possible_points is not None:
+            possible_points = _positive_decimal(
+                possible_points,
+                "possible_points",
+            )
         object.__setattr__(self, "category_id", category)
         object.__setattr__(self, "weight", weight)
+        object.__setattr__(self, "possible_points", possible_points)
 
 
 @dataclass(frozen=True, slots=True)
@@ -354,9 +362,14 @@ class ConventionalGradeConfiguration:
                     "total_points configuration must not define categories."
                 )
             for item in items:
-                if item.category_id is not None or item.weight is not None:
+                if (
+                    item.category_id is not None
+                    or item.weight is not None
+                    or item.possible_points is None
+                ):
                     raise GradePolicyValidationError(
-                        "total_points items must not define category_id or weight."
+                        "total_points items require possible_points and must not "
+                        "define category_id or weight."
                     )
         elif self.mode == "weighted_items":
             if categories:
@@ -365,9 +378,14 @@ class ConventionalGradeConfiguration:
                 )
             weights: list[Decimal] = []
             for item in items:
-                if item.category_id is not None or item.weight is None:
+                if (
+                    item.category_id is not None
+                    or item.weight is None
+                    or item.possible_points is not None
+                ):
                     raise GradePolicyValidationError(
-                        "weighted_items items require weight and no category_id."
+                        "weighted_items items require weight and must not define "
+                        "category_id or possible_points."
                     )
                 weights.append(item.weight)
             _require_complete_weighting(weights, "weighted item")
@@ -383,10 +401,14 @@ class ConventionalGradeConfiguration:
             defined = set(category_ids)
             used: set[str] = set()
             for item in items:
-                if item.category_id is None or item.weight is not None:
+                if (
+                    item.category_id is None
+                    or item.weight is not None
+                    or item.possible_points is None
+                ):
                     raise GradePolicyValidationError(
-                        "weighted_categories items require category_id and no "
-                        "item weight."
+                        "weighted_categories items require category_id and "
+                        "possible_points and must not define item weight."
                     )
                 if item.category_id not in defined:
                     raise GradePolicyValidationError(
@@ -1054,6 +1076,11 @@ def _item_participation_to_dict(
             if value.weight is not None
             else None
         ),
+        "possible_points": (
+            _decimal_text(value.possible_points, "possible_points")
+            if value.possible_points is not None
+            else None
+        ),
     }
 
 
@@ -1071,10 +1098,15 @@ def _item_participation_from_dict(
             "category_id must be a string or null."
         )
     weight = _optional_decimal_from_text(mapping["weight"], "weight")
+    possible_points = _optional_decimal_from_text(
+        mapping["possible_points"],
+        "possible_points",
+    )
     return GradePolicyItemParticipation(
         grade_item=_item_reference_from_dict(mapping["grade_item"]),
         category_id=category,
         weight=weight,
+        possible_points=possible_points,
     )
 
 

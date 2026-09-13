@@ -26,6 +26,15 @@ separate immutable Academic Period activation history. Policy-family current
 selection does not activate a policy for a period, and #49 still does not
 calculate a Grade.
 
+Issue #50 now implements advisory conventional points/percentage Grade
+calculation over exact activated policy plus exact #28/#29/#30/#31 authority.
+Only producer-native point values count as conventional points; immutable results
+use explicit write-versus-selection history, CAS current selection, and pure
+freshness diagnostics. Released ScoreForm v0.11.0 is qualified end to end through
+persistence and fresh-process reproduction, while Quillan/Concord scaled values
+remain non-points. Grade preview, teacher override, ReportingSnapshot, and
+official-system Grade write remain downstream work.
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into
@@ -124,7 +133,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- conventional or hybrid Grade calculations;
+- hybrid Grade calculation, Grade previews, teacher Grade overrides, or issued ReportingSnapshots;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
