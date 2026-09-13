@@ -32,6 +32,7 @@ def test_issue49_architecture_document_is_indexed_and_preserves_boundaries() -> 
         "selected revision within that family",
         "activated GradePolicy for an Academic Period",
         "missing or unresolved state != numeric zero",
+        "exact policy-owned possible_points",
         "policy family's current revision changes",
         "!= active period policy changes",
         "unconfigured",

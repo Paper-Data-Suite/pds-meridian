@@ -140,7 +140,12 @@ def conventional_configuration(
     return ConventionalGradeConfiguration(
         "total_points",
         tuple(
-            GradePolicyItemParticipation(reference, None, None)
+            GradePolicyItemParticipation(
+                reference,
+                None,
+                None,
+                Decimal("100"),
+            )
             for reference in references
         ),
         (),

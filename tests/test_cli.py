@@ -26,9 +26,18 @@ def test_main_without_arguments_prints_help(capsys: pytest.CaptureFixture[str]) 
     assert "task-oriented teacher workflows" in normalized
     assert "planning-signal export through Core" in normalized
     assert "optional Core-native CSV" in normalized
-    assert "implemented as library APIs" not in normalized
-    assert "Grade calculation" in normalized
-    assert "report generation are not implemented yet." in normalized
+    assert (
+        "Advisory conventional Grade calculation and result persistence are "
+        "implemented as library APIs." in normalized
+    )
+    assert (
+        "Teacher-facing Grade previews, overrides, transferable reporting snapshots, "
+        "and report exports are not implemented yet." in normalized
+    )
+    assert (
+        "Conventional Grade calculation and report generation are not implemented yet."
+        not in normalized
+    )
     assert "grading-policy" not in normalized
 
 

@@ -140,4 +140,3 @@ def test_no_v03_override_or_reporting_snapshot_runtime_family_exists() -> None:
         for name in names
     )
     assert "grade_calculation.py" not in names
-    assert "conventional_grade.py" not in names

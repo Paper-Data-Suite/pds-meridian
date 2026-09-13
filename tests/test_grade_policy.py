@@ -64,6 +64,7 @@ def item(
     *,
     category_id: str | None = None,
     weight: Decimal | None = None,
+    possible_points: Decimal | None = None,
     revision: int = 1,
     class_id: str = CLASS_ID,
 ) -> GradePolicyItemParticipation:
@@ -75,6 +76,7 @@ def item(
         ),
         category_id,
         weight,
+        possible_points,
     )
 
 
@@ -113,8 +115,8 @@ def total_points() -> ConventionalGradeConfiguration:
     return ConventionalGradeConfiguration(
         "total_points",
         (
-            item("unit1_test"),
-            item("essay_1"),
+            item("unit1_test", possible_points=Decimal("100")),
+            item("essay_1", possible_points=Decimal("40")),
         ),
         (),
     )
@@ -135,8 +137,16 @@ def weighted_categories() -> ConventionalGradeConfiguration:
     return ConventionalGradeConfiguration(
         "weighted_categories",
         (
-            item("quiz_1", category_id="practice"),
-            item("unit1_test", category_id="assessment"),
+            item(
+                "quiz_1",
+                category_id="practice",
+                possible_points=Decimal("10"),
+            ),
+            item(
+                "unit1_test",
+                category_id="assessment",
+                possible_points=Decimal("100"),
+            ),
         ),
         (
             GradePolicyCategory(
@@ -310,7 +320,13 @@ def test_policy_revision_transition_is_linear_and_identity_stable() -> None:
     [
         lambda: ConventionalGradeConfiguration(
             "total_points",
-            (item("a", weight=Decimal("1")),),
+            (
+                item(
+                    "a",
+                    weight=Decimal("1"),
+                    possible_points=Decimal("10"),
+                ),
+            ),
             (),
         ),
         lambda: ConventionalGradeConfiguration(
@@ -323,7 +339,13 @@ def test_policy_revision_transition_is_linear_and_identity_stable() -> None:
         ),
         lambda: ConventionalGradeConfiguration(
             "weighted_categories",
-            (item("a", category_id="assessment"),),
+            (
+                item(
+                    "a",
+                    category_id="assessment",
+                    possible_points=Decimal("10"),
+                ),
+            ),
             (
                 GradePolicyCategory(
                     "assessment",
@@ -354,8 +376,16 @@ def test_duplicate_logical_grade_item_is_rejected_across_revisions() -> None:
         ConventionalGradeConfiguration(
             "total_points",
             (
-                item("same_item", revision=1),
-                item("same_item", revision=2),
+                item(
+                    "same_item",
+                    revision=1,
+                    possible_points=Decimal("10"),
+                ),
+                item(
+                    "same_item",
+                    revision=2,
+                    possible_points=Decimal("10"),
+                ),
             ),
             (),
         )
@@ -547,7 +577,13 @@ def test_hybrid_component_weights_must_sum_exactly_to_one() -> None:
 def test_policy_rejects_cross_class_grade_item_and_scale_references() -> None:
     foreign_item = ConventionalGradeConfiguration(
         "total_points",
-        (item("foreign", class_id="other_class"),),
+        (
+            item(
+                "foreign",
+                class_id="other_class",
+                possible_points=Decimal("10"),
+            ),
+        ),
         (),
     )
     with pytest.raises(GradePolicyValidationError, match="Grade Item reference"):
@@ -565,6 +601,7 @@ def test_decimal_values_are_canonical_text_not_binary_json_numbers() -> None:
         policy("hybrid", configuration=hybrid())
     )
     assert b'"weight": "0.6"' in encoded
+    assert b'"possible_points": "100"' in encoded
     assert b'"conventional_weight": "0.7"' in encoded
     assert b'"grade_value": "100"' in encoded
     assert b'"quantum": "0.01"' in encoded

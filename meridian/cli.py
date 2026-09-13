@@ -437,8 +437,10 @@ def build_parser() -> argparse.ArgumentParser:
             "attempts, exclusions, standards review, Grade Item/Academic Period "
             "standards-proficiency preview/persistence/selection, and deliberate "
             "planning-signal export through Core with optional Core-native CSV. "
-            "Conventional Grade calculation and report generation are not "
-            "implemented yet."
+            "Advisory conventional Grade calculation and result persistence are "
+            "implemented as library APIs. Teacher-facing Grade previews, "
+            "overrides, transferable reporting snapshots, and report exports are "
+            "not implemented yet."
         ),
     )
     parser.add_argument(
