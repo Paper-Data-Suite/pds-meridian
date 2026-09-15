@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Issue #52 bounded hybrid Grade calculation: one exact activated
+  `hybrid` policy now reassembles the accepted #50 conventional and #51
+  standards-based component inputs directly under its embedded configurations
+  instead of consuming standalone Grade-result histories. Calculated components
+  contribute exact unrounded Grades; blocked components remain blocking;
+  insufficient components follow exact `insufficient_evidence` treatment;
+  explicit exclusion renormalizes active weight; calculated zero retains weight;
+  and final rounding occurs once with no hidden 0-100 clamp. Immutable hybrid
+  result revisions use SHA-bound history, explicit CAS selection, commit-time
+  full-basis reassembly, historical dependency verification, and freshness that
+  distinguishes conventional-input from proficiency-result drift. Source-level
+  ScoreForm/Quillan/Concord acceptance plus installed Core 0.6.3 + ScoreForm
+  0.11.0 + Quillan 0.10.0 fresh-process qualification preserve producer/v0.2
+  source immutability while Concord remains optional. Teacher overrides remain
+  issue #53 work.
+
 - Issue #51 standards-based Grade calculation: exact activated
   `standards_based` policy now consumes only explicitly selected/current #35
   Academic Period proficiency for participating Standards, applies exact
