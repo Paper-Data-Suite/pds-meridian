@@ -67,6 +67,7 @@ from meridian.grade_item_storage import GradeItemStorageError, load_grade_item_r
 from meridian.grade_policy import (
     ConventionalGradeConfiguration,
     GradePolicyItemParticipation,
+    HybridGradeConfiguration,
 )
 from meridian.grade_policy_activation_storage import (
     GradePolicyActivationStorageError,
@@ -263,6 +264,38 @@ class ConventionalGradeAssembly:
 
 
 @dataclass(frozen=True, slots=True)
+class ConventionalGradeComponentAssembly:
+    """Exact reusable #50 component basis under one stored Grade policy."""
+
+    work_evidence: tuple[ConventionalGradeWorkEvidenceSpec, ...] = field(repr=False)
+    inputs: ConventionalGradeCalculationInput
+    outcome: ConventionalGradeCalculationOutcome
+
+    def __post_init__(self) -> None:
+        specs = tuple(self.work_evidence)
+        if any(
+            not isinstance(item, ConventionalGradeWorkEvidenceSpec)
+            for item in specs
+        ):
+            raise ConventionalGradeAssemblyScopeError(
+                "work_evidence must contain ConventionalGradeWorkEvidenceSpec values."
+            )
+        if not isinstance(self.inputs, ConventionalGradeCalculationInput):
+            raise ConventionalGradeAssemblyScopeError(
+                "inputs must be ConventionalGradeCalculationInput."
+            )
+        if not isinstance(self.outcome, ConventionalGradeCalculationOutcome):
+            raise ConventionalGradeAssemblyScopeError(
+                "outcome must be ConventionalGradeCalculationOutcome."
+            )
+        if calculate_conventional_grade(self.inputs) != self.outcome:
+            raise ConventionalGradeAssemblyScopeError(
+                "component outcome must exactly reproduce from assembled inputs."
+            )
+        object.__setattr__(self, "work_evidence", specs)
+
+
+@dataclass(frozen=True, slots=True)
 class _StateSignal:
     state: ConventionalGradeItemState
     reason_code: str
@@ -408,6 +441,138 @@ def assemble_conventional_grade_calculation(
     return ConventionalGradeAssembly(
         activation=activation,
         policy=stored_policy,
+        work_evidence=specs,
+        inputs=inputs,
+        outcome=outcome,
+    )
+
+
+def assemble_conventional_grade_component(
+    workspace_root: str | Path,
+    *,
+    activation: StoredGradePolicyActivationDecision,
+    policy: StoredGradePolicyRevision,
+    configuration: ConventionalGradeConfiguration,
+    class_id: str,
+    student_id: str,
+    target_period: AcademicPeriodRef,
+    calendar_revision: int,
+    work_evidence: tuple[ConventionalGradeWorkEvidenceSpec, ...],
+) -> ConventionalGradeComponentAssembly:
+    """Assemble #50 inputs under an already-selected conventional/hybrid policy."""
+
+    root = Path(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    student = _identifier(student_id, "student_id")
+    period = _period(target_period)
+    calendar = _positive_int(calendar_revision, "calendar_revision")
+    if not isinstance(activation, StoredGradePolicyActivationDecision):
+        raise ConventionalGradeAssemblyScopeError(
+            "activation must be StoredGradePolicyActivationDecision."
+        )
+    if not isinstance(policy, StoredGradePolicyRevision):
+        raise ConventionalGradeAssemblyScopeError(
+            "policy must be StoredGradePolicyRevision."
+        )
+    if not isinstance(configuration, ConventionalGradeConfiguration):
+        raise ConventionalGradeAssemblyScopeError(
+            "configuration must be ConventionalGradeConfiguration."
+        )
+
+    policy_value = policy.policy
+    policy_configuration = policy_value.configuration
+    if (
+        policy_value.calculation_family == "conventional"
+        and isinstance(policy_configuration, ConventionalGradeConfiguration)
+    ):
+        expected_configuration = policy_configuration
+    elif (
+        policy_value.calculation_family == "hybrid"
+        and isinstance(policy_configuration, HybridGradeConfiguration)
+    ):
+        expected_configuration = policy_configuration.conventional
+    else:
+        raise ConventionalGradeAssemblyDependencyError(
+            "Stored Grade policy does not authorize a conventional component."
+        )
+    if configuration != expected_configuration:
+        raise ConventionalGradeAssemblyDependencyError(
+            "Conventional component configuration does not match stored policy."
+        )
+
+    decision = activation.decision
+    if decision.decision != "activate":
+        raise ConventionalGradeAssemblyDependencyError(
+            "Conventional component requires an activated Grade-policy decision."
+        )
+    if decision.policy_reference != policy.reference:
+        raise ConventionalGradeAssemblyDependencyError(
+            "Activation does not reference the exact stored Grade policy."
+        )
+    if policy_value.class_id != class_value or decision.class_id != class_value:
+        raise ConventionalGradeAssemblyScopeError(
+            "Stored Grade policy/activation must match calculation class_id."
+        )
+    if decision.target_period != period or decision.calendar_revision != calendar:
+        raise ConventionalGradeAssemblyScopeError(
+            "Stored activation must match exact calculation period/calendar."
+        )
+
+    specs = _validate_work_evidence(work_evidence, class_value)
+    policy_grade_item_ids = {
+        participation.grade_item.grade_item_id
+        for participation in configuration.items
+    }
+    extras = tuple(
+        spec for spec in specs if spec.grade_item_id not in policy_grade_item_ids
+    )
+    if extras:
+        raise ConventionalGradeAssemblyScopeError(
+            "work_evidence contains a Grade Item outside the component policy."
+        )
+    by_grade_item = {
+        grade_item_id: tuple(
+            spec for spec in specs if spec.grade_item_id == grade_item_id
+        )
+        for grade_item_id in policy_grade_item_ids
+    }
+
+    assembled_items: list[ConventionalGradeItemInput] = []
+    for participation in configuration.items:
+        _verify_policy_grade_item(root, participation)
+        assembled_items.append(
+            _assemble_policy_item(
+                root=root,
+                class_id=class_value,
+                student_id=student,
+                target_period=period,
+                calendar_revision=calendar,
+                participation=participation,
+                work_evidence=by_grade_item[
+                    participation.grade_item.grade_item_id
+                ],
+            )
+        )
+
+    try:
+        inputs = ConventionalGradeCalculationInput(
+            class_id=class_value,
+            student_id=student,
+            target_period=period,
+            calendar_revision=calendar,
+            activation_reference=activation.reference,
+            policy_reference=policy.reference,
+            configuration=configuration,
+            state_treatment=policy_value.state_treatment,
+            rounding=policy_value.rounding,
+            items=tuple(assembled_items),
+        )
+        outcome = calculate_conventional_grade(inputs)
+    except ConventionalGradeValidationError as error:
+        raise ConventionalGradeAssemblyDependencyError(
+            f"Assembled conventional component basis is invalid: {error}"
+        ) from error
+    return ConventionalGradeComponentAssembly(
         work_evidence=specs,
         inputs=inputs,
         outcome=outcome,

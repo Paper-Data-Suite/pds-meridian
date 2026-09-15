@@ -46,9 +46,23 @@ weighted-mean exclusion renormalizes active weight; policy-created zero does
 not satisfy minimum real calculated-result evidence; results are immutable
 and explicitly selected; and freshness is diagnostic. Source-level all-
 producer qualification plus installed ScoreForm/Quillan fresh-process
-acceptance preserve the producer-neutral boundary. Hybrid calculation,
-Grade preview presentation, teacher override, ReportingSnapshot, and
-official school-system Grade remain downstream.
+acceptance preserve the producer-neutral boundary. Hybrid calculation is
+implemented separately by issue #52 below; Grade preview presentation,
+teacher override, ReportingSnapshot, and official school-system Grade
+remain downstream.
+
+Issue #52 implements bounded hybrid Academic Period Grade calculation under one
+exact activated hybrid policy. The conventional and standards-based
+component bases are reassembled under that policy rather than read from
+standalone Grade-result histories; calculated components contribute
+exact unrounded Grades, explicit exclusion renormalizes active weight,
+blocked components remain blocking, and final rounding occurs once.
+Immutable hybrid result history uses explicit CAS selection and
+freshness separates conventional-input from proficiency-result drift.
+Source-level three-producer acceptance plus installed Core/ScoreForm/
+Quillan fresh-process qualification preserves source immutability with
+Concord absent from the dedicated installed smoke. Teacher overrides
+remain issue #53 work.
 
 ## Recommended reading order
 
@@ -64,38 +78,39 @@ official school-system Grade remain downstream.
 10. [Grade policies, storage, and Academic Period activation](architecture/grade-policy-models-storage-and-activation.md)
 11. [Conventional points/percentage Grade calculation](architecture/conventional-grade-calculation.md)
 12. [Standards-based Grade calculation](architecture/standards-grade-calculation.md)
-13. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
-14. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
-15. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
-16. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
-17. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
-18. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
-19. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
-20. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
-21. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
-22. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
-23. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
-24. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
-25. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
-26. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
-27. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
-28. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
-29. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-30. [ScoreForm adapter](architecture/scoreform-adapter.md)
-31. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-32. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
-33. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-34. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
-35. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
-36. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
-37. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
-38. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-39. [ADR index](decisions/README.md)
-40. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-41. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-42. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-43. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
-44. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+13. [Bounded hybrid Grade calculation](architecture/hybrid-grade-calculation.md)
+14. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
+15. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
+16. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
+17. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
+18. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
+19. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
+20. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
+21. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
+22. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
+23. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
+24. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
+25. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
+26. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
+27. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
+28. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
+29. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
+30. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+31. [ScoreForm adapter](architecture/scoreform-adapter.md)
+32. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+33. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
+34. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+35. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
+36. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
+37. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
+38. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
+39. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+40. [ADR index](decisions/README.md)
+41. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+42. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+43. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+44. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+45. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
 
 
 ## Development foundation
