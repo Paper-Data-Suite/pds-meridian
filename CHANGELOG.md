@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Issue #51 standards-based Grade calculation: exact activated
+  `standards_based` policy now consumes only explicitly selected/current #35
+  Academic Period proficiency for participating Standards, applies exact
+  policy-owned level-to-Decimal Grade conversions and weights, renormalizes the
+  active weighted mean after exclusions, preserves explicit-zero weight without
+  manufacturing calculated evidence, enforces `minimum_calculated_results`,
+  performs final-only rounding, and introduces no hidden 0-100 clamp. Immutable
+  Grade-result revisions use SHA-bound history plus explicit CAS selection and
+  pure freshness across calendar, activation, policy, proficiency-result, and
+  algorithm changes. Source-level ScoreForm/Quillan/Concord qualification and
+  installed Core 0.6.3 + ScoreForm 0.11.0 + Quillan 0.10.0 fresh-process
+  acceptance preserve producer/v0.2 source immutability while Concord remains
+  optional.
+
 - Issue #50 conventional points/percentage Grade calculation: exact activated
   conventional Grade policies now consume exact Academic Period/calendar scope,
   exact Grade Item membership, canonical evidence eligibility, and existing

@@ -39,6 +39,17 @@ path is qualified through fresh-process result reproduction; Quillan v0.10.0 and
 Concord v0.3.0 scaled values remain non-points. Grade preview, override, and
 ReportingSnapshot work remain downstream.
 
+Issue #51 implements standards-based Academic Period Grade calculation over
+exact activated policy and exact explicitly selected/current v0.2 Academic
+Period proficiency. Conversion semantics belong only to the exact policy;
+weighted-mean exclusion renormalizes active weight; policy-created zero does
+not satisfy minimum real calculated-result evidence; results are immutable
+and explicitly selected; and freshness is diagnostic. Source-level all-
+producer qualification plus installed ScoreForm/Quillan fresh-process
+acceptance preserve the producer-neutral boundary. Hybrid calculation,
+Grade preview presentation, teacher override, ReportingSnapshot, and
+official school-system Grade remain downstream.
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -52,38 +63,39 @@ ReportingSnapshot work remain downstream.
 9. [Grade Items and canonical storage](architecture/grade-items-and-canonical-storage.md)
 10. [Grade policies, storage, and Academic Period activation](architecture/grade-policy-models-storage-and-activation.md)
 11. [Conventional points/percentage Grade calculation](architecture/conventional-grade-calculation.md)
-12. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
-13. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
-14. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
-15. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
-16. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
-17. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
-18. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
-19. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
-20. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
-21. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
-22. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
-23. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
-24. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
-25. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
-26. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
-27. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
-28. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
-29. [ScoreForm adapter](architecture/scoreform-adapter.md)
-30. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
-31. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
-32. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
-33. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
-34. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
-35. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
-36. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
-37. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
-38. [ADR index](decisions/README.md)
-39. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
-40. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
-41. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
-42. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
-43. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+12. [Standards-based Grade calculation](architecture/standards-grade-calculation.md)
+13. [Grade Item membership and Academic Period assignment](architecture/grade-item-membership-and-academic-period-assignment.md)
+14. [Evidence eligibility decisions](architecture/evidence-eligibility-decisions.md)
+15. [Attempt-selection policy and decisions](architecture/attempt-selection-policy-and-decisions.md)
+16. [Reassessment and replacement relationships](architecture/reassessment-and-replacement-relationships.md)
+17. [Proficiency scales and native-value mapping profiles](architecture/proficiency-scales-and-native-value-mapping-profiles.md)
+18. [Standards-evidence association and aggregation inputs](architecture/standards-evidence-association-and-aggregation-inputs.md)
+19. [Grade Item standards-proficiency calculation](architecture/standards-proficiency-calculation.md)
+20. [Academic Period standards-proficiency aggregation](architecture/academic-period-proficiency-aggregation.md)
+21. [Core neutral grouping-signal interchange](architecture/core-grouping-signal-interchange.md)
+22. [Teacher-controlled grouping-signal derivation policy](architecture/grouping-signal-derivation-policy.md)
+23. [Deterministic grouping-signal generation](architecture/grouping-signal-generation.md)
+24. [Grouping-signal preview, diagnostics, and teacher review](architecture/grouping-signal-preview-diagnostics.md)
+25. [Immutable Core/CSV grouping-signal export](architecture/grouping-signal-core-export.md)
+26. [Teacher eligibility, proficiency, and planning-export workflows](architecture/teacher-eligibility-proficiency-planning-workflows.md)
+27. [Proficiency and planning-export explanation traces](architecture/proficiency-planning-export-explanation-traces.md)
+28. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
+29. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
+30. [ScoreForm adapter](architecture/scoreform-adapter.md)
+31. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+32. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
+33. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
+34. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
+35. [Installed proficiency and signal-export acceptance without Concord](architecture/installed-proficiency-signal-export-acceptance.md)
+36. [v0.2.0 release audit](development/v0.2.0-release-audit.md)
+37. [v0.2.0 release notes](development/v0.2.0-release-notes.md)
+38. [v0.1.1 foundation release audit](development/v0.1.1-release-audit.md)
+39. [ADR index](decisions/README.md)
+40. [ADR 0001](decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md)
+41. [ADR 0002](decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md)
+42. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
+43. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
+44. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
 
 
 ## Development foundation
@@ -304,6 +316,25 @@ Grade policy != Grade calculation
 ```
 
 See [Grade policies, storage, and Academic Period activation](architecture/grade-policy-models-storage-and-activation.md).
+
+## Standards-based Grade calculation
+
+Issue #51 consumes one exact activated `standards_based` Grade policy and the
+exact explicitly selected/current Academic Period proficiency result for each
+participating Standard. It never reopens producer evidence to recalculate
+proficiency. Exact policy conversions map proficiency level IDs to Decimal Grade
+values; v1 aggregates them only with `weighted_mean`, removes excluded weight
+from the denominator, retains explicit policy-zero weight, enforces minimum real
+calculated proficiency results, and rounds only the final Grade.
+
+Standards Grade results are immutable SHA-bound revisions. Writing does not
+select; `current.json` selection is explicit CAS state; freshness remains a pure
+diagnostic over calendar, activation, policy, selected proficiency results, and
+algorithm. The installed acceptance reproduces the selected result in a second
+process from the candidate wheel plus exact Core 0.6.3, ScoreForm 0.11.0, and
+Quillan 0.10.0 while Concord remains absent.
+
+See [Standards-based Grade calculation](architecture/standards-grade-calculation.md).
 
 ## Evidence eligibility decisions
 
