@@ -19,7 +19,9 @@ from pds_core.academic_period_storage import (
 
 from meridian.academic_period_proficiency import (
     ACADEMIC_PERIOD_PROFICIENCY_ALGORITHM_VERSION,
+    AcademicPeriodProficiencyResultFreshness,
     AcademicPeriodProficiencyResultSnapshot,
+    AcademicPeriodProficiencyStalenessReason,
 )
 from meridian.academic_period_proficiency_storage import (
     AcademicPeriodProficiencyStorageError,
@@ -42,7 +44,6 @@ from meridian.proficiency_attention import (
     MeridianAttentionSummary,
     build_meridian_attention_summary,
 )
-from meridian.proficiency_mapping import proficiency_scale_reference
 from meridian.proficiency_mapping_storage import (
     ProficiencyMappingStorageError,
     load_current_proficiency_scale,
@@ -199,108 +200,180 @@ def _discover_current_results(
     return tuple(selected)
 
 
-def _current_result_is_stale(
+def assess_selected_academic_period_proficiency_result_freshness(
     workspace_root: str | Path,
     stored: StoredAcademicPeriodProficiencyResult,
-) -> bool:
+) -> AcademicPeriodProficiencyResultFreshness:
+    """Assess whether one exact selected #35 result still matches current basis.
+
+    The caller supplies the exact persisted result it observed. This helper first
+    proves that the same revision/digest is still the explicit current selection,
+    then applies the same canonical dependency checks used by Academic Period
+    attention. It never recalculates proficiency or opens producer evidence.
+    """
+
     snapshot = stored.snapshot
     if not isinstance(snapshot, AcademicPeriodProficiencyResultSnapshot):
-        # This branch is defensive for callers outside canonical storage.
         raise AcademicPeriodAttentionReadError(
             "Selected Academic Period proficiency result has an invalid snapshot."
         )
 
-    if snapshot.algorithm_version != ACADEMIC_PERIOD_PROFICIENCY_ALGORITHM_VERSION:
-        return True
-
-    period = snapshot.target_period.period
-    current_calendar = get_current_academic_period_calendar_revision(
-        workspace_root,
-        period.school_year,
+    inputs_changed = False
+    policy_changed = False
+    scale_changed = False
+    calendar_changed = False
+    algorithm_changed = (
+        snapshot.algorithm_version != ACADEMIC_PERIOD_PROFICIENCY_ALGORITHM_VERSION
     )
-    if current_calendar != snapshot.target_period.calendar_revision:
-        return True
 
-    policy_ref = snapshot.policy_reference
-    current_policy = load_current_academic_period_proficiency_policy(
-        workspace_root,
-        snapshot.class_id,
-        policy_ref.policy_id,
-    )
-    if current_policy is None or current_policy.reference != policy_ref:
-        return True
-
-    scale_ref = snapshot.target_scale
-    current_scale = load_current_proficiency_scale(
-        workspace_root,
-        snapshot.class_id,
-        scale_ref.scale_id,
-    )
-    if (
-        current_scale is None
-        or proficiency_scale_reference(current_scale.scale) != scale_ref
-    ):
-        return True
-
-    for entry in snapshot.inputs.entries:
-        current_grade_item = load_current_grade_item_revision(
+    try:
+        period = snapshot.target_period.period
+        selected = load_current_academic_period_proficiency_result(
             workspace_root,
             snapshot.class_id,
-            entry.grade_item.grade_item_id,
-        )
-        if current_grade_item is None:
-            return True
-        revision = current_grade_item.revision
-        if (
-            revision.grade_item_revision != entry.grade_item.grade_item_revision
-            or current_grade_item.revision_sha256
-            != entry.grade_item.grade_item_revision_sha256
-        ):
-            return True
-
-        for basis in entry.memberships:
-            current_membership = load_current_grade_item_membership_decision(
-                workspace_root,
-                snapshot.class_id,
-                entry.grade_item.grade_item_id,
-                basis.work_reference.work,
-            )
-            if current_membership is None:
-                return True
-            decision = current_membership.decision
-            assignment = decision.academic_period
-            if (
-                decision.decision != "included"
-                or decision.grade_item_revision != basis.grade_item_revision
-                or decision.grade_item_revision_sha256
-                != basis.grade_item_revision_sha256
-                or decision.work_reference != basis.work_reference
-                or decision.membership_revision != basis.membership_revision
-                or current_membership.decision_sha256 != basis.membership_sha256
-                or assignment is None
-                or assignment.period != basis.academic_period.period
-                or assignment.calendar_revision
-                != basis.academic_period.calendar_revision
-            ):
-                return True
-
-        current_grade_item_result = load_current_standard_proficiency_result(
-            workspace_root,
-            snapshot.class_id,
-            entry.grade_item.grade_item_id,
+            period.school_year,
+            period.period_id,
             snapshot.student_id,
             snapshot.standard_id,
         )
-        current_reference = (
-            None
-            if current_grade_item_result is None
-            else current_grade_item_result.reference
+        if (
+            selected is None
+            or selected.result_sha256 != stored.result_sha256
+            or selected.snapshot != snapshot
+        ):
+            inputs_changed = True
+
+        current_calendar = get_current_academic_period_calendar_revision(
+            workspace_root,
+            period.school_year,
         )
-        if current_reference != entry.result_reference:
-            return True
+        calendar_changed = (
+            current_calendar != snapshot.target_period.calendar_revision
+        )
 
-    return False
+        policy_ref = snapshot.policy_reference
+        current_policy = load_current_academic_period_proficiency_policy(
+            workspace_root,
+            snapshot.class_id,
+            policy_ref.policy_id,
+        )
+        policy_changed = (
+            current_policy is None or current_policy.reference != policy_ref
+        )
 
+        scale_ref = snapshot.target_scale
+        current_scale = load_current_proficiency_scale(
+            workspace_root,
+            snapshot.class_id,
+            scale_ref.scale_id,
+        )
+        scale_changed = (
+            current_scale is None or current_scale.reference != scale_ref
+        )
+
+        for entry in snapshot.inputs.entries:
+            current_grade_item = load_current_grade_item_revision(
+                workspace_root,
+                snapshot.class_id,
+                entry.grade_item.grade_item_id,
+            )
+            if current_grade_item is None:
+                inputs_changed = True
+            else:
+                revision = current_grade_item.revision
+                if (
+                    revision.grade_item_revision
+                    != entry.grade_item.grade_item_revision
+                    or current_grade_item.revision_sha256
+                    != entry.grade_item.grade_item_revision_sha256
+                ):
+                    inputs_changed = True
+
+            for basis in entry.memberships:
+                current_membership = load_current_grade_item_membership_decision(
+                    workspace_root,
+                    snapshot.class_id,
+                    entry.grade_item.grade_item_id,
+                    basis.work_reference.work,
+                )
+                if current_membership is None:
+                    inputs_changed = True
+                    continue
+                decision = current_membership.decision
+                assignment = decision.academic_period
+                if (
+                    decision.decision != "included"
+                    or decision.grade_item_revision != basis.grade_item_revision
+                    or decision.grade_item_revision_sha256
+                    != basis.grade_item_revision_sha256
+                    or decision.work_reference != basis.work_reference
+                    or decision.membership_revision != basis.membership_revision
+                    or current_membership.decision_sha256
+                    != basis.membership_sha256
+                    or assignment is None
+                    or assignment.period != basis.academic_period.period
+                    or assignment.calendar_revision
+                    != basis.academic_period.calendar_revision
+                ):
+                    inputs_changed = True
+
+            current_grade_item_result = load_current_standard_proficiency_result(
+                workspace_root,
+                snapshot.class_id,
+                entry.grade_item.grade_item_id,
+                snapshot.student_id,
+                snapshot.standard_id,
+            )
+            current_reference = (
+                None
+                if current_grade_item_result is None
+                else current_grade_item_result.reference
+            )
+            if current_reference != entry.result_reference:
+                inputs_changed = True
+    except (
+        AcademicPeriodProficiencyStorageError,
+        AcademicPeriodCalendarStorageError,
+        GradeItemStorageError,
+        GradeItemMembershipStorageError,
+        ProficiencyMappingStorageError,
+        StandardProficiencyStorageError,
+        OSError,
+        ValueError,
+    ) as error:
+        raise AcademicPeriodAttentionReadError(
+            "Selected Academic Period proficiency result freshness could not be "
+            "assessed safely."
+        ) from error
+
+    reasons: list[AcademicPeriodProficiencyStalenessReason] = []
+    if inputs_changed:
+        reasons.append("inputs_changed")
+    if policy_changed:
+        reasons.append("policy_changed")
+    if scale_changed:
+        reasons.append("scale_changed")
+    if calendar_changed:
+        reasons.append("calendar_changed")
+    if algorithm_changed:
+        reasons.append("algorithm_changed")
+    return AcademicPeriodProficiencyResultFreshness(
+        status="current" if not reasons else "stale",
+        reasons=tuple(reasons),
+    )
+
+
+def _current_result_is_stale(
+    workspace_root: str | Path,
+    stored: StoredAcademicPeriodProficiencyResult,
+) -> bool:
+    return (
+        assess_selected_academic_period_proficiency_result_freshness(
+            workspace_root,
+            stored,
+        ).status
+        == "stale"
+    )
 
 def _read_pointer(path: Path) -> dict[str, object]:
     try:
@@ -358,5 +431,6 @@ def _require_regular_path_below(root: Path, path: Path) -> None:
 
 __all__ = [
     "AcademicPeriodAttentionReadError",
+    "assess_selected_academic_period_proficiency_result_freshness",
     "inspect_academic_period_attention_for_class",
 ]
