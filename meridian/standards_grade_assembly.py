@@ -31,6 +31,7 @@ from meridian.academic_period_proficiency_storage import (
 )
 from meridian.grade_policy import (
     GradePolicyReference,
+    HybridGradeConfiguration,
     StandardGradeParticipation,
     StandardsBasedGradeConfiguration,
 )
@@ -155,6 +156,51 @@ class StandardsGradeAssembly:
         return standards_grade_calculation_fingerprint(self.inputs)
 
 
+@dataclass(frozen=True, slots=True)
+class StandardsGradeComponentAssembly:
+    """Exact reusable #51 component basis under one stored Grade policy."""
+
+    target_scale: StoredProficiencyScale
+    standards: tuple[StandardsGradeStandardInput, ...]
+    inputs: StandardsGradeCalculationInput
+    outcome: StandardsGradeCalculationOutcome
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.target_scale, StoredProficiencyScale):
+            raise StandardsGradeAssemblyScopeError(
+                "target_scale must be StoredProficiencyScale."
+            )
+        standards = tuple(self.standards)
+        if any(
+            not isinstance(item, StandardsGradeStandardInput)
+            for item in standards
+        ):
+            raise StandardsGradeAssemblyScopeError(
+                "standards must contain StandardsGradeStandardInput values."
+            )
+        if not isinstance(self.inputs, StandardsGradeCalculationInput):
+            raise StandardsGradeAssemblyScopeError(
+                "inputs must be StandardsGradeCalculationInput."
+            )
+        if not isinstance(self.outcome, StandardsGradeCalculationOutcome):
+            raise StandardsGradeAssemblyScopeError(
+                "outcome must be StandardsGradeCalculationOutcome."
+            )
+        if standards != self.inputs.standards:
+            raise StandardsGradeAssemblyScopeError(
+                "standards must exactly equal canonical component inputs."
+            )
+        if self.target_scale.reference != self.inputs.configuration.target_scale:
+            raise StandardsGradeAssemblyScopeError(
+                "target_scale must match exact component policy authority."
+            )
+        if calculate_standards_grade(self.inputs) != self.outcome:
+            raise StandardsGradeAssemblyScopeError(
+                "component outcome must exactly reproduce from assembled inputs."
+            )
+        object.__setattr__(self, "standards", standards)
+
+
 def assemble_standards_grade_calculation(
     workspace_root: str | Path,
     class_id: str,
@@ -246,6 +292,126 @@ def assemble_standards_grade_calculation(
     return StandardsGradeAssembly(
         activation=activation,
         policy=stored_policy,
+        target_scale=target_scale,
+        standards=standard_inputs,
+        inputs=inputs,
+        outcome=outcome,
+    )
+
+
+def assemble_standards_grade_component(
+    workspace_root: str | Path,
+    *,
+    activation: StoredGradePolicyActivationDecision,
+    policy: StoredGradePolicyRevision,
+    configuration: StandardsBasedGradeConfiguration,
+    class_id: str,
+    student_id: str,
+    target_period: AcademicPeriodRef,
+    calendar_revision: int,
+) -> StandardsGradeComponentAssembly:
+    """Assemble #51 inputs under an already-selected standards/hybrid policy."""
+
+    root = Path(workspace_root).resolve()
+    class_value = _identifier(class_id, "class_id")
+    student = _identifier(student_id, "student_id")
+    period = _period(target_period)
+    calendar = _positive_int(calendar_revision, "calendar_revision")
+    if not isinstance(activation, StoredGradePolicyActivationDecision):
+        raise StandardsGradeAssemblyScopeError(
+            "activation must be StoredGradePolicyActivationDecision."
+        )
+    if not isinstance(policy, StoredGradePolicyRevision):
+        raise StandardsGradeAssemblyScopeError(
+            "policy must be StoredGradePolicyRevision."
+        )
+    if not isinstance(configuration, StandardsBasedGradeConfiguration):
+        raise StandardsGradeAssemblyScopeError(
+            "configuration must be StandardsBasedGradeConfiguration."
+        )
+
+    policy_value = policy.policy
+    policy_configuration = policy_value.configuration
+    if (
+        policy_value.calculation_family == "standards_based"
+        and isinstance(policy_configuration, StandardsBasedGradeConfiguration)
+    ):
+        expected_configuration = policy_configuration
+    elif (
+        policy_value.calculation_family == "hybrid"
+        and isinstance(policy_configuration, HybridGradeConfiguration)
+    ):
+        expected_configuration = policy_configuration.standards_based
+    else:
+        raise StandardsGradeAssemblyDependencyError(
+            "Stored Grade policy does not authorize a standards component."
+        )
+    if configuration != expected_configuration:
+        raise StandardsGradeAssemblyDependencyError(
+            "Standards component configuration does not match stored policy."
+        )
+
+    decision = activation.decision
+    if decision.decision != "activate":
+        raise StandardsGradeAssemblyAuthorityError(
+            "Standards component requires an activated Grade-policy decision."
+        )
+    if decision.policy_reference != policy.reference:
+        raise StandardsGradeAssemblyAuthorityError(
+            "Activation does not reference the exact stored Grade policy."
+        )
+    if policy_value.class_id != class_value or decision.class_id != class_value:
+        raise StandardsGradeAssemblyScopeError(
+            "Stored Grade policy/activation must match calculation class_id."
+        )
+    if decision.target_period != period or decision.calendar_revision != calendar:
+        raise StandardsGradeAssemblyScopeError(
+            "Stored activation must match exact calculation period/calendar."
+        )
+
+    try:
+        dependencies = validate_grade_policy_dependencies(root, policy_value)
+    except GradePolicyStorageError as error:
+        raise StandardsGradeAssemblyDependencyError(
+            "Standards component policy dependencies are not verifiable."
+        ) from error
+    target_scale = dependencies.target_scale
+    if target_scale is None:
+        target_scale = _load_exact_scale(root, configuration)
+    if target_scale.reference != configuration.target_scale:
+        raise StandardsGradeAssemblyDependencyError(
+            "Exact standards component target-scale dependency does not match."
+        )
+
+    standard_inputs = tuple(
+        _assemble_standard_input(
+            root,
+            class_value,
+            student,
+            period,
+            calendar,
+            participation,
+            configuration,
+        )
+        for participation in configuration.standards
+    )
+    try:
+        inputs = StandardsGradeCalculationInput(
+            class_id=class_value,
+            student_id=student,
+            target_period=period,
+            calendar_revision=calendar,
+            activation_reference=activation.reference,
+            policy_reference=policy.reference,
+            configuration=configuration,
+            state_treatment=policy_value.state_treatment,
+            rounding=policy_value.rounding,
+            standards=standard_inputs,
+        )
+        outcome = calculate_standards_grade(inputs)
+    except ValueError as error:
+        raise StandardsGradeAssemblyDependencyError(str(error)) from error
+    return StandardsGradeComponentAssembly(
         target_scale=target_scale,
         standards=standard_inputs,
         inputs=inputs,

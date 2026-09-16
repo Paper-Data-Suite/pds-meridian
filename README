@@ -47,8 +47,23 @@ results, final-only rounding, immutable result history, explicit CAS
 selection, and pure freshness are qualified. Source-level ScoreForm/
 Quillan/Concord interoperability and installed ScoreForm/Quillan
 fresh-process reproduction preserve producer neutrality and upstream
-immutability. Hybrid Grade calculation, preview presentation, override,
-ReportingSnapshot, and official-system Grade write remain downstream.
+immutability. Hybrid Grade calculation is implemented separately by issue
+#52 below; preview presentation, override, ReportingSnapshot, and official-
+system Grade write remain downstream.
+
+Issue #52 now implements bounded advisory hybrid Academic Period Grade
+calculation under one exact activated `hybrid` policy. The conventional
+and standards-based components are reassembled under the embedded hybrid
+configurations rather than spliced from standalone Grade-result histories.
+Exact unrounded component Grades, explicit component weights, blocking/
+insufficient treatment, active-weight renormalization, final-only rounding,
+immutable result history, explicit CAS selection, and separate conventional/
+proficiency freshness causes are qualified. Source-level ScoreForm/Quillan/
+Concord acceptance and installed Core 0.6.3 + ScoreForm 0.11.0 + Quillan
+0.10.0 fresh-process acceptance preserve upstream immutability while
+Concord remains optional. Teacher overrides remain the next Grade layer in
+issue #53; Grade preview presentation, ReportingSnapshot, and official-
+system Grade write remain downstream.
 
 ## Purpose
 
@@ -132,6 +147,10 @@ The current package provides:
   activated policy and explicitly selected/current #35 proficiency, with
   policy-owned conversion, weighted-mean arithmetic, immutable result
   history, explicit CAS selection, and pure freshness diagnostics;
+- bounded advisory hybrid Academic Period Grade calculation under one exact
+  activated hybrid policy, reassembling #50/#51 component inputs directly,
+  composing exact unrounded component Grades with explicit weights, and
+  persisting immutable CAS-selected result history with split freshness;
 - formal adoption of Core's `grouping_signal_set_v1` as the sole shared
   planning-signal interchange, preserving `pds-core>=0.6.3,<0.7`; and
 - focused plus isolated installed-wheel qualification of Core's canonical signal
@@ -152,7 +171,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- hybrid Grade calculation, Grade previews, teacher Grade overrides, or issued ReportingSnapshots;
+- Grade previews, teacher Grade overrides, or issued ReportingSnapshots;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
