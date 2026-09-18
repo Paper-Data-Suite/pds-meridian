@@ -15,7 +15,7 @@ import os
 import re
 import stat
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final, Literal, TypeAlias, cast
@@ -458,8 +458,22 @@ def teacher_grade_override_revision_relative_path(
 def write_teacher_grade_override_revision(
     workspace_root: str | Path,
     decision: TeacherGradeOverrideDecision,
+    *,
+    precommit_guard: Callable[[], None] | None = None,
 ) -> TeacherGradeOverrideWriteResult:
-    """Persist one immutable override revision without selecting it."""
+    """Persist one immutable override revision without selecting it.
+
+    ``precommit_guard`` is an optional higher-level authority check. For a
+    genuinely new revision it runs while the override-family write lock is held,
+    after immutable history has been validated and immediately before the new
+    revision bytes are created. Exact replay of already-persisted identical bytes
+    remains idempotent and deliberately does not re-run the guard.
+    """
+
+    if precommit_guard is not None and not callable(precommit_guard):
+        raise TeacherGradeOverrideStorageValidationError(
+            "precommit_guard must be callable or None."
+        )
 
     try:
         candidate = validate_teacher_grade_override_decision(decision)
@@ -553,6 +567,8 @@ def write_teacher_grade_override_revision(
                 raise TeacherGradeOverrideStorageConflictError(str(error)) from error
 
         _validate_withdrawal_reference(root, candidate)
+        if precommit_guard is not None:
+            precommit_guard()
         _write_revision_pair(target, digest_target, content, digest)
         stored = load_teacher_grade_override_revision(
             root,

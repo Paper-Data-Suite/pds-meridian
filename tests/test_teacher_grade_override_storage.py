@@ -558,3 +558,90 @@ def test_symlinked_revision_is_rejected_when_supported(tmp_path: Path) -> None:
         load_teacher_grade_override_revision(
             root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional", 1
         )
+
+
+def test_precommit_guard_runs_inside_family_lock_and_skips_exact_replay(
+    tmp_path: Path,
+) -> None:
+    root = make_workspace(tmp_path)
+    value = override_decision()
+    family = teacher_grade_override_family_directory(
+        root,
+        CLASS_ID,
+        STUDENT_ID,
+        PERIOD,
+        1,
+        "conventional",
+    )
+    target = teacher_grade_override_revision_path(
+        root,
+        CLASS_ID,
+        STUDENT_ID,
+        PERIOD,
+        1,
+        "conventional",
+        1,
+    )
+    calls: list[str] = []
+
+    def guard() -> None:
+        assert (family / ".write.lock").is_file()
+        assert not target.exists()
+        calls.append("new")
+
+    first = write_teacher_grade_override_revision(
+        root,
+        value,
+        precommit_guard=guard,
+    )
+    assert first.disposition == "created"
+    assert calls == ["new"]
+
+    def replay_guard() -> None:
+        raise AssertionError("exact replay must not re-run precommit guard")
+
+    second = write_teacher_grade_override_revision(
+        root,
+        value,
+        precommit_guard=replay_guard,
+    )
+    assert second.disposition == "existing"
+    assert calls == ["new"]
+
+
+def test_failing_precommit_guard_releases_lock_without_writing_revision(
+    tmp_path: Path,
+) -> None:
+    root = make_workspace(tmp_path)
+    value = override_decision()
+    family = teacher_grade_override_family_directory(
+        root,
+        CLASS_ID,
+        STUDENT_ID,
+        PERIOD,
+        1,
+        "conventional",
+    )
+    target = teacher_grade_override_revision_path(
+        root,
+        CLASS_ID,
+        STUDENT_ID,
+        PERIOD,
+        1,
+        "conventional",
+        1,
+    )
+
+    def guard() -> None:
+        raise RuntimeError("synthetic source authority conflict")
+
+    with pytest.raises(RuntimeError, match="synthetic source authority conflict"):
+        write_teacher_grade_override_revision(
+            root,
+            value,
+            precommit_guard=guard,
+        )
+
+    assert not target.exists()
+    assert not Path(str(target) + ".sha256").exists()
+    assert not (family / ".write.lock").exists()
