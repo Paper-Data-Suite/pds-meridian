@@ -131,12 +131,12 @@ def test_reserved_weighting_metadata_is_not_executed_by_v02_calculation_or_plann
     assert forbidden == []
 
 
-def test_no_v03_override_or_reporting_snapshot_runtime_family_exists() -> None:
-    names = {path.name for path in _package_root().glob("*.py")}
+def test_v02_workflow_surface_does_not_expose_v03_override_or_reporting_tasks(
+) -> None:
+    task_ids = tuple(task.task_id for task in teacher_workflow_catalog().tasks)
 
-    assert not any("override" in name for name in names)
+    assert not any("override" in task_id for task_id in task_ids)
     assert not any(
-        "report" in name and "snapshot" in name
-        for name in names
+        "report" in task_id and "snapshot" in task_id
+        for task_id in task_ids
     )
-    assert "grade_calculation.py" not in names

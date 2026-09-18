@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- Issue #53 teacher Grade overrides and effective Grade precedence: immutable
+  teacher decisions now bind one exact selected final Academic Period Grade
+  result from the `conventional`, `standards_based`, or `hybrid` family by exact
+  revision and SHA-256. Numeric replacement uses finite nonnegative Decimal
+  semantics without a hidden 0-100 clamp. Canonical privacy-minimal append-only
+  override history keeps writing separate from explicit CAS current selection;
+  the teacher lifecycle rejects audit-free historical rollback, represents
+  withdrawal as another immutable decision, and requires deliberate new
+  authoring for correction/reactivation. Exact source currentness remains
+  separate from selection, old overrides never float onto later recalculations,
+  expected non-applicability is structured, and corrupt canonical state fails
+  closed. Read-only effective Grade resolution preserves exact base, selected
+  override, applicability, effective value, and `base`/`override`/`none` source
+  provenance for #54/#55. Source-level all-family adversarial regression plus an
+  isolated Core 0.6.3 + ScoreForm 0.11.0 candidate-wheel lifecycle proves
+  write-versus-select, fresh-process active authority, immutable withdrawal,
+  fresh-process return to base precedence, `pip check`, and source/result byte
+  immutability.
+
 - Issue #52 bounded hybrid Grade calculation: one exact activated
   `hybrid` policy now reassembles the accepted #50 conventional and #51
   standards-based component inputs directly under its embedded configurations
@@ -15,8 +34,8 @@
   distinguishes conventional-input from proficiency-result drift. Source-level
   ScoreForm/Quillan/Concord acceptance plus installed Core 0.6.3 + ScoreForm
   0.11.0 + Quillan 0.10.0 fresh-process qualification preserve producer/v0.2
-  source immutability while Concord remains optional. Teacher overrides remain
-  issue #53 work.
+  source immutability while Concord remains optional. Teacher overrides are
+  implemented by the issue #53 entry above.
 
 - Issue #51 standards-based Grade calculation: exact activated
   `standards_based` policy now consumes only explicitly selected/current #35
