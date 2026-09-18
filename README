@@ -61,9 +61,21 @@ immutable result history, explicit CAS selection, and separate conventional/
 proficiency freshness causes are qualified. Source-level ScoreForm/Quillan/
 Concord acceptance and installed Core 0.6.3 + ScoreForm 0.11.0 + Quillan
 0.10.0 fresh-process acceptance preserve upstream immutability while
-Concord remains optional. Teacher overrides remain the next Grade layer in
-issue #53; Grade preview presentation, ReportingSnapshot, and official-
-system Grade write remain downstream.
+Concord remains optional. Issue #53 below implements the next Grade override
+layer; Grade preview presentation, ReportingSnapshot, and official-system Grade
+write remain downstream.
+
+Issue #53 now implements immutable teacher Grade overrides over exact selected
+final Academic Period Grade results from the `conventional`, `standards_based`,
+and `hybrid` families. Exact source revision/SHA binding, privacy-minimal
+append-only history, explicit CAS current selection, immutable withdrawal,
+non-floating recalculation behavior, source freshness diagnostics, and
+structured read-only effective Grade provenance are qualified. Source-level
+regression covers all three Grade-result families; isolated installed Core 0.6.3
++ ScoreForm 0.11.0 acceptance proves author/select/reload/withdraw/select/reload
+with original producer and base Grade-result bytes unchanged. Teacher-facing
+Grade preview/explanation remains issue #54, and ReportingSnapshot construction
+remains issue #55.
 
 ## Purpose
 
@@ -151,6 +163,10 @@ The current package provides:
   activated hybrid policy, reassembling #50/#51 component inputs directly,
   composing exact unrounded component Grades with explicit weights, and
   persisting immutable CAS-selected result history with split freshness;
+- immutable teacher Grade override histories over exact final Academic Period
+  Grade-result revisions, with SHA-bound provenance, explicit CAS selection,
+  immutable withdrawal, non-floating source rebinding, freshness diagnostics,
+  and deterministic read-only effective Grade resolution;
 - formal adoption of Core's `grouping_signal_set_v1` as the sole shared
   planning-signal interchange, preserving `pds-core>=0.6.3,<0.7`; and
 - focused plus isolated installed-wheel qualification of Core's canonical signal
@@ -171,7 +187,7 @@ The package does **not** yet provide:
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
 - report snapshots or issued-report persistence;
-- Grade previews, teacher Grade overrides, or issued ReportingSnapshots;
+- Grade previews or issued ReportingSnapshots;
 - report generation, persistence, subscriptions, or delivery; or
 - production-ready functionality.
 
