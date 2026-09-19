@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Issue #54 Grade/report preview explanations: deterministic read-only current
+  Grade previews now explain exact conventional, standards-based, and hybrid
+  persisted results; exact historical policy/activation, family formula and
+  participation, non-Grade-state consequences, Decimal rounding, #53 override
+  applicability, and effective Grade provenance; and optimistic reread detects
+  moving current authority instead of returning mixed observations. Compact
+  privacy-minimal `GradePreviewObservation` values feed explicit deterministic
+  report rows and snapshot-neutral prior-observation comparison without creating
+  #55 ReportingSnapshot or export state. Source-level regression covers all
+  families, report/comparison behavior, and adversarial currentness; installed
+  candidate-wheel qualification uses exact Core 0.6.3 + ScoreForm 0.11.0 +
+  Quillan 0.10.0 + Concord 0.3.0, proves an applicable 105.25 override, whole-
+  workspace immutability, and fresh-process deterministic reproduction.
+
 - Issue #53 teacher Grade overrides and effective Grade precedence: immutable
   teacher decisions now bind one exact selected final Academic Period Grade
   result from the `conventional`, `standards_based`, or `hybrid` family by exact

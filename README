@@ -77,6 +77,21 @@ with original producer and base Grade-result bytes unchanged. Teacher-facing
 Grade preview/explanation remains issue #54, and ReportingSnapshot construction
 remains issue #55.
 
+
+Issue #54 now implements deterministic read-only Grade/report preview explanations
+across conventional, standards-based, and hybrid selected Grade results. Exact
+historical policy/activation authority, family formula and participation,
+missing/non-Grade consequences, Decimal rounding, #53 override applicability,
+and base-versus-effective Grade provenance are exposed without recalculation or
+mutation. Current preview uses optimistic final revalidation; report preview uses
+only explicit student targets; `GradePreviewObservation` supplies the compact
+snapshot-neutral #55 handoff; and deterministic prior-observation comparison
+explains material changes without implementing ReportingSnapshot storage. The
+installed candidate-wheel acceptance qualifies all three families against exact
+Core 0.6.3, ScoreForm 0.11.0, Quillan 0.10.0, and Concord 0.3.0 with fresh-process
+reproduction and whole-workspace byte immutability. ReportingSnapshot persistence
+remains issue #55.
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into
