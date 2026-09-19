@@ -73,6 +73,15 @@ effective Grade resolution preserves exact base/override provenance for #54 and
 #55. See
 [Teacher Grade overrides and effective Academic Period Grade](architecture/teacher-grade-overrides.md).
 
+
+Issue #54 implements deterministic read-only Grade/report preview explanations
+for conventional, standards-based, and hybrid Grade results. The layer preserves
+exact historical policy/formula provenance, state treatment, rounding,
+#53 override applicability, effective Grade, coherent currentness, explicit
+report rows, and snapshot-neutral prior-observation comparison without creating
+a ReportingSnapshot or export. See
+[Grade and report preview explanations](architecture/grade-report-preview-explanations.md).
+
 ## Recommended reading order
 
 1. [Root README](../README)

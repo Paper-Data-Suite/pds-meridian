@@ -55,6 +55,7 @@ EXPECTED = (
     ),
     Path("docs/architecture/grade-policy-models-storage-and-activation.md"),
     Path("docs/architecture/conventional-grade-calculation.md"),
+    Path("docs/architecture/grade-report-preview-explanations.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
