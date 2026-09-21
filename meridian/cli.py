@@ -343,6 +343,10 @@ from meridian.proficiency_mapping import (
     ProficiencyScaleReference,
 )
 from meridian.projection_cache import ProjectionCacheError
+from meridian.reporting_snapshot_cli import (
+    ReportingSnapshotCliError,
+    add_reporting_snapshot_cli,
+)
 from meridian.standards_association_authoring_workflow import (
     StandardsAssociationAuthoringError,
     StandardsAssociationAuthoringPreview,
@@ -437,10 +441,11 @@ def build_parser() -> argparse.ArgumentParser:
             "attempts, exclusions, standards review, Grade Item/Academic Period "
             "standards-proficiency preview/persistence/selection, and deliberate "
             "planning-signal export through Core with optional Core-native CSV. "
-            "Advisory conventional Grade calculation and result persistence are "
-            "implemented as library APIs. Teacher-facing Grade previews, "
-            "overrides, transferable reporting snapshots, and report exports are "
-            "not implemented yet."
+            "Advisory Grade calculation, Grade previews, teacher overrides, and "
+            "Meridian-owned immutable ReportingSnapshot core state are implemented "
+            "in v0.3 development. Bounded ReportingSnapshot development commands "
+            "are available under `meridian reporting`; report exports and official "
+            "district/SIS writes are not implemented."
         ),
     )
     parser.add_argument(
@@ -449,6 +454,7 @@ def build_parser() -> argparse.ArgumentParser:
         version=f"%(prog)s {__version__}",
     )
     groups = parser.add_subparsers(dest="command_group")
+    add_reporting_snapshot_cli(groups)
 
     attention = groups.add_parser(
         "attention",
@@ -9109,6 +9115,9 @@ def main(
         return 0
     try:
         return int(handler(args, dependencies))
+    except ReportingSnapshotCliError as error:
+        print(f"error: {error.code}: {error}", file=sys.stderr)
+        return 1
     except (
         PlanningSignalPreviewWriteScopeError,
         PlanningSignalCoreExportCommitScopeError,

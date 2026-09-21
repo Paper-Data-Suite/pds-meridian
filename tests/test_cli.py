@@ -27,13 +27,12 @@ def test_main_without_arguments_prints_help(capsys: pytest.CaptureFixture[str]) 
     assert "planning-signal export through Core" in normalized
     assert "optional Core-native CSV" in normalized
     assert (
-        "Advisory conventional Grade calculation and result persistence are "
-        "implemented as library APIs." in normalized
+        "Advisory Grade calculation, Grade previews, teacher overrides" in normalized
     )
-    assert (
-        "Teacher-facing Grade previews, overrides, transferable reporting snapshots, "
-        "and report exports are not implemented yet." in normalized
-    )
+    assert "immutable ReportingSnapshot" in normalized
+    assert "v0.3 development" in normalized
+    assert "meridian reporting" in normalized
+    assert "district/SIS writes are not implemented" in normalized
     assert (
         "Conventional Grade calculation and report generation are not implemented yet."
         not in normalized

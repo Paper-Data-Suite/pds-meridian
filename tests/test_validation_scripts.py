@@ -154,6 +154,21 @@ def test_academic_period_proficiency_installed_smoke_is_release_guarded() -> Non
     assert smoke_name in sdist_checker
 
 
+def test_issue55_reporting_snapshot_smoke_is_release_guarded() -> None:
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+
+    for member in (
+        "scripts/smoke_test_reporting_snapshot_wheel.py",
+        "scripts/smoke_program_reporting_snapshot.py",
+        "scripts/smoke_program_reporting_snapshot_reload.py",
+        "tests/test_issue55_installed_acceptance.py",
+    ):
+        assert member in sdist_checker
+
+    assert "scripts/smoke_test_reporting_snapshot_wheel.py" in validator
+
+
 def test_grouping_signal_contract_installed_smoke_is_release_guarded() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
