@@ -1026,7 +1026,11 @@ def _validate_scope_directory(scope: Path) -> None:
             raise ReportingSnapshotSelectionIntegrityError(
                 "ReportingSnapshot selector scope contains an unexpected entry."
             )
-        if entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink():
+            raise ReportingSnapshotSelectionIntegrityError(
+                "ReportingSnapshot selector entries must not be symlinks."
+            )
+        if not entry.is_file():
             raise ReportingSnapshotSelectionIntegrityError(
                 "ReportingSnapshot selector entries must be regular files."
             )
