@@ -765,6 +765,46 @@ def list_export_profile_revisions(
     return ordered
 
 
+def list_export_profile_ids(
+    workspace_root: str | Path,
+    class_id: str,
+) -> tuple[str, ...]:
+    """List verified class-local Export Profile families deterministically."""
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    collection = export_profiles_directory(root, class_value)
+    if not collection.exists():
+        return ()
+    _validate_existing_directory_chain(root, collection)
+    result: list[str] = []
+    try:
+        entries = tuple(collection.iterdir())
+    except OSError as error:
+        raise ExportProfileStorageReadError(
+            "Could not enumerate Export Profile collection."
+        ) from error
+    for entry in entries:
+        _reject_symlink(entry, "Export Profile family")
+        if not entry.is_dir():
+            raise ExportProfileStorageIntegrityError(
+                "Export Profile collection contains a non-directory entry."
+            )
+        profile_id = _identifier(entry.name, "profile_id")
+        _validate_profile_family_directory(entry)
+        revisions = list_export_profile_revisions(
+            root,
+            class_value,
+            profile_id,
+        )
+        if not revisions:
+            raise ExportProfileStorageIntegrityError(
+                "Export Profile family exists without immutable history."
+            )
+        result.append(profile_id)
+    return tuple(sorted(result))
+
+
 def export_profile_selection_reference_to_dict(
     value: ExportProfileSelectionReference,
 ) -> dict[str, object]:
@@ -1613,6 +1653,7 @@ __all__ = [
     "export_profile_selection_to_json_bytes",
     "export_profiles_directory",
     "get_current_export_profile_selection_reference",
+    "list_export_profile_ids",
     "list_export_profile_revisions",
     "load_current_export_profile",
     "load_current_export_profile_selection",

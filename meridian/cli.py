@@ -343,6 +343,7 @@ from meridian.proficiency_mapping import (
     ProficiencyScaleReference,
 )
 from meridian.projection_cache import ProjectionCacheError
+from meridian.report_export_cli import ReportExportCliError
 from meridian.reporting_snapshot_cli import (
     ReportingSnapshotCliError,
     add_reporting_snapshot_cli,
@@ -444,8 +445,8 @@ def build_parser() -> argparse.ArgumentParser:
             "Advisory Grade calculation, Grade previews, teacher overrides, and "
             "Meridian-owned immutable ReportingSnapshot core state are implemented "
             "in v0.3 development. Bounded ReportingSnapshot development commands "
-            "are available under `meridian reporting`; report exports and official "
-            "district/SIS writes are not implemented."
+            "are available under `meridian reporting`, including bounded local "
+            "report exports. Official district/SIS writes are not implemented."
         ),
     )
     parser.add_argument(
@@ -9115,7 +9116,7 @@ def main(
         return 0
     try:
         return int(handler(args, dependencies))
-    except ReportingSnapshotCliError as error:
+    except (ReportingSnapshotCliError, ReportExportCliError) as error:
         print(f"error: {error.code}: {error}", file=sys.stderr)
         return 1
     except (

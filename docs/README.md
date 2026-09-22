@@ -91,6 +91,14 @@ CAS current-use selection, and the #55 -> #54 comparison adapter. Repository-wid
 BV validation remains the final completion gate. See
 [Immutable ReportingSnapshots](architecture/reporting-snapshots.md).
 
+Issue #56 now implements the local ReportingSnapshot export boundary: immutable
+class-local Export Profiles, explicit profile selection, bounded roster-backed
+observations, deterministic CSV/TSV previews, final exact-source revalidation,
+non-overwriting file/copyable output, and immutable ExportReceipts. Local export
+remains distinct from official school-system write or acceptance. Active v0.3
+Quillan compatibility is `quillan==0.10.1`. See
+[Reporting exports](architecture/reporting-exports.md).
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -140,6 +148,7 @@ BV validation remains the final completion gate. See
 45. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 46. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
 47. [Immutable ReportingSnapshots](architecture/reporting-snapshots.md)
+48. [Reporting exports](architecture/reporting-exports.md)
 
 
 ## Development foundation
@@ -149,7 +158,7 @@ The package foundation provides:
 - Python `>=3.11` support;
 - `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
 - exact optional `scoreform==0.11.0` adapter support;
-- exact optional `quillan==0.10.0` adapter support;
+- exact optional `quillan==0.10.1` adapter support;
 - exact optional `pds-concord==0.3.0` adapter support;
 - exact authentication of the official Core v0.6.3 wheel in baseline CI;
 - a side-effect-free `meridian` help/version CLI;

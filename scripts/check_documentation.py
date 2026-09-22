@@ -57,6 +57,7 @@ EXPECTED = (
     Path("docs/architecture/conventional-grade-calculation.md"),
     Path("docs/architecture/grade-report-preview-explanations.md"),
     Path("docs/architecture/reporting-snapshots.md"),
+    Path("docs/architecture/reporting-exports.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -90,6 +91,8 @@ REQUIRED_TEXT = {
     ),
     Path("CHANGELOG.md"): (
         "## Unreleased",
+        "Issue #56",
+        "Quillan v0.10.1",
         "Issue #48 v0.3 Grade-preview and ReportingSnapshot architecture",
         "Issue #49 versioned Grade-policy models and storage",
         "Teacher-controlled grouping-signal derivation policy",
@@ -123,6 +126,8 @@ REQUIRED_TEXT = {
     ),
     Path("README"): (
         "#46 final v0.2.0 audit — implemented",
+        "Issue #56",
+        "reporting-exports.md",
         "0.1.1",
         "pds-core>=0.6.3,<0.7",
         "Meridian v0.2.0 is the current released baseline",
@@ -187,6 +192,8 @@ REQUIRED_TEXT = {
         "pds-concord==0.3.0",
         "Meridian v0.2.0 is the current released baseline",
         "Issue #49 implements the versioned Grade-policy model/storage layer",
+        "Issue #56",
+        "reporting-exports.md",
         "GradePolicy family current != GradePolicy activation",
         "foundation audit and v0.1.1 release — complete",
         "Grade Item creation != membership",
@@ -281,6 +288,17 @@ REQUIRED_TEXT = {
         "released ScoreForm v0.11.0",
         "fresh-process reload",
         "producer-owned source bytes remain unchanged",
+    ),
+    Path("docs/architecture/reporting-exports.md"): (
+        "exact immutable ReportingSnapshot",
+        "roster.extra:<exact_column_name>",
+        "missing / blocked / insufficient / unavailable != numeric zero",
+        "preview_sha256",
+        "external-system write = no",
+        "external-system acceptance claim = no",
+        "pds-core 0.6.3",
+        "quillan 0.10.1",
+        "Issue #57 remains responsible",
     ),
     Path(
         "docs/decisions/"

@@ -92,6 +92,16 @@ Core 0.6.3, ScoreForm 0.11.0, Quillan 0.10.0, and Concord 0.3.0 with fresh-proce
 reproduction and whole-workspace byte immutability. ReportingSnapshot persistence
 remains issue #55.
 
+Issue #56 now implements reusable immutable Export Profile revisions, explicit
+profile selection, privacy-bounded Core roster observations when selected fields
+require them, deterministic CSV/TSV export previews, explicit local file or
+copyable-payload commit, final preview currentness revalidation, and immutable
+ExportReceipts. Exports preserve frozen Decimal Grade meaning, never coerce
+missing state to zero, never write directly to an SIS/LMS/district gradebook,
+and never claim external acceptance. Active v0.3 optional Quillan compatibility
+is now v0.10.1. See
+[Reporting exports](docs/architecture/reporting-exports.md).
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into
@@ -201,9 +211,8 @@ The package does **not** yet provide:
 - Portia or Vitrine adapters;
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
-- report snapshots or issued-report persistence;
-- Grade previews or issued ReportingSnapshots;
-- report generation, persistence, subscriptions, or delivery; or
+- direct SIS, district-gradebook, LMS, or external-system Grade writes;
+- report subscriptions, network delivery, or external acknowledgement; or
 - production-ready functionality.
 
 Package installation alone does not enable publication ingestion.

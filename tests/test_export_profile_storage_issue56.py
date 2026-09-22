@@ -37,6 +37,7 @@ from meridian.export_profile_storage import (
     export_profile_selection_sha256,
     export_profile_selection_to_json_bytes,
     get_current_export_profile_selection_reference,
+    list_export_profile_ids,
     list_export_profile_revisions,
     load_current_export_profile,
     load_current_export_profile_selection,
@@ -550,3 +551,32 @@ def test_write_and_selection_change_only_export_profile_owned_state(
             root, CLASS_ID, "district_gradebook"
         ).selection  # type: ignore[union-attr]
     )
+
+def test_list_profile_ids_is_sorted_and_verifies_each_family(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    write_export_profile_revision(root, _profile(profile_id="zeta_profile"))
+    write_export_profile_revision(root, _profile(profile_id="alpha_profile"))
+
+    assert list_export_profile_ids(root, CLASS_ID) == (
+        "alpha_profile",
+        "zeta_profile",
+    )
+
+
+def test_list_profile_ids_fails_closed_on_unexpected_collection_entry(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    write_export_profile_revision(root, _profile())
+    collection = (
+        root / "classes" / CLASS_ID / "modules" / "meridian" / "export_profiles"
+    )
+    (collection / "unexpected.txt").write_text("bad", encoding="utf-8")
+
+    with pytest.raises(
+        ExportProfileStorageIntegrityError,
+        match="non-directory",
+    ):
+        list_export_profile_ids(root, CLASS_ID)
