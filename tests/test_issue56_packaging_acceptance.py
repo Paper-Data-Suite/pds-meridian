@@ -30,6 +30,18 @@ def test_issue56_sdist_guard_requires_runtime_docs_and_tests() -> None:
     assert '"docs/architecture/reporting-exports.md"' in text
     assert '"tests/test_cli_report_exports_issue56.py"' in text
     assert '"tests/test_report_export_commit_issue56.py"' in text
+    assert '"scripts/smoke_test_report_exports_wheel.py"' in text
+    assert '"scripts/smoke_program_report_exports.py"' in text
+    assert '"scripts/smoke_program_report_exports_reload.py"' in text
+    assert '"tests/test_issue56_installed_acceptance.py"' in text
+
+
+def test_issue56_repository_validator_runs_installed_export_smoke() -> None:
+    text = (ROOT / "scripts" / "validate_repository.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert '"scripts/smoke_test_report_exports_wheel.py"' in text
 
 
 def test_pyproject_uses_required_current_quillan_release() -> None:
