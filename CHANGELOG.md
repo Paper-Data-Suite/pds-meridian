@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Issue #55 immutable ReportingSnapshot core runtime: bounded v1 report
+  definitions and explicit build requests now freeze exact #54 Grade/report
+  observations into Meridian-owned canonical snapshots with two-level digest
+  identity, strict historical reload, typed deep provenance, privacy-safe
+  class-local storage, explicit digest-bound current-use selection with CAS,
+  optimistic whole-report currentness revalidation, predecessor/correction
+  relationships, and a real #55 -> #54 comparison handoff that reuses the
+  existing semantic comparison engine. The architecture and distribution guards
+  now cover the complete #55 runtime, bounded development CLI, adversarial and
+  historical qualification, and isolated installed-wheel/fresh-process smoke;
+  repository-wide BV validation remains the final completion gate.
+
 - Issue #54 Grade/report preview explanations: deterministic read-only current
   Grade previews now explain exact conventional, standards-based, and hybrid
   persisted results; exact historical policy/activation, family formula and

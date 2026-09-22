@@ -82,6 +82,15 @@ report rows, and snapshot-neutral prior-observation comparison without creating
 a ReportingSnapshot or export. See
 [Grade and report preview explanations](architecture/grade-report-preview-explanations.md).
 
+Issue #55 now implements the immutable ReportingSnapshot runtime through
+real historical comparison, bounded development CLI commands, hardened
+projection/Core currentness revalidation, and isolated installed-wheel/fresh-process
+qualification. The runtime retains strict #54 report freezing/reload, two-level
+digest identity, typed deep provenance, privacy-safe immutable storage, explicit
+CAS current-use selection, and the #55 -> #54 comparison adapter. Repository-wide
+BV validation remains the final completion gate. See
+[Immutable ReportingSnapshots](architecture/reporting-snapshots.md).
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -130,6 +139,7 @@ a ReportingSnapshot or export. See
 44. [ADR 0003](decisions/0003-consumer-side-producer-adapters.md)
 45. [ADR 0004](decisions/0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md)
 46. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
+47. [Immutable ReportingSnapshots](architecture/reporting-snapshots.md)
 
 
 ## Development foundation
