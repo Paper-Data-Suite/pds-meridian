@@ -19,7 +19,9 @@ from scripts.verify_core_wheel import (
     verify_core_wheel,
 )
 from scripts.verify_quillan_wheel import (
+    EXPECTED_QUILLAN_VERSION,
     EXPECTED_QUILLAN_WHEEL_FILENAME,
+    EXPECTED_QUILLAN_WHEEL_SHA256,
     QuillanVerificationError,
     verify_quillan_wheel,
 )
@@ -68,6 +70,14 @@ def test_scoreform_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         archive.writestr("placeholder.txt", "synthetic")
     with pytest.raises(ScoreFormVerificationError, match="SHA-256 mismatch"):
         verify_scoreform_wheel(path)
+
+
+def test_quillan_verifier_targets_exact_0101_release() -> None:
+    assert EXPECTED_QUILLAN_VERSION == "0.10.1"
+    assert EXPECTED_QUILLAN_WHEEL_FILENAME == "quillan-0.10.1-py3-none-any.whl"
+    assert EXPECTED_QUILLAN_WHEEL_SHA256 == (
+        "5311cccc03a012a7d319827e30b5a989901a9e77693171a8861e4e58409764ad"
+    )
 
 
 def test_quillan_verifier_rejects_wrong_filename(tmp_path: Path) -> None:
@@ -122,6 +132,15 @@ def test_ci_wires_exact_scoreform_release_artifact() -> None:
     ) in workflow
     assert 'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"' in workflow
     assert '--scoreform-wheel "$env:SCOREFORM_WHEEL"' in workflow
+
+
+def test_ci_wires_exact_quillan_release_artifact() -> None:
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert (
+        "pds-quillan/releases/download/v0.10.1/quillan-0.10.1-py3-none-any.whl"
+    ) in workflow
+    assert 'python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"' in workflow
+    assert '--quillan-wheel "$env:QUILLAN_WHEEL"' in workflow
 
 
 def test_ci_wires_exact_concord_release_artifact() -> None:
