@@ -71,6 +71,7 @@ REPORT_EXPORTER_VERSION: Final[str] = "1"
 MAXIMUM_REPORT_EXPORT_PREVIEW_BYTES: Final[int] = 16 * 1024 * 1024
 
 ExportPreviewDiagnosticCode: TypeAlias = Literal[
+    "ambiguous_duplicate_student_rows",
     "unavailable_rows",
     "stale_grade_rows",
     "nonnumeric_effective_grade_rows",
@@ -79,6 +80,7 @@ ExportPreviewDiagnosticCode: TypeAlias = Literal[
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _DIAGNOSTIC_CODES: Final[frozenset[str]] = frozenset(
     {
+        "ambiguous_duplicate_student_rows",
         "unavailable_rows",
         "stale_grade_rows",
         "nonnumeric_effective_grade_rows",
@@ -375,9 +377,10 @@ class ExportPreview:
 
 @dataclass(frozen=True, slots=True)
 class BuiltExportPreview:
-    """One verified preview plus the exact payload bytes it describes."""
+    """One verified preview plus exact material inputs and payload bytes."""
 
     preview: ExportPreview
+    roster_observation: ExportRosterObservation | None
     payload: bytes
 
     def __post_init__(self) -> None:
@@ -385,6 +388,25 @@ class BuiltExportPreview:
             raise ReportExportPreviewValidationError(
                 "preview must be ExportPreview."
             )
+        roster = self.roster_observation
+        if self.preview.roster_observation_reference is None:
+            if roster is not None:
+                raise ReportExportPreviewValidationError(
+                    "snapshot-native preview must not carry roster observation."
+                )
+        else:
+            if roster is None:
+                raise ReportExportPreviewValidationError(
+                    "roster-backed preview requires exact roster observation."
+                )
+            roster = validate_export_roster_observation(roster)
+            if export_roster_observation_reference(roster) != (
+                self.preview.roster_observation_reference
+            ):
+                raise ReportExportPreviewIntegrityError(
+                    "roster observation does not match preview reference."
+                )
+        object.__setattr__(self, "roster_observation", roster)
         if type(self.payload) is not bytes:
             raise ReportExportPreviewValidationError(
                 "payload must be immutable bytes."
@@ -451,7 +473,7 @@ def compose_export_preview(
         for row in report_preview.rows
     )
     payload = _render_payload(schema, rows, exact_profile.representation)
-    diagnostics = _diagnostics(report_preview)
+    diagnostics = _diagnostics(report_preview, schema)
     roster_reference = (
         None if roster is None else export_roster_observation_reference(roster)
     )
@@ -494,7 +516,11 @@ def compose_export_preview(
         diagnostics=diagnostics,
         preview_sha256=preview_sha256,
     )
-    return BuiltExportPreview(preview=preview, payload=payload)
+    return BuiltExportPreview(
+        preview=preview,
+        roster_observation=roster,
+        payload=payload,
+    )
 
 
 def build_export_preview(
@@ -845,12 +871,24 @@ def _render_payload(
 
 def _diagnostics(
     report_preview: FrozenGradeReportPreview,
+    schema: tuple[ExportPreviewColumn, ...],
 ) -> tuple[ExportPreviewDiagnostic, ...]:
     counts: dict[ExportPreviewDiagnosticCode, int] = {
+        "ambiguous_duplicate_student_rows": 0,
         "unavailable_rows": 0,
         "stale_grade_rows": 0,
         "nonnumeric_effective_grade_rows": 0,
     }
+    if not any(
+        column.source_field == "target.calculation_family" for column in schema
+    ):
+        student_counts: dict[str, int] = {}
+        for row in report_preview.rows:
+            student_id = row.target.student_id
+            student_counts[student_id] = student_counts.get(student_id, 0) + 1
+        counts["ambiguous_duplicate_student_rows"] = sum(
+            count > 1 for count in student_counts.values()
+        )
     for row in report_preview.rows:
         if row.status == "unavailable":
             counts["unavailable_rows"] += 1

@@ -341,6 +341,15 @@ def test_one_bounded_roster_student_can_support_multiple_snapshot_family_rows() 
     ]
 
 
+def test_multi_family_rows_warn_when_profile_omits_calculation_family() -> None:
+    profile = _profile((ExportColumn("target.student_id", "student_id"),))
+
+    built = _compose(profile, _two_family_unavailable_preview())
+
+    diagnostics = {item.code: item.count for item in built.preview.diagnostics}
+    assert diagnostics["ambiguous_duplicate_student_rows"] == 1
+
+
 def test_snapshot_native_profile_rejects_unnecessary_roster_observation() -> None:
     profile = _profile((ExportColumn("target.student_id", "student_id"),))
     roster = _roster_observation(("roster.first_name",), ("Jane",))
@@ -460,7 +469,32 @@ def test_built_preview_rejects_payload_that_does_not_match_bound_bytes() -> None
     ):
         BuiltExportPreview(
             preview=built.preview,
+            roster_observation=built.roster_observation,
             payload=b"x" * len(built.payload),
+        )
+
+
+def test_built_preview_requires_exact_material_roster_observation() -> None:
+    profile = _profile(
+        (
+            ExportColumn("target.student_id", "student_id"),
+            ExportColumn("roster.display_name", "student_name"),
+        )
+    )
+    roster = _roster_observation(
+        ("roster.display_name",),
+        ("Alex Rivera",),
+    )
+    built = _compose(profile, _unavailable_preview(), roster)
+
+    with pytest.raises(
+        ReportExportPreviewValidationError,
+        match="requires exact roster observation",
+    ):
+        BuiltExportPreview(
+            preview=built.preview,
+            roster_observation=None,
+            payload=built.payload,
         )
 
 
