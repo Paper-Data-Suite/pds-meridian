@@ -167,6 +167,8 @@ REQUIRED_MEMBERS = frozenset(
         "meridian/grouping_signal_csv_export.py",
         "meridian/menu.py",
         "meridian/menu_ui.py",
+        "meridian/menu_evidence.py",
+        "meridian/menu_grade_items.py",
         "meridian/teacher_workflows.py",
         "meridian/standards_review_workflow.py",
         "meridian/standards_association_authoring_workflow.py",

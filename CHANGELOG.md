@@ -6,8 +6,12 @@
   eight-task Meridian menu contract over stable symbolic workflow identities,
   shared Core B/M/Q navigation semantics, application-owned clear/redraw helpers,
   concise teacher help, injected task routing, and clean nested/terminal unwind
-  behavior. This foundation is not yet wired to bare `meridian`; the public entry
-  switch remains deferred until real task controllers are composed.
+  behavior. Read-only Review New Evidence and Manage Grade Items controllers now
+  reuse the #41 application services, keep exact identifiers behind bounded
+  technical drill-down where possible, and preserve the deployment-provided
+  protected-evidence authorization boundary by failing closed when no authorizer
+  is available. The public entry switch remains deferred until all primary task
+  controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
