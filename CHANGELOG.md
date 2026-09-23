@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Issue #57 teacher-facing main-menu foundation: adds a low-information-density
+  eight-task Meridian menu contract over stable symbolic workflow identities,
+  shared Core B/M/Q navigation semantics, application-owned clear/redraw helpers,
+  concise teacher help, injected task routing, and clean nested/terminal unwind
+  behavior. This foundation is not yet wired to bare `meridian`; the public entry
+  switch remains deferred until real task controllers are composed.
+
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
   closed source-field registry over exact frozen #55 ReportingSnapshots.
