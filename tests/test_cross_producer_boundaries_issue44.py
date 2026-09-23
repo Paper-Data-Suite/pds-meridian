@@ -91,7 +91,7 @@ def test_producer_readers_remain_optional_not_base_dependencies() -> None:
     assert 'scoreform = [' in optional_section
     assert '"scoreform==0.11.0"' in optional_section
     assert 'quillan = [' in optional_section
-    assert '"quillan==0.10.0"' in optional_section
+    assert '"quillan==0.10.1"' in optional_section
     assert 'concord = [' in optional_section
     assert '"pds-concord==0.3.0"' in optional_section
 

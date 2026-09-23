@@ -133,7 +133,7 @@ Quillan compatibility is `quillan==0.10.1`. See
 30. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
 31. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
 32. [ScoreForm adapter](architecture/scoreform-adapter.md)
-33. [Quillan v0.10.0 adapter](architecture/quillan-adapter.md)
+33. [Quillan v0.10.1 adapter](architecture/quillan-adapter.md)
 34. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
 35. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
 36. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
