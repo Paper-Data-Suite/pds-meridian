@@ -13,8 +13,11 @@
   is available. Review Proficiency now presents current Grade Item and Academic
   Period proficiency through the existing explanation services and exposes the
   existing #41 planning-signal readiness boundary without writing derivation,
-  review, Core signal, or CSV state. The public entry switch remains deferred
-  until all primary task controllers are composed.
+  review, Core signal, or CSV state. Preview Grades now composes #54 current
+  Grade explanations and bounded report previews, keeping policy/result/override
+  provenance behind technical drill-down and preserving the explicit authorized
+  work-evidence requirement for conventional/hybrid families. The public entry
+  switch remains deferred until all primary task controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
