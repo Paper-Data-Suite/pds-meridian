@@ -10,8 +10,11 @@
   reuse the #41 application services, keep exact identifiers behind bounded
   technical drill-down where possible, and preserve the deployment-provided
   protected-evidence authorization boundary by failing closed when no authorizer
-  is available. The public entry switch remains deferred until all primary task
-  controllers are composed.
+  is available. Review Proficiency now presents current Grade Item and Academic
+  Period proficiency through the existing explanation services and exposes the
+  existing #41 planning-signal readiness boundary without writing derivation,
+  review, Core signal, or CSV state. The public entry switch remains deferred
+  until all primary task controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
