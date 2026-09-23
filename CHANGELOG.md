@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Issue #56 reusable Export Profiles and local Grade/report exports: immutable
+  class-local profile revisions with explicit CAS current selection now drive a
+  closed source-field registry over exact frozen #55 ReportingSnapshots.
+  Snapshot-only exports avoid roster access; roster-backed profiles bind only
+  selected Core roster fields for exact snapshot students and preserve Core
+  display-name semantics. Deterministic UTF-8 CSV/TSV previews preserve frozen
+  Decimal values and nonnumeric state, bind exact outgoing rows/bytes and
+  diagnostics, and require exact preview identity at commit. Explicit local file
+  or copyable-text export uses non-overwrite/exact-replay recovery semantics and
+  creates immutable roster-aware ExportReceipts without claiming SIS/LMS or
+  external-system acceptance. Direct `meridian reporting` commands expose the
+  bounded profile/preview/commit/receipt surface; package qualification now
+  requires the complete #56 runtime and updates active Quillan compatibility to
+  Quillan v0.10.1.
+
 - Issue #55 immutable ReportingSnapshot core runtime: bounded v1 report
   definitions and explicit build requests now freeze exact #54 Grade/report
   observations into Meridian-owned canonical snapshots with two-level digest

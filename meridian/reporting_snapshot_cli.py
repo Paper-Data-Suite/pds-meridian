@@ -28,6 +28,7 @@ from meridian.projection_cache import (
     ProjectionCacheError,
     load_authorized_projection_snapshot,
 )
+from meridian.report_export_cli import register_report_export_cli
 from meridian.reporting_snapshot import (
     REPORTING_DEFINITION_RECORD_TYPE,
     REPORTING_DEFINITION_SCHEMA_VERSION,
@@ -391,6 +392,7 @@ def add_reporting_snapshot_cli(
         show_group_help=None,
     )
     selection.set_defaults(show_group_help=selection)
+    register_report_export_cli(commands)
     reporting.set_defaults(show_group_help=reporting)
 
 

@@ -82,7 +82,7 @@ def test_issue45_program_pins_released_versions_and_installed_origins() -> None:
     for required in (
         '"pds-core": "0.6.3"',
         '"scoreform": "0.11.0"',
-        '"quillan": "0.10.0"',
+        '"quillan": "0.10.1"',
         'metadata.version("pds-meridian")',
         '"site-packages"',
         'CLASS_ID = "synthetic_class_2026"',

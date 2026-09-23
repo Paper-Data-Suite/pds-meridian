@@ -337,7 +337,7 @@ def _verify_installed_composition() -> None:
     expected = {
         "pds-core": "0.6.3",
         "scoreform": "0.11.0",
-        "quillan": "0.10.0",
+        "quillan": "0.10.1",
     }
     for distribution_name, expected_version in expected.items():
         _require(

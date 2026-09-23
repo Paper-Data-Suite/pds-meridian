@@ -30,7 +30,7 @@ def test_distribution_metadata() -> None:
     scoreform = [item for item in requirements if item.name == "scoreform"]
     assert scoreform == [Requirement("scoreform==0.11.0; extra == 'scoreform'")]
     quillan = [item for item in requirements if item.name == "quillan"]
-    assert quillan == [Requirement("quillan==0.10.0; extra == 'quillan'")]
+    assert quillan == [Requirement("quillan==0.10.1; extra == 'quillan'")]
     concord = [item for item in requirements if item.name == "pds-concord"]
     assert concord == [
         Requirement("pds-concord==0.3.0; extra == 'concord'")

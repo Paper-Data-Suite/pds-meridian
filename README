@@ -92,6 +92,16 @@ Core 0.6.3, ScoreForm 0.11.0, Quillan 0.10.0, and Concord 0.3.0 with fresh-proce
 reproduction and whole-workspace byte immutability. ReportingSnapshot persistence
 remains issue #55.
 
+Issue #56 now implements reusable immutable Export Profile revisions, explicit
+profile selection, privacy-bounded Core roster observations when selected fields
+require them, deterministic CSV/TSV export previews, explicit local file or
+copyable-payload commit, final preview currentness revalidation, and immutable
+ExportReceipts. Exports preserve frozen Decimal Grade meaning, never coerce
+missing state to zero, never write directly to an SIS/LMS/district gradebook,
+and never claim external acceptance. Active v0.3 optional Quillan compatibility
+is now v0.10.1. See
+[Reporting exports](docs/architecture/reporting-exports.md).
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into
@@ -201,9 +211,8 @@ The package does **not** yet provide:
 - Portia or Vitrine adapters;
 - duplicated producer manifest decoding or semantic validation;
 - institutional identity or authorization policy;
-- report snapshots or issued-report persistence;
-- Grade previews or issued ReportingSnapshots;
-- report generation, persistence, subscriptions, or delivery; or
+- direct SIS, district-gradebook, LMS, or external-system Grade writes;
+- report subscriptions, network delivery, or external acknowledgement; or
 - production-ready functionality.
 
 Package installation alone does not enable publication ingestion.
@@ -481,7 +490,7 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. Optional ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 adapters are
+descriptor. Optional ScoreForm v0.11.0, Quillan v0.10.1, and Concord v0.3.0 adapters are
 available through explicit composition; there is no adapter entry-point group or
 unconditional producer runtime dependency.
 
@@ -538,7 +547,7 @@ pds-core>=0.6.3,<0.7
 ```
 
 Current development and CI qualification use the exact completed Core v0.6.3,
-ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 releases. The released
+ScoreForm v0.11.0, Quillan v0.10.1, and Concord v0.3.0 releases. The released
 Meridian v0.1.1 history remains Core v0.6.0 and Quillan v0.9.0; the active #33
 floor/qualification update does not rewrite that release fact. Core is
 distributed through GitHub Release artifacts rather than PyPI.
@@ -610,8 +619,8 @@ From an activated repository virtual environment, run:
 .\run_tests.ps1 `
   -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
   -ScoreFormWheel C:\path\to\scoreform-0.11.0-py3-none-any.whl `
-  -QuillanWheel C:\path\to\quillan-0.10.0-py3-none-any.whl `
-  -ConcordWheel C:\path\to\pds_concord-0.2.0-py3-none-any.whl
+  -QuillanWheel C:\path\to\quillan-0.10.1-py3-none-any.whl `
+  -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl
 ```
 
 The cross-platform validator is:

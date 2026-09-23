@@ -20,7 +20,7 @@ EXPECTED_SUMMARY = (
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.11.0; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.0; extra == 'quillan'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.1; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
     "paper_data_suite.module_operations"
@@ -172,7 +172,7 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.10.0."
+            "The quillan extra must pin exactly quillan==0.10.1."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
@@ -326,6 +326,13 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/reporting_snapshot_freeze.py",
         "meridian/reporting_snapshot_comparison.py",
         "meridian/reporting_snapshot_cli.py",
+        "meridian/export_profile.py",
+        "meridian/export_profile_storage.py",
+        "meridian/report_export_roster.py",
+        "meridian/report_export_preview.py",
+        "meridian/report_export_receipt.py",
+        "meridian/report_export_commit.py",
+        "meridian/report_export_cli.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",
         "meridian/proficiency_mapping.py",

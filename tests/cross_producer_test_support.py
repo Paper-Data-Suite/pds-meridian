@@ -30,7 +30,7 @@ SHARED_STANDARD_ID = "standard_ela_1"
 
 EXACT_READER_VERSIONS = {
     "scoreform": "0.11.0",
-    "quillan": "0.10.0",
+    "quillan": "0.10.1",
     "pds-concord": "0.3.0",
 }
 
