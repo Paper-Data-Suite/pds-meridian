@@ -32,8 +32,11 @@
   the shared workflow reauthorizes/reobserves and commits. Export now composes
   #56 Export Profile review/authoring/selection, exact snapshot/profile preview,
   explicit EXPORT commit, and receipt inspection without claiming any external
-  system acknowledgement. The public entry switch remains deferred until all
-  primary task controllers are composed.
+  system acknowledgement. Explain now routes current Grade, prior/current Grade
+  comparison, proficiency, planning derivation/review/export, and ExportReceipt
+  provenance through existing deterministic read-only services, with exact
+  identity behind technical drill-down. All eight primary task controllers now
+  exist; the public entry switch remains deferred to final composition.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a

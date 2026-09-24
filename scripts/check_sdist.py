@@ -175,6 +175,7 @@ REQUIRED_MEMBERS = frozenset(
         "meridian/menu_overrides.py",
         "meridian/menu_snapshots.py",
         "meridian/menu_export.py",
+        "meridian/menu_explain.py",
         "meridian/teacher_workflows.py",
         "meridian/standards_review_workflow.py",
         "meridian/standards_association_authoring_workflow.py",
