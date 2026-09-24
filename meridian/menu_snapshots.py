@@ -24,8 +24,12 @@ from meridian.menu_ui import (
     write_lines,
 )
 from meridian.reporting_snapshot import (
+    REPORTING_DEFINITION_RECORD_TYPE,
+    REPORTING_DEFINITION_SCHEMA_VERSION,
     ReportingActor,
+    ReportingDefinitionRevision,
     ReportingSnapshotReference,
+    reporting_definition_reference,
 )
 from meridian.reporting_snapshot_selection import (
     ReportingSnapshotSelectionError,
@@ -36,8 +40,11 @@ from meridian.reporting_snapshot_selection import (
 )
 from meridian.reporting_snapshot_storage import (
     ReportingSnapshotStorageError,
+    list_reporting_definition_revisions,
     list_reporting_snapshot_ids,
+    load_reporting_definition_revision,
     load_reporting_snapshot,
+    write_reporting_definition_revision,
 )
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
@@ -74,6 +81,21 @@ class SnapshotSelectionPresentation:
     snapshot_sha256: str | None
     selection_revision: int | None
     selection_sha256: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ReportingDefinitionPlan:
+    class_id: str
+    definition_id: str
+    definition_revision: int
+    definition_sha256: str
+    title: str
+    purpose: str
+    school_year: str
+    period_id: str
+    actor_id: str
+    rationale: str | None
+    candidate: ReportingDefinitionRevision = field(repr=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,6 +139,24 @@ SnapshotSelectionCommitter: TypeAlias = Callable[
     [Path, SnapshotSelectionPlan],
     str,
 ]
+ReportingDefinitionPreviewer: TypeAlias = Callable[
+    [
+        Path,
+        str,
+        str,
+        str,
+        str,
+        AcademicPeriodRef,
+        str,
+        str | None,
+        datetime,
+    ],
+    ReportingDefinitionPlan,
+]
+ReportingDefinitionCommitter: TypeAlias = Callable[
+    [Path, ReportingDefinitionPlan],
+    str,
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,6 +168,8 @@ class SnapshotMenuDependencies:
     selection_loader: SnapshotSelectionLoader
     selection_previewer: SnapshotSelectionPreviewer
     selection_committer: SnapshotSelectionCommitter
+    definition_previewer: ReportingDefinitionPreviewer
+    definition_committer: ReportingDefinitionCommitter
 
 
 def _utc_now() -> datetime:
@@ -299,6 +341,74 @@ def _commit_selection(
     return result.disposition
 
 
+def _preview_definition(
+    root: Path,
+    class_id: str,
+    definition_id: str,
+    title: str,
+    purpose: str,
+    period: AcademicPeriodRef,
+    actor_id: str,
+    rationale: str | None,
+    revised_at: datetime,
+) -> ReportingDefinitionPlan:
+    history = list_reporting_definition_revisions(
+        root,
+        class_id,
+        definition_id,
+    )
+    revision = 1 if not history else history[-1] + 1
+    candidate = ReportingDefinitionRevision(
+        schema_version=REPORTING_DEFINITION_SCHEMA_VERSION,
+        record_type=REPORTING_DEFINITION_RECORD_TYPE,
+        class_id=class_id,
+        definition_id=definition_id,
+        definition_revision=revision,
+        supersedes_revision=None if revision == 1 else revision - 1,
+        report_kind="grade_report",
+        purpose=purpose,
+        title=title,
+        target_period=period,
+        intended_audience="teacher",
+        actor=ReportingActor("teacher", actor_id),
+        rationale=rationale,
+        revised_at=revised_at,
+    )
+    if history:
+        previous = load_reporting_definition_revision(
+            root,
+            class_id,
+            definition_id,
+            history[-1],
+        ).definition
+        if candidate.revised_at < previous.revised_at:
+            raise ValueError(
+                "new reporting definition cannot predate its prior revision"
+            )
+    reference = reporting_definition_reference(candidate)
+    return ReportingDefinitionPlan(
+        class_id=class_id,
+        definition_id=definition_id,
+        definition_revision=revision,
+        definition_sha256=reference.definition_sha256,
+        title=title,
+        purpose=purpose,
+        school_year=period.school_year,
+        period_id=period.period_id,
+        actor_id=actor_id,
+        rationale=rationale,
+        candidate=candidate,
+    )
+
+
+def _commit_definition(
+    root: Path,
+    plan: ReportingDefinitionPlan,
+) -> str:
+    result = write_reporting_definition_revision(root, plan.candidate)
+    return result.disposition
+
+
 def default_snapshot_menu_dependencies() -> SnapshotMenuDependencies:
     return SnapshotMenuDependencies(
         workspace_resolver=resolve_workspace_root,
@@ -308,6 +418,8 @@ def default_snapshot_menu_dependencies() -> SnapshotMenuDependencies:
         selection_loader=_load_selection,
         selection_previewer=_preview_selection,
         selection_committer=_commit_selection,
+        definition_previewer=_preview_definition,
+        definition_committer=_commit_definition,
     )
 
 
@@ -588,6 +700,89 @@ def _select(
     pause_for_user(input_fn)
 
 
+def _author_definition(
+    *,
+    deps: SnapshotMenuDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Author Reporting Definition")
+    class_id = read_choice(input_fn, "Class ID: ")
+    definition_id = read_choice(input_fn, "Reporting definition ID: ")
+    title = read_choice(input_fn, "Report title: ")
+    purpose = read_choice(input_fn, "Report purpose: ")
+    school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
+    period_id = read_choice(input_fn, "Academic Period ID: ")
+    actor_id = read_choice(input_fn, "Teacher actor ID: ")
+    rationale_text = read_choice(input_fn, "Rationale (optional): ")
+    rationale = rationale_text or None
+    try:
+        plan = deps.definition_previewer(
+            deps.workspace_resolver(),
+            class_id,
+            definition_id,
+            title,
+            purpose,
+            AcademicPeriodRef(school_year, period_id),
+            actor_id,
+            rationale,
+            deps.clock(),
+        )
+    except (WorkspaceRootError, ReportingSnapshotStorageError, ValueError) as error:
+        write_lines(
+            output,
+            "",
+            "Reporting Definition preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    clear_fn()
+    print_menu_header(output, "Review Reporting Definition Before Write")
+    write_lines(
+        output,
+        f"Definition: {plan.definition_id}",
+        f"Revision: {plan.definition_revision}",
+        f"Definition sha256: {plan.definition_sha256}",
+        f"Title: {plan.title}",
+        f"Purpose: {plan.purpose}",
+        f"Academic Period: {plan.school_year} / {plan.period_id}",
+        f"Teacher: {plan.actor_id}",
+        f"Rationale: {plan.rationale or 'none'}",
+        "",
+        "Writing this revision does not select or freeze a ReportingSnapshot.",
+        "Type WRITE to create this exact immutable definition revision.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "WRITE":
+        write_lines(output, "", "No Reporting Definition was written.")
+        pause_for_user(input_fn)
+        return
+    try:
+        disposition = deps.definition_committer(
+            deps.workspace_resolver(),
+            plan,
+        )
+    except (WorkspaceRootError, ReportingSnapshotStorageError) as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed Reporting Definition could not be committed safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    write_lines(
+        output,
+        "",
+        f"Reporting Definition revision: {disposition}.",
+        "No ReportingSnapshot or official school-system Grade was changed.",
+    )
+    pause_for_user(input_fn)
+
+
 def run_snapshots_menu(
     *,
     dependencies: SnapshotMenuDependencies | None = None,
@@ -606,6 +801,7 @@ def run_snapshots_menu(
             "2. Inspect a ReportingSnapshot",
             "3. Show current reporting-use selection",
             "4. Select an existing ReportingSnapshot",
+            "5. Author a Reporting Definition revision",
             "",
         )
         print_standard_navigation(stream)
@@ -645,5 +841,13 @@ def run_snapshots_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
+        if choice == "5":
+            _author_definition(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-5, B, M, or Q.")
         pause_for_user(input_fn)

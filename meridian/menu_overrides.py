@@ -29,8 +29,11 @@ from meridian.menu_ui import (
 )
 from meridian.teacher_grade_override_lifecycle import (
     TeacherGradeOverrideSelectionPreview,
+    TeacherGradeOverrideWithdrawalPreview,
     commit_teacher_grade_override_selection_preview,
+    commit_teacher_grade_override_withdrawal_preview,
     preview_teacher_grade_override_selection,
+    preview_teacher_grade_override_withdrawal,
 )
 from meridian.teacher_grade_override_storage import (
     TeacherGradeOverrideStorageError,
@@ -102,6 +105,20 @@ class OverrideSelectionPlan:
     preview: TeacherGradeOverrideSelectionPreview = field(repr=False)
 
 
+@dataclass(frozen=True, slots=True)
+class OverrideWithdrawalPlan:
+    scope: OverrideScope
+    selected_revision: int
+    selected_sha256: str
+    source_status: str
+    source_grade: str | None
+    candidate_revision: int
+    candidate_sha256: str
+    actor_id: str
+    rationale: str
+    preview: TeacherGradeOverrideWithdrawalPreview = field(repr=False)
+
+
 OverrideReviewLoader: TypeAlias = Callable[
     [Path, OverrideScope],
     OverrideReviewPresentation,
@@ -122,6 +139,14 @@ OverrideSelectionCommitter: TypeAlias = Callable[
     [Path, OverrideSelectionPlan],
     str,
 ]
+OverrideWithdrawalPreviewer: TypeAlias = Callable[
+    [Path, OverrideScope, str, str, datetime],
+    OverrideWithdrawalPlan,
+]
+OverrideWithdrawalCommitter: TypeAlias = Callable[
+    [Path, OverrideWithdrawalPlan],
+    str,
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,6 +158,8 @@ class OverrideMenuDependencies:
     authoring_committer: OverrideAuthoringCommitter
     selection_previewer: OverrideSelectionPreviewer
     selection_committer: OverrideSelectionCommitter
+    withdrawal_previewer: OverrideWithdrawalPreviewer
+    withdrawal_committer: OverrideWithdrawalCommitter
 
 
 def _utc_now() -> datetime:
@@ -311,6 +338,50 @@ def _commit_selection(
     return result.selection_disposition
 
 
+def _preview_withdrawal(
+    root: Path,
+    scope: OverrideScope,
+    actor_id: str,
+    rationale: str,
+    decided_at: datetime,
+) -> OverrideWithdrawalPlan:
+    preview = preview_teacher_grade_override_withdrawal(
+        root,
+        scope.class_id,
+        scope.student_id,
+        scope.period,
+        scope.calendar_revision,
+        scope.family,
+        actor_id=actor_id,
+        rationale=rationale,
+        decided_at=decided_at,
+    )
+    selected = preview.selected_override_reference
+    return OverrideWithdrawalPlan(
+        scope=scope,
+        selected_revision=selected.override_revision,
+        selected_sha256=selected.override_sha256,
+        source_status=preview.source.source_status,
+        source_grade=_decimal_text(preview.source.base_grade),
+        candidate_revision=preview.candidate.override_revision,
+        candidate_sha256=preview.candidate_sha256,
+        actor_id=preview.candidate.actor.actor_id,
+        rationale=preview.candidate.rationale,
+        preview=preview,
+    )
+
+
+def _commit_withdrawal(
+    root: Path,
+    plan: OverrideWithdrawalPlan,
+) -> str:
+    result = commit_teacher_grade_override_withdrawal_preview(
+        root,
+        plan.preview,
+    )
+    return result.write_disposition
+
+
 def default_override_menu_dependencies(
     *,
     work_evidence_provider: WorkEvidenceProvider | None = None,
@@ -341,6 +412,8 @@ def default_override_menu_dependencies(
         authoring_committer=_commit_authoring,
         selection_previewer=_preview_selection,
         selection_committer=_commit_selection,
+        withdrawal_previewer=_preview_withdrawal,
+        withdrawal_committer=_commit_withdrawal,
     )
 
 
@@ -638,6 +711,138 @@ def _select_latest(
     pause_for_user(input_fn)
 
 
+def _withdraw_override(
+    *,
+    deps: OverrideMenuDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Withdraw Current Override")
+    try:
+        scope = _scope(input_fn, output)
+        actor_id = read_choice(input_fn, "Teacher actor ID: ")
+        rationale = read_choice(input_fn, "Withdrawal rationale: ")
+        plan = deps.withdrawal_previewer(
+            deps.workspace_resolver(),
+            scope,
+            actor_id,
+            rationale,
+            deps.clock(),
+        )
+    except (
+        WorkspaceRootError,
+        TeacherGradeOverrideStorageError,
+        TeacherGradeOverrideWorkflowError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Override withdrawal preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    clear_fn()
+    print_menu_header(output, "Review Override Withdrawal")
+    write_lines(
+        output,
+        f"Student: {plan.scope.student_id}",
+        f"Selected override revision: {plan.selected_revision}",
+        f"Selected override sha256: {plan.selected_sha256}",
+        f"Base result: {plan.source_status}",
+        f"Base Grade: {plan.source_grade or 'not numeric'}",
+        f"New withdrawal revision: {plan.candidate_revision}",
+        f"Withdrawal sha256: {plan.candidate_sha256}",
+        f"Teacher: {plan.actor_id}",
+        f"Rationale: {plan.rationale}",
+        "",
+        "Type WITHDRAW to write this exact immutable withdrawal revision.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "WITHDRAW":
+        write_lines(output, "", "No withdrawal revision was written.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        disposition = deps.withdrawal_committer(
+            deps.workspace_resolver(),
+            plan,
+        )
+    except (WorkspaceRootError, TeacherGradeOverrideWorkflowError) as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed withdrawal could not be committed safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    write_lines(
+        output,
+        "",
+        f"Withdrawal revision: {disposition}.",
+        "The prior override remains current until the withdrawal is selected.",
+    )
+
+    try:
+        selection = deps.selection_previewer(
+            deps.workspace_resolver(),
+            plan.scope,
+        )
+    except (WorkspaceRootError, TeacherGradeOverrideWorkflowError) as error:
+        write_lines(
+            output,
+            "",
+            "The withdrawal was written, but selection preview is unavailable.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    write_lines(
+        output,
+        "",
+        f"Latest authored decision: {selection.target_decision}",
+        f"Target revision: {selection.target_revision}",
+        f"Target sha256: {selection.target_sha256}",
+        "Type SELECT to make the withdrawal current now.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "SELECT":
+        write_lines(
+            output,
+            "",
+            "Withdrawal revision is stored; current override selection is unchanged.",
+        )
+        pause_for_user(input_fn)
+        return
+    try:
+        selection_disposition = deps.selection_committer(
+            deps.workspace_resolver(),
+            selection,
+        )
+    except (WorkspaceRootError, TeacherGradeOverrideWorkflowError) as error:
+        write_lines(
+            output,
+            "",
+            "Withdrawal was written, but current selection was not changed.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    write_lines(
+        output,
+        "",
+        f"Withdrawal selection: {selection_disposition}.",
+        "Effective Grade precedence can now return to the selected base result.",
+    )
+    pause_for_user(input_fn)
+
+
 def run_overrides_menu(
     *,
     dependencies: OverrideMenuDependencies | None = None,
@@ -655,6 +860,7 @@ def run_overrides_menu(
             "1. Review current override",
             "2. Author a new override revision",
             "3. Select the latest authored override",
+            "4. Withdraw the current override",
             "",
         )
         print_standard_navigation(stream)
@@ -686,5 +892,13 @@ def run_overrides_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-3, B, M, or Q.")
+        if choice == "4":
+            _withdraw_override(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
         pause_for_user(input_fn)

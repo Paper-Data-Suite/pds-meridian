@@ -14,9 +14,11 @@ from meridian.menu_overrides import (
     OverrideReviewPresentation,
     OverrideScope,
     OverrideSelectionPlan,
+    OverrideWithdrawalPlan,
     run_overrides_menu,
 )
 from meridian.menu_snapshots import (
+    ReportingDefinitionPlan,
     SnapshotListItem,
     SnapshotMenuDependencies,
     SnapshotPresentation,
@@ -101,6 +103,19 @@ def _override_deps(
         authoring_committer=lambda *_args: log.append("write") or "created",
         selection_previewer=lambda *_args: _selection_plan(),
         selection_committer=lambda *_args: log.append("select") or "updated",
+        withdrawal_previewer=lambda *_args: OverrideWithdrawalPlan(
+            scope=_scope(),
+            selected_revision=2,
+            selected_sha256="a" * 64,
+            source_status="calculated",
+            source_grade="87.5",
+            candidate_revision=3,
+            candidate_sha256="c" * 64,
+            actor_id="teacher_1",
+            rationale="Return to base Grade",
+            preview=object(),  # type: ignore[arg-type]
+        ),
+        withdrawal_committer=lambda *_args: "created",
     )
 
 
@@ -283,6 +298,20 @@ def _snapshot_deps(
         ),
         selection_previewer=lambda *_args: _snapshot_plan(),
         selection_committer=lambda *_args: log.append("select") or "updated",
+        definition_previewer=lambda *_args: ReportingDefinitionPlan(
+            class_id="class_1",
+            definition_id="report_1",
+            definition_revision=3,
+            definition_sha256="a" * 64,
+            title="MP1 Grade Report",
+            purpose="Teacher reporting",
+            school_year="2026-2027",
+            period_id="mp1",
+            actor_id="teacher_1",
+            rationale=None,
+            candidate=object(),  # type: ignore[arg-type]
+        ),
+        definition_committer=lambda *_args: "created",
     )
 
 

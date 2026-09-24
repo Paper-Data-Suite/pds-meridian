@@ -19,9 +19,12 @@
   work-evidence requirement for conventional/hybrid families. Overrides now use
   exact #53 authoring/selection previews with typed WRITE/SELECT confirmation,
   and Snapshots add bounded frozen-state review plus digest-bound CAS selection.
-  Neither workflow infers current authority from history/listing order. The
-  public entry switch remains deferred until all primary task controllers are
-  composed.
+  Override withdrawal now preserves write-versus-selection as two explicit
+  teacher confirmations, while Reporting Definition authoring writes only exact
+  immutable linear revisions. Neither workflow infers current authority from
+  history/listing order. Snapshot freezing remains separately bounded by live
+  projection authorization. The public entry switch remains deferred until all
+  primary task controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
