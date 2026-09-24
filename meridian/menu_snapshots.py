@@ -31,6 +31,10 @@ from meridian.reporting_snapshot import (
     ReportingSnapshotReference,
     reporting_definition_reference,
 )
+from meridian.reporting_snapshot_record import (
+    ReportingSnapshotBuildRequest,
+    ReportingSnapshotProjectionInputReference,
+)
 from meridian.reporting_snapshot_selection import (
     ReportingSnapshotSelectionError,
     ReportingSnapshotSelectionReference,
@@ -45,6 +49,15 @@ from meridian.reporting_snapshot_storage import (
     load_reporting_definition_revision,
     load_reporting_snapshot,
     write_reporting_definition_revision,
+)
+from meridian.reporting_snapshot_workflow import (
+    ReportingSnapshotFreezePreview,
+    ReportingSnapshotProjectionAuthorization,
+    ReportingSnapshotWorkflowError,
+    commit_reporting_snapshot_freeze_preview,
+    load_reporting_snapshot_build_request_file,
+    prepare_reporting_snapshot_freeze,
+    required_projection_authorizations,
 )
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
@@ -157,6 +170,58 @@ ReportingDefinitionCommitter: TypeAlias = Callable[
     [Path, ReportingDefinitionPlan],
     str,
 ]
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotFreezePlan:
+    snapshot_id: str
+    definition_id: str
+    school_year: str
+    period_id: str
+    row_count: int
+    build_request_sha256: str
+    live_report_sha256: str
+    authorization_count: int
+    preview: ReportingSnapshotFreezePreview = field(repr=False)
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotFreezeResult:
+    snapshot_id: str
+    snapshot_sha256: str
+    report_preview_sha256: str
+    row_count: int
+
+
+BuildRequestLoader: TypeAlias = Callable[
+    [Path],
+    ReportingSnapshotBuildRequest,
+]
+FreezeRequirementsLoader: TypeAlias = Callable[
+    [ReportingSnapshotBuildRequest],
+    tuple[ReportingSnapshotProjectionInputReference, ...],
+]
+FreezePreviewer: TypeAlias = Callable[
+    [
+        Path,
+        str,
+        ReportingSnapshotBuildRequest,
+        tuple[ReportingSnapshotProjectionAuthorization, ...],
+    ],
+    SnapshotFreezePlan,
+]
+FreezeCommitter: TypeAlias = Callable[
+    [Path, SnapshotFreezePlan],
+    SnapshotFreezeResult,
+]
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotFreezeDependencies:
+    build_request_loader: BuildRequestLoader
+    requirements_loader: FreezeRequirementsLoader
+    previewer: FreezePreviewer
+    committer: FreezeCommitter
 
 
 @dataclass(frozen=True, slots=True)
@@ -407,6 +472,59 @@ def _commit_definition(
 ) -> str:
     result = write_reporting_definition_revision(root, plan.candidate)
     return result.disposition
+
+
+def default_snapshot_freeze_dependencies() -> SnapshotFreezeDependencies:
+    def previewer(
+        root: Path,
+        snapshot_id: str,
+        build_request: ReportingSnapshotBuildRequest,
+        authorizations: tuple[
+            ReportingSnapshotProjectionAuthorization,
+            ...,
+        ],
+    ) -> SnapshotFreezePlan:
+        preview = prepare_reporting_snapshot_freeze(
+            root,
+            snapshot_id=snapshot_id,
+            build_request=build_request,
+            authorizations=authorizations,
+        )
+        request = preview.build_request
+        period = request.target_period
+        return SnapshotFreezePlan(
+            snapshot_id=snapshot_id,
+            definition_id=request.definition_reference.definition_id,
+            school_year=period.school_year,
+            period_id=period.period_id,
+            row_count=preview.row_count,
+            build_request_sha256=preview.build_request_sha256,
+            live_report_sha256=preview.live_report_sha256,
+            authorization_count=len(authorizations),
+            preview=preview,
+        )
+
+    def committer(
+        root: Path,
+        plan: SnapshotFreezePlan,
+    ) -> SnapshotFreezeResult:
+        stored = commit_reporting_snapshot_freeze_preview(
+            root,
+            plan.preview,
+        )
+        return SnapshotFreezeResult(
+            snapshot_id=stored.reference.snapshot_id,
+            snapshot_sha256=stored.reference.snapshot_sha256,
+            report_preview_sha256=stored.snapshot.report_preview_sha256,
+            row_count=len(stored.snapshot.report_preview.rows),
+        )
+
+    return SnapshotFreezeDependencies(
+        build_request_loader=load_reporting_snapshot_build_request_file,
+        requirements_loader=required_projection_authorizations,
+        previewer=previewer,
+        committer=committer,
+    )
 
 
 def default_snapshot_menu_dependencies() -> SnapshotMenuDependencies:
@@ -783,15 +901,143 @@ def _author_definition(
     pause_for_user(input_fn)
 
 
+def _student_ids(value: str) -> tuple[str, ...]:
+    values = tuple(part.strip() for part in value.split(",") if part.strip())
+    if len(set(values)) != len(values):
+        raise ValueError("student IDs must not contain duplicates")
+    return tuple(sorted(values))
+
+
+def _freeze_snapshot(
+    *,
+    deps: SnapshotFreezeDependencies,
+    workspace_resolver: WorkspaceResolver,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Freeze ReportingSnapshot")
+    request_path = Path(read_choice(input_fn, "Build-request JSON path: "))
+    snapshot_id = read_choice(input_fn, "Snapshot ID: ")
+
+    try:
+        build_request = deps.build_request_loader(request_path)
+        requirements = deps.requirements_loader(build_request)
+        authorizations: list[ReportingSnapshotProjectionAuthorization] = []
+        for index, requirement in enumerate(requirements, start=1):
+            publication_id = requirement.publication_id
+            cache_key = requirement.cache_key
+            write_lines(
+                output,
+                "",
+                f"Protected projection {index} of {len(requirements)}",
+                f"Publication: {publication_id}",
+                f"Cache key: {cache_key}",
+            )
+            purpose_id = read_choice(
+                input_fn,
+                "Authorization purpose ID: ",
+            )
+            student_ids = _student_ids(
+                read_choice(
+                    input_fn,
+                    "Authorized Student IDs, comma-separated: ",
+                )
+            )
+            authorizations.append(
+                ReportingSnapshotProjectionAuthorization(
+                    publication_id=publication_id,
+                    cache_key=cache_key,
+                    purpose_id=purpose_id,
+                    student_ids=student_ids,
+                )
+            )
+
+        plan = deps.previewer(
+            workspace_resolver(),
+            snapshot_id,
+            build_request,
+            tuple(authorizations),
+        )
+    except (
+        WorkspaceRootError,
+        ReportingSnapshotWorkflowError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "ReportingSnapshot freeze preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    clear_fn()
+    print_menu_header(output, "Review ReportingSnapshot Before Freeze")
+    write_lines(
+        output,
+        f"Snapshot: {plan.snapshot_id}",
+        f"Definition: {plan.definition_id}",
+        f"Academic Period: {plan.school_year} / {plan.period_id}",
+        f"Rows: {plan.row_count}",
+        f"Protected projection authorizations: {plan.authorization_count}",
+        f"Build request sha256: {plan.build_request_sha256}",
+        f"Live report sha256: {plan.live_report_sha256}",
+        "",
+        "The live report has been observed but no snapshot has been written.",
+        (
+            "FREEZE will reauthorize/reobserve protected inputs and reject "
+            "changed report state."
+        ),
+        "Type FREEZE to write this exact ReportingSnapshot.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "FREEZE":
+        write_lines(output, "", "No ReportingSnapshot was frozen.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = deps.committer(
+            workspace_resolver(),
+            plan,
+        )
+    except (WorkspaceRootError, ReportingSnapshotWorkflowError) as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed ReportingSnapshot could not be frozen safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    write_lines(
+        output,
+        "",
+        f"ReportingSnapshot frozen: {result.snapshot_id}",
+        f"Snapshot sha256: {result.snapshot_sha256}",
+        f"Report preview sha256: {result.report_preview_sha256}",
+        f"Rows: {result.row_count}",
+        "No official SIS/district Grade was changed.",
+    )
+    pause_for_user(input_fn)
+
+
 def run_snapshots_menu(
     *,
     dependencies: SnapshotMenuDependencies | None = None,
+    freeze_dependencies: SnapshotFreezeDependencies | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> None:
     stream = sys.stdout if output is None else output
     deps = dependencies or default_snapshot_menu_dependencies()
+    freeze_deps = (
+        freeze_dependencies or default_snapshot_freeze_dependencies()
+    )
     while True:
         clear_fn()
         print_menu_header(stream, "Snapshots")
@@ -802,6 +1048,7 @@ def run_snapshots_menu(
             "3. Show current reporting-use selection",
             "4. Select an existing ReportingSnapshot",
             "5. Author a Reporting Definition revision",
+            "6. Freeze a ReportingSnapshot",
             "",
         )
         print_standard_navigation(stream)
@@ -849,5 +1096,14 @@ def run_snapshots_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-5, B, M, or Q.")
+        if choice == "6":
+            _freeze_snapshot(
+                deps=freeze_deps,
+                workspace_resolver=deps.workspace_resolver,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)

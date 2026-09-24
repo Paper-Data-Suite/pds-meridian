@@ -26,8 +26,11 @@
   workflow for bounded build-request loading, explicit protected-projection
   authorization, reviewed live-report identity, final reauthorization/review
   currentness, and canonical freeze. The existing direct CLI now uses that
-  shared boundary. The public entry switch remains deferred until all primary
-  task controllers are composed.
+  shared boundary. The Snapshots teacher controller now consumes the same
+  workflow, gathers exact projection authorization inputs when required, shows
+  the reviewed report identity, and requires explicit FREEZE confirmation before
+  the shared workflow reauthorizes/reobserves and commits. The public entry
+  switch remains deferred until all primary task controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
