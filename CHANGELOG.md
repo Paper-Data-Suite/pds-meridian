@@ -41,7 +41,11 @@
   enter that application, while `--help`, `--version`, and every other named
   command remain deterministic direct CLI surfaces. CLI diagnostics capability
   is also threaded into protected New Evidence and ReportingSnapshot freeze
-  authorization rather than replaced by an inferred identity.
+  authorization rather than replaced by an inferred identity. Manage Grade
+  Items now also reaches the existing immutable Grade Item create/revise/
+  archive/reactivate workflows, exact Grade Item selection, work-membership
+  authoring/selection, and explicit Academic Period assignment context while
+  preserving write-versus-selection separation.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
