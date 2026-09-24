@@ -35,8 +35,13 @@
   system acknowledgement. Explain now routes current Grade, prior/current Grade
   comparison, proficiency, planning derivation/review/export, and ExportReceipt
   provenance through existing deterministic read-only services, with exact
-  identity behind technical drill-down. All eight primary task controllers now
-  exist; the public entry switch remains deferred to final composition.
+  identity behind technical drill-down. All eight primary task controllers are
+  now composed into the teacher application. Bare `meridian`, explicit
+  `meridian menu`, bare `python -m meridian`, and `python -m meridian menu`
+  enter that application, while `--help`, `--version`, and every other named
+  command remain deterministic direct CLI surfaces. CLI diagnostics capability
+  is also threaded into protected New Evidence and ReportingSnapshot freeze
+  authorization rather than replaced by an inferred identity.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a

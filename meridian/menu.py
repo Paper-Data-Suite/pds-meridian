@@ -13,6 +13,21 @@ from pds_core.menu_navigation import (
     parse_navigation_choice,
 )
 
+from meridian.diagnostics import DiagnosticsDependencies
+from meridian.menu_evidence import (
+    default_evidence_menu_dependencies,
+    run_new_evidence_menu,
+)
+from meridian.menu_explain import run_explain_menu
+from meridian.menu_export import run_export_menu
+from meridian.menu_grade_items import run_grade_items_menu
+from meridian.menu_grades import run_grade_preview_menu
+from meridian.menu_overrides import run_overrides_menu
+from meridian.menu_proficiency import run_proficiency_menu
+from meridian.menu_snapshots import (
+    default_snapshot_freeze_dependencies,
+    run_snapshots_menu,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -92,6 +107,69 @@ class TeacherMenuDependencies:
         raise AssertionError(f"Unhandled teacher menu task: {task_id!r}")
 
 
+def default_teacher_menu_dependencies(
+    *,
+    diagnostics: DiagnosticsDependencies | None = None,
+    input_fn: InputFunction = input,
+    output: TextIO | None = None,
+    clear_fn: ClearFunction = clear_screen,
+) -> TeacherMenuDependencies:
+    """Compose the eight real teacher controllers over one terminal session."""
+
+    stream = sys.stdout if output is None else output
+    evidence_dependencies = default_evidence_menu_dependencies(
+        diagnostics=diagnostics,
+    )
+    freeze_dependencies = default_snapshot_freeze_dependencies(
+        diagnostics=diagnostics,
+    )
+
+    return TeacherMenuDependencies(
+        review_new_evidence=lambda: run_new_evidence_menu(
+            dependencies=evidence_dependencies,
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        manage_grade_items=lambda: run_grade_items_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        review_proficiency=lambda: run_proficiency_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        preview_grades=lambda: run_grade_preview_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        overrides=lambda: run_overrides_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        snapshots=lambda: run_snapshots_menu(
+            freeze_dependencies=freeze_dependencies,
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        export=lambda: run_export_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+        explain=lambda: run_explain_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
+    )
+
+
 def _task_for_choice(choice: str) -> TeacherMenuTask | None:
     for task in TEACHER_MENU_TASKS:
         if choice == str(task.number):
@@ -130,19 +208,26 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
 
 def run_menu(
     *,
-    dependencies: TeacherMenuDependencies,
+    dependencies: TeacherMenuDependencies | None = None,
+    diagnostics: DiagnosticsDependencies | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> int:
-    """Run the low-density teacher main menu over injected task controllers.
+    """Run the composed low-density teacher application.
 
-    Issue #57 composes task controllers incrementally. This foundation deliberately
-    requires explicit dependencies so the public CLI is not switched to an
-    incomplete menu before the task routes exist.
+    Explicit dependencies remain injectable for qualification. Normal launch
+    composes all eight real task controllers and passes one terminal session
+    through every nested screen.
     """
 
     stream = sys.stdout if output is None else output
+    active = dependencies or default_teacher_menu_dependencies(
+        diagnostics=diagnostics,
+        input_fn=input_fn,
+        output=stream,
+        clear_fn=clear_fn,
+    )
     while True:
         try:
             clear_fn()
@@ -163,7 +248,7 @@ def run_menu(
 
             task = _task_for_choice(choice)
             if task is not None:
-                dependencies.handler_for(task.task_id)()
+                active.handler_for(task.task_id)()
                 continue
 
             write_lines(stream, "", "Please choose 1-8, H, or Q.")

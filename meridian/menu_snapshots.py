@@ -13,6 +13,7 @@ from pds_core.academic_periods import AcademicPeriodRef
 from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
+from meridian.diagnostics import DiagnosticsDependencies
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -474,7 +475,10 @@ def _commit_definition(
     return result.disposition
 
 
-def default_snapshot_freeze_dependencies() -> SnapshotFreezeDependencies:
+def default_snapshot_freeze_dependencies(
+    *,
+    diagnostics: DiagnosticsDependencies | None = None,
+) -> SnapshotFreezeDependencies:
     def previewer(
         root: Path,
         snapshot_id: str,
@@ -489,6 +493,7 @@ def default_snapshot_freeze_dependencies() -> SnapshotFreezeDependencies:
             snapshot_id=snapshot_id,
             build_request=build_request,
             authorizations=authorizations,
+            dependencies=diagnostics,
         )
         request = preview.build_request
         period = request.target_period
@@ -511,6 +516,7 @@ def default_snapshot_freeze_dependencies() -> SnapshotFreezeDependencies:
         stored = commit_reporting_snapshot_freeze_preview(
             root,
             plan.preview,
+            dependencies=diagnostics,
         )
         return SnapshotFreezeResult(
             snapshot_id=stored.reference.snapshot_id,
