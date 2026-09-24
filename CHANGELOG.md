@@ -29,8 +29,11 @@
   shared boundary. The Snapshots teacher controller now consumes the same
   workflow, gathers exact projection authorization inputs when required, shows
   the reviewed report identity, and requires explicit FREEZE confirmation before
-  the shared workflow reauthorizes/reobserves and commits. The public entry
-  switch remains deferred until all primary task controllers are composed.
+  the shared workflow reauthorizes/reobserves and commits. Export now composes
+  #56 Export Profile review/authoring/selection, exact snapshot/profile preview,
+  explicit EXPORT commit, and receipt inspection without claiming any external
+  system acknowledgement. The public entry switch remains deferred until all
+  primary task controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
