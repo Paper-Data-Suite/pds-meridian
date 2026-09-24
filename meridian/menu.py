@@ -23,7 +23,10 @@ from meridian.menu_export import run_export_menu
 from meridian.menu_grade_items import run_grade_items_menu
 from meridian.menu_grades import run_grade_preview_menu
 from meridian.menu_overrides import run_overrides_menu
-from meridian.menu_proficiency import run_proficiency_menu
+from meridian.menu_proficiency import (
+    default_grade_item_proficiency_action_dependencies,
+    run_proficiency_menu,
+)
 from meridian.menu_snapshots import (
     default_snapshot_freeze_dependencies,
     run_snapshots_menu,
@@ -123,6 +126,9 @@ def default_teacher_menu_dependencies(
     freeze_dependencies = default_snapshot_freeze_dependencies(
         diagnostics=diagnostics,
     )
+    proficiency_actions = default_grade_item_proficiency_action_dependencies(
+        diagnostics=diagnostics,
+    )
 
     return TeacherMenuDependencies(
         review_new_evidence=lambda: run_new_evidence_menu(
@@ -137,6 +143,7 @@ def default_teacher_menu_dependencies(
             clear_fn=clear_fn,
         ),
         review_proficiency=lambda: run_proficiency_menu(
+            action_dependencies=proficiency_actions,
             input_fn=input_fn,
             output=stream,
             clear_fn=clear_fn,

@@ -80,7 +80,7 @@ def test_new_evidence_menu_exposes_eligibility_follow_up() -> None:
     rendered = output.getvalue()
     assert "Author academic eligibility revision" in rendered
     assert "Select academic eligibility revision" in rendered
-    assert "Grade Item and standards follow-up remain separate tasks" in rendered
+    assert "Grade Item authoring remains in Manage Grade Items." in rendered
 
 
 def test_eligibility_write_cancel_does_not_commit() -> None:

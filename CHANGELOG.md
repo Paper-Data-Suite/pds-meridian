@@ -52,7 +52,14 @@
   newly written decision. Review New Evidence now also reaches explicit
   student attempt/reassessment decision authoring and exact decision
   selection over freshly authorized attempt candidates; producer history
-  remains immutable and WRITE/SELECT stay separate.
+  remains immutable and WRITE/SELECT stay separate. Review New Evidence now
+  also reaches evidence/Standard association authoring and exact association
+  selection over a freshly authorized source plus explicit target-scale
+  identity; producer Standard declarations remain unchanged. Review
+  Proficiency now also reaches explicit authorized Grade Item calculation
+  preview, immutable result persistence, and exact current-result selection;
+  evidence/mapping bindings are caller-bounded and WRITE/SELECT remain
+  separate.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a

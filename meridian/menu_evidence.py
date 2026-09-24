@@ -71,9 +71,32 @@ from meridian.new_evidence_workflow import (
     NewEvidenceWorkflowError,
     project_new_evidence_review,
 )
+from meridian.proficiency_mapping import ProficiencyScaleReference
 from meridian.projection_cache import (
     AuthorizedProjectionSnapshot,
     ProjectionCacheError,
+)
+from meridian.standards_association_authoring_workflow import (
+    StandardsAssociationAuthoringError,
+    StandardsAssociationAuthoringOperation,
+    StandardsAssociationAuthoringPreview,
+    StandardsAssociationAuthoringResult,
+    StandardsAssociationBasis,
+    StandardsAssociationDisposition,
+    commit_standards_association_authoring_preview,
+    preview_standards_association_authoring,
+)
+from meridian.standards_association_selection_workflow import (
+    StandardsAssociationSelectionError,
+    StandardsAssociationSelectionPreview,
+    StandardsAssociationSelectionWorkflowResult,
+    commit_standards_association_selection_preview,
+    preview_standards_association_selection,
+)
+from meridian.standards_review_workflow import (
+    StandardsReviewProjection,
+    StandardsReviewWorkflowError,
+    build_standards_review_projection,
 )
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
@@ -150,6 +173,48 @@ AttemptSelectionCommitter: TypeAlias = Callable[
     [Path, AuthorizedEvidenceContext, AttemptDecisionSelectionPreview],
     AttemptDecisionSelectionWorkflowResult,
 ]
+StandardsProjectionBuilder: TypeAlias = Callable[
+    [
+        Path,
+        AuthorizedEvidenceContext,
+        str,
+        str,
+        str,
+        ProficiencyScaleReference,
+    ],
+    StandardsReviewProjection,
+]
+StandardsAuthoringPreviewer: TypeAlias = Callable[
+    [
+        Path,
+        AuthorizedEvidenceContext,
+        StandardsReviewProjection,
+        StandardsAssociationAuthoringOperation,
+        StandardsAssociationDisposition,
+        StandardsAssociationBasis,
+        str,
+        str | None,
+        datetime,
+    ],
+    StandardsAssociationAuthoringPreview,
+]
+StandardsAuthoringCommitter: TypeAlias = Callable[
+    [Path, AuthorizedEvidenceContext, StandardsAssociationAuthoringPreview],
+    StandardsAssociationAuthoringResult,
+]
+StandardsSelectionPreviewer: TypeAlias = Callable[
+    [
+        Path,
+        AuthorizedEvidenceContext,
+        StandardsReviewProjection,
+        int,
+    ],
+    StandardsAssociationSelectionPreview,
+]
+StandardsSelectionCommitter: TypeAlias = Callable[
+    [Path, AuthorizedEvidenceContext, StandardsAssociationSelectionPreview],
+    StandardsAssociationSelectionWorkflowResult,
+]
 
 _PAGE_SIZE = 10
 
@@ -186,6 +251,19 @@ class AttemptActionDependencies:
     authoring_committer: AttemptAuthoringCommitter
     selection_previewer: AttemptSelectionPreviewer
     selection_committer: AttemptSelectionCommitter
+
+
+@dataclass(frozen=True, slots=True)
+class StandardsActionDependencies:
+    """Explicit authorized services for evidence/Standard association actions."""
+
+    clock: Clock
+    context_loader: EvidenceContextLoader
+    projection_builder: StandardsProjectionBuilder
+    authoring_previewer: StandardsAuthoringPreviewer
+    authoring_committer: StandardsAuthoringCommitter
+    selection_previewer: StandardsSelectionPreviewer
+    selection_committer: StandardsSelectionCommitter
 
 
 def _load_review(
@@ -503,6 +581,122 @@ def default_attempt_action_dependencies(
         authoring_committer=_commit_attempt_authoring,
         selection_previewer=_preview_attempt_selection,
         selection_committer=_commit_attempt_selection,
+    )
+
+
+def _build_standards_projection(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    item_id: str,
+    student_id: str,
+    standard_id: str,
+    target_scale: ProficiencyScaleReference,
+) -> StandardsReviewProjection:
+    return build_standards_review_projection(
+        root,
+        context.review.grade_item_id,
+        student_id,
+        standard_id,
+        item_id,
+        target_scale,
+        authorized_snapshot=context.authorized,
+    )
+
+
+def _preview_standards_authoring(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    projection: StandardsReviewProjection,
+    operation: StandardsAssociationAuthoringOperation,
+    disposition: StandardsAssociationDisposition,
+    basis: StandardsAssociationBasis,
+    actor_id: str,
+    rationale: str | None,
+    decided_at: datetime,
+) -> StandardsAssociationAuthoringPreview:
+    return preview_standards_association_authoring(
+        root,
+        projection,
+        authorized_snapshot=context.authorized,
+        operation=operation,
+        disposition=disposition,
+        basis=basis,
+        actor_id=actor_id,
+        rationale=rationale,
+        decided_at=decided_at,
+    )
+
+
+def _commit_standards_authoring(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    preview: StandardsAssociationAuthoringPreview,
+) -> StandardsAssociationAuthoringResult:
+    return commit_standards_association_authoring_preview(
+        root,
+        preview,
+        authorized_snapshot=context.authorized,
+    )
+
+
+def _preview_standards_selection(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    projection: StandardsReviewProjection,
+    revision: int,
+) -> StandardsAssociationSelectionPreview:
+    return preview_standards_association_selection(
+        root,
+        projection,
+        authorized_snapshot=context.authorized,
+        association_revision=revision,
+    )
+
+
+def _commit_standards_selection(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    preview: StandardsAssociationSelectionPreview,
+) -> StandardsAssociationSelectionWorkflowResult:
+    return commit_standards_association_selection_preview(
+        root,
+        preview,
+        authorized_snapshot=context.authorized,
+    )
+
+
+def default_standards_action_dependencies(
+    *,
+    diagnostics: DiagnosticsDependencies | None = None,
+) -> StandardsActionDependencies:
+    active = diagnostics or default_diagnostics_dependencies()
+
+    def load(
+        root: Path,
+        publication_id: str,
+        cache_key: str,
+        grade_item_id: str,
+        purpose_id: str,
+        student_ids: tuple[str, ...],
+    ) -> AuthorizedEvidenceContext:
+        return _load_context(
+            root,
+            publication_id,
+            cache_key,
+            grade_item_id,
+            purpose_id,
+            student_ids,
+            diagnostics=active,
+        )
+
+    return StandardsActionDependencies(
+        clock=_utc_now,
+        context_loader=load,
+        projection_builder=_build_standards_projection,
+        authoring_previewer=_preview_standards_authoring,
+        authoring_committer=_commit_standards_authoring,
+        selection_previewer=_preview_standards_selection,
+        selection_committer=_commit_standards_selection,
     )
 
 
@@ -1376,11 +1570,372 @@ def _select_attempt_decision(
     pause_for_user(input_fn)
 
 
+def _standards_operation(value: str) -> StandardsAssociationAuthoringOperation:
+    if value == "1":
+        return "create"
+    if value == "2":
+        return "revise"
+    raise ValueError("association operation must be 1 or 2")
+
+
+def _standards_disposition(value: str) -> StandardsAssociationDisposition:
+    if value == "1":
+        return "associated"
+    if value == "2":
+        return "not_associated"
+    raise ValueError("association disposition must be 1 or 2")
+
+
+def _standards_basis(value: str) -> StandardsAssociationBasis:
+    if value == "1":
+        return "producer_declared"
+    if value == "2":
+        return "explicit"
+    raise ValueError("association basis must be 1 or 2")
+
+
+def _standards_scope(
+    *,
+    dependencies: EvidenceMenuDependencies,
+    standards: StandardsActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> tuple[
+    Path,
+    AuthorizedEvidenceContext,
+    StandardsReviewProjection,
+] | None:
+    write_lines(
+        output,
+        "Standards association uses one exact authorized evidence item.",
+        "Target scale identity is explicit; no mapping profile is inferred.",
+        "",
+    )
+    publication_id = read_choice(input_fn, "Publication ID (blank to cancel): ")
+    if not publication_id:
+        return None
+    navigation = parse_navigation_choice(publication_id)
+    if navigation is NavigationChoice.BACK:
+        return None
+    cache_key = read_choice(input_fn, "Projection cache key: ")
+    grade_item_id = read_choice(input_fn, "Grade Item ID: ")
+    purpose_id = read_choice(input_fn, "Authorization purpose ID: ")
+    student_id = read_choice(input_fn, "Student ID: ")
+    item_id = read_choice(input_fn, "Evidence item ID: ")
+    standard_id = read_choice(input_fn, "Standard ID: ")
+    scale_id = read_choice(input_fn, "Target proficiency scale ID: ")
+    scale_revision = _positive_int(
+        read_choice(input_fn, "Target scale revision: "),
+        "target scale revision",
+    )
+    scale_sha256 = read_choice(input_fn, "Target scale sha256: ")
+
+    root = dependencies.workspace_resolver()
+    context = standards.context_loader(
+        root,
+        publication_id,
+        cache_key,
+        grade_item_id,
+        purpose_id,
+        (student_id,),
+    )
+    class_id = context.authorized.stored.snapshot.source.publication.work.class_id
+    target_scale = ProficiencyScaleReference(
+        class_id=class_id,
+        scale_id=scale_id,
+        scale_revision=scale_revision,
+        scale_sha256=scale_sha256,
+    )
+    projection = standards.projection_builder(
+        root,
+        context,
+        item_id,
+        student_id,
+        standard_id,
+        target_scale,
+    )
+    return root, context, projection
+
+
+def _standards_review_lines(
+    projection: StandardsReviewProjection,
+) -> tuple[str, ...]:
+    declared = (
+        ", ".join(projection.producer_declared_standard_ids)
+        if projection.producer_declared_standard_ids
+        else "none"
+    )
+    current = (
+        "none"
+        if projection.association_revision is None
+        else (
+            f"r{projection.association_revision} "
+            f"{_humanize(projection.association_disposition or 'unknown')} "
+            f"({_humanize(projection.association_basis or 'unknown')})"
+        )
+    )
+    return (
+        f"Evidence item: {projection.item_id}",
+        f"Student: {projection.student_id}",
+        f"Standard: {projection.standard_id}",
+        f"Producer-declared Standards: {declared}",
+        (
+            "Producer declares target Standard: "
+            f"{'yes' if projection.producer_declares_standard else 'no'}"
+        ),
+        (
+            "Core Standard resolved: "
+            f"{'yes' if projection.standard_resolution.resolved else 'no'}"
+        ),
+        f"Current association: {current}",
+        f"Eligibility state: {_humanize(projection.eligibility_state)}",
+        f"Attempt state: {_humanize(projection.attempt_state)}",
+        f"Reassessment state: {_humanize(projection.reassessment_state)}",
+        f"Aggregation status: {_humanize(projection.aggregation_status)}",
+        (
+            "Target scale: "
+            f"{projection.target_scale.scale_id} "
+            f"r{projection.target_scale.scale_revision}"
+        ),
+    )
+
+
+def _author_standards_association(
+    *,
+    dependencies: EvidenceMenuDependencies,
+    standards: StandardsActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Author Evidence / Standard Association")
+    try:
+        loaded = _standards_scope(
+            dependencies=dependencies,
+            standards=standards,
+            input_fn=input_fn,
+            output=output,
+        )
+        if loaded is None:
+            return
+        root, context, projection = loaded
+        write_lines(output, "", *_standards_review_lines(projection), "")
+        print("1. Create association history", file=output)
+        print("2. Revise association history", file=output)
+        operation = _standards_operation(read_choice(input_fn, "Operation: "))
+        print("1. Associated", file=output)
+        print("2. Not associated", file=output)
+        disposition = _standards_disposition(
+            read_choice(input_fn, "Disposition: ")
+        )
+        print("1. Producer declared", file=output)
+        print("2. Explicit teacher association", file=output)
+        basis = _standards_basis(read_choice(input_fn, "Basis: "))
+        actor_id = read_choice(input_fn, "Teacher actor ID: ")
+        rationale_text = read_choice(input_fn, "Rationale (optional): ")
+        preview = standards.authoring_previewer(
+            root,
+            context,
+            projection,
+            operation,
+            disposition,
+            basis,
+            actor_id,
+            rationale_text or None,
+            standards.clock(),
+        )
+    except DiagnosticsAuthorizationProviderRequiredError:
+        write_lines(
+            output,
+            "",
+            "Protected standards evidence is unavailable in this Meridian process.",
+            "No association revision was written.",
+            "A deployment-provided authorization capability is required.",
+        )
+        pause_for_user(input_fn)
+        return
+    except (
+        WorkspaceRootError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        StandardsReviewWorkflowError,
+        StandardsAssociationAuthoringError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Standards-association preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    candidate = preview.candidate
+    clear_fn()
+    print_menu_header(output, "Review Association Before Write")
+    write_lines(
+        output,
+        *_standards_review_lines(preview.projection),
+        "",
+        f"Candidate disposition: {_humanize(candidate.disposition)}",
+        f"Candidate basis: {_humanize(candidate.basis)}",
+        f"Candidate revision: {candidate.association_revision}",
+        f"Teacher: {candidate.actor.actor_id}",
+        (
+            "Currently selected association revision: none"
+            if preview.expected_current_association_revision is None
+            else (
+                "Currently selected association revision: "
+                f"{preview.expected_current_association_revision}"
+            )
+        ),
+        "",
+        "This records one academic evidence/Standard interpretation.",
+        "Producer-declared Standard IDs remain unchanged.",
+        "Writing this revision will NOT select it.",
+        "Type WRITE to create this exact association revision.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "WRITE":
+        write_lines(output, "", "No standards-association revision was written.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = standards.authoring_committer(root, context, preview)
+    except StandardsAssociationAuthoringError as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed association could not be written safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    write_lines(
+        output,
+        "",
+        f"Association revision: {result.write_result.disposition}.",
+        f"Written revision: {result.written_revision}.",
+        f"Disposition: {_humanize(result.written_disposition)}.",
+        "Current association selection was not changed.",
+    )
+    pause_for_user(input_fn)
+
+
+def _select_standards_association(
+    *,
+    dependencies: EvidenceMenuDependencies,
+    standards: StandardsActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Select Evidence / Standard Association")
+    try:
+        loaded = _standards_scope(
+            dependencies=dependencies,
+            standards=standards,
+            input_fn=input_fn,
+            output=output,
+        )
+        if loaded is None:
+            return
+        root, context, projection = loaded
+        write_lines(output, "", *_standards_review_lines(projection), "")
+        revision = _positive_int(
+            read_choice(input_fn, "Association revision to select: "),
+            "association revision",
+        )
+        preview = standards.selection_previewer(
+            root,
+            context,
+            projection,
+            revision,
+        )
+    except DiagnosticsAuthorizationProviderRequiredError:
+        write_lines(
+            output,
+            "",
+            "Protected standards evidence is unavailable in this Meridian process.",
+            "No association selection was changed.",
+            "A deployment-provided authorization capability is required.",
+        )
+        pause_for_user(input_fn)
+        return
+    except (
+        WorkspaceRootError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        StandardsReviewWorkflowError,
+        StandardsAssociationSelectionError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Association selection preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    clear_fn()
+    print_menu_header(output, "Review Association Selection")
+    write_lines(
+        output,
+        *_standards_review_lines(preview.projection),
+        "",
+        f"Target revision: {preview.target_revision}",
+        f"Target disposition: {_humanize(preview.target_disposition)}",
+        f"Target basis: {_humanize(preview.target_basis)}",
+        f"Target sha256: {preview.target_sha256}",
+        (
+            "Current association revision: none"
+            if preview.expected_current_association_revision is None
+            else (
+                "Current association revision: "
+                f"{preview.expected_current_association_revision}"
+            )
+        ),
+        "",
+        "Type SELECT to make this exact association revision current.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "SELECT":
+        write_lines(output, "", "Current association selection was not changed.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = standards.selection_committer(root, context, preview)
+    except StandardsAssociationSelectionError as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed association could not be selected safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    write_lines(
+        output,
+        "",
+        f"Association selection: {result.selection_disposition}.",
+        f"Selected revision: {result.selected_revision}.",
+        f"Disposition: {_humanize(result.selected_disposition)}.",
+        f"Basis: {_humanize(result.selected_basis)}.",
+    )
+    pause_for_user(input_fn)
+
+
 def run_new_evidence_menu(
     *,
     dependencies: EvidenceMenuDependencies | None = None,
     action_dependencies: EvidenceActionDependencies | None = None,
     attempt_dependencies: AttemptActionDependencies | None = None,
+    standards_dependencies: StandardsActionDependencies | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -1395,6 +1950,9 @@ def run_new_evidence_menu(
     attempts = attempt_dependencies or default_attempt_action_dependencies(
         diagnostics=active.diagnostics,
     )
+    standards = standards_dependencies or default_standards_action_dependencies(
+        diagnostics=active.diagnostics,
+    )
     while True:
         clear_fn()
         print_menu_header(stream, "Review New Evidence")
@@ -1405,8 +1963,10 @@ def run_new_evidence_menu(
             "3. Select academic eligibility revision",
             "4. Author attempt / reassessment decision",
             "5. Select attempt / reassessment decision",
+            "6. Author evidence / Standard association",
+            "7. Select evidence / Standard association",
             "",
-            "Grade Item and standards follow-up remain separate tasks.",
+            "Grade Item authoring remains in Manage Grade Items.",
             "",
         )
         print_standard_navigation(stream)
@@ -1458,5 +2018,23 @@ def run_new_evidence_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-5, B, M, or Q.")
+        if choice == "6":
+            _author_standards_association(
+                dependencies=active,
+                standards=standards,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "7":
+            _select_standards_association(
+                dependencies=active,
+                standards=standards,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         pause_for_user(input_fn)

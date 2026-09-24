@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TextIO, TypeAlias
 
@@ -15,6 +16,35 @@ from meridian.academic_period_proficiency_explanation import (
     AcademicPeriodProficiencyTraceTarget,
     explain_academic_period_proficiency,
 )
+from meridian.calculation_preview_assembly_workflow import (
+    BoundedCalculationPreview,
+    CalculationPreviewAssemblyError,
+    CalculationPreviewAssemblyScopeError,
+    build_bounded_calculation_preview,
+)
+from meridian.calculation_result_persistence_workflow import (
+    CalculationResultPersistenceError,
+    CalculationResultPersistencePreview,
+    CalculationResultPersistenceWorkflowResult,
+    commit_calculation_result_persistence_preview,
+    preview_calculation_result_persistence,
+)
+from meridian.calculation_result_selection_workflow import (
+    CalculationResultSelectionError,
+    CalculationResultSelectionPreview,
+    CalculationResultSelectionWorkflowResult,
+    commit_calculation_result_selection_preview,
+    preview_calculation_result_selection,
+)
+from meridian.diagnostics import (
+    DiagnosticsAuthorizationProviderRequiredError,
+    DiagnosticsDependencies,
+    DiagnosticsError,
+    EvidenceFilters,
+    default_diagnostics_dependencies,
+    inspect_evidence_diagnostic,
+)
+from meridian.evidence_eligibility import EvidenceSourceReference
 from meridian.grade_item_proficiency_explanation import (
     ExplanationTraceError,
     GradeItemProficiencyTraceTarget,
@@ -34,6 +64,17 @@ from meridian.menu_ui import (
 from meridian.planning_signal_workflow import (
     PlanningSignalWorkflowError,
     project_planning_signal_readiness,
+)
+from meridian.proficiency_mapping import (
+    NativeValueMappingProfileReference,
+    ProficiencyScaleReference,
+)
+from meridian.projection_cache import ProjectionCacheError
+from meridian.standards_evidence_storage import (
+    StandardAggregationCandidateBinding,
+)
+from meridian.standards_proficiency import (
+    StandardProficiencyCalculationPolicyReference,
 )
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
@@ -109,6 +150,48 @@ PlanningLoader: TypeAlias = Callable[
     [Path, str, str],
     PlanningReadinessPresentation,
 ]
+Clock: TypeAlias = Callable[[], datetime]
+
+
+@dataclass(frozen=True, slots=True)
+class CalculationBindingSpec:
+    publication_id: str
+    cache_key: str
+    item_id: str
+    mapping_profile: NativeValueMappingProfileReference | None
+
+
+GradeItemPreviewBuilder: TypeAlias = Callable[
+    [
+        Path,
+        str,
+        str,
+        str,
+        str,
+        ProficiencyScaleReference,
+        tuple[CalculationBindingSpec, ...],
+        StandardProficiencyCalculationPolicyReference,
+        str,
+        tuple[str, ...],
+    ],
+    BoundedCalculationPreview,
+]
+GradeItemPersistencePreviewer: TypeAlias = Callable[
+    [Path, BoundedCalculationPreview, str, datetime],
+    CalculationResultPersistencePreview,
+]
+GradeItemPersistenceCommitter: TypeAlias = Callable[
+    [Path, CalculationResultPersistencePreview],
+    CalculationResultPersistenceWorkflowResult,
+]
+GradeItemSelectionPreviewer: TypeAlias = Callable[
+    [Path, str, str, str, str, int],
+    CalculationResultSelectionPreview,
+]
+GradeItemSelectionCommitter: TypeAlias = Callable[
+    [Path, CalculationResultSelectionPreview],
+    CalculationResultSelectionWorkflowResult,
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,6 +200,17 @@ class ProficiencyMenuDependencies:
     grade_item_loader: GradeItemLoader
     academic_period_loader: AcademicPeriodLoader
     planning_loader: PlanningLoader
+
+
+@dataclass(frozen=True, slots=True)
+class GradeItemProficiencyActionDependencies:
+    clock: Clock
+    diagnostics: DiagnosticsDependencies
+    preview_builder: GradeItemPreviewBuilder
+    persistence_previewer: GradeItemPersistencePreviewer
+    persistence_committer: GradeItemPersistenceCommitter
+    selection_previewer: GradeItemSelectionPreviewer
+    selection_committer: GradeItemSelectionCommitter
 
 
 def _level_label(
@@ -264,6 +358,136 @@ def default_proficiency_menu_dependencies() -> ProficiencyMenuDependencies:
         grade_item_loader=_load_grade_item,
         academic_period_loader=_load_academic_period,
         planning_loader=_load_planning,
+    )
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _build_grade_item_preview(
+    root: Path,
+    class_id: str,
+    grade_item_id: str,
+    student_id: str,
+    standard_id: str,
+    target_scale: ProficiencyScaleReference,
+    binding_specs: tuple[CalculationBindingSpec, ...],
+    policy_reference: StandardProficiencyCalculationPolicyReference,
+    purpose_id: str,
+    requested_student_ids: tuple[str, ...],
+    *,
+    diagnostics: DiagnosticsDependencies,
+) -> BoundedCalculationPreview:
+    bindings: list[StandardAggregationCandidateBinding] = []
+    for spec in binding_specs:
+        inspection = inspect_evidence_diagnostic(
+            root,
+            spec.publication_id,
+            spec.cache_key,
+            authorization_purpose_id=purpose_id,
+            requested_student_ids=requested_student_ids,
+            filters=EvidenceFilters(item_ids=(spec.item_id,)),
+            dependencies=diagnostics,
+        )
+        if len(inspection.items) != 1:
+            raise CalculationPreviewAssemblyScopeError(
+                "Each Grade Item proficiency binding must resolve to exactly "
+                "one authorized evidence item."
+            )
+        item = inspection.items[0]
+        if item.item_id != spec.item_id:
+            raise CalculationPreviewAssemblyScopeError(
+                "Authorized binding item identity changed during review."
+            )
+        authorized = inspection.authorized
+        stored = authorized.stored
+        publication = stored.snapshot.source.publication
+        if publication.work.class_id != class_id:
+            raise CalculationPreviewAssemblyScopeError(
+                "Every Grade Item proficiency binding must belong to the "
+                "requested class."
+            )
+        source = EvidenceSourceReference(
+            work=publication.work,
+            publication_id=publication.publication_id,
+            cache_key=stored.cache_key,
+            snapshot_digest=stored.snapshot_digest,
+            item_id=spec.item_id,
+        )
+        bindings.append(
+            StandardAggregationCandidateBinding(
+                source=source,
+                authorized_snapshot=authorized,
+                mapping_profile=spec.mapping_profile,
+                attempt=None,
+            )
+        )
+    return build_bounded_calculation_preview(
+        root,
+        grade_item_id,
+        student_id,
+        standard_id,
+        target_scale,
+        tuple(bindings),
+        policy_reference,
+    )
+
+
+def _preview_result_persistence(
+    root: Path,
+    reviewed: BoundedCalculationPreview,
+    actor_id: str,
+    calculated_at: datetime,
+) -> CalculationResultPersistencePreview:
+    return preview_calculation_result_persistence(
+        root,
+        reviewed,
+        actor_id=actor_id,
+        calculated_at=calculated_at,
+    )
+
+
+def default_grade_item_proficiency_action_dependencies(
+    *,
+    diagnostics: DiagnosticsDependencies | None = None,
+) -> GradeItemProficiencyActionDependencies:
+    active = diagnostics or default_diagnostics_dependencies()
+
+    def build(
+        root: Path,
+        class_id: str,
+        grade_item_id: str,
+        student_id: str,
+        standard_id: str,
+        target_scale: ProficiencyScaleReference,
+        binding_specs: tuple[CalculationBindingSpec, ...],
+        policy_reference: StandardProficiencyCalculationPolicyReference,
+        purpose_id: str,
+        requested_student_ids: tuple[str, ...],
+    ) -> BoundedCalculationPreview:
+        return _build_grade_item_preview(
+            root,
+            class_id,
+            grade_item_id,
+            student_id,
+            standard_id,
+            target_scale,
+            binding_specs,
+            policy_reference,
+            purpose_id,
+            requested_student_ids,
+            diagnostics=active,
+        )
+
+    return GradeItemProficiencyActionDependencies(
+        clock=_utc_now,
+        diagnostics=active,
+        preview_builder=build,
+        persistence_previewer=_preview_result_persistence,
+        persistence_committer=commit_calculation_result_persistence_preview,
+        selection_previewer=preview_calculation_result_selection,
+        selection_committer=commit_calculation_result_selection_preview,
     )
 
 
@@ -596,15 +820,485 @@ def _review_planning(
         pause_for_user(input_fn)
 
 
+def _positive_int(value: str, label: str) -> int:
+    try:
+        result = int(value)
+    except ValueError as error:
+        raise ValueError(f"{label} must be a positive integer") from error
+    if result < 1:
+        raise ValueError(f"{label} must be a positive integer")
+    return result
+
+
+def _nonnegative_int(value: str, label: str) -> int:
+    try:
+        result = int(value)
+    except ValueError as error:
+        raise ValueError(f"{label} must be a nonnegative integer") from error
+    if result < 0:
+        raise ValueError(f"{label} must be a nonnegative integer")
+    return result
+
+
+def _student_scope(raw: str, student_id: str) -> tuple[str, ...]:
+    if not raw.strip():
+        return (student_id,)
+    values = tuple(part.strip() for part in raw.split(",") if part.strip())
+    if len(set(values)) != len(values):
+        raise ValueError("authorization Student IDs must not contain duplicates")
+    return tuple(sorted(values))
+
+
+def _mapping_profile(
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+    class_id: str,
+) -> NativeValueMappingProfileReference | None:
+    choice = read_choice(
+        input_fn,
+        "Use an exact mapping profile for this binding? (yes/no): ",
+    ).casefold()
+    if choice in {"n", "no"}:
+        return None
+    if choice not in {"y", "yes"}:
+        raise ValueError("mapping-profile choice must be yes or no")
+    scale_id = read_choice(input_fn, "Mapping-profile scale ID: ")
+    profile_id = read_choice(input_fn, "Mapping-profile ID: ")
+    revision = _positive_int(
+        read_choice(input_fn, "Mapping-profile revision: "),
+        "mapping-profile revision",
+    )
+    digest = read_choice(input_fn, "Mapping-profile sha256: ")
+    write_lines(
+        output,
+        "Mapping profile is explicit for this evidence binding.",
+    )
+    return NativeValueMappingProfileReference(
+        class_id=class_id,
+        scale_id=scale_id,
+        profile_id=profile_id,
+        profile_revision=revision,
+        profile_sha256=digest,
+    )
+
+
+def _calculation_request(
+    *,
+    deps: ProficiencyMenuDependencies,
+    actions: GradeItemProficiencyActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> tuple[Path, BoundedCalculationPreview] | None:
+    class_id = read_choice(input_fn, "Class ID (blank to cancel): ")
+    if not class_id:
+        return None
+    if parse_navigation_choice(class_id) is NavigationChoice.BACK:
+        return None
+    grade_item_id = read_choice(input_fn, "Grade Item ID: ")
+    student_id = read_choice(input_fn, "Student ID: ")
+    standard_id = read_choice(input_fn, "Standard ID: ")
+
+    scale_id = read_choice(input_fn, "Target proficiency scale ID: ")
+    scale_revision = _positive_int(
+        read_choice(input_fn, "Target scale revision: "),
+        "target scale revision",
+    )
+    scale_sha256 = read_choice(input_fn, "Target scale sha256: ")
+    target_scale = ProficiencyScaleReference(
+        class_id=class_id,
+        scale_id=scale_id,
+        scale_revision=scale_revision,
+        scale_sha256=scale_sha256,
+    )
+
+    policy_id = read_choice(input_fn, "Calculation policy ID: ")
+    policy_revision = _positive_int(
+        read_choice(input_fn, "Calculation policy revision: "),
+        "calculation policy revision",
+    )
+    policy_sha256 = read_choice(input_fn, "Calculation policy sha256: ")
+    policy_reference = StandardProficiencyCalculationPolicyReference(
+        class_id=class_id,
+        policy_id=policy_id,
+        policy_revision=policy_revision,
+        policy_sha256=policy_sha256,
+    )
+
+    purpose_id = read_choice(input_fn, "Authorization purpose ID: ")
+    scope = _student_scope(
+        read_choice(
+            input_fn,
+            "Authorization Student IDs, comma-separated "
+            "(blank for target student): ",
+        ),
+        student_id,
+    )
+
+    binding_count = _nonnegative_int(
+        read_choice(input_fn, "Number of explicit evidence bindings: "),
+        "binding count",
+    )
+    specs: list[CalculationBindingSpec] = []
+    for index in range(1, binding_count + 1):
+        write_lines(output, "", f"Evidence binding {index} of {binding_count}")
+        publication_id = read_choice(input_fn, "Publication ID: ")
+        cache_key = read_choice(input_fn, "Projection cache key: ")
+        item_id = read_choice(input_fn, "Evidence item ID: ")
+        mapping = _mapping_profile(
+            input_fn=input_fn,
+            output=output,
+            class_id=class_id,
+        )
+        specs.append(
+            CalculationBindingSpec(
+                publication_id=publication_id,
+                cache_key=cache_key,
+                item_id=item_id,
+                mapping_profile=mapping,
+            )
+        )
+
+    root = deps.workspace_resolver()
+    preview = actions.preview_builder(
+        root,
+        class_id,
+        grade_item_id,
+        student_id,
+        standard_id,
+        target_scale,
+        tuple(specs),
+        policy_reference,
+        purpose_id,
+        scope,
+    )
+    return root, preview
+
+
+def _show_calculation_preview(
+    value: BoundedCalculationPreview,
+    *,
+    output: TextIO,
+) -> None:
+    calculation = value.calculation
+    outcome = calculation.outcome
+    print_menu_header(output, "Grade Item Proficiency Preview")
+    write_lines(
+        output,
+        f"Grade Item: {value.grade_item_id}",
+        f"Student: {value.student_id}",
+        f"Standard: {value.standard_id}",
+        f"Policy: {calculation.policy_title}",
+        f"Strategy: {_humanize(calculation.strategy)}",
+        f"Status: {_humanize(outcome.status)}",
+        (
+            "Proficiency level: "
+            f"{outcome.proficiency_level_id or 'not calculated'}"
+        ),
+        (
+            "Evidence: "
+            f"{outcome.performance_observation_count} performance, "
+            f"{outcome.native_state_count} native-state, "
+            f"{outcome.excluded_count} excluded"
+        ),
+        f"Explicit bindings: {value.binding_count}",
+        (
+            "Current result revision: none"
+            if calculation.current_result_revision is None
+            else (
+                "Current result revision: "
+                f"{calculation.current_result_revision}"
+            )
+        ),
+        f"Next immutable result revision: {calculation.next_result_revision}",
+        "",
+        "This is a read-only calculation preview.",
+        "No result revision or current selection has changed.",
+    )
+
+
+def _preview_grade_item_calculation(
+    *,
+    deps: ProficiencyMenuDependencies,
+    actions: GradeItemProficiencyActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Preview Grade Item Proficiency")
+    try:
+        loaded = _calculation_request(
+            deps=deps,
+            actions=actions,
+            input_fn=input_fn,
+            output=output,
+        )
+        if loaded is None:
+            return
+        _root, preview = loaded
+    except DiagnosticsAuthorizationProviderRequiredError:
+        write_lines(
+            output,
+            "",
+            "Protected proficiency evidence is unavailable in this process.",
+            "No calculation was performed.",
+            "A deployment-provided authorization capability is required.",
+        )
+        pause_for_user(input_fn)
+        return
+    except (
+        WorkspaceRootError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        CalculationPreviewAssemblyError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Grade Item proficiency preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    clear_fn()
+    _show_calculation_preview(preview, output=output)
+    write_lines(
+        output,
+        "",
+        f"Inputs sha256: {preview.calculation.inputs_sha256}",
+        (
+            "Calculation fingerprint: "
+            f"{preview.calculation.calculation_fingerprint}"
+        ),
+    )
+    pause_for_user(input_fn)
+
+
+def _write_grade_item_result(
+    *,
+    deps: ProficiencyMenuDependencies,
+    actions: GradeItemProficiencyActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Write Grade Item Proficiency Result")
+    try:
+        loaded = _calculation_request(
+            deps=deps,
+            actions=actions,
+            input_fn=input_fn,
+            output=output,
+        )
+        if loaded is None:
+            return
+        root, reviewed = loaded
+        actor_id = read_choice(input_fn, "Teacher actor ID: ")
+        preview = actions.persistence_previewer(
+            root,
+            reviewed,
+            actor_id,
+            actions.clock(),
+        )
+    except DiagnosticsAuthorizationProviderRequiredError:
+        write_lines(
+            output,
+            "",
+            "Protected proficiency evidence is unavailable in this process.",
+            "No result revision was written.",
+            "A deployment-provided authorization capability is required.",
+        )
+        pause_for_user(input_fn)
+        return
+    except (
+        WorkspaceRootError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        CalculationPreviewAssemblyError,
+        CalculationResultPersistenceError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Result-write preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    clear_fn()
+    print_menu_header(output, "Review Proficiency Result Before Write")
+    _show_calculation_preview(reviewed, output=output)
+    write_lines(
+        output,
+        "",
+        f"Candidate result revision: {preview.candidate_revision}",
+        f"Candidate status: {_humanize(preview.candidate_status)}",
+        (
+            "Candidate proficiency level: "
+            f"{preview.candidate_proficiency_level_id or 'not calculated'}"
+        ),
+        (
+            "Candidate calculation fingerprint: "
+            f"{preview.candidate_calculation_fingerprint}"
+        ),
+        (
+            "Current selected result revision: none"
+            if preview.selected_revision_before is None
+            else (
+                "Current selected result revision: "
+                f"{preview.selected_revision_before}"
+            )
+        ),
+        "",
+        "Writing this immutable result will NOT select it as current.",
+        "Type WRITE to create this exact result revision.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "WRITE":
+        write_lines(output, "", "No proficiency result revision was written.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = actions.persistence_committer(root, preview)
+    except CalculationResultPersistenceError as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed proficiency result could not be written safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    write_lines(
+        output,
+        "",
+        f"Proficiency result revision: {result.write_result.disposition}.",
+        f"Written revision: {result.written_revision}.",
+        f"Written status: {_humanize(result.written_status)}.",
+        f"Result sha256: {result.written_result_sha256}",
+        "Current result selection was not changed.",
+    )
+    pause_for_user(input_fn)
+
+
+def _select_grade_item_result(
+    *,
+    deps: ProficiencyMenuDependencies,
+    actions: GradeItemProficiencyActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Select Grade Item Proficiency Result")
+    class_id = read_choice(input_fn, "Class ID (blank to cancel): ")
+    if not class_id:
+        return
+    if parse_navigation_choice(class_id) is NavigationChoice.BACK:
+        return
+    grade_item_id = read_choice(input_fn, "Grade Item ID: ")
+    student_id = read_choice(input_fn, "Student ID: ")
+    standard_id = read_choice(input_fn, "Standard ID: ")
+    try:
+        revision = _positive_int(
+            read_choice(input_fn, "Result revision to select: "),
+            "result revision",
+        )
+        root = deps.workspace_resolver()
+        preview = actions.selection_previewer(
+            root,
+            class_id,
+            grade_item_id,
+            student_id,
+            standard_id,
+            revision,
+        )
+    except (
+        WorkspaceRootError,
+        CalculationResultSelectionError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Result selection preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    clear_fn()
+    print_menu_header(output, "Review Proficiency Result Selection")
+    latest_text = "yes" if preview.target_is_latest else "no"
+    write_lines(
+        output,
+        f"Grade Item: {preview.grade_item_id}",
+        f"Student: {preview.student_id}",
+        f"Standard: {preview.standard_id}",
+        f"Target result revision: {preview.target_revision}",
+        f"Target status: {_humanize(preview.target_status)}",
+        (
+            "Target proficiency level: "
+            f"{preview.target_proficiency_level_id or 'not calculated'}"
+        ),
+        f"Target sha256: {preview.target_result_sha256}",
+        (
+            "Current result revision: none"
+            if preview.expected_current_result_revision is None
+            else (
+                "Current result revision: "
+                f"{preview.expected_current_result_revision}"
+            )
+        ),
+        f"Target is latest authored result: {latest_text}",
+        "",
+        "Type SELECT to make this exact historical result current.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "SELECT":
+        write_lines(output, "", "Current proficiency result was not changed.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = actions.selection_committer(root, preview)
+    except CalculationResultSelectionError as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed result could not be selected safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    write_lines(
+        output,
+        "",
+        f"Result selection: {result.selection_disposition}.",
+        f"Selected revision: {result.selected_revision}.",
+        f"Selected status: {_humanize(result.selected_status)}.",
+    )
+    pause_for_user(input_fn)
+
+
 def run_proficiency_menu(
     *,
     dependencies: ProficiencyMenuDependencies | None = None,
+    action_dependencies: GradeItemProficiencyActionDependencies | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> None:
     stream = sys.stdout if output is None else output
     deps = dependencies or default_proficiency_menu_dependencies()
+    actions = (
+        action_dependencies
+        or default_grade_item_proficiency_action_dependencies()
+    )
     while True:
         clear_fn()
         print_menu_header(stream, "Review Proficiency")
@@ -613,6 +1307,9 @@ def run_proficiency_menu(
             "1. Review current Grade Item proficiency",
             "2. Review current Academic Period proficiency",
             "3. Review planning-signal readiness",
+            "4. Preview Grade Item proficiency calculation",
+            "5. Write Grade Item proficiency result",
+            "6. Select Grade Item proficiency result",
             "",
         )
         print_standard_navigation(stream)
@@ -644,5 +1341,32 @@ def run_proficiency_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-3, B, M, or Q.")
+        if choice == "4":
+            _preview_grade_item_calculation(
+                deps=deps,
+                actions=actions,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "5":
+            _write_grade_item_result(
+                deps=deps,
+                actions=actions,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "6":
+            _select_grade_item_result(
+                deps=deps,
+                actions=actions,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)
