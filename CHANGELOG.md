@@ -49,7 +49,10 @@
   also reaches explicit teacher academic-eligibility authoring and exact
   eligibility selection over a freshly reauthorized projection, without
   rewriting Core source supersession/withdrawal state or auto-selecting a
-  newly written decision.
+  newly written decision. Review New Evidence now also reaches explicit
+  student attempt/reassessment decision authoring and exact decision
+  selection over freshly authorized attempt candidates; producer history
+  remains immutable and WRITE/SELECT stay separate.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a

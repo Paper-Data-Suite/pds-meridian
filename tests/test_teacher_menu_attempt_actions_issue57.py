@@ -6,9 +6,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
 
+from meridian.attempt_selection_storage import AttemptCandidateDerivation
 from meridian.menu_evidence import (
+    AttemptActionDependencies,
     AuthorizedEvidenceContext,
-    EvidenceActionDependencies,
     EvidenceMenuDependencies,
     run_new_evidence_menu,
 )
@@ -26,7 +27,10 @@ class ScriptedInput:
 
 
 def _context() -> AuthorizedEvidenceContext:
-    review = cast(NewEvidenceReview, SimpleNamespace(rows=()))
+    review = cast(
+        NewEvidenceReview,
+        SimpleNamespace(grade_item_id="grade_item_1"),
+    )
     authorized = cast(AuthorizedProjectionSnapshot, object())
     return AuthorizedEvidenceContext(review=review, authorized=authorized)
 
@@ -39,21 +43,26 @@ def _menu_deps() -> EvidenceMenuDependencies:
     )
 
 
-def _actions(
+def _attempts(
     log: list[str],
     *,
+    derivation: object | None = None,
     author_preview: object | None = None,
     selection_preview: object | None = None,
-) -> EvidenceActionDependencies:
-    return EvidenceActionDependencies(
+) -> AttemptActionDependencies:
+    return AttemptActionDependencies(
         clock=lambda: datetime(2026, 9, 23, 20, 0, tzinfo=UTC),
         context_loader=lambda *_args: _context(),
+        candidate_loader=lambda *_args: cast(
+            AttemptCandidateDerivation,
+            derivation,
+        ),
         authoring_previewer=lambda *_args: author_preview,
         authoring_committer=lambda *_args: (
             log.append("write")
             or SimpleNamespace(
+                write_disposition="created",
                 written_revision=2,
-                written_disposition="excluded",
             )
         ),
         selection_previewer=lambda *_args: selection_preview,
@@ -62,57 +71,64 @@ def _actions(
             or SimpleNamespace(
                 selection_disposition="updated",
                 selected_revision=2,
-                selected_disposition="excluded",
             )
         ),
     )  # type: ignore[arg-type]
 
 
-def test_new_evidence_menu_exposes_eligibility_follow_up() -> None:
+def _empty_derivation() -> object:
+    return SimpleNamespace(status="applicable", candidates=())
+
+
+def test_new_evidence_menu_exposes_attempt_follow_up() -> None:
     output = StringIO()
     run_new_evidence_menu(
         dependencies=_menu_deps(),
-        action_dependencies=_actions([]),
+        action_dependencies=cast(object, object()),  # type: ignore[arg-type]
+        attempt_dependencies=_attempts([], derivation=_empty_derivation()),
         input_fn=ScriptedInput("b"),
         output=output,
         clear_fn=lambda: None,
     )
     rendered = output.getvalue()
-    assert "Author academic eligibility revision" in rendered
-    assert "Select academic eligibility revision" in rendered
-    assert "Grade Item and standards follow-up remain separate tasks" in rendered
+    assert "Author attempt / reassessment decision" in rendered
+    assert "Select attempt / reassessment decision" in rendered
 
 
-def test_eligibility_write_cancel_does_not_commit() -> None:
+def test_attempt_write_cancel_does_not_commit() -> None:
     log: list[str] = []
-    decision = SimpleNamespace(
-        source=SimpleNamespace(item_id="item_1"),
-        disposition="excluded",
-        policy=SimpleNamespace(policy_id="teacher", policy_version="1"),
-        actor=SimpleNamespace(actor_id="teacher_1"),
+    candidate = SimpleNamespace(
+        student_id="student_1",
+        policy=SimpleNamespace(policy_id="policy_1", policy_revision=3),
+        decision_revision=2,
+        selected_attempts=(),
     )
     preview = SimpleNamespace(
-        decision=decision,
-        candidate_revision=2,
-        selected_revision=1,
+        candidate=candidate,
+        candidate_count=0,
+        selected_count=0,
+        reviewed_current_decision_revision=1,
     )
     output = StringIO()
     run_new_evidence_menu(
         dependencies=_menu_deps(),
-        action_dependencies=_actions(log, author_preview=preview),
+        action_dependencies=cast(object, object()),  # type: ignore[arg-type]
+        attempt_dependencies=_attempts(
+            log,
+            derivation=_empty_derivation(),
+            author_preview=preview,
+        ),
         input_fn=ScriptedInput(
-            "2",
+            "4",
             "pub_00000000000000000000000000000000",
             "a" * 64,
             "grade_item_1",
             "teacher_review",
             "student_1",
-            "item_1",
-            "2",
-            "teacher_1",
-            "teacher",
-            "1",
             "",
+            "",
+            "policy_1",
+            "teacher_1",
             "",
             "no",
             "",
@@ -124,35 +140,34 @@ def test_eligibility_write_cancel_does_not_commit() -> None:
     assert log == []
     rendered = output.getvalue()
     assert "Writing this revision will NOT select it." in rendered
-    assert "No eligibility revision was written." in rendered
+    assert "No attempt decision revision was written." in rendered
 
 
-def test_eligibility_selection_requires_select_confirmation() -> None:
+def test_attempt_selection_requires_select_confirmation() -> None:
     log: list[str] = []
+    decision = SimpleNamespace(
+        student_id="student_1",
+        selected_attempts=(),
+        candidates=(),
+        policy=SimpleNamespace(policy_id="policy_1", policy_revision=3),
+    )
     preview = SimpleNamespace(
-        target=SimpleNamespace(
-            decision=SimpleNamespace(
-                source=SimpleNamespace(item_id="item_1"),
-            ),
-            decision_sha256="b" * 64,
-        ),
+        target=SimpleNamespace(decision=decision),
         target_revision=2,
-        target_disposition="excluded",
-        expected_current_revision=1,
-        membership_revision=3,
-        source_state=SimpleNamespace(state="current"),
+        target_sha256="b" * 64,
+        expected_current_decision_revision=1,
     )
     run_new_evidence_menu(
         dependencies=_menu_deps(),
-        action_dependencies=_actions(log, selection_preview=preview),
+        action_dependencies=cast(object, object()),  # type: ignore[arg-type]
+        attempt_dependencies=_attempts(log, selection_preview=preview),
         input_fn=ScriptedInput(
-            "3",
+            "5",
             "pub_00000000000000000000000000000000",
             "a" * 64,
             "grade_item_1",
             "teacher_review",
             "student_1",
-            "item_1",
             "2",
             "SELECT",
             "",

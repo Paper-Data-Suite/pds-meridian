@@ -10,8 +10,29 @@ from pathlib import Path
 from typing import TextIO, TypeAlias
 
 from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
+from pds_core.routing_models import ModuleWorkRef
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
+from meridian.attempt_decision_authoring_workflow import (
+    AttemptDecisionAuthoringPreview,
+    AttemptDecisionAuthoringResult,
+    AttemptDecisionAuthoringWorkflowError,
+    commit_attempt_decision_authoring_preview,
+    preview_attempt_decision_authoring,
+)
+from meridian.attempt_decision_selection_workflow import (
+    AttemptDecisionSelectionPreview,
+    AttemptDecisionSelectionWorkflowError,
+    AttemptDecisionSelectionWorkflowResult,
+    commit_attempt_decision_selection_preview,
+    preview_attempt_decision_selection,
+)
+from meridian.attempt_selection import AttemptObservationReference
+from meridian.attempt_selection_storage import (
+    AttemptCandidateDerivation,
+    AttemptSelectionStorageError,
+    derive_attempt_candidates,
+)
 from meridian.diagnostics import (
     DiagnosticsAuthorizationProviderRequiredError,
     DiagnosticsDependencies,
@@ -100,6 +121,35 @@ EligibilitySelectionCommitter: TypeAlias = Callable[
     [Path, AuthorizedEvidenceContext, NewEvidenceEligibilitySelectionPreview],
     NewEvidenceEligibilitySelectionWorkflowResult,
 ]
+AttemptCandidateLoader: TypeAlias = Callable[
+    [Path, AuthorizedEvidenceContext, str],
+    AttemptCandidateDerivation,
+]
+AttemptAuthoringPreviewer: TypeAlias = Callable[
+    [
+        Path,
+        AuthorizedEvidenceContext,
+        str,
+        str,
+        tuple[AttemptObservationReference, ...],
+        str,
+        str | None,
+        datetime,
+    ],
+    AttemptDecisionAuthoringPreview,
+]
+AttemptAuthoringCommitter: TypeAlias = Callable[
+    [Path, AuthorizedEvidenceContext, AttemptDecisionAuthoringPreview],
+    AttemptDecisionAuthoringResult,
+]
+AttemptSelectionPreviewer: TypeAlias = Callable[
+    [Path, AuthorizedEvidenceContext, str, int],
+    AttemptDecisionSelectionPreview,
+]
+AttemptSelectionCommitter: TypeAlias = Callable[
+    [Path, AuthorizedEvidenceContext, AttemptDecisionSelectionPreview],
+    AttemptDecisionSelectionWorkflowResult,
+]
 
 _PAGE_SIZE = 10
 
@@ -123,6 +173,19 @@ class EvidenceActionDependencies:
     authoring_committer: EligibilityAuthoringCommitter
     selection_previewer: EligibilitySelectionPreviewer
     selection_committer: EligibilitySelectionCommitter
+
+
+@dataclass(frozen=True, slots=True)
+class AttemptActionDependencies:
+    """Explicit authorized services for student attempt-decision actions."""
+
+    clock: Clock
+    context_loader: EvidenceContextLoader
+    candidate_loader: AttemptCandidateLoader
+    authoring_previewer: AttemptAuthoringPreviewer
+    authoring_committer: AttemptAuthoringCommitter
+    selection_previewer: AttemptSelectionPreviewer
+    selection_committer: AttemptSelectionCommitter
 
 
 def _load_review(
@@ -318,6 +381,128 @@ def default_evidence_action_dependencies(
         authoring_committer=_commit_eligibility_authoring,
         selection_previewer=_preview_eligibility_selection,
         selection_committer=_commit_eligibility_selection,
+    )
+
+
+def _attempt_work(context: AuthorizedEvidenceContext) -> ModuleWorkRef:
+    return context.authorized.stored.snapshot.source.publication.work
+
+
+def _load_attempt_candidates(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    student_id: str,
+) -> AttemptCandidateDerivation:
+    work = _attempt_work(context)
+    return derive_attempt_candidates(
+        root,
+        work.class_id,
+        context.review.grade_item_id,
+        student_id,
+        context.authorized,
+    )
+
+
+def _preview_attempt_authoring(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    student_id: str,
+    policy_id: str,
+    selected_attempts: tuple[AttemptObservationReference, ...],
+    actor_id: str,
+    rationale: str | None,
+    decided_at: datetime,
+) -> AttemptDecisionAuthoringPreview:
+    work = _attempt_work(context)
+    return preview_attempt_decision_authoring(
+        root,
+        work.class_id,
+        context.review.grade_item_id,
+        work,
+        student_id,
+        policy_id,
+        authorized_snapshot=context.authorized,
+        selected_attempts=selected_attempts,
+        actor_id=actor_id,
+        decided_at=decided_at,
+        rationale=rationale,
+    )
+
+
+def _commit_attempt_authoring(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    preview: AttemptDecisionAuthoringPreview,
+) -> AttemptDecisionAuthoringResult:
+    return commit_attempt_decision_authoring_preview(
+        root,
+        preview,
+        authorized_snapshot=context.authorized,
+    )
+
+
+def _preview_attempt_selection(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    student_id: str,
+    decision_revision: int,
+) -> AttemptDecisionSelectionPreview:
+    work = _attempt_work(context)
+    return preview_attempt_decision_selection(
+        root,
+        work.class_id,
+        context.review.grade_item_id,
+        work,
+        student_id,
+        decision_revision,
+        authorized_snapshot=context.authorized,
+    )
+
+
+def _commit_attempt_selection(
+    root: Path,
+    context: AuthorizedEvidenceContext,
+    preview: AttemptDecisionSelectionPreview,
+) -> AttemptDecisionSelectionWorkflowResult:
+    return commit_attempt_decision_selection_preview(
+        root,
+        preview,
+        authorized_snapshot=context.authorized,
+    )
+
+
+def default_attempt_action_dependencies(
+    *,
+    diagnostics: DiagnosticsDependencies | None = None,
+) -> AttemptActionDependencies:
+    active = diagnostics or default_diagnostics_dependencies()
+
+    def load(
+        root: Path,
+        publication_id: str,
+        cache_key: str,
+        grade_item_id: str,
+        purpose_id: str,
+        student_ids: tuple[str, ...],
+    ) -> AuthorizedEvidenceContext:
+        return _load_context(
+            root,
+            publication_id,
+            cache_key,
+            grade_item_id,
+            purpose_id,
+            student_ids,
+            diagnostics=active,
+        )
+
+    return AttemptActionDependencies(
+        clock=_utc_now,
+        context_loader=load,
+        candidate_loader=_load_attempt_candidates,
+        authoring_previewer=_preview_attempt_authoring,
+        authoring_committer=_commit_attempt_authoring,
+        selection_previewer=_preview_attempt_selection,
+        selection_committer=_commit_attempt_selection,
     )
 
 
@@ -830,19 +1015,384 @@ def _select_eligibility(
     pause_for_user(input_fn)
 
 
+def _attempt_scope(
+    *,
+    dependencies: EvidenceMenuDependencies,
+    attempts: AttemptActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> tuple[Path, AuthorizedEvidenceContext, str] | None:
+    write_lines(
+        output,
+        "Attempt decisions are student-scoped and use one exact authorized projection.",
+        "",
+    )
+    publication_id = read_choice(input_fn, "Publication ID (blank to cancel): ")
+    if not publication_id:
+        return None
+    navigation = parse_navigation_choice(publication_id)
+    if navigation is NavigationChoice.BACK:
+        return None
+    cache_key = read_choice(input_fn, "Projection cache key: ")
+    grade_item_id = read_choice(input_fn, "Grade Item ID: ")
+    purpose_id = read_choice(input_fn, "Authorization purpose ID: ")
+    student_id = read_choice(input_fn, "Student ID: ")
+    root = dependencies.workspace_resolver()
+    context = attempts.context_loader(
+        root,
+        publication_id,
+        cache_key,
+        grade_item_id,
+        purpose_id,
+        (student_id,),
+    )
+    return root, context, student_id
+
+
+def _candidate_label(attempt: AttemptObservationReference) -> str:
+    native = attempt.native
+    if native.sequence is not None and native.identifier is not None:
+        return f"sequence {native.sequence}; identifier {native.identifier}"
+    if native.sequence is not None:
+        return f"sequence {native.sequence}"
+    return f"identifier {native.identifier}"
+
+
+def _parse_sequences(raw: str) -> tuple[int, ...]:
+    if not raw.strip():
+        return ()
+    values: list[int] = []
+    for part in raw.split(","):
+        value = _positive_int(part.strip(), "attempt sequence")
+        if value in values:
+            raise ValueError("attempt sequences must not contain duplicates")
+        values.append(value)
+    return tuple(values)
+
+
+def _parse_identifiers(raw: str) -> tuple[str, ...]:
+    if not raw.strip():
+        return ()
+    values = tuple(part.strip() for part in raw.split(",") if part.strip())
+    if len(set(values)) != len(values):
+        raise ValueError("attempt identifiers must not contain duplicates")
+    return values
+
+
+def _resolve_attempt_selection(
+    derivation: AttemptCandidateDerivation,
+    sequences: tuple[int, ...],
+    identifiers: tuple[str, ...],
+) -> tuple[AttemptObservationReference, ...]:
+    if derivation.status != "applicable":
+        raise ValueError(
+            "Current attempt candidates are not applicable; "
+            f"status is {derivation.status}."
+        )
+    selected: list[AttemptObservationReference] = []
+    for field_name, values in (
+        ("sequence", sequences),
+        ("identifier", identifiers),
+    ):
+        for value in values:
+            matches = tuple(
+                candidate.attempt
+                for candidate in derivation.candidates
+                if getattr(candidate.attempt.native, field_name) == value
+            )
+            if len(matches) != 1:
+                raise ValueError(
+                    f"Attempt {field_name} {value!r} must match exactly one "
+                    "current candidate."
+                )
+            if matches[0] in selected:
+                raise ValueError(
+                    "Multiple selectors resolved to the same attempt candidate."
+                )
+            selected.append(matches[0])
+    return tuple(
+        candidate.attempt
+        for candidate in derivation.candidates
+        if candidate.attempt in selected
+    )
+
+
+def _author_attempt_decision(
+    *,
+    dependencies: EvidenceMenuDependencies,
+    attempts: AttemptActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Author Attempt / Reassessment Decision")
+    try:
+        loaded = _attempt_scope(
+            dependencies=dependencies,
+            attempts=attempts,
+            input_fn=input_fn,
+            output=output,
+        )
+        if loaded is None:
+            return
+        root, context, student_id = loaded
+        derivation = attempts.candidate_loader(root, context, student_id)
+        if derivation.status != "applicable":
+            raise ValueError(
+                "Current attempt candidates are not applicable; "
+                f"status is {derivation.status}."
+            )
+        write_lines(output, "", "Current eligible attempt candidates:")
+        if not derivation.candidates:
+            print("  None.", file=output)
+        for index, attempt_candidate in enumerate(
+            derivation.candidates,
+            start=1,
+        ):
+            print(
+                f"  {index}. {_candidate_label(attempt_candidate.attempt)}",
+                file=output,
+            )
+        write_lines(
+            output,
+            "",
+            "Select exact native attempts. Leave both selectors blank for none.",
+        )
+        sequences = _parse_sequences(
+            read_choice(
+                input_fn,
+                "Selected attempt sequences, comma-separated (optional): ",
+            )
+        )
+        identifiers = _parse_identifiers(
+            read_choice(
+                input_fn,
+                "Selected attempt identifiers, comma-separated (optional): ",
+            )
+        )
+        selected = _resolve_attempt_selection(
+            derivation,
+            sequences,
+            identifiers,
+        )
+        policy_id = read_choice(input_fn, "Attempt-selection policy ID: ")
+        actor_id = read_choice(input_fn, "Teacher actor ID: ")
+        rationale_text = read_choice(input_fn, "Rationale (optional): ")
+        preview = attempts.authoring_previewer(
+            root,
+            context,
+            student_id,
+            policy_id,
+            selected,
+            actor_id,
+            rationale_text or None,
+            attempts.clock(),
+        )
+    except DiagnosticsAuthorizationProviderRequiredError:
+        write_lines(
+            output,
+            "",
+            "Protected attempt evidence is unavailable in this Meridian process.",
+            "No attempt decision was written.",
+            "A deployment-provided authorization capability is required.",
+        )
+        pause_for_user(input_fn)
+        return
+    except (
+        WorkspaceRootError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        AttemptSelectionStorageError,
+        AttemptDecisionAuthoringWorkflowError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Attempt decision preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    candidate = preview.candidate
+    clear_fn()
+    print_menu_header(output, "Review Attempt Decision Before Write")
+    write_lines(
+        output,
+        f"Student: {candidate.student_id}",
+        f"Candidate attempts: {preview.candidate_count}",
+        f"Selected attempts: {preview.selected_count}",
+        f"Policy: {candidate.policy.policy_id}",
+        f"Policy revision: {candidate.policy.policy_revision}",
+        f"Decision revision: {candidate.decision_revision}",
+        (
+            "Currently selected decision revision: none"
+            if preview.reviewed_current_decision_revision is None
+            else (
+                "Currently selected decision revision: "
+                f"{preview.reviewed_current_decision_revision}"
+            )
+        ),
+        "",
+        "This writes one explicit student attempt/reassessment decision.",
+        "It does not mutate producer attempt history.",
+        "Writing this revision will NOT select it.",
+        "Type WRITE to create this exact decision revision.",
+    )
+    for attempt in candidate.selected_attempts:
+        print(f"  Selected: {_candidate_label(attempt)}", file=output)
+    if read_choice(input_fn, "Confirmation: ") != "WRITE":
+        write_lines(output, "", "No attempt decision revision was written.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = attempts.authoring_committer(root, context, preview)
+    except AttemptDecisionAuthoringWorkflowError as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed attempt decision could not be written safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    write_lines(
+        output,
+        "",
+        f"Attempt decision revision: {result.write_disposition}.",
+        f"Written revision: {result.written_revision}.",
+        "Current attempt-decision selection was not changed.",
+    )
+    pause_for_user(input_fn)
+
+
+def _select_attempt_decision(
+    *,
+    dependencies: EvidenceMenuDependencies,
+    attempts: AttemptActionDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Select Attempt / Reassessment Decision")
+    try:
+        loaded = _attempt_scope(
+            dependencies=dependencies,
+            attempts=attempts,
+            input_fn=input_fn,
+            output=output,
+        )
+        if loaded is None:
+            return
+        root, context, student_id = loaded
+        revision = _positive_int(
+            read_choice(input_fn, "Decision revision to select: "),
+            "decision revision",
+        )
+        preview = attempts.selection_previewer(
+            root,
+            context,
+            student_id,
+            revision,
+        )
+    except DiagnosticsAuthorizationProviderRequiredError:
+        write_lines(
+            output,
+            "",
+            "Protected attempt evidence is unavailable in this Meridian process.",
+            "No attempt-decision selection was changed.",
+            "A deployment-provided authorization capability is required.",
+        )
+        pause_for_user(input_fn)
+        return
+    except (
+        WorkspaceRootError,
+        DiagnosticsError,
+        ProjectionCacheError,
+        AttemptSelectionStorageError,
+        AttemptDecisionSelectionWorkflowError,
+        ValueError,
+    ) as error:
+        write_lines(
+            output,
+            "",
+            "Attempt decision selection preview could not be prepared safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    decision = preview.target.decision
+    clear_fn()
+    print_menu_header(output, "Review Attempt Decision Selection")
+    write_lines(
+        output,
+        f"Student: {decision.student_id}",
+        f"Target revision: {preview.target_revision}",
+        f"Target sha256: {preview.target_sha256}",
+        f"Selected attempts: {len(decision.selected_attempts)}",
+        f"Candidate attempts: {len(decision.candidates)}",
+        f"Policy: {decision.policy.policy_id}",
+        f"Policy revision: {decision.policy.policy_revision}",
+        (
+            "Current decision revision: none"
+            if preview.expected_current_decision_revision is None
+            else (
+                "Current decision revision: "
+                f"{preview.expected_current_decision_revision}"
+            )
+        ),
+        "",
+        "Type SELECT to make this exact decision revision current.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "SELECT":
+        write_lines(output, "", "Current attempt-decision selection was not changed.")
+        pause_for_user(input_fn)
+        return
+
+    try:
+        result = attempts.selection_committer(root, context, preview)
+    except AttemptDecisionSelectionWorkflowError as error:
+        write_lines(
+            output,
+            "",
+            "The reviewed attempt decision could not be selected safely.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+
+    write_lines(
+        output,
+        "",
+        f"Attempt-decision selection: {result.selection_disposition}.",
+        f"Selected revision: {result.selected_revision}.",
+    )
+    pause_for_user(input_fn)
+
+
 def run_new_evidence_menu(
     *,
     dependencies: EvidenceMenuDependencies | None = None,
     action_dependencies: EvidenceActionDependencies | None = None,
+    attempt_dependencies: AttemptActionDependencies | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> None:
-    """Run protected evidence review plus explicit eligibility follow-up."""
+    """Run protected evidence review and explicit teacher follow-up actions."""
 
     stream = sys.stdout if output is None else output
     active = dependencies or default_evidence_menu_dependencies()
     actions = action_dependencies or default_evidence_action_dependencies(
+        diagnostics=active.diagnostics,
+    )
+    attempts = attempt_dependencies or default_attempt_action_dependencies(
         diagnostics=active.diagnostics,
     )
     while True:
@@ -853,8 +1403,10 @@ def run_new_evidence_menu(
             "1. Review prepared protected evidence",
             "2. Author academic eligibility revision",
             "3. Select academic eligibility revision",
+            "4. Author attempt / reassessment decision",
+            "5. Select attempt / reassessment decision",
             "",
-            "Grade Item, attempt, and standards follow-up remain separate tasks.",
+            "Grade Item and standards follow-up remain separate tasks.",
             "",
         )
         print_standard_navigation(stream)
@@ -888,5 +1440,23 @@ def run_new_evidence_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-3, B, M, or Q.")
+        if choice == "4":
+            _author_attempt_decision(
+                dependencies=active,
+                attempts=attempts,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "5":
+            _select_attempt_decision(
+                dependencies=active,
+                attempts=attempts,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-5, B, M, or Q.")
         pause_for_user(input_fn)
