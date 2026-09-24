@@ -59,7 +59,11 @@
   Proficiency now also reaches explicit authorized Grade Item calculation
   preview, immutable result persistence, and exact current-result selection;
   evidence/mapping bindings are caller-bounded and WRITE/SELECT remain
-  separate.
+  separate. Academic Period proficiency now has the matching explicit #35
+  calculation preview, immutable result persistence, and exact current-result
+  selection paths over caller-bounded calendar/policy/Grade Item/membership/
+  optional #34 result provenance; no candidate or latest-result inference is
+  introduced.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
