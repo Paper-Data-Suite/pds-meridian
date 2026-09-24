@@ -45,7 +45,11 @@
   Items now also reaches the existing immutable Grade Item create/revise/
   archive/reactivate workflows, exact Grade Item selection, work-membership
   authoring/selection, and explicit Academic Period assignment context while
-  preserving write-versus-selection separation.
+  preserving write-versus-selection separation. Review New Evidence now
+  also reaches explicit teacher academic-eligibility authoring and exact
+  eligibility selection over a freshly reauthorized projection, without
+  rewriting Core source supersession/withdrawal state or auto-selecting a
+  newly written decision.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
