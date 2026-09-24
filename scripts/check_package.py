@@ -259,6 +259,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/menu_grade_items.py",
         "meridian/menu_proficiency.py",
         "meridian/menu_grades.py",
+        "meridian/menu_overrides.py",
+        "meridian/menu_snapshots.py",
         "meridian/teacher_workflows.py",
         "meridian/standards_review_workflow.py",
         "meridian/standards_association_authoring_workflow.py",

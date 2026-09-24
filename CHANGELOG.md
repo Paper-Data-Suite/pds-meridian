@@ -16,8 +16,12 @@
   review, Core signal, or CSV state. Preview Grades now composes #54 current
   Grade explanations and bounded report previews, keeping policy/result/override
   provenance behind technical drill-down and preserving the explicit authorized
-  work-evidence requirement for conventional/hybrid families. The public entry
-  switch remains deferred until all primary task controllers are composed.
+  work-evidence requirement for conventional/hybrid families. Overrides now use
+  exact #53 authoring/selection previews with typed WRITE/SELECT confirmation,
+  and Snapshots add bounded frozen-state review plus digest-bound CAS selection.
+  Neither workflow infers current authority from history/listing order. The
+  public entry switch remains deferred until all primary task controllers are
+  composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
