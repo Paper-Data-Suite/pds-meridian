@@ -97,46 +97,71 @@ def test_freeze_defaults_to_live_preview_without_snapshot_write(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     request = _build_request()
-    monkeypatch.setattr(reporting_cli, "_read_build_request_file", lambda path: request)
+    live_report = SimpleNamespace()
+    preview = SimpleNamespace(
+        build_request_sha256="f" * 64,
+        live_report=live_report,
+        live_report_sha256="e" * 64,
+    )
     monkeypatch.setattr(
         reporting_cli,
-        "explain_grade_report_preview",
-        lambda *args: SimpleNamespace(),
+        "load_reporting_snapshot_build_request_file",
+        lambda path: request,
+    )
+    monkeypatch.setattr(
+        reporting_cli,
+        "prepare_reporting_snapshot_freeze",
+        lambda *args, **kwargs: preview,
     )
     monkeypatch.setattr(
         reporting_cli,
         "grade_report_preview_to_dict",
         lambda value: {"summary": {"requested_count": 1}},
     )
-    monkeypatch.setattr(
-        reporting_cli,
-        "grade_report_preview_to_json_bytes",
-        lambda value: b"canonical-live-preview\n",
-    )
 
     def forbidden(*args: object, **kwargs: object) -> object:
-        raise AssertionError("preview-only freeze must not write a snapshot")
+        raise AssertionError("preview-only freeze must not commit a snapshot")
 
-    monkeypatch.setattr(reporting_cli, "freeze_reporting_snapshot", forbidden)
+    monkeypatch.setattr(
+        reporting_cli,
+        "commit_reporting_snapshot_freeze_preview",
+        forbidden,
+    )
 
     assert main(_freeze_args("--format", "json")) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["surface"] == "reporting_snapshot_freeze"
     assert payload["disposition"] == "preview_only"
+    assert payload["build_request_sha256"] == "f" * 64
+    assert payload["live_grade_report_sha256"] == "e" * 64
     assert payload["freeze_confirmed"] is False
     assert payload["official_system_authority"] is False
 
 
-def test_confirmed_freeze_delegates_to_whole_report_freeze_service(
+def test_confirmed_freeze_delegates_to_shared_freeze_workflow(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     request = _build_request()
-    observed: list[dict[str, object]] = []
-    monkeypatch.setattr(reporting_cli, "_read_build_request_file", lambda path: request)
+    preview = SimpleNamespace(
+        build_request_sha256="f" * 64,
+        live_report=SimpleNamespace(),
+        live_report_sha256="e" * 64,
+    )
+    observed: list[object] = []
+    monkeypatch.setattr(
+        reporting_cli,
+        "load_reporting_snapshot_build_request_file",
+        lambda path: request,
+    )
+    monkeypatch.setattr(
+        reporting_cli,
+        "prepare_reporting_snapshot_freeze",
+        lambda *args, **kwargs: preview,
+    )
 
-    def freeze(*args: object, **kwargs: object) -> object:
-        observed.append(kwargs)
+    def commit(*args: object, **kwargs: object) -> object:
+        observed.extend(args)
         reference = reporting_cli.ReportingSnapshotReference(
             class_id=CLASS_ID,
             snapshot_id=SNAPSHOT_ID,
@@ -148,13 +173,16 @@ def test_confirmed_freeze_delegates_to_whole_report_freeze_service(
         )
         return SimpleNamespace(reference=reference, snapshot=snapshot)
 
-    monkeypatch.setattr(reporting_cli, "freeze_reporting_snapshot", freeze)
+    monkeypatch.setattr(
+        reporting_cli,
+        "commit_reporting_snapshot_freeze_preview",
+        commit,
+    )
 
     assert main(_freeze_args("--confirm-freeze", "--format", "json")) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert len(observed) == 1
-    assert observed[0]["snapshot_id"] == SNAPSHOT_ID
-    assert observed[0]["build_request"] == request
+    assert len(observed) >= 2
+    assert observed[1] is preview
     assert payload["disposition"] == "committed_or_exact_replay"
     assert payload["snapshot_reference"]["snapshot_sha256"] == SNAPSHOT_SHA256
     assert payload["freeze_confirmed"] is True

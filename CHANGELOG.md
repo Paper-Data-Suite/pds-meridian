@@ -22,9 +22,12 @@
   Override withdrawal now preserves write-versus-selection as two explicit
   teacher confirmations, while Reporting Definition authoring writes only exact
   immutable linear revisions. Neither workflow infers current authority from
-  history/listing order. Snapshot freezing remains separately bounded by live
-  projection authorization. The public entry switch remains deferred until all
-  primary task controllers are composed.
+  history/listing order. Snapshot freezing now has a shared application
+  workflow for bounded build-request loading, explicit protected-projection
+  authorization, reviewed live-report identity, final reauthorization/review
+  currentness, and canonical freeze. The existing direct CLI now uses that
+  shared boundary. The public entry switch remains deferred until all primary
+  task controllers are composed.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a

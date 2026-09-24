@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -21,7 +20,6 @@ from meridian.grade_report_preview import (
     GradeReportPreviewRequest,
     explain_grade_report_preview,
     grade_report_preview_to_dict,
-    grade_report_preview_to_json_bytes,
 )
 from meridian.projection_cache import (
     AuthorizedProjectionSnapshot,
@@ -46,17 +44,12 @@ from meridian.reporting_snapshot_comparison import (
     compare_reporting_snapshot_to_grade_report_preview,
     load_reporting_snapshot_for_comparison,
 )
-from meridian.reporting_snapshot_freeze import (
-    ReportingSnapshotFreezeError,
-    freeze_reporting_snapshot,
-)
 from meridian.reporting_snapshot_record import (
     ReportingSnapshot,
     ReportingSnapshotBuildRequest,
     ReportingSnapshotProjectionInputReference,
     ReportingSnapshotRequestValidationError,
     reporting_snapshot_build_request_from_json_bytes,
-    reporting_snapshot_build_request_sha256,
     reporting_snapshot_to_dict,
 )
 from meridian.reporting_snapshot_selection import (
@@ -76,6 +69,13 @@ from meridian.reporting_snapshot_storage import (
     load_reporting_definition_revision,
     load_reporting_snapshot,
     write_reporting_definition_revision,
+)
+from meridian.reporting_snapshot_workflow import (
+    ReportingSnapshotProjectionAuthorization,
+    ReportingSnapshotWorkflowError,
+    commit_reporting_snapshot_freeze_preview,
+    load_reporting_snapshot_build_request_file,
+    prepare_reporting_snapshot_freeze,
 )
 
 
@@ -913,24 +913,46 @@ def _handle_snapshot_freeze(
     args: argparse.Namespace,
     dependencies: DiagnosticsDependencies | None,
 ) -> int:
-    build_request = _read_build_request_file(args.build_request)
-    live_requests = _preview_requests_from_build_request(
-        args.workspace,
-        build_request,
-        args.projection_auth,
-        dependencies,
-    )
-    build_digest = reporting_snapshot_build_request_sha256(build_request)
+    try:
+        build_request = load_reporting_snapshot_build_request_file(
+            args.build_request
+        )
+        raw_authorizations = _projection_authorizations(args.projection_auth)
+        authorizations = tuple(
+            ReportingSnapshotProjectionAuthorization(
+                publication_id=publication_id,
+                cache_key=cache_key,
+                purpose_id=purpose_id,
+                student_ids=student_ids,
+            )
+            for (
+                publication_id,
+                cache_key,
+            ), (
+                purpose_id,
+                student_ids,
+            ) in sorted(raw_authorizations.items())
+        )
+        preview = prepare_reporting_snapshot_freeze(
+            args.workspace,
+            snapshot_id=args.snapshot_id,
+            build_request=build_request,
+            authorizations=authorizations,
+            created_at=args.created_at,
+            dependencies=dependencies,
+        )
+    except ReportingSnapshotWorkflowError as error:
+        raise _translate_error(error, "reporting_snapshot.error") from error
+
+    build_digest = preview.build_request_sha256
     if args.confirm_freeze:
         try:
-            stored = freeze_reporting_snapshot(
+            stored = commit_reporting_snapshot_freeze_preview(
                 args.workspace,
-                snapshot_id=args.snapshot_id,
-                build_request=build_request,
-                preview_requests=live_requests,
-                created_at=args.created_at,
+                preview,
+                dependencies=dependencies,
             )
-        except ReportingSnapshotFreezeError as error:
+        except ReportingSnapshotWorkflowError as error:
             raise _translate_error(error, "reporting_snapshot.error") from error
         payload: dict[str, object] = {
             "schema_version": 1,
@@ -946,19 +968,16 @@ def _handle_snapshot_freeze(
             "official_system_authority": False,
         }
     else:
-        try:
-            preview = explain_grade_report_preview(args.workspace, live_requests)
-        except GradePreviewError as error:
-            raise _translate_error(error, "reporting_snapshot.error") from error
-        preview_bytes = grade_report_preview_to_json_bytes(preview)
         payload = {
             "schema_version": 1,
             "surface": "reporting_snapshot_freeze",
             "disposition": "preview_only",
             "snapshot_id": args.snapshot_id,
             "build_request_sha256": build_digest,
-            "live_grade_report": grade_report_preview_to_dict(preview),
-            "live_grade_report_sha256": hashlib.sha256(preview_bytes).hexdigest(),
+            "live_grade_report": grade_report_preview_to_dict(
+                preview.live_report
+            ),
+            "live_grade_report_sha256": preview.live_report_sha256,
             "freeze_confirmed": False,
             "official_system_authority": False,
         }

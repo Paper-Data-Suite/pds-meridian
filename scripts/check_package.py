@@ -330,6 +330,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/reporting_snapshot_preview.py",
         "meridian/reporting_snapshot_record.py",
         "meridian/reporting_snapshot_storage.py",
+        "meridian/reporting_snapshot_workflow.py",
         "meridian/reporting_snapshot_selection.py",
         "meridian/reporting_snapshot_freeze.py",
         "meridian/reporting_snapshot_comparison.py",
