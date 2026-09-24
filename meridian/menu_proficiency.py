@@ -81,6 +81,10 @@ from meridian.grade_item_proficiency_explanation import (
     ProficiencyLevelExplanation,
     explain_grade_item_proficiency,
 )
+from meridian.menu_planning_signal import (
+    PlanningSignalMenuDependencies,
+    run_planning_signal_menu,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -1833,6 +1837,7 @@ def run_proficiency_menu(
     period_action_dependencies: (
         AcademicPeriodProficiencyActionDependencies | None
     ) = None,
+    planning_dependencies: PlanningSignalMenuDependencies | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -1861,6 +1866,7 @@ def run_proficiency_menu(
             "7. Preview Academic Period proficiency calculation",
             "8. Write Academic Period proficiency result",
             "9. Select Academic Period proficiency result",
+            "10. Create Planning Signal",
             "",
         )
         print_standard_navigation(stream)
@@ -1946,5 +1952,13 @@ def run_proficiency_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+        if choice == "10":
+            run_planning_signal_menu(
+                dependencies=planning_dependencies,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        write_lines(stream, "", "Please choose 1-10, B, M, or Q.")
         pause_for_user(input_fn)

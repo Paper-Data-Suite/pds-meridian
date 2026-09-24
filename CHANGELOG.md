@@ -63,7 +63,12 @@
   calculation preview, immutable result persistence, and exact current-result
   selection paths over caller-bounded calendar/policy/Grade Item/membership/
   optional #34 result provenance; no candidate or latest-result inference is
-  introduced.
+  introduced. Review Proficiency now also reaches the complete existing #41
+  Create Planning Signal flow as a nested guided task: readiness, explicit #38
+  derivation write, exact #39 preview write/diagnostics, immutable teacher review
+  authoring, exact review selection, and finally #40 Core export with optional
+  Core-native CSV. Every write/select/export remains separately confirmed and
+  no planning step creates Concord grouping state.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
