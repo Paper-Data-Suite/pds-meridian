@@ -69,6 +69,12 @@
   authoring, exact review selection, and finally #40 Core export with optional
   Core-native CSV. Every write/select/export remains separately confirmed and
   no planning step creates Concord grouping state.
+  Final #57 qualification now guards all teacher-menu modules in wheel/sdist,
+  documents the eight-task interaction contract, adds isolated installed
+  launch/navigation/direct-CLI smoke coverage, and rechecks sibling releases.
+  The exact compatible Quillan boundary advances from 0.10.1 to 0.10.2;
+  Quillan's patch declares no Academic Result/publication/routing/PDS2 schema
+  changes, so Meridian changes only its exact authenticated reader identity.
 
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
@@ -537,3 +543,7 @@
 
 The package does not yet implement the remaining Portia/Vitrine producer adapters,
 eligibility or selection policy, proficiency, Grades, or reports.
+- Issue #57 Slice 19 qualification fix: the legacy base wheel smoke now feeds `q` to bare `meridian` and `python -m meridian` teacher-menu entry points while leaving named/help/version commands noninteractive.
+- Issue #57 Slice 19 qualification fix: isolated base-wheel Quillan and all-adapter smokes now require exact Quillan 0.10.2 instead of the superseded 0.10.1 reader.
+- Issue #57 Slice 19 qualification fix: the Issue #14 release-audit guard now requires both isolated wheel-smoke paths to bind exact Quillan 0.10.2 and rejects stale 0.10.1/0.10.0 assertions.
+- Issue #57 Slice 19 qualification fix: the Issue #45 fresh-process proficiency-signal reload smoke now requires exact Quillan 0.10.2, matching the primary installed smoke and adapter boundary.

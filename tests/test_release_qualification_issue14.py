@@ -139,7 +139,8 @@ def test_release_validator_wires_all_issue14_qualification_gates() -> None:
     assert "'scoreform.academic_result'" in smoke
     assert "'quillan.academic_result'" in smoke
     assert "'concord.academic_result'" in smoke
-    assert smoke.count("assert m.version('quillan') == '0.10.1'; ") == 2
+    assert smoke.count("assert m.version('quillan') == '0.10.2'; ") == 2
+    assert "assert m.version('quillan') == '0.10.1'; " not in smoke
     assert "assert m.version('quillan') == '0.10.0'; " not in smoke
     assert "import meridian, pathlib, pds_core, scoreform, sys;" in smoke
 

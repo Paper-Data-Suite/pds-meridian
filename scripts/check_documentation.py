@@ -58,6 +58,7 @@ EXPECTED = (
     Path("docs/architecture/grade-report-preview-explanations.md"),
     Path("docs/architecture/reporting-snapshots.md"),
     Path("docs/architecture/reporting-exports.md"),
+    Path("docs/architecture/teacher-main-menu.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -288,6 +289,15 @@ REQUIRED_TEXT = {
         "released ScoreForm v0.11.0",
         "fresh-process reload",
         "producer-owned source bytes remain unchanged",
+    ),
+    Path("docs/architecture/teacher-main-menu.md"): (
+        "Eight-task application surface",
+        "pds_core.menu_navigation",
+        "Clear/redraw and information density",
+        "Consequential actions",
+        "#58 and #59 boundaries",
+        "Installed qualification",
+        "quillan      0.10.2",
     ),
     Path("docs/architecture/reporting-exports.md"): (
         "exact immutable ReportingSnapshot",

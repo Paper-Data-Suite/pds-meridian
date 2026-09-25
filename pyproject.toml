@@ -29,7 +29,7 @@ scoreform = [
     "scoreform==0.11.0",
 ]
 quillan = [
-    "quillan==0.10.1",
+    "quillan==0.10.2",
 ]
 concord = [
     "pds-concord==0.3.0",

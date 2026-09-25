@@ -1,22 +1,23 @@
-# Quillan v0.10.1 adapter
+# Quillan v0.10.2 adapter
 
 ## Exact boundary
 
-`meridian.quillan_adapter` supports only the released `quillan==0.10.1` public
+`meridian.quillan_adapter` supports only the released `quillan==0.10.2` public
 reader on the current Meridian v0.3 development branch. Its authenticated
-GitHub Release wheel is `quillan-0.10.1-py3-none-any.whl`, SHA-256
-`5311cccc03a012a7d319827e30b5a989901a9e77693171a8861e4e58409764ad`;
-the release tag is `v0.10.1` and its release commit is
-`7c6776f80a03a0009f7ab3b6cbc595a2b51db8df`.
+GitHub Release wheel is `quillan-0.10.2-py3-none-any.whl`, SHA-256
+`f64620123c43747bacc82679e98bc53b07a56293abdf6bf8d8038a4108b673e2`;
+the release tag is `v0.10.2` and its release commit is
+`ec99cb0afa8375b3513769bbd31d70ade605e1f9`.
 
 The released Meridian v0.2 lineage remains the historical authority for its
 Quillan v0.10.0 adapter. Current v0.3 code does not widen one adapter descriptor
 across multiple reader versions because projection identity records the exact
 resolved reader version while `ProducerAdapter.project()` receives only the
-projection request. The v0.10.0 -> v0.10.1 Quillan release delta does not change
-`academic_result_reader.py` or the Academic Result Manifest contract; v0.10.1
-adds batch-feedback/release work and promotes `pypdf>=5,<7` to a runtime
-dependency. The base Meridian dependency is `pds-core>=0.6.3,<0.7`; the
+projection request. The v0.10.1 -> v0.10.2 Quillan release delta is a
+selected-review read-performance patch and explicitly introduces no Academic
+Work, Academic Result, publication, routing, or PDS2 schema changes. The public
+`academic_result_reader.py` / Academic Result Manifest boundary therefore remains
+compatible. The base Meridian dependency is `pds-core>=0.6.3,<0.7`; the
 `quillan` extra pins the active producer release exactly and is independent of
 the ScoreForm extra.
 
@@ -33,7 +34,7 @@ capabilities:             standards_ratings
 ```
 
 The adapter ID is `quillan.academic_result`, projection contract is `1`, reader
-distribution is `quillan`, and reader version is exactly `0.10.1`. Quillan
+distribution is `quillan`, and reader version is exactly `0.10.2`. Quillan
 0.10.0, 0.9.0, and all other versions are unsupported by the current v0.3
 adapter until another explicit compatibility decision. Missing and unsupported
 readers use Meridian's controlled reader errors.
@@ -129,7 +130,7 @@ projection.
 
 The existing generic projection cache accepts the inventory unchanged. Its
 execution identity records adapter `quillan.academic_result`, contract `1`,
-distribution `quillan`, and reader `0.10.1`; the adapter never reads or writes
+distribution `quillan`, and reader `0.10.2`; the adapter never reads or writes
 cache state.
 
 This adapter does not calculate proficiency, percentages, Grades, Grade-item or

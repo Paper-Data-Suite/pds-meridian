@@ -82,7 +82,7 @@ def _verify_installed_composition() -> None:
     expected = {
         "pds-core": "0.6.3",
         "scoreform": "0.11.0",
-        "quillan": "0.10.1",
+        "quillan": "0.10.2",
         "pds-concord": "0.3.0",
     }
     _require(metadata.version("pds-core") == "0.6.3", "Core version mismatch.")
@@ -90,7 +90,7 @@ def _verify_installed_composition() -> None:
         metadata.version("scoreform") == "0.11.0",
         "ScoreForm version mismatch.",
     )
-    _require(metadata.version("quillan") == "0.10.1", "Quillan version mismatch.")
+    _require(metadata.version("quillan") == "0.10.2", "Quillan version mismatch.")
     _require(
         metadata.version("pds-concord") == "0.3.0",
         "Concord version mismatch.",

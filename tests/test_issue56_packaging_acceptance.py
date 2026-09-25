@@ -17,7 +17,7 @@ RUNTIME_MODULES = (
 def test_issue56_wheel_guard_requires_runtime_and_quillan_0101() -> None:
     text = (ROOT / "scripts" / "check_package.py").read_text(encoding="utf-8")
 
-    assert 'Requirement("quillan==0.10.1; extra == \'quillan\'")' in text
+    assert 'Requirement("quillan==0.10.2; extra == \'quillan\'")' in text
     for module in RUNTIME_MODULES:
         assert f'"{module}"' in text
 
@@ -47,5 +47,5 @@ def test_issue56_repository_validator_runs_installed_export_smoke() -> None:
 def test_pyproject_uses_required_current_quillan_release() -> None:
     text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
-    assert '"quillan==0.10.1"' in text
+    assert '"quillan==0.10.2"' in text
     assert '"quillan==0.10.0"' not in text
