@@ -195,7 +195,7 @@ def test_issue55_reporting_snapshot_smoke_is_release_guarded() -> None:
     ):
         assert member in sdist_checker
 
-    assert "scripts/smoke_test_reporting_snapshot_wheel.py" in validator
+    assert "scripts.installed_qualification_runner" in validator
 
 
 def test_grouping_signal_contract_installed_smoke_is_release_guarded() -> None:

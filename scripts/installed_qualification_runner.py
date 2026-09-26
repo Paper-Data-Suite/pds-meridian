@@ -20,17 +20,29 @@ from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_fo
 from scripts.smoke_test_conventional_grade_wheel import (
     run_prepared_smoke as run_conventional_grade_prepared_smoke,
 )
+from scripts.smoke_test_grade_report_preview_wheel import (
+    run_prepared_smoke as run_grade_report_preview_prepared_smoke,
+)
 from scripts.smoke_test_hybrid_grade_wheel import (
     run_prepared_smoke as run_hybrid_grade_prepared_smoke,
 )
 from scripts.smoke_test_proficiency_signal_export_wheel import (
     run_prepared_smoke as run_proficiency_signal_export_prepared_smoke,
 )
+from scripts.smoke_test_report_exports_wheel import (
+    run_prepared_smoke as run_report_exports_prepared_smoke,
+)
+from scripts.smoke_test_reporting_snapshot_wheel import (
+    run_prepared_smoke as run_reporting_snapshot_prepared_smoke,
+)
 from scripts.smoke_test_standards_grade_wheel import (
     run_prepared_smoke as run_standards_grade_prepared_smoke,
 )
 from scripts.smoke_test_teacher_grade_override_wheel import (
     run_prepared_smoke as run_teacher_grade_override_prepared_smoke,
+)
+from scripts.smoke_test_teacher_menu_wheel import (
+    run_prepared_smoke as run_teacher_menu_prepared_smoke,
 )
 from scripts.smoke_test_wheel import (
     run_all_adapters_prepared_smoke,
@@ -210,6 +222,47 @@ def run_migrated_matrices(
             "all-adapters-composition",
             lambda: run_all_adapters_prepared_smoke(
                 prepared.python,
+                outside,
+            ),
+        )
+
+        _, outside = _working_layout(prepared, "grade-report-preview")
+        _run_acceptance(
+            prepared,
+            "grade-report-preview",
+            lambda: run_grade_report_preview_prepared_smoke(
+                prepared.python,
+                outside,
+            ),
+        )
+
+        _, outside = _working_layout(prepared, "reporting-snapshot")
+        _run_acceptance(
+            prepared,
+            "reporting-snapshot",
+            lambda: run_reporting_snapshot_prepared_smoke(
+                prepared.python,
+                outside,
+            ),
+        )
+
+        _, outside = _working_layout(prepared, "report-exports")
+        _run_acceptance(
+            prepared,
+            "report-exports",
+            lambda: run_report_exports_prepared_smoke(
+                prepared.python,
+                outside,
+            ),
+        )
+
+        _, outside = _working_layout(prepared, "teacher-menu")
+        _run_acceptance(
+            prepared,
+            "teacher-menu",
+            lambda: run_teacher_menu_prepared_smoke(
+                prepared.python,
+                prepared.meridian,
                 outside,
             ),
         )

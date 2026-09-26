@@ -142,6 +142,26 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "run_all_adapters_prepared_smoke",
         record("all-adapters"),
     )
+    monkeypatch.setattr(
+        runner,
+        "run_grade_report_preview_prepared_smoke",
+        record("grade-report-preview"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_reporting_snapshot_prepared_smoke",
+        record("reporting-snapshot"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_report_exports_prepared_smoke",
+        record("report-exports"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_teacher_menu_prepared_smoke",
+        record("teacher-menu"),
+    )
     monkeypatch.setattr(Path, "mkdir", lambda self: None)
 
     runner.run_migrated_matrices(_wheels(tmp_path), temp_parent=tmp_path)
@@ -167,6 +187,10 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "hybrid-grade",
         "concord",
         "all-adapters",
+        "grade-report-preview",
+        "reporting-snapshot",
+        "report-exports",
+        "teacher-menu",
     ]
     assert FakePreparedEnvironment.immutable == [
         (DependencyMatrixId.CORE, "wheel-foundation"),
@@ -182,6 +206,10 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         (DependencyMatrixId.SCOREFORM_QUILLAN, "hybrid-grade"),
         (DependencyMatrixId.CONCORD, "concord-adapter"),
         (DependencyMatrixId.ALL_ADAPTERS, "all-adapters-composition"),
+        (DependencyMatrixId.ALL_ADAPTERS, "grade-report-preview"),
+        (DependencyMatrixId.ALL_ADAPTERS, "reporting-snapshot"),
+        (DependencyMatrixId.ALL_ADAPTERS, "report-exports"),
+        (DependencyMatrixId.ALL_ADAPTERS, "teacher-menu"),
     ]
 
 
@@ -256,6 +284,26 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         "run_all_adapters_prepared_smoke",
         capture("all-adapters"),
     )
+    monkeypatch.setattr(
+        runner,
+        "run_grade_report_preview_prepared_smoke",
+        capture("grade-report-preview"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_reporting_snapshot_prepared_smoke",
+        capture("reporting-snapshot"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_report_exports_prepared_smoke",
+        capture("report-exports"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_teacher_menu_prepared_smoke",
+        capture("teacher-menu"),
+    )
 
     runner.run_migrated_matrices(_wheels(tmp_path))
 
@@ -270,6 +318,10 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         "hybrid-grade": Path("python-scoreform-quillan"),
         "concord": Path("python-concord"),
         "all-adapters": Path("python-all-adapters"),
+        "grade-report-preview": Path("python-all-adapters"),
+        "reporting-snapshot": Path("python-all-adapters"),
+        "report-exports": Path("python-all-adapters"),
+        "teacher-menu": Path("python-all-adapters"),
     }
 
 
@@ -326,6 +378,10 @@ def test_issue96_validator_uses_central_runner_once() -> None:
     assert "scripts/smoke_test_proficiency_signal_export_wheel.py" not in validator
     assert "scripts/smoke_test_standards_grade_wheel.py" not in validator
     assert "scripts/smoke_test_hybrid_grade_wheel.py" not in validator
+    assert "scripts/smoke_test_grade_report_preview_wheel.py" not in validator
+    assert "scripts/smoke_test_reporting_snapshot_wheel.py" not in validator
+    assert "scripts/smoke_test_report_exports_wheel.py" not in validator
+    assert "scripts/smoke_test_teacher_menu_wheel.py" not in validator
 
 
 def test_issue96_smoke_test_wheel_keeps_standalone_five_environment_path() -> None:

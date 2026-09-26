@@ -351,3 +351,49 @@ The structural count becomes:
 | Temporary installed venvs in normal full validation | 12 | 10 |
 | Standalone ScoreForm+Quillan wrapper venvs in validator | 3 | 0 |
 | Prepared ScoreForm+Quillan matrix venvs | 0 | 1 |
+
+## Slice 8 — all-adapters consolidation and structural target
+
+Slice 8 moves the final four standalone repository-validation workflows into the
+already prepared `all-adapters` matrix:
+
+- Grade report preview;
+- immutable `ReportingSnapshot`;
+- report exports;
+- teacher main menu.
+
+Grade report preview and ReportingSnapshot keep their main and reload programs as
+separate Python processes. Report exports keeps its CLI-help check, snapshot seed,
+export acceptance, and reload acceptance as four separate processes in one fresh
+workflow directory.
+
+Teacher-menu acceptance keeps a separate fresh working directory and preserves
+its no-mutation contract. Launch/quit, navigation, help, and version operations
+must leave the working tree unchanged. The standalone teacher-menu wrapper still
+performs its own installed-origin check when run directly; repository
+qualification additionally receives the prepared harness's installed-origin and
+package-fingerprint checks.
+
+With these migrations, the normal full repository validator creates exactly one
+prepared environment for each documented dependency matrix:
+
+```text
+core
+scoreform
+quillan
+scoreform-quillan
+concord
+all-adapters
+```
+
+The structural target is reached:
+
+| Metric | After Slice 7 | After Slice 8 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 10 | 6 |
+| Standalone all-adapters wrapper venvs in validator | 4 | 0 |
+| Prepared all-adapters matrix venvs | 1 | 1 |
+
+Standalone smoke wrappers remain available for focused developer execution.
+The optimization removes redundant environment setup from repository
+qualification; it does not remove acceptance evidence.
