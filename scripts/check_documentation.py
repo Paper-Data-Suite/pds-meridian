@@ -96,6 +96,10 @@ REQUIRED_TEXT = {
         "| Temporary installed venvs in normal full validation | 12 | 10 |",
         "Slice 8",
         "| Temporary installed venvs in normal full validation | 10 | 6 |",
+        "Slice 9",
+        "| Temporary installed venvs | 24 | 6 |",
+        "| Package-install setups | 24 | 6 |",
+        "| `pip check` runs | 24 | 6 |",
     ),
     Path("docs/development/v0.2.0-release-audit.md"): (
         "Release-preparation authorization — AUTHORIZED",

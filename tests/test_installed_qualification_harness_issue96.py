@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -14,19 +15,34 @@ from scripts.installed_qualification_harness import (
 from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_for
 
 
-def _wheels(tmp_path: Path) -> InstalledWheelSet:
-    paths = {
-        name: tmp_path / filename
-        for name, filename in (
-            ("meridian", "pds_meridian-0.3.0-py3-none-any.whl"),
-            ("core", "pds_core-0.6.3-py3-none-any.whl"),
-            ("scoreform", "scoreform-0.11.0-py3-none-any.whl"),
-            ("quillan", "quillan-0.10.2-py3-none-any.whl"),
-            ("concord", "pds_concord-0.3.0-py3-none-any.whl"),
+def _write_wheel(path: Path, distribution: str, version: str) -> None:
+    stem = distribution.replace("-", "_")
+    metadata_path = f"{stem}-{version}.dist-info/METADATA"
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr(
+            metadata_path,
+            (
+                "Metadata-Version: 2.1\n"
+                f"Name: {distribution}\n"
+                f"Version: {version}\n"
+                "\n"
+            ),
         )
-    }
-    for path in paths.values():
-        path.write_bytes(b"synthetic")
+
+
+def _wheels(tmp_path: Path) -> InstalledWheelSet:
+    specs = (
+        ("meridian", "pds_meridian-0.3.0-py3-none-any.whl", "pds-meridian", "0.3.0"),
+        ("core", "pds_core-0.6.3-py3-none-any.whl", "pds-core", "0.6.3"),
+        ("scoreform", "scoreform-0.11.0-py3-none-any.whl", "scoreform", "0.11.0"),
+        ("quillan", "quillan-0.10.2-py3-none-any.whl", "quillan", "0.10.2"),
+        ("concord", "pds_concord-0.3.0-py3-none-any.whl", "pds-concord", "0.3.0"),
+    )
+    paths: dict[str, Path] = {}
+    for field, filename, distribution, version in specs:
+        path = tmp_path / filename
+        _write_wheel(path, distribution, version)
+        paths[field] = path
     return InstalledWheelSet(**paths)
 
 
@@ -173,6 +189,11 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
         origin_code = origin_commands[0][-1]
         assert "('meridian', 'pds_core', 'scoreform', 'quillan')" in origin_code
         assert "absent=('concord',)" in origin_code
+        assert "('pds-core', '0.6.3')" in origin_code
+        assert "('scoreform', '0.11.0')" in origin_code
+        assert "('quillan', '0.10.2')" in origin_code
+        assert "('pds-meridian', '0.3.0')" in origin_code
+        assert "absent_distributions=('pds-concord',)" in origin_code
 
     assert not any(tmp_path.glob("pds-meridian-scoreform-quillan-*"))
 

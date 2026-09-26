@@ -397,3 +397,59 @@ The structural target is reached:
 Standalone smoke wrappers remain available for focused developer execution.
 The optimization removes redundant environment setup from repository
 qualification; it does not remove acceptance evidence.
+
+## Slice 9 — artifact identity and harness hardening
+
+With the six-matrix structure in place, Slice 9 strengthens the prepared
+environment contract rather than reducing the matrix count further.
+
+Each supplied PDS wheel is now inspected before installation. The harness reads
+the wheel's own `METADATA` and records its distribution name and version.
+Expected distribution names are fixed by role:
+
+| Wheel role | Expected distribution |
+| --- | --- |
+| Meridian | `pds-meridian` |
+| Core | `pds-core` |
+| ScoreForm | `scoreform` |
+| Quillan | `quillan` |
+| Concord | `pds-concord` |
+
+Versions are deliberately **not hardcoded in the harness**. They are derived
+from the exact supplied wheel artifacts so the final compatibility recheck may
+advance a sibling release without creating a second source of version truth.
+
+After installation and `pip check`, the origin/isolation probe now verifies all
+of the following in one isolated interpreter:
+
+- every required module imports from inside the prepared venv;
+- every required PDS distribution is installed;
+- every installed PDS distribution version exactly matches the supplied wheel's
+  metadata;
+- every required distribution location is inside the prepared venv;
+- excluded producer modules are not importable;
+- excluded producer distributions are physically absent.
+
+This makes package absence a distribution-level guarantee as well as an import
+boundary.
+
+The normal repository validator also has a structural guard that it invokes only
+the central prepared runner for installed smoke qualification. The runner itself
+contains no venv creation, `pip install`, `pip uninstall`, or `pip check`
+commands; those operations remain centralized in the harness.
+
+A setup failure still closes its bounded temporary root. Normal completion and
+setup-error paths therefore leave no persistent matrix venv cache.
+
+### Consolidated structural evidence
+
+| Metric | Pre-#96 | Post-Slice-9 |
+| --- | ---: | ---: |
+| Distinct dependency matrices | 6 | 6 |
+| Temporary installed venvs | 24 | 6 |
+| Package-install setups | 24 | 6 |
+| `pip check` runs | 24 | 6 |
+| Persistent installed-env cache | 0 | 0 |
+
+The reduction is in setup duplication only. The smoke-to-matrix inventory above
+continues to enumerate all twenty-four historical installed qualification units.

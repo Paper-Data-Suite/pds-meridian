@@ -11,15 +11,82 @@ Smoke migration into this harness is intentionally handled by later slices.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import tempfile
 import venv
+import zipfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from email.parser import Parser
 from pathlib import Path
 from types import TracebackType
 
 from scripts.installed_qualification_matrix import DependencyMatrix, DependencyMatrixId
+
+
+@dataclass(frozen=True)
+class WheelIdentity:
+    """Distribution identity declared by one exact supplied wheel artifact."""
+
+    wheel: Path
+    distribution: str
+    version: str
+
+
+def _normalize_distribution_name(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def read_wheel_identity(
+    wheel: Path,
+    expected_distribution: str,
+) -> WheelIdentity:
+    """Read and validate one wheel's distribution identity from METADATA."""
+    resolved = wheel.resolve()
+    if not resolved.is_file():
+        raise PreparedEnvironmentError(f"wheel does not exist: {resolved}")
+    if resolved.suffix != ".whl":
+        raise PreparedEnvironmentError(f"Expected wheel input: {resolved}")
+
+    try:
+        with zipfile.ZipFile(resolved) as archive:
+            metadata_members = tuple(
+                member
+                for member in archive.namelist()
+                if member.endswith(".dist-info/METADATA")
+            )
+            if len(metadata_members) != 1:
+                raise PreparedEnvironmentError(
+                    f"Wheel must contain exactly one dist-info METADATA file: "
+                    f"{resolved}"
+                )
+            raw_metadata = archive.read(metadata_members[0]).decode("utf-8")
+    except (OSError, UnicodeDecodeError, zipfile.BadZipFile) as exc:
+        raise PreparedEnvironmentError(
+            f"Could not read wheel metadata: {resolved}"
+        ) from exc
+
+    metadata = Parser().parsestr(raw_metadata)
+    distribution = metadata.get("Name")
+    version = metadata.get("Version")
+    if not distribution or not version:
+        raise PreparedEnvironmentError(
+            f"Wheel metadata is missing Name/Version: {resolved}"
+        )
+
+    normalized = _normalize_distribution_name(distribution)
+    expected = _normalize_distribution_name(expected_distribution)
+    if normalized != expected:
+        raise PreparedEnvironmentError(
+            f"Wheel distribution identity mismatch for {resolved}: "
+            f"expected {expected_distribution!r}, found {distribution!r}."
+        )
+    return WheelIdentity(
+        wheel=resolved,
+        distribution=expected,
+        version=version,
+    )
 
 
 @dataclass(frozen=True)
@@ -53,6 +120,25 @@ class InstalledWheelSet:
             self.core,
             *(producer_wheels[producer] for producer in matrix.producers),
             self.meridian,
+        )
+
+    def identities_for_matrix(
+        self,
+        matrix: DependencyMatrix,
+    ) -> tuple[WheelIdentity, ...]:
+        """Return artifact-derived PDS distribution identities for one matrix."""
+        wheel_roles = {
+            "scoreform": (self.scoreform, "scoreform"),
+            "quillan": (self.quillan, "quillan"),
+            "concord": (self.concord, "pds-concord"),
+        }
+        return (
+            read_wheel_identity(self.core, "pds-core"),
+            *(
+                read_wheel_identity(*wheel_roles[producer])
+                for producer in matrix.producers
+            ),
+            read_wheel_identity(self.meridian, "pds-meridian"),
         )
 
 
@@ -283,17 +369,13 @@ class PreparedInstalledEnvironment:
             )
 
     def _validate_wheel_inputs(self) -> None:
-        for path in self.wheels.for_matrix(self.matrix):
-            if not path.is_file():
-                raise PreparedEnvironmentError(
-                    f"Matrix {self.matrix.matrix_id.value!r} wheel does not exist: "
-                    f"{path}"
-                )
-            if path.suffix != ".whl":
-                raise PreparedEnvironmentError(
-                    f"Matrix {self.matrix.matrix_id.value!r} requires wheel input: "
-                    f"{path}"
-                )
+        try:
+            self.wheels.identities_for_matrix(self.matrix)
+        except PreparedEnvironmentError as exc:
+            raise PreparedEnvironmentError(
+                f"Matrix {self.matrix.matrix_id.value!r} has invalid wheel input: "
+                f"{exc}"
+            ) from exc
 
     def _outside_directory(self) -> Path:
         if self._outside is None:
@@ -322,16 +404,52 @@ class PreparedInstalledEnvironment:
     def _verify_origins_and_absence(self) -> None:
         present_modules = ("meridian", "pds_core", *self.matrix.producers)
         absent_modules = self.matrix.excluded_producers
+        identities = self.wheels.identities_for_matrix(self.matrix)
+        expected_distributions = tuple(
+            (identity.distribution, identity.version)
+            for identity in identities
+        )
+        producer_distributions = {
+            "scoreform": "scoreform",
+            "quillan": "quillan",
+            "concord": "pds-concord",
+        }
+        absent_distributions = tuple(
+            producer_distributions[producer]
+            for producer in self.matrix.excluded_producers
+        )
         code = (
             "import importlib.util, pathlib, sys; "
+            "from importlib import metadata; "
             "root=pathlib.Path(sys.prefix).resolve(); "
             f"present={present_modules!r}; absent={absent_modules!r}; "
+            f"expected_distributions={expected_distributions!r}; "
+            f"absent_distributions={absent_distributions!r}; "
             "mods=[__import__(name) for name in present]; "
             "assert all("
             "pathlib.Path(module.__file__).resolve().is_relative_to(root) "
             "for module in mods"
             "); "
-            "assert all(importlib.util.find_spec(name) is None for name in absent)"
+            "assert all("
+            "metadata.version(distribution) == version "
+            "for distribution, version in expected_distributions"
+            "); "
+            "assert all("
+            "pathlib.Path(metadata.distribution(distribution).locate_file(''))"
+            ".resolve().is_relative_to(root) "
+            "for distribution, _version in expected_distributions"
+            "); "
+            "assert all(importlib.util.find_spec(name) is None for name in absent); "
+            "exec("
+            "\"def _distribution_absent(distribution):\\n"
+            "    try:\\n"
+            "        metadata.version(distribution)\\n"
+            "    except metadata.PackageNotFoundError:\\n"
+            "        return True\\n"
+            "    return False\""
+            "); "
+            "assert all(_distribution_absent(name) "
+            "for name in absent_distributions)"
         )
         self._run_setup(
             "origin/isolation verification",
