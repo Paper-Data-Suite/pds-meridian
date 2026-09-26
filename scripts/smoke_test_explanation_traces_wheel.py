@@ -93,6 +93,92 @@ def _assert_deterministic_json(command: list[str], cwd: Path) -> dict[str, objec
     return cast(dict[str, object], payload)
 
 
+def run_prepared_smoke(python: Path, meridian: Path, root: Path, outside: Path) -> None:
+    """Run existing acceptance logic in an already prepared environment."""
+    _run([str(python), str(PROGRAM.resolve())], outside)
+
+    targets = _target_values(outside / TARGETS_FILE)
+    workspace = outside / "workspace"
+    before_cli = _tree_state(workspace)
+    common = ["--workspace", str(workspace), "--format", "json"]
+
+    grade = _assert_deterministic_json(
+        [
+            str(meridian),
+            "trace",
+            "grade-item-proficiency",
+            targets["class_id"],
+            targets["grade_item_id"],
+            targets["student_id"],
+            targets["standard_id"],
+            *common,
+            "--result-revision",
+            "1",
+        ],
+        outside,
+    )
+    academic_period = _assert_deterministic_json(
+        [
+            str(meridian),
+            "trace",
+            "academic-period-proficiency",
+            targets["class_id"],
+            targets["school_year"],
+            targets["period_id"],
+            targets["student_id"],
+            targets["standard_id"],
+            *common,
+            "--result-revision",
+            "1",
+        ],
+        outside,
+    )
+    derivation = _assert_deterministic_json(
+        [
+            str(meridian),
+            "trace",
+            "planning-derivation",
+            targets["class_id"],
+            targets["derivation_id"],
+            *common,
+        ],
+        outside,
+    )
+    exported = _assert_deterministic_json(
+        [
+            str(meridian),
+            "trace",
+            "planning-export",
+            targets["class_id"],
+            targets["signal_set_id"],
+            *common,
+        ],
+        outside,
+    )
+
+    grade_target = cast(dict[str, object], grade["target"])
+    if grade_target["result_revision"] != 1:
+        raise RuntimeError("Installed Grade Item trace used the wrong revision.")
+    if grade_target["selection_state"] != "historical":
+        raise RuntimeError("Installed Grade Item trace lost historical state.")
+    if cast(dict[str, object], academic_period["target"])[
+        "selection_state"
+    ] != "historical":
+        raise RuntimeError("Installed Academic Period trace lost history.")
+    if cast(dict[str, object], derivation["target"])["derivation_id"] != targets[
+        "derivation_id"
+    ]:
+        raise RuntimeError("Installed planning trace used the wrong derivation.")
+    if cast(dict[str, object], exported["target"])["signal_set_id"] != targets[
+        "signal_set_id"
+    ]:
+        raise RuntimeError("Installed export trace used the wrong Core signal.")
+
+    after_cli = _tree_state(workspace)
+    if before_cli != after_cli:
+        raise RuntimeError("Installed #42 CLI traces mutated the workspace.")
+
+
 def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
     """Install exact Core + Meridian and exercise packaged #42 traces."""
 
@@ -122,88 +208,8 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run([str(python), str(PROGRAM.resolve())], outside)
 
-        targets = _target_values(outside / TARGETS_FILE)
-        workspace = outside / "workspace"
-        before_cli = _tree_state(workspace)
-        common = ["--workspace", str(workspace), "--format", "json"]
-
-        grade = _assert_deterministic_json(
-            [
-                str(meridian),
-                "trace",
-                "grade-item-proficiency",
-                targets["class_id"],
-                targets["grade_item_id"],
-                targets["student_id"],
-                targets["standard_id"],
-                *common,
-                "--result-revision",
-                "1",
-            ],
-            outside,
-        )
-        academic_period = _assert_deterministic_json(
-            [
-                str(meridian),
-                "trace",
-                "academic-period-proficiency",
-                targets["class_id"],
-                targets["school_year"],
-                targets["period_id"],
-                targets["student_id"],
-                targets["standard_id"],
-                *common,
-                "--result-revision",
-                "1",
-            ],
-            outside,
-        )
-        derivation = _assert_deterministic_json(
-            [
-                str(meridian),
-                "trace",
-                "planning-derivation",
-                targets["class_id"],
-                targets["derivation_id"],
-                *common,
-            ],
-            outside,
-        )
-        exported = _assert_deterministic_json(
-            [
-                str(meridian),
-                "trace",
-                "planning-export",
-                targets["class_id"],
-                targets["signal_set_id"],
-                *common,
-            ],
-            outside,
-        )
-
-        grade_target = cast(dict[str, object], grade["target"])
-        if grade_target["result_revision"] != 1:
-            raise RuntimeError("Installed Grade Item trace used the wrong revision.")
-        if grade_target["selection_state"] != "historical":
-            raise RuntimeError("Installed Grade Item trace lost historical state.")
-        if cast(dict[str, object], academic_period["target"])[
-            "selection_state"
-        ] != "historical":
-            raise RuntimeError("Installed Academic Period trace lost history.")
-        if cast(dict[str, object], derivation["target"])["derivation_id"] != targets[
-            "derivation_id"
-        ]:
-            raise RuntimeError("Installed planning trace used the wrong derivation.")
-        if cast(dict[str, object], exported["target"])["signal_set_id"] != targets[
-            "signal_set_id"
-        ]:
-            raise RuntimeError("Installed export trace used the wrong Core signal.")
-
-        after_cli = _tree_state(workspace)
-        if before_cli != after_cli:
-            raise RuntimeError("Installed #42 CLI traces mutated the workspace.")
+        run_prepared_smoke(python, meridian, root, outside)
 
 
 def main(argv: list[str] | None = None) -> int:

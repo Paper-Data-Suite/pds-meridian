@@ -171,3 +171,55 @@ They include the base wheel/foundation smoke, Grade Items, Academic Period
 proficiency, grouping-signal contract, grouping-signal policy, and explanation
 traces. Their isolation semantics will be migrated separately rather than
 collapsed into this batch without audit.
+
+## Slice 4 — remaining standalone Core workflow migration
+
+Slice 4 moves five additional Core-only workflows into the same prepared `core`
+environment introduced by Slice 3:
+
+- Grade Items / evidence-eligibility interpretation;
+- Academic Period proficiency;
+- Core grouping-signal contract;
+- grouping-signal derivation policy;
+- explanation traces.
+
+Each historical wrapper now exposes `run_prepared_smoke(...)`, which contains the
+existing installed acceptance logic after environment setup. Direct execution
+still follows the original standalone path:
+
+```text
+standalone wrapper
+-> create temporary venv
+-> install Core + candidate Meridian
+-> pip check
+-> run_prepared_smoke(...)
+```
+
+Repository qualification instead follows:
+
+```text
+prepared core matrix
+-> install once
+-> pip check once
+-> fresh workflow root
+-> run_prepared_smoke(...)
+-> verify package fingerprint unchanged
+```
+
+The large inline smoke programs are not copied or rewritten; their existing
+assertions are moved behind the reusable prepared boundary. Explanation-trace
+CLI checks likewise continue to execute as fresh subprocesses against the
+prepared environment's installed `meridian` executable.
+
+The intermediate structural count is now:
+
+| Metric | After Slice 3 | After Slice 4 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 20 | 15 |
+| Additional Core wrapper venvs removed in this slice | 0 | 5 |
+| Prepared Core venvs | 1 | 1 |
+
+The base wheel/foundation portion of `smoke_test_wheel.py` remains separate in
+this slice because that historical wrapper also owns the ScoreForm-only,
+Quillan-only, Concord-only, and all-adapters boundaries. It will be separated
+when those adapter matrices are migrated rather than weakening their isolation.

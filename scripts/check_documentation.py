@@ -86,6 +86,8 @@ REQUIRED_TEXT = {
         "Prepared-environment harness",
         "After Slice 3",
         "| Temporary installed venvs in normal full validation | 24 | 20 |",
+        "After Slice 4",
+        "| Temporary installed venvs in normal full validation | 20 | 15 |",
     ),
     Path("docs/development/v0.2.0-release-audit.md"): (
         "Release-preparation authorization — AUTHORIZED",

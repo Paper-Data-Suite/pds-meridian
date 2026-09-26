@@ -10,6 +10,21 @@ from scripts.installed_qualification_harness import (
     PreparedInstalledEnvironment,
 )
 from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_for
+from scripts.smoke_test_academic_period_proficiency_wheel import (
+    run_prepared_smoke as run_academic_period_prepared,
+)
+from scripts.smoke_test_explanation_traces_wheel import (
+    run_prepared_smoke as run_explanation_traces_prepared,
+)
+from scripts.smoke_test_grade_items_wheel import (
+    run_prepared_smoke as run_grade_items_prepared,
+)
+from scripts.smoke_test_grouping_signal_contract_wheel import (
+    run_prepared_smoke as run_grouping_contract_prepared,
+)
+from scripts.smoke_test_grouping_signal_policy_wheel import (
+    run_prepared_smoke as run_grouping_policy_prepared,
+)
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SOURCE_ROOT = SCRIPT_ROOT.parent
@@ -22,6 +37,56 @@ EXPORT_PROGRAM = SCRIPT_ROOT / "smoke_program_grouping_signal_export.py"
 TEACHER_WORKFLOWS_PROGRAM = SCRIPT_ROOT / "smoke_program_teacher_workflows.py"
 ATTENTION_PROGRAM = SCRIPT_ROOT / "smoke_program_attention.py"
 
+
+
+def _prepared_layout(
+    prepared: PreparedInstalledEnvironment,
+    smoke_name: str,
+) -> tuple[Path, Path]:
+    root = prepared.fresh_working_directory(smoke_name)
+    outside = root / "outside"
+    outside.mkdir()
+    return root, outside
+
+
+def _finish_inline_smoke(
+    prepared: PreparedInstalledEnvironment,
+    smoke_name: str,
+) -> None:
+    prepared.assert_package_set_immutable(smoke_name)
+
+
+def run_core_inline_smokes(prepared: PreparedInstalledEnvironment) -> None:
+    """Run migrated inline Core smoke logic inside the prepared environment."""
+    if prepared.matrix.matrix_id is not DependencyMatrixId.CORE:
+        raise ValueError(
+            "Inline Core smoke batch requires the core dependency matrix."
+        )
+
+    root, outside = _prepared_layout(prepared, "grade-items")
+    run_grade_items_prepared(prepared.python, root, outside)
+    _finish_inline_smoke(prepared, "grade-items")
+
+    root, outside = _prepared_layout(prepared, "academic-period-proficiency")
+    run_academic_period_prepared(prepared.python, root, outside)
+    _finish_inline_smoke(prepared, "academic-period-proficiency")
+
+    root, outside = _prepared_layout(prepared, "grouping-signal-contract")
+    run_grouping_contract_prepared(prepared.python, root, outside)
+    _finish_inline_smoke(prepared, "grouping-signal-contract")
+
+    root, outside = _prepared_layout(prepared, "grouping-signal-policy")
+    run_grouping_policy_prepared(prepared.python, root, outside)
+    _finish_inline_smoke(prepared, "grouping-signal-policy")
+
+    root, outside = _prepared_layout(prepared, "explanation-traces")
+    run_explanation_traces_prepared(
+        prepared.python,
+        prepared.meridian,
+        root,
+        outside,
+    )
+    _finish_inline_smoke(prepared, "explanation-traces")
 
 def run_core_program_smokes(prepared: PreparedInstalledEnvironment) -> None:
     """Run the first migrated Core-only smoke batch in one prepared venv."""
@@ -96,6 +161,7 @@ def main(argv: list[str] | None = None) -> int:
         wheels,
         temp_parent=args.temp_parent,
     ) as prepared:
+        run_core_inline_smokes(prepared)
         run_core_program_smokes(prepared)
 
     print(

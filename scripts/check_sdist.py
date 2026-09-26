@@ -224,6 +224,7 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_installed_qualification_matrix_issue96.py",
         "tests/test_installed_qualification_harness_issue96.py",
         "tests/test_installed_qualification_core_programs_issue96.py",
+        "tests/test_installed_qualification_core_inline_issue96.py",
         "tests/test_academic_period_proficiency.py",
         "tests/test_academic_period_calculation_preview_workflow.py",
         "tests/test_academic_period_result_persistence_workflow.py",

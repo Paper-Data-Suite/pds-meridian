@@ -179,7 +179,7 @@ def test_academic_period_proficiency_installed_smoke_is_release_guarded() -> Non
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     smoke_name = "smoke_test_academic_period_proficiency_wheel.py"
 
-    assert smoke_name in validator
+    assert "scripts.installed_qualification_core_programs" in validator
     assert smoke_name in sdist_checker
 
 
@@ -203,7 +203,7 @@ def test_grouping_signal_contract_installed_smoke_is_release_guarded() -> None:
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     smoke_name = "smoke_test_grouping_signal_contract_wheel.py"
 
-    assert smoke_name in validator
+    assert "scripts.installed_qualification_core_programs" in validator
     assert smoke_name in sdist_checker
     assert "tests/test_grouping_signal_contract.py" in sdist_checker
     assert "tests/test_grouping_signal_storage_contract.py" in sdist_checker
@@ -235,7 +235,7 @@ def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> 
     assert 'python scripts/verify_core_wheel.py "$env:PDS_CORE_WHEEL"' in workflow
     assert "python scripts/validate_repository.py" in workflow
     assert '--core-wheel "$env:PDS_CORE_WHEEL"' in workflow
-    assert "smoke_test_grouping_signal_contract_wheel.py" in validator
+    assert "scripts.installed_qualification_core_programs" in validator
 
 
 def test_grouping_signal_policy_installed_smoke_is_release_guarded() -> None:
@@ -243,7 +243,7 @@ def test_grouping_signal_policy_installed_smoke_is_release_guarded() -> None:
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     smoke_name = "smoke_test_grouping_signal_policy_wheel.py"
 
-    assert smoke_name in validator
+    assert "scripts.installed_qualification_core_programs" in validator
     assert smoke_name in sdist_checker
     assert "tests/test_grouping_signal_policy.py" in sdist_checker
     assert "tests/test_grouping_signal_policy_storage.py" in sdist_checker
