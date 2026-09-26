@@ -270,3 +270,44 @@ Core foundation is folded into the already-required Core matrix. More important,
 the matrix lifetime now has one central owner. Subsequent slices can move the
 remaining ScoreForm, ScoreForm+Quillan, and all-adapters workflows into those
 matrix scopes without introducing another venv.
+
+## Slice 6 — ScoreForm-only workflow consolidation
+
+Slice 6 moves the two remaining ScoreForm-only installed workflows into the
+prepared `scoreform` matrix already owned by the central runner:
+
+- conventional Grade;
+- teacher Grade override.
+
+The historical wrappers remain directly runnable. Each now exposes a
+`run_prepared_smoke(...)` helper containing only the existing post-install
+acceptance sequence.
+
+Conventional Grade continues to execute as two separate Python processes in one
+fresh workflow directory:
+
+```text
+main conventional-Grade acceptance
+-> reload/history acceptance
+```
+
+Teacher Grade override continues to execute as three separate Python processes
+in one fresh workflow directory:
+
+```text
+main override lifecycle acceptance
+-> active-state reload acceptance
+-> withdrawn-state reload acceptance
+```
+
+The prepared ScoreForm matrix therefore reuses only installed package state.
+The two workflows receive separate fresh working directories, and their reload
+companions remain fresh interpreter processes.
+
+The structural count becomes:
+
+| Metric | After Slice 5 | After Slice 6 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 14 | 12 |
+| Standalone ScoreForm-only wrapper venvs in validator | 2 | 0 |
+| Prepared ScoreForm matrix venvs | 1 | 1 |

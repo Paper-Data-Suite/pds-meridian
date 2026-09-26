@@ -17,6 +17,12 @@ from scripts.installed_qualification_harness import (
     PreparedInstalledEnvironment,
 )
 from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_for
+from scripts.smoke_test_conventional_grade_wheel import (
+    run_prepared_smoke as run_conventional_grade_prepared_smoke,
+)
+from scripts.smoke_test_teacher_grade_override_wheel import (
+    run_prepared_smoke as run_teacher_grade_override_prepared_smoke,
+)
 from scripts.smoke_test_wheel import (
     run_all_adapters_prepared_smoke,
     run_concord_adapter_prepared_smoke,
@@ -87,6 +93,26 @@ def run_migrated_matrices(
             prepared,
             "scoreform-adapter",
             lambda: run_scoreform_adapter_prepared_smoke(
+                prepared.python,
+                outside,
+            ),
+        )
+
+        _, outside = _working_layout(prepared, "conventional-grade")
+        _run_acceptance(
+            prepared,
+            "conventional-grade",
+            lambda: run_conventional_grade_prepared_smoke(
+                prepared.python,
+                outside,
+            ),
+        )
+
+        _, outside = _working_layout(prepared, "teacher-grade-override")
+        _run_acceptance(
+            prepared,
+            "teacher-grade-override",
+            lambda: run_teacher_grade_override_prepared_smoke(
                 prepared.python,
                 outside,
             ),

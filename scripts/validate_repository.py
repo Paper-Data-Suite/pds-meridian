@@ -192,16 +192,6 @@ def validate(
         _run(
             [
                 python,
-                "scripts/smoke_test_conventional_grade_wheel.py",
-                str(wheels[0]),
-                str(wheel),
-                str(scoreform),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
                 "scripts/smoke_test_standards_grade_wheel.py",
                 str(wheels[0]),
                 str(wheel),
@@ -218,16 +208,6 @@ def validate(
                 str(wheel),
                 str(scoreform),
                 str(quillan),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
-                "scripts/smoke_test_teacher_grade_override_wheel.py",
-                str(wheels[0]),
-                str(wheel),
-                str(scoreform),
             ],
             env=env,
         )

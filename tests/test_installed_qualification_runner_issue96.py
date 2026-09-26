@@ -104,6 +104,16 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     )
     monkeypatch.setattr(
         runner,
+        "run_conventional_grade_prepared_smoke",
+        record("conventional-grade"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_teacher_grade_override_prepared_smoke",
+        record("teacher-grade-override"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_quillan_adapter_prepared_smoke",
         record("quillan"),
     )
@@ -133,6 +143,8 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "core-inline",
         "core-programs",
         "scoreform",
+        "conventional-grade",
+        "teacher-grade-override",
         "quillan",
         "concord",
         "all-adapters",
@@ -140,6 +152,8 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     assert FakePreparedEnvironment.immutable == [
         (DependencyMatrixId.CORE, "wheel-foundation"),
         (DependencyMatrixId.SCOREFORM, "scoreform-adapter"),
+        (DependencyMatrixId.SCOREFORM, "conventional-grade"),
+        (DependencyMatrixId.SCOREFORM, "teacher-grade-override"),
         (DependencyMatrixId.QUILLAN, "quillan-adapter"),
         (DependencyMatrixId.CONCORD, "concord-adapter"),
         (DependencyMatrixId.ALL_ADAPTERS, "all-adapters-composition"),
@@ -179,6 +193,16 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
     )
     monkeypatch.setattr(
         runner,
+        "run_conventional_grade_prepared_smoke",
+        capture("conventional-grade"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_teacher_grade_override_prepared_smoke",
+        capture("teacher-grade-override"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_quillan_adapter_prepared_smoke",
         capture("quillan"),
     )
@@ -198,6 +222,8 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
     assert observed == {
         "core": Path("python-core"),
         "scoreform": Path("python-scoreform"),
+        "conventional-grade": Path("python-scoreform"),
+        "teacher-grade-override": Path("python-scoreform"),
         "quillan": Path("python-quillan"),
         "concord": Path("python-concord"),
         "all-adapters": Path("python-all-adapters"),
@@ -252,6 +278,8 @@ def test_issue96_validator_uses_central_runner_once() -> None:
     assert validator.count("scripts.installed_qualification_runner") == 1
     assert "scripts/smoke_test_wheel.py" not in validator
     assert "scripts.installed_qualification_core_programs" not in validator
+    assert "scripts/smoke_test_conventional_grade_wheel.py" not in validator
+    assert "scripts/smoke_test_teacher_grade_override_wheel.py" not in validator
 
 
 def test_issue96_smoke_test_wheel_keeps_standalone_five_environment_path() -> None:

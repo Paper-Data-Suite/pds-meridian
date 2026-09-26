@@ -34,6 +34,12 @@ def _run(command: list[str], cwd: Path) -> None:
     subprocess.run(command, cwd=cwd, check=True, env=_environment())
 
 
+def run_prepared_smoke(python: Path, outside: Path) -> None:
+    """Run conventional-Grade acceptance in a prepared ScoreForm environment."""
+    _run([str(python), str(PROGRAM.resolve())], outside)
+    _run([str(python), str(RELOAD_PROGRAM.resolve())], outside)
+
+
 def smoke_test(
     meridian_wheel: Path,
     core_wheel: Path,
@@ -65,8 +71,7 @@ def smoke_test(
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run([str(python), str(PROGRAM.resolve())], outside)
-        _run([str(python), str(RELOAD_PROGRAM.resolve())], outside)
+        run_prepared_smoke(python, outside)
 
 
 def main(argv: list[str] | None = None) -> int:
