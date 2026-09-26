@@ -144,4 +144,4 @@ def test_issue96_validator_no_longer_invokes_migrated_inline_wrappers() -> None:
         "smoke_test_explanation_traces_wheel.py",
     ):
         assert wrapper not in validator
-    assert validator.count("scripts.installed_qualification_core_programs") == 1
+    assert validator.count("scripts.installed_qualification_runner") == 1

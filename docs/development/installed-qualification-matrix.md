@@ -223,3 +223,50 @@ The base wheel/foundation portion of `smoke_test_wheel.py` remains separate in
 this slice because that historical wrapper also owns the ScoreForm-only,
 Quillan-only, Concord-only, and all-adapters boundaries. It will be separated
 when those adapter matrices are migrated rather than weakening their isolation.
+
+## Slice 5 — central runner and embedded adapter matrix separation
+
+Slice 5 removes the direct `smoke_test_wheel.py` execution from the normal
+repository-validator path. Its five installed acceptance bodies are separated
+from virtual-environment ownership and exposed as prepared helpers for:
+
+- Core wheel/package/CLI foundation;
+- ScoreForm-only adapter acceptance;
+- Quillan-only adapter acceptance;
+- Concord-only adapter acceptance;
+- all-adapters composition.
+
+The standalone `smoke_test_wheel.py` entry point still creates the same five
+temporary environments when run directly. Repository qualification now uses
+`scripts.installed_qualification_runner`, which owns prepared matrix lifetimes.
+
+The central runner currently prepares these matrices in order:
+
+```text
+core
+scoreform
+quillan
+concord
+all-adapters
+```
+
+The Core matrix runs the wheel foundation and both Core batches from Slices 3
+and 4 before that environment is destroyed. Each adapter acceptance runs in its
+own exact package-presence boundary. The `scoreform-quillan` matrix is not opened
+yet because its historical workflows are migrated in a later slice.
+
+This changes the normal full-validator structural count from **15 to 14**
+temporary installed environments:
+
+| Metric | After Slice 4 | After Slice 5 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 15 | 14 |
+| Direct `smoke_test_wheel.py` internal venvs in validator | 5 | 0 |
+| Prepared matrices owned by central runner | 1 | 5 |
+
+The apparent increase from one to five prepared matrices is intentional: four
+of those replace the historical adapter environments one-for-one, while the
+Core foundation is folded into the already-required Core matrix. More important,
+the matrix lifetime now has one central owner. Subsequent slices can move the
+remaining ScoreForm, ScoreForm+Quillan, and all-adapters workflows into those
+matrix scopes without introducing another venv.

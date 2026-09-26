@@ -166,20 +166,8 @@ def validate(
         _run(
             [
                 python,
-                "scripts/smoke_test_wheel.py",
-                str(wheels[0]),
-                str(wheel),
-                str(scoreform),
-                str(quillan),
-                str(concord),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
                 "-m",
-                "scripts.installed_qualification_core_programs",
+                "scripts.installed_qualification_runner",
                 str(wheels[0]),
                 str(wheel),
                 str(scoreform),

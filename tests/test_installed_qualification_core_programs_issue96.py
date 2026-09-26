@@ -127,7 +127,7 @@ def test_issue96_core_orchestrator_cannot_create_nested_environment() -> None:
 def test_issue96_validator_uses_one_prepared_core_program_batch() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
 
-    assert validator.count("scripts.installed_qualification_core_programs") == 1
+    assert validator.count("scripts.installed_qualification_runner") == 1
     for legacy_wrapper in (
         "smoke_test_grouping_signal_generation_wheel.py",
         "smoke_test_grouping_signal_preview_review_wheel.py",

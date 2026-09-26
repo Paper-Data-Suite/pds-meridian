@@ -44,6 +44,119 @@ def _assert_empty(path: Path) -> None:
         raise RuntimeError(f"Smoke-test working directory contains residue: {residue}")
 
 
+def run_core_foundation_prepared_smoke(
+    python: Path,
+    meridian: Path,
+    root: Path,
+    outside: Path,
+) -> None:
+    """Run existing acceptance logic in a prepared environment."""
+    _assert_empty(outside)
+    _run(
+        [
+            str(python),
+            "-c",
+            (
+                "import importlib.metadata as m, pathlib, sys; "
+                "before=set(sys.modules); "
+                "import meridian, meridian.adapters, meridian.diagnostics, "
+                "meridian.evidence, meridian.evidence_serialization, "
+                "meridian.ingestion, "
+                "meridian.projection_cache, meridian.scoreform_adapter, pds_core; "
+                "import meridian.concord_adapter, meridian.quillan_adapter; "
+                "from meridian.evidence import EvidenceInventory; "
+                "from meridian.adapters import AdapterRegistry; "
+                "from meridian.ingestion import "
+                "PublicationDiscoveryRequest; "
+                "from pds_core.academic_catalog import "
+                "PublicationCatalogQuery; "
+                "assert EvidenceInventory(()).items == (); "
+                "assert AdapterRegistry().keys == (); "
+                "assert PublicationDiscoveryRequest("
+                "PublicationCatalogQuery(limit=1)).query.limit == 1; "
+                "assert meridian.__version__ == m.version('pds-meridian'); "
+                "assert m.version('pds-core') == '0.6.3'; "
+                "assert pathlib.Path(meridian.__file__).resolve().is_relative_to("
+                "pathlib.Path(sys.prefix).resolve()); "
+                "assert pathlib.Path(pds_core.__file__).resolve().is_relative_to("
+                "pathlib.Path(sys.prefix).resolve()); "
+                "assert not ({'scoreform','quillan','concord','portia','vitrine'} "
+                "& set(sys.modules))"
+            ),
+        ],
+        outside,
+    )
+    for command, input_text in (
+        ([str(meridian)], "q\n"),
+        ([str(meridian), "--help"], None),
+        ([str(meridian), "--version"], None),
+        ([str(meridian), "publications", "--help"], None),
+        ([str(meridian), "evidence", "--help"], None),
+        ([str(python), "-m", "meridian"], "q\n"),
+        ([str(python), "-m", "meridian", "--help"], None),
+        ([str(python), "-m", "meridian", "--version"], None),
+        ([str(python), "-m", "meridian", "publications", "--help"], None),
+        ([str(python), "-m", "meridian", "evidence", "--help"], None),
+    ):
+        _run(command, outside, input_text=input_text)
+
+    workspace = root / "workspace"
+    publication_id_file = root / "publication_id.txt"
+    fixture_code = (
+        "import hashlib, pathlib, sys; "
+        "from pds_core.registry_services import "
+        "AcademicWorkRegistrationRequest, PublicationManifestRequest, "
+        "publish_manifest_revision, register_academic_work; "
+        "from pds_core.routes import module_work_dir; "
+        "from pds_core.routing_models import ModuleWorkRef; "
+        "workspace=pathlib.Path(sys.argv[1]); workspace.mkdir(); "
+        "work=ModuleWorkRef('synthetic','class_2026','work_1'); "
+        "module_work_dir(workspace,work).mkdir(parents=True); "
+        "register_academic_work(workspace, AcademicWorkRegistrationRequest("
+        "work=work, producer_contract_version='assignment_v1', "
+        "title='Synthetic Work', work_kind='assignment', "
+        "academic_intent='summative', lifecycle='active', source_records=())); "
+        "data=b'{\"schema_version\":\"synthetic_manifest_v1\"}\\n'; "
+        "relative='classes/class_2026/modules/synthetic/work/work_1/"
+        "exports/manifests/academic_results/1.json'; "
+        "manifest=workspace.joinpath(*relative.split('/')); "
+        "manifest.parent.mkdir(parents=True); manifest.write_bytes(data); "
+        "published=publish_manifest_revision(workspace, PublicationManifestRequest("
+        "work=work, source_record=None, publication_kind='academic_result_set', "
+        "capabilities=('points',), record_set_id='academic_results', "
+        "record_set_revision=1, manifest_contract_version='synthetic_manifest_v1', "
+        "manifest_path=relative, academic_work_registration_revision=1, "
+        "expected_manifest_digest=hashlib.sha256(data).hexdigest())); "
+        "pathlib.Path(sys.argv[2]).write_text("
+        "published.publication.publication_id, encoding='utf-8')"
+    )
+    _run(
+        [
+            str(python),
+            "-c",
+            fixture_code,
+            str(workspace),
+            str(publication_id_file),
+        ],
+        outside,
+    )
+    publication_id = publication_id_file.read_text(encoding="utf-8")
+    _run(
+        [
+            str(meridian),
+            "publications",
+            "verify",
+            publication_id,
+            "--workspace",
+            str(workspace),
+            "--format",
+            "json",
+        ],
+        outside,
+    )
+    _assert_empty(outside)
+
+
 def smoke_test(
     meridian_wheel: Path,
     core_wheel: Path,
@@ -77,109 +190,9 @@ def smoke_test(
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run(
-            [
-                str(python),
-                "-c",
-                (
-                    "import importlib.metadata as m, pathlib, sys; "
-                    "before=set(sys.modules); "
-                    "import meridian, meridian.adapters, meridian.diagnostics, "
-                    "meridian.evidence, meridian.evidence_serialization, "
-                    "meridian.ingestion, "
-                    "meridian.projection_cache, meridian.scoreform_adapter, pds_core; "
-                    "import meridian.concord_adapter, meridian.quillan_adapter; "
-                    "from meridian.evidence import EvidenceInventory; "
-                    "from meridian.adapters import AdapterRegistry; "
-                    "from meridian.ingestion import "
-                    "PublicationDiscoveryRequest; "
-                    "from pds_core.academic_catalog import "
-                    "PublicationCatalogQuery; "
-                    "assert EvidenceInventory(()).items == (); "
-                    "assert AdapterRegistry().keys == (); "
-                    "assert PublicationDiscoveryRequest("
-                    "PublicationCatalogQuery(limit=1)).query.limit == 1; "
-                    "assert meridian.__version__ == m.version('pds-meridian'); "
-                    "assert m.version('pds-core') == '0.6.3'; "
-                    "assert pathlib.Path(meridian.__file__).resolve().is_relative_to("
-                    "pathlib.Path(sys.prefix).resolve()); "
-                    "assert pathlib.Path(pds_core.__file__).resolve().is_relative_to("
-                    "pathlib.Path(sys.prefix).resolve()); "
-                    "assert not ({'scoreform','quillan','concord','portia','vitrine'} "
-                    "& set(sys.modules))"
-                ),
-            ],
-            outside,
-        )
-        for command, input_text in (
-            ([str(meridian)], "q\n"),
-            ([str(meridian), "--help"], None),
-            ([str(meridian), "--version"], None),
-            ([str(meridian), "publications", "--help"], None),
-            ([str(meridian), "evidence", "--help"], None),
-            ([str(python), "-m", "meridian"], "q\n"),
-            ([str(python), "-m", "meridian", "--help"], None),
-            ([str(python), "-m", "meridian", "--version"], None),
-            ([str(python), "-m", "meridian", "publications", "--help"], None),
-            ([str(python), "-m", "meridian", "evidence", "--help"], None),
-        ):
-            _run(command, outside, input_text=input_text)
 
-        workspace = root / "workspace"
-        publication_id_file = root / "publication_id.txt"
-        fixture_code = (
-            "import hashlib, pathlib, sys; "
-            "from pds_core.registry_services import "
-            "AcademicWorkRegistrationRequest, PublicationManifestRequest, "
-            "publish_manifest_revision, register_academic_work; "
-            "from pds_core.routes import module_work_dir; "
-            "from pds_core.routing_models import ModuleWorkRef; "
-            "workspace=pathlib.Path(sys.argv[1]); workspace.mkdir(); "
-            "work=ModuleWorkRef('synthetic','class_2026','work_1'); "
-            "module_work_dir(workspace,work).mkdir(parents=True); "
-            "register_academic_work(workspace, AcademicWorkRegistrationRequest("
-            "work=work, producer_contract_version='assignment_v1', "
-            "title='Synthetic Work', work_kind='assignment', "
-            "academic_intent='summative', lifecycle='active', source_records=())); "
-            "data=b'{\"schema_version\":\"synthetic_manifest_v1\"}\\n'; "
-            "relative='classes/class_2026/modules/synthetic/work/work_1/"
-            "exports/manifests/academic_results/1.json'; "
-            "manifest=workspace.joinpath(*relative.split('/')); "
-            "manifest.parent.mkdir(parents=True); manifest.write_bytes(data); "
-            "published=publish_manifest_revision(workspace, PublicationManifestRequest("
-            "work=work, source_record=None, publication_kind='academic_result_set', "
-            "capabilities=('points',), record_set_id='academic_results', "
-            "record_set_revision=1, manifest_contract_version='synthetic_manifest_v1', "
-            "manifest_path=relative, academic_work_registration_revision=1, "
-            "expected_manifest_digest=hashlib.sha256(data).hexdigest())); "
-            "pathlib.Path(sys.argv[2]).write_text("
-            "published.publication.publication_id, encoding='utf-8')"
-        )
-        _run(
-            [
-                str(python),
-                "-c",
-                fixture_code,
-                str(workspace),
-                str(publication_id_file),
-            ],
-            outside,
-        )
-        publication_id = publication_id_file.read_text(encoding="utf-8")
-        _run(
-            [
-                str(meridian),
-                "publications",
-                "verify",
-                publication_id,
-                "--workspace",
-                str(workspace),
-                "--format",
-                "json",
-            ],
-            outside,
-        )
-        _assert_empty(outside)
+        run_core_foundation_prepared_smoke(python, meridian, root, outside)
+
 
     if scoreform_wheel is not None:
         _scoreform_adapter_smoke(meridian_wheel, core_wheel, scoreform_wheel)
@@ -199,6 +212,39 @@ def smoke_test(
             quillan_wheel,
             concord_wheel,
         )
+
+
+def run_scoreform_adapter_prepared_smoke(python: Path, outside: Path) -> None:
+    """Run existing acceptance logic in a prepared environment."""
+    _run(
+        [
+            str(python),
+            "-c",
+            (
+                "import importlib.metadata as m; "
+                "from meridian.adapters import AdapterRegistry; "
+                "from meridian.scoreform_adapter import "
+                "ScoreFormAcademicResultAdapter; "
+                "from scoreform.academic_result_reader import "
+                "read_academic_result_manifest; "
+                "registry=AdapterRegistry((ScoreFormAcademicResultAdapter(),)); "
+                "assert registry.bindings[0].descriptor.adapter_id == "
+                "'scoreform.academic_result'; "
+                "assert m.version('scoreform') == '0.11.0'; "
+                "assert callable(read_academic_result_manifest); "
+                "import meridian, pathlib, pds_core, scoreform, sys; "
+                "root=pathlib.Path(sys.prefix).resolve(); "
+                "assert pathlib.Path(meridian.__file__).resolve()"
+                ".is_relative_to(root); "
+                "assert pathlib.Path(pds_core.__file__).resolve()"
+                ".is_relative_to(root); "
+                "assert pathlib.Path(scoreform.__file__).resolve()"
+                ".is_relative_to(root)"
+            ),
+        ],
+        outside,
+    )
+    _assert_empty(outside)
 
 
 def _scoreform_adapter_smoke(
@@ -227,35 +273,41 @@ def _scoreform_adapter_smoke(
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run(
-            [
-                str(python),
-                "-c",
-                (
-                    "import importlib.metadata as m; "
-                    "from meridian.adapters import AdapterRegistry; "
-                    "from meridian.scoreform_adapter import "
-                    "ScoreFormAcademicResultAdapter; "
-                    "from scoreform.academic_result_reader import "
-                    "read_academic_result_manifest; "
-                    "registry=AdapterRegistry((ScoreFormAcademicResultAdapter(),)); "
-                    "assert registry.bindings[0].descriptor.adapter_id == "
-                    "'scoreform.academic_result'; "
-                    "assert m.version('scoreform') == '0.11.0'; "
-                    "assert callable(read_academic_result_manifest); "
-                    "import meridian, pathlib, pds_core, scoreform, sys; "
-                    "root=pathlib.Path(sys.prefix).resolve(); "
-                    "assert pathlib.Path(meridian.__file__).resolve()"
-                    ".is_relative_to(root); "
-                    "assert pathlib.Path(pds_core.__file__).resolve()"
-                    ".is_relative_to(root); "
-                    "assert pathlib.Path(scoreform.__file__).resolve()"
-                    ".is_relative_to(root)"
-                ),
-            ],
-            outside,
-        )
-        _assert_empty(outside)
+
+        run_scoreform_adapter_prepared_smoke(python, outside)
+
+
+def run_quillan_adapter_prepared_smoke(python: Path, outside: Path) -> None:
+    """Run existing acceptance logic in a prepared environment."""
+    _run(
+        [
+            str(python),
+            "-c",
+            (
+                "import importlib.metadata as m, pathlib, sys; "
+                "from meridian.adapters import AdapterRegistry; "
+                "from meridian.quillan_adapter import "
+                "QuillanAcademicResultAdapter; "
+                "from quillan.academic_result_reader import "
+                "read_academic_result_manifest; "
+                "registry=AdapterRegistry((QuillanAcademicResultAdapter(),)); "
+                "assert registry.bindings[0].descriptor.adapter_id == "
+                "'quillan.academic_result'; "
+                "assert m.version('quillan') == '0.10.2'; "
+                "assert callable(read_academic_result_manifest); "
+                "import meridian, pds_core, quillan; "
+                "root=pathlib.Path(sys.prefix).resolve(); "
+                "assert pathlib.Path(meridian.__file__).resolve()"
+                ".is_relative_to(root); "
+                "assert pathlib.Path(pds_core.__file__).resolve()"
+                ".is_relative_to(root); "
+                "assert pathlib.Path(quillan.__file__).resolve()"
+                ".is_relative_to(root)"
+            ),
+        ],
+        outside,
+    )
+    _assert_empty(outside)
 
 
 def _quillan_adapter_smoke(
@@ -282,37 +334,46 @@ def _quillan_adapter_smoke(
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run(
-            [
-                str(python),
-                "-c",
-                (
-                    "import importlib.metadata as m, pathlib, sys; "
-                    "from meridian.adapters import AdapterRegistry; "
-                    "from meridian.quillan_adapter import "
-                    "QuillanAcademicResultAdapter; "
-                    "from quillan.academic_result_reader import "
-                    "read_academic_result_manifest; "
-                    "registry=AdapterRegistry((QuillanAcademicResultAdapter(),)); "
-                    "assert registry.bindings[0].descriptor.adapter_id == "
-                    "'quillan.academic_result'; "
-                    "assert m.version('quillan') == '0.10.2'; "
-                    "assert callable(read_academic_result_manifest); "
-                    "import meridian, pds_core, quillan; "
-                    "root=pathlib.Path(sys.prefix).resolve(); "
-                    "assert pathlib.Path(meridian.__file__).resolve()"
-                    ".is_relative_to(root); "
-                    "assert pathlib.Path(pds_core.__file__).resolve()"
-                    ".is_relative_to(root); "
-                    "assert pathlib.Path(quillan.__file__).resolve()"
-                    ".is_relative_to(root)"
-                ),
-            ],
-            outside,
-        )
-        _assert_empty(outside)
+
+        run_quillan_adapter_prepared_smoke(python, outside)
 
 
+def run_concord_adapter_prepared_smoke(python: Path, outside: Path) -> None:
+    """Run existing acceptance logic in a prepared environment."""
+    _run(
+        [
+            str(python),
+            "-c",
+            (
+                "import importlib.metadata as m, pathlib, sys; "
+                "from meridian.diagnostics import "
+                "build_builtin_adapter_registry; "
+                "from concord.academic_result_reader import "
+                "read_academic_result_manifest; "
+                "registry=build_builtin_adapter_registry(); "
+                "descriptors={b.descriptor.adapter_id: b.descriptor "
+                "for b in registry.bindings}; "
+                "descriptor=descriptors['concord.academic_result']; "
+                "assert descriptor.key.producer_module_id == 'concord'; "
+                "assert descriptor.key.source_record_kind == 'activity'; "
+                "assert descriptor.key.source_record_contract_version == "
+                "'concord_activity_v1'; "
+                "assert m.version('pds-concord') == '0.3.0'; "
+                "assert callable(read_academic_result_manifest); "
+                "assert 'concord.academic_result_artifacts' not in sys.modules; "
+                "import concord, meridian, pds_core; "
+                "root=pathlib.Path(sys.prefix).resolve(); "
+                "assert pathlib.Path(meridian.__file__).resolve()"
+                ".is_relative_to(root); "
+                "assert pathlib.Path(pds_core.__file__).resolve()"
+                ".is_relative_to(root); "
+                "assert pathlib.Path(concord.__file__).resolve()"
+                ".is_relative_to(root)"
+            ),
+        ],
+        outside,
+    )
+    _assert_empty(outside)
 
 
 def _concord_adapter_smoke(
@@ -341,40 +402,59 @@ def _concord_adapter_smoke(
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run(
-            [
-                str(python),
-                "-c",
-                (
-                    "import importlib.metadata as m, pathlib, sys; "
-                    "from meridian.diagnostics import "
-                    "build_builtin_adapter_registry; "
-                    "from concord.academic_result_reader import "
-                    "read_academic_result_manifest; "
-                    "registry=build_builtin_adapter_registry(); "
-                    "descriptors={b.descriptor.adapter_id: b.descriptor "
-                    "for b in registry.bindings}; "
-                    "descriptor=descriptors['concord.academic_result']; "
-                    "assert descriptor.key.producer_module_id == 'concord'; "
-                    "assert descriptor.key.source_record_kind == 'activity'; "
-                    "assert descriptor.key.source_record_contract_version == "
-                    "'concord_activity_v1'; "
-                    "assert m.version('pds-concord') == '0.3.0'; "
-                    "assert callable(read_academic_result_manifest); "
-                    "assert 'concord.academic_result_artifacts' not in sys.modules; "
-                    "import concord, meridian, pds_core; "
-                    "root=pathlib.Path(sys.prefix).resolve(); "
-                    "assert pathlib.Path(meridian.__file__).resolve()"
-                    ".is_relative_to(root); "
-                    "assert pathlib.Path(pds_core.__file__).resolve()"
-                    ".is_relative_to(root); "
-                    "assert pathlib.Path(concord.__file__).resolve()"
-                    ".is_relative_to(root)"
-                ),
-            ],
-            outside,
-        )
-        _assert_empty(outside)
+
+        run_concord_adapter_prepared_smoke(python, outside)
+
+
+def run_all_adapters_prepared_smoke(python: Path, outside: Path) -> None:
+    """Run existing acceptance logic in a prepared environment."""
+    _run(
+        [
+            str(python),
+            "-c",
+            (
+                "import importlib.metadata as m, pathlib, sys; "
+                "from meridian.diagnostics import "
+                "build_builtin_adapter_registry; "
+                "from scoreform.academic_result_reader import "
+                "read_academic_result_manifest as read_scoreform; "
+                "from quillan.academic_result_reader import "
+                "read_academic_result_manifest as read_quillan; "
+                "from concord.academic_result_reader import "
+                "read_academic_result_manifest as read_concord; "
+                "registry=build_builtin_adapter_registry(); "
+                "adapter_ids={binding.descriptor.adapter_id "
+                "for binding in registry.bindings}; "
+                "assert adapter_ids == {"
+                "'scoreform.academic_result', "
+                "'quillan.academic_result', "
+                "'concord.academic_result'}; "
+                "assert len(registry.bindings) == 3; "
+                "assert m.version('pds-core') == '0.6.3'; "
+                "assert m.version('scoreform') == '0.11.0'; "
+                "assert m.version('quillan') == '0.10.2'; "
+                "assert m.version('pds-concord') == '0.3.0'; "
+                "assert callable(read_scoreform); "
+                "assert callable(read_quillan); "
+                "assert callable(read_concord); "
+                "import concord, meridian, pds_core, quillan, scoreform; "
+                "installed_root=pathlib.Path(sys.prefix).resolve(); "
+                "assert pathlib.Path(meridian.__file__).resolve()"
+                ".is_relative_to(installed_root); "
+                "assert pathlib.Path(pds_core.__file__).resolve()"
+                ".is_relative_to(installed_root); "
+                "assert pathlib.Path(scoreform.__file__).resolve()"
+                ".is_relative_to(installed_root); "
+                "assert pathlib.Path(quillan.__file__).resolve()"
+                ".is_relative_to(installed_root); "
+                "assert pathlib.Path(concord.__file__).resolve()"
+                ".is_relative_to(installed_root); "
+                "assert 'concord.academic_result_artifacts' not in sys.modules"
+            ),
+        ],
+        outside,
+    )
+    _assert_empty(outside)
 
 
 def _all_adapters_smoke(
@@ -410,53 +490,8 @@ def _all_adapters_smoke(
             outside,
         )
         _run([str(python), "-m", "pip", "check"], outside)
-        _run(
-            [
-                str(python),
-                "-c",
-                (
-                    "import importlib.metadata as m, pathlib, sys; "
-                    "from meridian.diagnostics import "
-                    "build_builtin_adapter_registry; "
-                    "from scoreform.academic_result_reader import "
-                    "read_academic_result_manifest as read_scoreform; "
-                    "from quillan.academic_result_reader import "
-                    "read_academic_result_manifest as read_quillan; "
-                    "from concord.academic_result_reader import "
-                    "read_academic_result_manifest as read_concord; "
-                    "registry=build_builtin_adapter_registry(); "
-                    "adapter_ids={binding.descriptor.adapter_id "
-                    "for binding in registry.bindings}; "
-                    "assert adapter_ids == {"
-                    "'scoreform.academic_result', "
-                    "'quillan.academic_result', "
-                    "'concord.academic_result'}; "
-                    "assert len(registry.bindings) == 3; "
-                    "assert m.version('pds-core') == '0.6.3'; "
-                    "assert m.version('scoreform') == '0.11.0'; "
-                    "assert m.version('quillan') == '0.10.2'; "
-                    "assert m.version('pds-concord') == '0.3.0'; "
-                    "assert callable(read_scoreform); "
-                    "assert callable(read_quillan); "
-                    "assert callable(read_concord); "
-                    "import concord, meridian, pds_core, quillan, scoreform; "
-                    "installed_root=pathlib.Path(sys.prefix).resolve(); "
-                    "assert pathlib.Path(meridian.__file__).resolve()"
-                    ".is_relative_to(installed_root); "
-                    "assert pathlib.Path(pds_core.__file__).resolve()"
-                    ".is_relative_to(installed_root); "
-                    "assert pathlib.Path(scoreform.__file__).resolve()"
-                    ".is_relative_to(installed_root); "
-                    "assert pathlib.Path(quillan.__file__).resolve()"
-                    ".is_relative_to(installed_root); "
-                    "assert pathlib.Path(concord.__file__).resolve()"
-                    ".is_relative_to(installed_root); "
-                    "assert 'concord.academic_result_artifacts' not in sys.modules"
-                ),
-            ],
-            outside,
-        )
-        _assert_empty(outside)
+
+        run_all_adapters_prepared_smoke(python, outside)
 
 
 def main(argv: list[str] | None = None) -> int:
