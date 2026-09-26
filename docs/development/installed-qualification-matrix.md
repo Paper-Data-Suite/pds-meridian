@@ -136,3 +136,38 @@ reuse environment
 
 Until the validator is migrated in a later slice, the pre-#96 full-validation
 execution count remains unchanged.
+## Slice 3 — first prepared Core migration
+
+Slice 3 migrates the five program-backed Core-only historical wrappers from the
+normal repository-validator path into one shared prepared `core` environment:
+
+- grouping-signal generation;
+- grouping-signal preview/review;
+- grouping-signal export;
+- teacher workflows;
+- attention.
+
+The standalone `smoke_test_*_wheel.py` wrappers remain available for direct
+developer execution. The repository validator no longer invokes those wrappers;
+it invokes `scripts.installed_qualification_core_programs` once.
+
+The shared environment still launches **seven separate Python smoke processes**.
+Generation, preview/review, and export each receive their own fresh working
+directory. Teacher workflows intentionally run their export seed and workflow
+process in one dedicated workspace. Attention intentionally runs its
+preview/review seed and attention process in another dedicated workspace.
+Neither paired workflow shares state with any other smoke.
+
+This is the first intermediate structural reduction:
+
+| Metric | Pre-#96 | After Slice 3 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 24 | 20 |
+| Historical program-backed Core wrapper venvs | 5 | 0 |
+| Shared prepared Core venvs for that batch | 0 | 1 |
+
+The remaining Core-only historical wrappers are not migrated by this slice.
+They include the base wheel/foundation smoke, Grade Items, Academic Period
+proficiency, grouping-signal contract, grouping-signal policy, and explanation
+traces. Their isolation semantics will be migrated separately rather than
+collapsed into this batch without audit.

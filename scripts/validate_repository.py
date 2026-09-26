@@ -214,27 +214,15 @@ def validate(
         _run(
             [
                 python,
-                "scripts/smoke_test_grouping_signal_generation_wheel.py",
+                "-m",
+                "scripts.installed_qualification_core_programs",
                 str(wheels[0]),
                 str(wheel),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
-                "scripts/smoke_test_grouping_signal_preview_review_wheel.py",
-                str(wheels[0]),
-                str(wheel),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
-                "scripts/smoke_test_grouping_signal_export_wheel.py",
-                str(wheels[0]),
-                str(wheel),
+                str(scoreform),
+                str(quillan),
+                str(concord),
+                "--temp-parent",
+                str(temp),
             ],
             env=env,
         )
@@ -242,24 +230,6 @@ def validate(
             [
                 python,
                 "scripts/smoke_test_explanation_traces_wheel.py",
-                str(wheels[0]),
-                str(wheel),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
-                "scripts/smoke_test_teacher_workflows_wheel.py",
-                str(wheels[0]),
-                str(wheel),
-            ],
-            env=env,
-        )
-        _run(
-            [
-                python,
-                "scripts/smoke_test_attention_wheel.py",
                 str(wheels[0]),
                 str(wheel),
             ],

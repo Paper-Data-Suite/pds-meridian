@@ -18,6 +18,7 @@ EXPECTED = (
     Path("docs/development/v0.1.1-release-audit.md"),
     Path("docs/development/v0.2.0-release-audit.md"),
     Path("docs/development/v0.2.0-release-notes.md"),
+    Path("docs/development/installed-qualification-matrix.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
@@ -79,6 +80,13 @@ EXPECTED = (
 )
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
+    Path("docs/development/installed-qualification-matrix.md"): (
+        "pre-#96 normal full-validation path creates:",
+        "**24** installed virtual environments",
+        "Prepared-environment harness",
+        "After Slice 3",
+        "| Temporary installed venvs in normal full validation | 24 | 20 |",
+    ),
     Path("docs/development/v0.2.0-release-audit.md"): (
         "Release-preparation authorization — AUTHORIZED",
         "Substantive blocker count: **0**",
