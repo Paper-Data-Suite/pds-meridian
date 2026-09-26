@@ -100,6 +100,9 @@ REQUIRED_TEXT = {
         "| Temporary installed venvs | 24 | 6 |",
         "| Package-install setups | 24 | 6 |",
         "| `pip check` runs | 24 | 6 |",
+        "Slice 10",
+        "Quillan | `0.10.3`",
+        "2026-09-26",
     ),
     Path("docs/development/v0.2.0-release-audit.md"): (
         "Release-preparation authorization — AUTHORIZED",
@@ -319,7 +322,7 @@ REQUIRED_TEXT = {
         "Consequential actions",
         "#58 and #59 boundaries",
         "Installed qualification",
-        "quillan      0.10.2",
+        "quillan      0.10.3",
     ),
     Path("docs/architecture/reporting-exports.md"): (
         "exact immutable ReportingSnapshot",

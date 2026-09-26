@@ -31,6 +31,11 @@ def test_sdist_guard_requires_issue50_acceptance_surface() -> None:
 
 
 def test_repository_validator_runs_installed_issue50_smoke() -> None:
-    text = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
-    assert "scripts/smoke_test_conventional_grade_wheel.py" in text
-    assert "str(scoreform)" in text
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    runner = Path("scripts/installed_qualification_runner.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "conventional-grade" in runner
+    assert "DependencyMatrixId.SCOREFORM" in runner

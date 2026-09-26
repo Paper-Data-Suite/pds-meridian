@@ -27,19 +27,24 @@ def test_issue45_validator_keeps_concord_and_adds_no_concord_smoke() -> None:
     validator = Path("scripts/validate_repository.py").read_text(
         encoding="utf-8"
     )
+    runner = Path("scripts/installed_qualification_runner.py").read_text(
+        encoding="utf-8"
+    )
+    matrix = Path("scripts/installed_qualification_matrix.py").read_text(
+        encoding="utf-8"
+    )
+
     assert 'parser.add_argument("--concord-wheel", required=True' in validator
     assert "verify_concord_wheel.py" in validator
-    assert "smoke_test_wheel.py" in validator
+    assert "scripts.installed_qualification_runner" in validator
+    assert "proficiency-signal-export" in runner
+    assert "DependencyMatrixId.SCOREFORM_QUILLAN" in runner
 
-    marker = "scripts/smoke_test_proficiency_signal_export_wheel.py"
-    assert marker in validator
-    block = validator.split(marker, maxsplit=1)[1]
-    block = block.split("env=env", maxsplit=1)[0]
-    assert "str(wheels[0])" in block
-    assert "str(wheel)" in block
-    assert "str(scoreform)" in block
-    assert "str(quillan)" in block
-    assert "str(concord)" not in block
+    marker = "DependencyMatrixId.SCOREFORM_QUILLAN"
+    block = matrix.split(marker, maxsplit=1)[1]
+    block = block.split("DependencyMatrix(", maxsplit=1)[0]
+    assert '"scoreform", "quillan"' in block
+    assert "concord" not in block
 
 
 def test_issue45_producer_dependencies_remain_optional() -> None:
@@ -56,7 +61,7 @@ def test_issue45_producer_dependencies_remain_optional() -> None:
     assert "quillan" not in dependencies
     assert "pds-concord" not in dependencies
     assert '"scoreform==0.11.0"' in optional
-    assert '"quillan==0.10.2"' in optional
+    assert '"quillan==0.10.3"' in optional
     assert '"pds-concord==0.3.0"' in optional
 
 

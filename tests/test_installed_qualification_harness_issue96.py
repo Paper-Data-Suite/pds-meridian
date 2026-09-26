@@ -35,7 +35,7 @@ def _wheels(tmp_path: Path) -> InstalledWheelSet:
         ("meridian", "pds_meridian-0.3.0-py3-none-any.whl", "pds-meridian", "0.3.0"),
         ("core", "pds_core-0.6.3-py3-none-any.whl", "pds-core", "0.6.3"),
         ("scoreform", "scoreform-0.11.0-py3-none-any.whl", "scoreform", "0.11.0"),
-        ("quillan", "quillan-0.10.2-py3-none-any.whl", "quillan", "0.10.2"),
+        ("quillan", "quillan-0.10.3-py3-none-any.whl", "quillan", "0.10.3"),
         ("concord", "pds_concord-0.3.0-py3-none-any.whl", "pds-concord", "0.3.0"),
     )
     paths: dict[str, Path] = {}
@@ -143,7 +143,7 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
                 command,
                 0,
                 stdout="pds-core==0.6.3\npds-meridian==0.3.0\n"
-                "quillan==0.10.2\nscoreform==0.11.0\n",
+                "quillan==0.10.3\nscoreform==0.11.0\n",
                 stderr="",
             )
         return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
@@ -156,7 +156,7 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
         assert prepared.package_fingerprint == (
             "pds-core==0.6.3",
             "pds-meridian==0.3.0",
-            "quillan==0.10.2",
+            "quillan==0.10.3",
             "scoreform==0.11.0",
         )
 
@@ -191,7 +191,7 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
         assert "absent=('concord',)" in origin_code
         assert "('pds-core', '0.6.3')" in origin_code
         assert "('scoreform', '0.11.0')" in origin_code
-        assert "('quillan', '0.10.2')" in origin_code
+        assert "('quillan', '0.10.3')" in origin_code
         assert "('pds-meridian', '0.3.0')" in origin_code
         assert "absent_distributions=('pds-concord',)" in origin_code
 

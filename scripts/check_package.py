@@ -20,7 +20,7 @@ EXPECTED_SUMMARY = (
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.11.0; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.2; extra == 'quillan'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.3; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
     "paper_data_suite.module_operations"
@@ -172,7 +172,7 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.10.2."
+            "The quillan extra must pin exactly quillan==0.10.3."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(

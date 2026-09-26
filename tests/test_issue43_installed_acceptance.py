@@ -17,7 +17,12 @@ def test_issue43_installed_smoke_is_release_guarded() -> None:
         encoding="utf-8"
     )
 
-    assert "smoke_test_attention_wheel.py" in validator
+    core_runner = Path(
+        "scripts/installed_qualification_core_programs.py"
+    ).read_text(encoding="utf-8")
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "attention" in core_runner
     assert "smoke_test_attention_wheel.py" in sdist_checker
     assert "smoke_program_attention.py" in sdist_checker
     assert "tests/test_issue43_installed_acceptance.py" in sdist_checker

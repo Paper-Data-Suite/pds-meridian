@@ -29,7 +29,12 @@ def test_sdist_boundary_requires_grade_item_sources_and_documentation() -> None:
 
 def test_repository_validation_runs_installed_grade_item_smoke() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
-    assert '"scripts/smoke_test_grade_items_wheel.py"' in validator
+    core_runner = Path(
+        "scripts/installed_qualification_core_programs.py"
+    ).read_text(encoding="utf-8")
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "grade-items" in core_runner
 
 
 def test_documentation_validation_guards_grade_item_boundary() -> None:

@@ -78,7 +78,12 @@ def test_issue37_installed_smoke_is_release_guarded_and_signal_free() -> None:
     smoke_path = Path("scripts/smoke_test_grouping_signal_policy_wheel.py")
     smoke = smoke_path.read_text(encoding="utf-8")
 
-    assert smoke_path.name in validator
+    core_runner = Path(
+        "scripts/installed_qualification_core_programs.py"
+    ).read_text(encoding="utf-8")
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "grouping-signal-policy" in core_runner
     assert smoke_path.name in sdist_checker
     assert "GroupingSignalDerivationPolicy" in smoke
     assert "write_grouping_signal_policy_revision" in smoke

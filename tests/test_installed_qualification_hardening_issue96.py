@@ -36,7 +36,7 @@ def _wheels(tmp_path: Path) -> InstalledWheelSet:
         ("meridian", "pds_meridian-0.3.0-py3-none-any.whl", "pds-meridian", "0.3.0"),
         ("core", "pds_core-0.6.3-py3-none-any.whl", "pds-core", "0.6.3"),
         ("scoreform", "scoreform-0.11.0-py3-none-any.whl", "scoreform", "0.11.0"),
-        ("quillan", "quillan-0.10.2-py3-none-any.whl", "quillan", "0.10.2"),
+        ("quillan", "quillan-0.10.3-py3-none-any.whl", "quillan", "0.10.3"),
         ("concord", "pds_concord-0.3.0-py3-none-any.whl", "pds-concord", "0.3.0"),
     )
     paths: dict[str, Path] = {}
@@ -55,7 +55,7 @@ def test_issue96_wheel_identity_is_read_from_artifact_metadata(
     identity = read_wheel_identity(wheels.quillan, "quillan")
 
     assert identity.distribution == "quillan"
-    assert identity.version == "0.10.2"
+    assert identity.version == "0.10.3"
     assert identity.wheel == wheels.quillan.resolve()
 
 
@@ -81,7 +81,7 @@ def test_issue96_matrix_expected_distributions_come_from_supplied_wheels(
     assert tuple((item.distribution, item.version) for item in identities) == (
         ("pds-core", "0.6.3"),
         ("scoreform", "0.11.0"),
-        ("quillan", "0.10.2"),
+        ("quillan", "0.10.3"),
         ("pds-meridian", "0.3.0"),
     )
 
@@ -117,7 +117,7 @@ def test_issue96_origin_probe_checks_distribution_versions_and_absence(
     code = commands[0][-1]
     assert "('pds-core', '0.6.3')" in code
     assert "('scoreform', '0.11.0')" in code
-    assert "('quillan', '0.10.2')" in code
+    assert "('quillan', '0.10.3')" in code
     assert "('pds-meridian', '0.3.0')" in code
     assert "absent_distributions=('pds-concord',)" in code
     assert "metadata.version(distribution) == version" in code

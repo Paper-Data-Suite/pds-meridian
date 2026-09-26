@@ -178,21 +178,20 @@ existing installed proficiency, Grade/report, ReportingSnapshot, and export
 smokes that run in repository validation. The teacher menu composes those same
 services rather than creating parallel implementations.
 
-## Final compatibility recheck
+## Current compatibility recheck
 
-The final #57 compatibility recheck uses the newest compatible released sibling
-contracts:
+Issue #57 closed against Quillan v0.10.2. Issue #96 rechecked the newest stable
+sibling releases on 2026-09-26 and advances the current qualification boundary
+to:
 
 ```text
 pds-core     0.6.3
 scoreform    0.11.0
-quillan      0.10.2
+quillan      0.10.3
 pds-concord  0.3.0
 ```
 
-Quillan v0.10.2 is a selected-review read-performance patch. Its release states
-that it introduces no assignment, submission, review, feedback, diagnostic,
-Academic Work, Academic Result, publication, routing, or PDS2 schema changes;
-therefore Meridian's public Academic Result reader boundary remains compatible.
-Meridian still pins one exact authenticated Quillan reader version so projection
-provenance records one exact producer-reader identity.
+The Quillan v0.10.2 -> v0.10.3 release comparison does not modify
+`quillan/academic_result_reader.py` or the Academic Result manifest modules
+consumed by Meridian. Meridian still pins one exact authenticated Quillan reader
+version so projection provenance records one exact producer-reader identity.

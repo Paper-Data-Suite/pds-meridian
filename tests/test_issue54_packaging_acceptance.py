@@ -42,11 +42,14 @@ def test_sdist_guard_requires_issue54_acceptance_surface() -> None:
 
 
 def test_repository_validator_runs_installed_issue54_smoke() -> None:
-    text = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
-    assert "scripts/smoke_test_grade_report_preview_wheel.py" in text
-    assert "str(scoreform)" in text
-    assert "str(quillan)" in text
-    assert "str(concord)" in text
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    runner = Path("scripts/installed_qualification_runner.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "grade-report-preview" in runner
+    assert "DependencyMatrixId.ALL_ADAPTERS" in runner
 
 
 def test_documentation_checker_includes_issue54_architecture() -> None:

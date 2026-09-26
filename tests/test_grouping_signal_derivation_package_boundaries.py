@@ -127,7 +127,12 @@ def test_issue38_installed_smoke_is_release_guarded_and_signal_free() -> None:
     program_path = Path("scripts/smoke_program_grouping_signal_generation.py")
     program = program_path.read_text(encoding="utf-8")
 
-    assert runner_path.name in validator
+    core_runner = Path(
+        "scripts/installed_qualification_core_programs.py"
+    ).read_text(encoding="utf-8")
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "grouping-signal-generation" in core_runner
     assert runner_path.name in sdist_checker
     assert program_path.name in sdist_checker
     assert "generate_grouping_signal_derivation" in program

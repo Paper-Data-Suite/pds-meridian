@@ -453,3 +453,42 @@ setup-error paths therefore leave no persistent matrix venv cache.
 
 The reduction is in setup duplication only. The smoke-to-matrix inventory above
 continues to enumerate all twenty-four historical installed qualification units.
+
+## Slice 10 — latest stable sibling-release recheck
+
+Issue #96 rechecked the latest stable GitHub Releases on 2026-09-26 before final
+qualification.
+
+| Sibling | Latest stable release used by Meridian qualification |
+| --- | --- |
+| Core | `0.6.3` |
+| ScoreForm | `0.11.0` |
+| Quillan | `0.10.3` |
+| Concord | `0.3.0` |
+
+Core, ScoreForm, and Concord remain at the issue-review versions. Quillan
+advanced from `0.10.2` to `0.10.3`.
+
+The Quillan v0.10.2 -> v0.10.3 GitHub comparison does not modify
+`quillan/academic_result_reader.py` or the Academic Result manifest modules
+consumed by Meridian. The changed production surface is concentrated in
+resubmission/review/export workflow support plus release-version metadata.
+Meridian therefore advances its single exact Quillan reader identity to
+`0.10.3` rather than widening the adapter across multiple reader versions.
+
+The authenticated v0.10.3 wheel identity is:
+
+```text
+quillan-0.10.3-py3-none-any.whl
+sha256 eb8f527d2dd43c3961374ac6a3f34a732827ce0bd3260943667160f8d2bf3e3b
+release commit 356ab008c3a80e74b30cade4254ae4c05e07c205
+```
+
+The compatibility promotion is complete only when the exact wheel passes
+Meridian's real six-matrix installed qualification. No editable Quillan checkout
+is accepted as evidence.
+
+The repository-wide release guards now follow the Issue #96 architecture:
+historical smoke wrappers remain required sdist members, while normal repository
+validation reaches their acceptance logic through the central prepared runner
+instead of asserting direct wrapper invocation.
