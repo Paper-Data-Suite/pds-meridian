@@ -20,7 +20,7 @@ EXPECTED_SUMMARY = (
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.11.0; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.1; extra == 'quillan'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.2; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
     "paper_data_suite.module_operations"
@@ -172,7 +172,7 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.10.1."
+            "The quillan extra must pin exactly quillan==0.10.2."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
@@ -253,6 +253,17 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/grouping_signal_export_storage.py",
         "meridian/grouping_signal_export_receipt_workflow.py",
         "meridian/grouping_signal_csv_export.py",
+        "meridian/menu.py",
+        "meridian/menu_ui.py",
+        "meridian/menu_evidence.py",
+        "meridian/menu_grade_items.py",
+        "meridian/menu_proficiency.py",
+        "meridian/menu_planning_signal.py",
+        "meridian/menu_grades.py",
+        "meridian/menu_overrides.py",
+        "meridian/menu_snapshots.py",
+        "meridian/menu_export.py",
+        "meridian/menu_explain.py",
         "meridian/teacher_workflows.py",
         "meridian/standards_review_workflow.py",
         "meridian/standards_association_authoring_workflow.py",
@@ -322,6 +333,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/reporting_snapshot_preview.py",
         "meridian/reporting_snapshot_record.py",
         "meridian/reporting_snapshot_storage.py",
+        "meridian/reporting_snapshot_workflow.py",
         "meridian/reporting_snapshot_selection.py",
         "meridian/reporting_snapshot_freeze.py",
         "meridian/reporting_snapshot_comparison.py",

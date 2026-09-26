@@ -72,11 +72,11 @@ def test_scoreform_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         verify_scoreform_wheel(path)
 
 
-def test_quillan_verifier_targets_exact_0101_release() -> None:
-    assert EXPECTED_QUILLAN_VERSION == "0.10.1"
-    assert EXPECTED_QUILLAN_WHEEL_FILENAME == "quillan-0.10.1-py3-none-any.whl"
+def test_quillan_verifier_targets_exact_0102_release() -> None:
+    assert EXPECTED_QUILLAN_VERSION == "0.10.2"
+    assert EXPECTED_QUILLAN_WHEEL_FILENAME == "quillan-0.10.2-py3-none-any.whl"
     assert EXPECTED_QUILLAN_WHEEL_SHA256 == (
-        "5311cccc03a012a7d319827e30b5a989901a9e77693171a8861e4e58409764ad"
+        "f64620123c43747bacc82679e98bc53b07a56293abdf6bf8d8038a4108b673e2"
     )
 
 
@@ -137,7 +137,7 @@ def test_ci_wires_exact_scoreform_release_artifact() -> None:
 def test_ci_wires_exact_quillan_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-quillan/releases/download/v0.10.1/quillan-0.10.1-py3-none-any.whl"
+        "pds-quillan/releases/download/v0.10.2/quillan-0.10.2-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"' in workflow
     assert '--quillan-wheel "$env:QUILLAN_WHEEL"' in workflow
@@ -151,6 +151,16 @@ def test_ci_wires_exact_concord_release_artifact() -> None:
     assert 'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"' in workflow
     assert '".[dev,scoreform,quillan,concord]"' in workflow
     assert '--concord-wheel "$env:CONCORD_WHEEL"' in workflow
+
+
+def test_base_wheel_smoke_quits_interactive_teacher_menu_entrypoints() -> None:
+    smoke = Path("scripts/smoke_test_wheel.py").read_text(encoding="utf-8")
+
+    assert '([str(meridian)], "q\\n")' in smoke
+    assert '([str(python), "-m", "meridian"], "q\\n")' in smoke
+    assert "_run(command, outside, input_text=input_text)" in smoke
+    assert smoke.count("assert m.version('quillan') == '0.10.2'; ") == 2
+    assert "assert m.version('quillan') == '0.10.1'; " not in smoke
 
 
 def test_cross_producer_acceptance_document_is_validation_guarded() -> None:

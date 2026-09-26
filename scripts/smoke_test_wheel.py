@@ -22,12 +22,19 @@ def _isolated_environment() -> dict[str, str]:
     return environment
 
 
-def _run(command: list[str], cwd: Path) -> None:
+def _run(
+    command: list[str],
+    cwd: Path,
+    *,
+    input_text: str | None = None,
+) -> None:
     subprocess.run(
         command,
         cwd=cwd,
         check=True,
         env=_isolated_environment(),
+        input=input_text,
+        text=True,
     )
 
 
@@ -104,19 +111,19 @@ def smoke_test(
             ],
             outside,
         )
-        for command in (
-            [str(meridian)],
-            [str(meridian), "--help"],
-            [str(meridian), "--version"],
-            [str(meridian), "publications", "--help"],
-            [str(meridian), "evidence", "--help"],
-            [str(python), "-m", "meridian"],
-            [str(python), "-m", "meridian", "--help"],
-            [str(python), "-m", "meridian", "--version"],
-            [str(python), "-m", "meridian", "publications", "--help"],
-            [str(python), "-m", "meridian", "evidence", "--help"],
+        for command, input_text in (
+            ([str(meridian)], "q\n"),
+            ([str(meridian), "--help"], None),
+            ([str(meridian), "--version"], None),
+            ([str(meridian), "publications", "--help"], None),
+            ([str(meridian), "evidence", "--help"], None),
+            ([str(python), "-m", "meridian"], "q\n"),
+            ([str(python), "-m", "meridian", "--help"], None),
+            ([str(python), "-m", "meridian", "--version"], None),
+            ([str(python), "-m", "meridian", "publications", "--help"], None),
+            ([str(python), "-m", "meridian", "evidence", "--help"], None),
         ):
-            _run(command, outside)
+            _run(command, outside, input_text=input_text)
 
         workspace = root / "workspace"
         publication_id_file = root / "publication_id.txt"
@@ -289,7 +296,7 @@ def _quillan_adapter_smoke(
                     "registry=AdapterRegistry((QuillanAcademicResultAdapter(),)); "
                     "assert registry.bindings[0].descriptor.adapter_id == "
                     "'quillan.academic_result'; "
-                    "assert m.version('quillan') == '0.10.1'; "
+                    "assert m.version('quillan') == '0.10.2'; "
                     "assert callable(read_academic_result_manifest); "
                     "import meridian, pds_core, quillan; "
                     "root=pathlib.Path(sys.prefix).resolve(); "
@@ -427,7 +434,7 @@ def _all_adapters_smoke(
                     "assert len(registry.bindings) == 3; "
                     "assert m.version('pds-core') == '0.6.3'; "
                     "assert m.version('scoreform') == '0.11.0'; "
-                    "assert m.version('quillan') == '0.10.1'; "
+                    "assert m.version('quillan') == '0.10.2'; "
                     "assert m.version('pds-concord') == '0.3.0'; "
                     "assert callable(read_scoreform); "
                     "assert callable(read_quillan); "

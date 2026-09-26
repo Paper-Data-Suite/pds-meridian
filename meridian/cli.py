@@ -235,6 +235,7 @@ from meridian.grouping_signal_preview_projection import (
     format_grouping_signal_teacher_projection,
 )
 from meridian.ingestion import PublicationDiscoveryRequest, PublicationIngestionError
+from meridian.menu import run_menu
 from meridian.new_evidence_eligibility_selection_workflow import (
     NewEvidenceEligibilitySelectionError,
     NewEvidenceEligibilitySelectionPreview,
@@ -431,6 +432,14 @@ def _nonnegative_integer(value: str) -> int:
     return result
 
 
+def _handle_teacher_menu(
+    args: argparse.Namespace,
+    dependencies: DiagnosticsDependencies | None,
+) -> int:
+    _ = args
+    return run_menu(diagnostics=dependencies)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser without touching workspace or producer state."""
     parser = argparse.ArgumentParser(
@@ -455,6 +464,16 @@ def build_parser() -> argparse.ArgumentParser:
         version=f"%(prog)s {__version__}",
     )
     groups = parser.add_subparsers(dest="command_group")
+    menu_parser = groups.add_parser(
+        "menu",
+        help="Open the teacher-facing Meridian application.",
+        description=(
+            "Open the teacher-facing Meridian application. This is interactive; "
+            "all other named command groups remain direct noninteractive CLI "
+            "surfaces."
+        ),
+    )
+    menu_parser.set_defaults(handler=_handle_teacher_menu)
     add_reporting_snapshot_cli(groups)
 
     attention = groups.add_parser(
@@ -9101,10 +9120,9 @@ def main(
 ) -> int:
     """Parse CLI arguments and return a stable process exit status."""
     effective_argv = tuple(sys.argv[1:] if argv is None else argv)
-    parser = build_parser()
     if not effective_argv:
-        parser.print_help()
-        return 0
+        return run_menu(diagnostics=dependencies)
+    parser = build_parser()
     args = parser.parse_args(effective_argv)
     group_help = getattr(args, "show_group_help", None)
     if group_help is not None:

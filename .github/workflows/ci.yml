@@ -58,7 +58,7 @@ jobs:
 
           $quillanWheel = Join-Path `
             $quillanDirectory `
-            "quillan-0.10.1-py3-none-any.whl"
+            "quillan-0.10.2-py3-none-any.whl"
           "QUILLAN_WHEEL=$quillanWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
@@ -106,7 +106,7 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest `
-            -Uri "https://github.com/Paper-Data-Suite/pds-quillan/releases/download/v0.10.1/quillan-0.10.1-py3-none-any.whl" `
+            -Uri "https://github.com/Paper-Data-Suite/pds-quillan/releases/download/v0.10.2/quillan-0.10.2-py3-none-any.whl" `
             -OutFile $env:QUILLAN_WHEEL `
             -ErrorAction Stop
           python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"

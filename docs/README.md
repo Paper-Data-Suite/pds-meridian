@@ -96,8 +96,14 @@ class-local Export Profiles, explicit profile selection, bounded roster-backed
 observations, deterministic CSV/TSV previews, final exact-source revalidation,
 non-overwriting file/copyable output, and immutable ExportReceipts. Local export
 remains distinct from official school-system write or acceptance. Active v0.3
-Quillan compatibility is `quillan==0.10.1`. See
+Quillan compatibility is `quillan==0.10.2`. See
 [Reporting exports](architecture/reporting-exports.md).
+
+Issue #57 implements the teacher-facing Meridian main menu over the completed
+#41 and #49-#56 capability set. Bare `meridian` and `meridian menu` enter the
+eight-task application; direct named commands remain noninteractive. Final
+compatibility qualification uses exact `quillan==0.10.2`. See
+[Teacher-facing Meridian main menu](architecture/teacher-main-menu.md).
 
 ## Recommended reading order
 
@@ -133,7 +139,7 @@ Quillan compatibility is `quillan==0.10.1`. See
 30. [Proficiency attention summaries](architecture/proficiency-attention-summaries.md)
 31. [Core v0.6 publication-ingestion architecture](architecture/core-v0.6-publication-ingestion.md)
 32. [ScoreForm adapter](architecture/scoreform-adapter.md)
-33. [Quillan v0.10.1 adapter](architecture/quillan-adapter.md)
+33. [Quillan v0.10.2 adapter](architecture/quillan-adapter.md)
 34. [Concord v0.3.0 adapter](architecture/concord-adapter.md)
 35. [Cross-producer synthetic ingestion acceptance](architecture/cross-producer-synthetic-ingestion.md)
 36. [Cross-producer proficiency scenarios](architecture/cross-producer-proficiency-scenarios.md)
@@ -149,6 +155,7 @@ Quillan compatibility is `quillan==0.10.1`. See
 46. [ADR 0005](decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md)
 47. [Immutable ReportingSnapshots](architecture/reporting-snapshots.md)
 48. [Reporting exports](architecture/reporting-exports.md)
+49. [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md)
 
 
 ## Development foundation
@@ -158,10 +165,10 @@ The package foundation provides:
 - Python `>=3.11` support;
 - `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
 - exact optional `scoreform==0.11.0` adapter support;
-- exact optional `quillan==0.10.1` adapter support;
+- exact optional `quillan==0.10.2` adapter support;
 - exact optional `pds-concord==0.3.0` adapter support;
 - exact authentication of the official Core v0.6.3 wheel in baseline CI;
-- a side-effect-free `meridian` help/version CLI;
+- the installed teacher-facing `meridian` / `meridian menu` application, with named direct commands remaining noninteractive;
 - seven independently invocable issue #41 task-oriented teacher workflows;
 - five independently invocable issue #42 read-only explanation/trace targets;
 - strict mypy and Ruff checks;

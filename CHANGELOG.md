@@ -2,6 +2,80 @@
 
 ## Unreleased
 
+- Issue #57 teacher-facing main-menu foundation: adds a low-information-density
+  eight-task Meridian menu contract over stable symbolic workflow identities,
+  shared Core B/M/Q navigation semantics, application-owned clear/redraw helpers,
+  concise teacher help, injected task routing, and clean nested/terminal unwind
+  behavior. Read-only Review New Evidence and Manage Grade Items controllers now
+  reuse the #41 application services, keep exact identifiers behind bounded
+  technical drill-down where possible, and preserve the deployment-provided
+  protected-evidence authorization boundary by failing closed when no authorizer
+  is available. Review Proficiency now presents current Grade Item and Academic
+  Period proficiency through the existing explanation services and exposes the
+  existing #41 planning-signal readiness boundary without writing derivation,
+  review, Core signal, or CSV state. Preview Grades now composes #54 current
+  Grade explanations and bounded report previews, keeping policy/result/override
+  provenance behind technical drill-down and preserving the explicit authorized
+  work-evidence requirement for conventional/hybrid families. Overrides now use
+  exact #53 authoring/selection previews with typed WRITE/SELECT confirmation,
+  and Snapshots add bounded frozen-state review plus digest-bound CAS selection.
+  Override withdrawal now preserves write-versus-selection as two explicit
+  teacher confirmations, while Reporting Definition authoring writes only exact
+  immutable linear revisions. Neither workflow infers current authority from
+  history/listing order. Snapshot freezing now has a shared application
+  workflow for bounded build-request loading, explicit protected-projection
+  authorization, reviewed live-report identity, final reauthorization/review
+  currentness, and canonical freeze. The existing direct CLI now uses that
+  shared boundary. The Snapshots teacher controller now consumes the same
+  workflow, gathers exact projection authorization inputs when required, shows
+  the reviewed report identity, and requires explicit FREEZE confirmation before
+  the shared workflow reauthorizes/reobserves and commits. Export now composes
+  #56 Export Profile review/authoring/selection, exact snapshot/profile preview,
+  explicit EXPORT commit, and receipt inspection without claiming any external
+  system acknowledgement. Explain now routes current Grade, prior/current Grade
+  comparison, proficiency, planning derivation/review/export, and ExportReceipt
+  provenance through existing deterministic read-only services, with exact
+  identity behind technical drill-down. All eight primary task controllers are
+  now composed into the teacher application. Bare `meridian`, explicit
+  `meridian menu`, bare `python -m meridian`, and `python -m meridian menu`
+  enter that application, while `--help`, `--version`, and every other named
+  command remain deterministic direct CLI surfaces. CLI diagnostics capability
+  is also threaded into protected New Evidence and ReportingSnapshot freeze
+  authorization rather than replaced by an inferred identity. Manage Grade
+  Items now also reaches the existing immutable Grade Item create/revise/
+  archive/reactivate workflows, exact Grade Item selection, work-membership
+  authoring/selection, and explicit Academic Period assignment context while
+  preserving write-versus-selection separation. Review New Evidence now
+  also reaches explicit teacher academic-eligibility authoring and exact
+  eligibility selection over a freshly reauthorized projection, without
+  rewriting Core source supersession/withdrawal state or auto-selecting a
+  newly written decision. Review New Evidence now also reaches explicit
+  student attempt/reassessment decision authoring and exact decision
+  selection over freshly authorized attempt candidates; producer history
+  remains immutable and WRITE/SELECT stay separate. Review New Evidence now
+  also reaches evidence/Standard association authoring and exact association
+  selection over a freshly authorized source plus explicit target-scale
+  identity; producer Standard declarations remain unchanged. Review
+  Proficiency now also reaches explicit authorized Grade Item calculation
+  preview, immutable result persistence, and exact current-result selection;
+  evidence/mapping bindings are caller-bounded and WRITE/SELECT remain
+  separate. Academic Period proficiency now has the matching explicit #35
+  calculation preview, immutable result persistence, and exact current-result
+  selection paths over caller-bounded calendar/policy/Grade Item/membership/
+  optional #34 result provenance; no candidate or latest-result inference is
+  introduced. Review Proficiency now also reaches the complete existing #41
+  Create Planning Signal flow as a nested guided task: readiness, explicit #38
+  derivation write, exact #39 preview write/diagnostics, immutable teacher review
+  authoring, exact review selection, and finally #40 Core export with optional
+  Core-native CSV. Every write/select/export remains separately confirmed and
+  no planning step creates Concord grouping state.
+  Final #57 qualification now guards all teacher-menu modules in wheel/sdist,
+  documents the eight-task interaction contract, adds isolated installed
+  launch/navigation/direct-CLI smoke coverage, and rechecks sibling releases.
+  The exact compatible Quillan boundary advances from 0.10.1 to 0.10.2;
+  Quillan's patch declares no Academic Result/publication/routing/PDS2 schema
+  changes, so Meridian changes only its exact authenticated reader identity.
+
 - Issue #56 reusable Export Profiles and local Grade/report exports: immutable
   class-local profile revisions with explicit CAS current selection now drive a
   closed source-field registry over exact frozen #55 ReportingSnapshots.
@@ -469,3 +543,7 @@
 
 The package does not yet implement the remaining Portia/Vitrine producer adapters,
 eligibility or selection policy, proficiency, Grades, or reports.
+- Issue #57 Slice 19 qualification fix: the legacy base wheel smoke now feeds `q` to bare `meridian` and `python -m meridian` teacher-menu entry points while leaving named/help/version commands noninteractive.
+- Issue #57 Slice 19 qualification fix: isolated base-wheel Quillan and all-adapter smokes now require exact Quillan 0.10.2 instead of the superseded 0.10.1 reader.
+- Issue #57 Slice 19 qualification fix: the Issue #14 release-audit guard now requires both isolated wheel-smoke paths to bind exact Quillan 0.10.2 and rejects stale 0.10.1/0.10.0 assertions.
+- Issue #57 Slice 19 qualification fix: the Issue #45 fresh-process proficiency-signal reload smoke now requires exact Quillan 0.10.2, matching the primary installed smoke and adapter boundary.
