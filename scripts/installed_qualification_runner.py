@@ -20,6 +20,15 @@ from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_fo
 from scripts.smoke_test_conventional_grade_wheel import (
     run_prepared_smoke as run_conventional_grade_prepared_smoke,
 )
+from scripts.smoke_test_hybrid_grade_wheel import (
+    run_prepared_smoke as run_hybrid_grade_prepared_smoke,
+)
+from scripts.smoke_test_proficiency_signal_export_wheel import (
+    run_prepared_smoke as run_proficiency_signal_export_prepared_smoke,
+)
+from scripts.smoke_test_standards_grade_wheel import (
+    run_prepared_smoke as run_standards_grade_prepared_smoke,
+)
 from scripts.smoke_test_teacher_grade_override_wheel import (
     run_prepared_smoke as run_teacher_grade_override_prepared_smoke,
 )
@@ -130,6 +139,48 @@ def run_migrated_matrices(
             lambda: run_quillan_adapter_prepared_smoke(
                 prepared.python,
                 outside,
+            ),
+        )
+
+    with PreparedInstalledEnvironment(
+        matrix_for(DependencyMatrixId.SCOREFORM_QUILLAN),
+        wheels,
+        temp_parent=temp_parent,
+    ) as prepared:
+        root, outside = _working_layout(
+            prepared,
+            "proficiency-signal-export",
+        )
+        _run_acceptance(
+            prepared,
+            "proficiency-signal-export",
+            lambda: run_proficiency_signal_export_prepared_smoke(
+                prepared.python,
+                outside,
+            ),
+        )
+
+        root, outside = _working_layout(prepared, "standards-grade")
+        standards_workspace = root / "workspace"
+        _run_acceptance(
+            prepared,
+            "standards-grade",
+            lambda: run_standards_grade_prepared_smoke(
+                prepared.python,
+                outside,
+                standards_workspace,
+            ),
+        )
+
+        root, outside = _working_layout(prepared, "hybrid-grade")
+        hybrid_workspace = root / "workspace"
+        _run_acceptance(
+            prepared,
+            "hybrid-grade",
+            lambda: run_hybrid_grade_prepared_smoke(
+                prepared.python,
+                outside,
+                hybrid_workspace,
             ),
         )
 

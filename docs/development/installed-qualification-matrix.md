@@ -311,3 +311,43 @@ The structural count becomes:
 | Temporary installed venvs in normal full validation | 14 | 12 |
 | Standalone ScoreForm-only wrapper venvs in validator | 2 | 0 |
 | Prepared ScoreForm matrix venvs | 1 | 1 |
+
+## Slice 7 — ScoreForm + Quillan matrix consolidation
+
+Slice 7 introduces the sixth prepared dependency boundary,
+`scoreform-quillan`, and moves its three installed workflows into that one
+environment:
+
+- proficiency / signal export;
+- standards Grade;
+- bounded hybrid Grade.
+
+Concord remains intentionally absent from this matrix. The existing installed
+acceptance programs are unchanged: proficiency/signal export checks the absence
+of the `pds-concord` distribution and `concord` package in both its main and
+reload processes, while the standards and hybrid main programs also verify that
+Concord is not installed or importable. The prepared-environment harness adds
+its own excluded-producer import check before any workflow runs.
+
+Every workflow receives a fresh working root. Main and reload companions still
+run as separate Python processes while sharing only the workflow state needed
+for reload verification.
+
+The central runner now owns all six documented dependency matrices:
+
+```text
+core
+scoreform
+quillan
+scoreform-quillan
+concord
+all-adapters
+```
+
+The structural count becomes:
+
+| Metric | After Slice 6 | After Slice 7 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 12 | 10 |
+| Standalone ScoreForm+Quillan wrapper venvs in validator | 3 | 0 |
+| Prepared ScoreForm+Quillan matrix venvs | 0 | 1 |

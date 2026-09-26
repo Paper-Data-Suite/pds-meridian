@@ -119,6 +119,21 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     )
     monkeypatch.setattr(
         runner,
+        "run_proficiency_signal_export_prepared_smoke",
+        record("proficiency-signal-export"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_standards_grade_prepared_smoke",
+        record("standards-grade"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_hybrid_grade_prepared_smoke",
+        record("hybrid-grade"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_concord_adapter_prepared_smoke",
         record("concord"),
     )
@@ -135,6 +150,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         DependencyMatrixId.CORE,
         DependencyMatrixId.SCOREFORM,
         DependencyMatrixId.QUILLAN,
+        DependencyMatrixId.SCOREFORM_QUILLAN,
         DependencyMatrixId.CONCORD,
         DependencyMatrixId.ALL_ADAPTERS,
     ]
@@ -146,6 +162,9 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "conventional-grade",
         "teacher-grade-override",
         "quillan",
+        "proficiency-signal-export",
+        "standards-grade",
+        "hybrid-grade",
         "concord",
         "all-adapters",
     ]
@@ -155,6 +174,12 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         (DependencyMatrixId.SCOREFORM, "conventional-grade"),
         (DependencyMatrixId.SCOREFORM, "teacher-grade-override"),
         (DependencyMatrixId.QUILLAN, "quillan-adapter"),
+        (
+            DependencyMatrixId.SCOREFORM_QUILLAN,
+            "proficiency-signal-export",
+        ),
+        (DependencyMatrixId.SCOREFORM_QUILLAN, "standards-grade"),
+        (DependencyMatrixId.SCOREFORM_QUILLAN, "hybrid-grade"),
         (DependencyMatrixId.CONCORD, "concord-adapter"),
         (DependencyMatrixId.ALL_ADAPTERS, "all-adapters-composition"),
     ]
@@ -208,6 +233,21 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
     )
     monkeypatch.setattr(
         runner,
+        "run_proficiency_signal_export_prepared_smoke",
+        capture("proficiency-signal-export"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_standards_grade_prepared_smoke",
+        capture("standards-grade"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_hybrid_grade_prepared_smoke",
+        capture("hybrid-grade"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_concord_adapter_prepared_smoke",
         capture("concord"),
     )
@@ -225,6 +265,9 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         "conventional-grade": Path("python-scoreform"),
         "teacher-grade-override": Path("python-scoreform"),
         "quillan": Path("python-quillan"),
+        "proficiency-signal-export": Path("python-scoreform-quillan"),
+        "standards-grade": Path("python-scoreform-quillan"),
+        "hybrid-grade": Path("python-scoreform-quillan"),
         "concord": Path("python-concord"),
         "all-adapters": Path("python-all-adapters"),
     }
@@ -280,6 +323,9 @@ def test_issue96_validator_uses_central_runner_once() -> None:
     assert "scripts.installed_qualification_core_programs" not in validator
     assert "scripts/smoke_test_conventional_grade_wheel.py" not in validator
     assert "scripts/smoke_test_teacher_grade_override_wheel.py" not in validator
+    assert "scripts/smoke_test_proficiency_signal_export_wheel.py" not in validator
+    assert "scripts/smoke_test_standards_grade_wheel.py" not in validator
+    assert "scripts/smoke_test_hybrid_grade_wheel.py" not in validator
 
 
 def test_issue96_smoke_test_wheel_keeps_standalone_five_environment_path() -> None:

@@ -92,6 +92,8 @@ REQUIRED_TEXT = {
         "| Temporary installed venvs in normal full validation | 15 | 14 |",
         "Slice 6",
         "| Temporary installed venvs in normal full validation | 14 | 12 |",
+        "Slice 7",
+        "| Temporary installed venvs in normal full validation | 12 | 10 |",
     ),
     Path("docs/development/v0.2.0-release-audit.md"): (
         "Release-preparation authorization — AUTHORIZED",
