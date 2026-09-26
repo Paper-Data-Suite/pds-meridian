@@ -98,3 +98,41 @@ Slice 1 records and tests this matrix only. It intentionally leaves all existing
 smoke wrappers and `scripts/validate_repository.py` execution unchanged. The
 pre-optimization count remains 24 until a later slice introduces the shared
 prepared-environment harness.
+
+## Prepared-environment harness
+
+Slice 2 adds `scripts/installed_qualification_harness.py`. It is deliberately
+not wired into the full repository validator yet.
+
+For one matrix, the harness:
+
+1. validates the exact local wheel inputs before creating a venv;
+2. creates one bounded temporary virtual environment;
+3. installs Core, the matrix's exact producer wheels, and the candidate Meridian
+   wheel exactly once;
+4. runs `pip check` once;
+5. verifies installed origins with isolated Python and proves excluded producers
+   are not importable;
+6. captures a sorted `pip freeze --all` package fingerprint;
+7. exposes a fresh empty working directory for each smoke process;
+8. launches each smoke as a separate subprocess;
+9. rechecks the package fingerprint after each smoke and fails closed on mutation;
+10. cleans the complete temporary matrix root on context exit or setup failure.
+
+The harness also neutralizes `PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`,
+user-site visibility, and ambient sibling-wheel environment variables for its
+subprocesses.
+
+This establishes the lifecycle needed for later wrapper migration while
+preserving the Slice 1 rule:
+
+```text
+shared dependency environment
+!= shared workflow state
+
+reuse environment
+!= reuse process
+```
+
+Until the validator is migrated in a later slice, the pre-#96 full-validation
+execution count remains unchanged.
