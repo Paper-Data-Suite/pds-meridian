@@ -56,6 +56,11 @@ GradeRoundingMode: TypeAlias = Literal[
 ]
 GradeRoundingStage: TypeAlias = Literal["final"]
 StandardsGradeAggregationStrategy: TypeAlias = Literal["weighted_mean"]
+ProfilePredicateKind: TypeAlias = Literal[
+    "all_at_or_above",
+    "count_at_or_above",
+    "proportion_at_or_above",
+]
 
 _CALCULATION_FAMILIES: Final[frozenset[str]] = frozenset(
     {"conventional", "standards_based", "hybrid"}
@@ -77,6 +82,13 @@ _ROUNDING_MODES: Final[frozenset[str]] = frozenset(
 )
 _ROUNDING_STAGES: Final[frozenset[str]] = frozenset({"final"})
 _AGGREGATION_STRATEGIES: Final[frozenset[str]] = frozenset({"weighted_mean"})
+_PROFILE_PREDICATE_KINDS: Final[frozenset[str]] = frozenset(
+    {
+        "all_at_or_above",
+        "count_at_or_above",
+        "proportion_at_or_above",
+    }
+)
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _T = TypeVar("_T")
 
@@ -462,6 +474,256 @@ class ProficiencyGradeConversion:
             "grade_value",
             _nonnegative_decimal(self.grade_value, "grade_value"),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileStandardGroup:
+    """One named policy-owned group used only for profile eligibility."""
+
+    group_id: str
+    standard_ids: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        group_id = _identifier(self.group_id, "group_id")
+        try:
+            raw_standard_ids = tuple(self.standard_ids)
+        except TypeError as error:
+            raise GradePolicyValidationError(
+                "standard_ids must be an iterable of standard identifiers."
+            ) from error
+        if not raw_standard_ids:
+            raise GradePolicyValidationError(
+                "profile standard group must contain at least one standard."
+            )
+        standard_ids = tuple(
+            normalize_standard_id(standard_id)
+            for standard_id in raw_standard_ids
+        )
+        if len(set(standard_ids)) != len(standard_ids):
+            raise GradePolicyValidationError(
+                "profile standard group must not contain duplicate standards."
+            )
+        object.__setattr__(self, "group_id", group_id)
+        object.__setattr__(self, "standard_ids", tuple(sorted(standard_ids)))
+
+
+@dataclass(frozen=True, slots=True)
+class ProfilePredicate:
+    """One bounded conjunctive proficiency-profile predicate."""
+
+    predicate_id: str
+    kind: ProfilePredicateKind
+    group_id: str
+    proficiency_level_id: str
+    minimum_count: int | None = None
+    minimum_proportion: Decimal | None = None
+
+    def __post_init__(self) -> None:
+        predicate_id = _identifier(self.predicate_id, "predicate_id")
+        if self.kind not in _PROFILE_PREDICATE_KINDS:
+            raise GradePolicyValidationError(
+                "profile predicate kind is not supported."
+            )
+        group_id = _identifier(self.group_id, "group_id")
+        level_id = _identifier(
+            self.proficiency_level_id,
+            "proficiency_level_id",
+        )
+
+        minimum_count = self.minimum_count
+        minimum_proportion = self.minimum_proportion
+        if self.kind == "all_at_or_above":
+            if minimum_count is not None or minimum_proportion is not None:
+                raise GradePolicyValidationError(
+                    "all_at_or_above must not define a count or proportion."
+                )
+        elif self.kind == "count_at_or_above":
+            if minimum_count is None or minimum_proportion is not None:
+                raise GradePolicyValidationError(
+                    "count_at_or_above requires minimum_count only."
+                )
+            minimum_count = _positive_int(
+                minimum_count,
+                "minimum_count",
+            )
+        else:
+            if minimum_count is not None or minimum_proportion is None:
+                raise GradePolicyValidationError(
+                    "proportion_at_or_above requires minimum_proportion only."
+                )
+            minimum_proportion = _positive_decimal(
+                minimum_proportion,
+                "minimum_proportion",
+            )
+            if minimum_proportion > Decimal("1"):
+                raise GradePolicyValidationError(
+                    "minimum_proportion must not exceed 1."
+                )
+
+        object.__setattr__(self, "predicate_id", predicate_id)
+        object.__setattr__(self, "group_id", group_id)
+        object.__setattr__(self, "proficiency_level_id", level_id)
+        object.__setattr__(self, "minimum_count", minimum_count)
+        object.__setattr__(self, "minimum_proportion", minimum_proportion)
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileGradeBand:
+    """One ordered Grade band and its conjunctive profile predicates."""
+
+    band_id: str
+    priority: int
+    minimum_grade: Decimal
+    maximum_grade: Decimal
+    predicates: tuple[ProfilePredicate, ...]
+
+    def __post_init__(self) -> None:
+        band_id = _identifier(self.band_id, "band_id")
+        priority = _positive_int(self.priority, "priority")
+        minimum_grade = _nonnegative_decimal(
+            self.minimum_grade,
+            "minimum_grade",
+        )
+        maximum_grade = _nonnegative_decimal(
+            self.maximum_grade,
+            "maximum_grade",
+        )
+        if minimum_grade > maximum_grade:
+            raise GradePolicyValidationError(
+                "profile Grade band minimum_grade must not exceed maximum_grade."
+            )
+        predicates = _typed_tuple(
+            self.predicates,
+            ProfilePredicate,
+            "predicates",
+        )
+        predicate_ids = tuple(item.predicate_id for item in predicates)
+        if len(set(predicate_ids)) != len(predicate_ids):
+            raise GradePolicyValidationError(
+                "profile Grade band predicate IDs must not contain duplicates."
+            )
+
+        object.__setattr__(self, "band_id", band_id)
+        object.__setattr__(self, "priority", priority)
+        object.__setattr__(self, "minimum_grade", minimum_grade)
+        object.__setattr__(self, "maximum_grade", maximum_grade)
+        object.__setattr__(
+            self,
+            "predicates",
+            tuple(sorted(predicates, key=lambda item: item.predicate_id)),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileConstraintConfiguration:
+    """Bounded profile authority for a future profile-constrained mean."""
+
+    groups: tuple[ProfileStandardGroup, ...]
+    bands: tuple[ProfileGradeBand, ...]
+    fallback_band_id: str
+
+    def __post_init__(self) -> None:
+        groups = _typed_tuple(
+            self.groups,
+            ProfileStandardGroup,
+            "groups",
+        )
+        if not groups:
+            raise GradePolicyValidationError(
+                "profile constraints require at least one standard group."
+            )
+        group_ids = tuple(item.group_id for item in groups)
+        if len(set(group_ids)) != len(group_ids):
+            raise GradePolicyValidationError(
+                "profile standard group IDs must not contain duplicates."
+            )
+        groups = tuple(sorted(groups, key=lambda item: item.group_id))
+        group_by_id = {item.group_id: item for item in groups}
+
+        bands = _typed_tuple(
+            self.bands,
+            ProfileGradeBand,
+            "bands",
+        )
+        if not bands:
+            raise GradePolicyValidationError(
+                "profile constraints require at least one Grade band."
+            )
+        band_ids = tuple(item.band_id for item in bands)
+        if len(set(band_ids)) != len(band_ids):
+            raise GradePolicyValidationError(
+                "profile Grade band IDs must not contain duplicates."
+            )
+        priorities = tuple(item.priority for item in bands)
+        if len(set(priorities)) != len(priorities):
+            raise GradePolicyValidationError(
+                "profile Grade band priorities must not contain duplicates."
+            )
+        expected_priorities = tuple(range(1, len(bands) + 1))
+        if tuple(sorted(priorities)) != expected_priorities:
+            raise GradePolicyValidationError(
+                "profile Grade band priorities must be contiguous from 1."
+            )
+        bands = tuple(sorted(bands, key=lambda item: item.priority))
+        band_by_id = {item.band_id: item for item in bands}
+
+        fallback_band_id = _identifier(
+            self.fallback_band_id,
+            "fallback_band_id",
+        )
+        fallback = band_by_id.get(fallback_band_id)
+        if fallback is None:
+            raise GradePolicyValidationError(
+                "fallback_band_id must identify a configured Grade band."
+            )
+        if fallback.priority != len(bands):
+            raise GradePolicyValidationError(
+                "fallback Grade band must have the lowest priority."
+            )
+        if fallback.predicates:
+            raise GradePolicyValidationError(
+                "fallback Grade band must not define profile predicates."
+            )
+
+        predicate_ids: set[str] = set()
+        for band in bands:
+            if band.band_id != fallback_band_id and not band.predicates:
+                raise GradePolicyValidationError(
+                    "non-fallback Grade bands require profile predicates."
+                )
+            for predicate in band.predicates:
+                if predicate.predicate_id in predicate_ids:
+                    raise GradePolicyValidationError(
+                        "profile predicate IDs must be unique across Grade bands."
+                    )
+                predicate_ids.add(predicate.predicate_id)
+                group = group_by_id.get(predicate.group_id)
+                if group is None:
+                    raise GradePolicyValidationError(
+                        "profile predicate group_id must identify a configured group."
+                    )
+                if (
+                    predicate.kind == "count_at_or_above"
+                    and predicate.minimum_count is not None
+                    and predicate.minimum_count > len(group.standard_ids)
+                ):
+                    raise GradePolicyValidationError(
+                        "minimum_count must not exceed profile group size."
+                    )
+
+        numeric_bands = sorted(
+            bands,
+            key=lambda item: (item.minimum_grade, item.maximum_grade),
+        )
+        for lower, upper in zip(numeric_bands, numeric_bands[1:], strict=False):
+            if lower.maximum_grade >= upper.minimum_grade:
+                raise GradePolicyValidationError(
+                    "profile Grade band ranges must not overlap."
+                )
+
+        object.__setattr__(self, "groups", groups)
+        object.__setattr__(self, "bands", bands)
+        object.__setattr__(self, "fallback_band_id", fallback_band_id)
 
 
 @dataclass(frozen=True, slots=True)
