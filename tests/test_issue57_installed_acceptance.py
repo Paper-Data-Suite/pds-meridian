@@ -27,4 +27,10 @@ def test_issue57_installed_wrapper_isolated_and_exercises_menu_contract() -> Non
 
 def test_issue57_repository_validation_runs_installed_menu_smoke() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
-    assert '"scripts/smoke_test_teacher_menu_wheel.py"' in validator
+    runner = Path("scripts/installed_qualification_runner.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "teacher-menu" in runner
+    assert "DependencyMatrixId.ALL_ADAPTERS" in runner

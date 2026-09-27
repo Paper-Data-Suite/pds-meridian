@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Issue #96 latest-sibling compatibility recheck advances the exact active
+  Quillan boundary from 0.10.2 to 0.10.3. The authenticated release wheel is
+  `quillan-0.10.3-py3-none-any.whl` with SHA-256
+  `eb8f527d2dd43c3961374ac6a3f34a732827ce0bd3260943667160f8d2bf3e3b`.
+  The v0.10.2 -> v0.10.3 release comparison leaves Meridian's consumed
+  `academic_result_reader.py` / Academic Result manifest boundary unchanged;
+  exact adapter identity, verifier/CI wiring, installed smokes, and package
+  metadata qualification move together to 0.10.3.
+- Issue #96 repository-wide qualification guard reconciliation updates legacy
+  packaging tests to follow the central prepared installed-qualification runner.
+  Historical smoke wrappers remain required source-distribution members, but
+  normal repository validation no longer creates one venv per wrapper.
+
 - Issue #57 teacher-facing main-menu foundation: adds a low-information-density
   eight-task Meridian menu contract over stable symbolic workflow identities,
   shared Core B/M/Q navigation semantics, application-owned clear/redraw helpers,

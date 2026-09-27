@@ -1,0 +1,494 @@
+# Installed qualification matrix — Issue #96
+
+Issue #96 optimizes setup duplication in Meridian's installed-wheel qualification
+without reducing the acceptance evidence. This document records the audited
+dependency boundaries before environment reuse is introduced.
+
+## Baseline inventory
+
+The post-#57 validator invokes nineteen standalone one-venv smoke wrappers.
+`scripts/smoke_test_wheel.py` additionally creates five isolated environments
+internally: Core/Meridian, ScoreForm, Quillan, Concord, and all adapters.
+
+Therefore the pre-#96 normal full-validation path creates:
+
+- **24** installed virtual environments;
+- **24** installed-package setup operations;
+- **24** `pip check` runs.
+
+Those 24 setups represent six true dependency-isolation boundaries.
+
+| Matrix | Producer packages present | Producer packages intentionally absent |
+| --- | --- | --- |
+| `core` | none | ScoreForm, Quillan, Concord |
+| `scoreform` | ScoreForm | Quillan, Concord |
+| `quillan` | Quillan | ScoreForm, Concord |
+| `concord` | Concord | ScoreForm, Quillan |
+| `scoreform-quillan` | ScoreForm, Quillan | Concord |
+| `all-adapters` | ScoreForm, Quillan, Concord | none |
+
+Core and the exact candidate Meridian wheel are required in every matrix.
+
+## Smoke-to-matrix inventory
+
+`core`
+
+- wheel/package/CLI foundation
+- Grade Items
+- Academic Period proficiency
+- grouping-signal contract
+- grouping-signal policy
+- grouping-signal generation
+- grouping-signal preview/review
+- grouping-signal export
+- explanation traces
+- teacher workflows
+- attention
+
+`scoreform`
+
+- ScoreForm adapter
+- conventional Grade
+- teacher Grade override
+
+`quillan`
+
+- Quillan adapter
+
+`concord`
+
+- Concord adapter
+
+`scoreform-quillan`
+
+- proficiency/signal export
+- standards Grade
+- hybrid Grade
+
+`all-adapters`
+
+- all-adapter composition
+- Grade report preview
+- ReportingSnapshot
+- report exports
+- teacher menu
+
+## Isolation contract
+
+The matrix is about installed package identity only. Later #96 slices may share
+one prepared venv among smokes assigned to the same matrix, but they must retain:
+
+- exact candidate Meridian-wheel installation;
+- exact supplied sibling-wheel installation;
+- package absence for excluded producers;
+- source-tree isolation;
+- one `pip check` per prepared matrix;
+- an immutable package set after setup;
+- separate smoke processes;
+- fresh workflow/workspace state where the existing acceptance requires it;
+- fresh-process reload companions where they currently exist.
+
+In particular, `scoreform-quillan` must continue to prove that Concord is
+physically absent. Producer-specific adapter qualification must not be moved into
+the all-adapters matrix.
+
+## Slice status
+
+Slice 1 records and tests this matrix only. It intentionally leaves all existing
+smoke wrappers and `scripts/validate_repository.py` execution unchanged. The
+pre-optimization count remains 24 until a later slice introduces the shared
+prepared-environment harness.
+
+## Prepared-environment harness
+
+Slice 2 adds `scripts/installed_qualification_harness.py`. It is deliberately
+not wired into the full repository validator yet.
+
+For one matrix, the harness:
+
+1. validates the exact local wheel inputs before creating a venv;
+2. creates one bounded temporary virtual environment;
+3. installs Core, the matrix's exact producer wheels, and the candidate Meridian
+   wheel exactly once;
+4. runs `pip check` once;
+5. verifies installed origins with isolated Python and proves excluded producers
+   are not importable;
+6. captures a sorted `pip freeze --all` package fingerprint;
+7. exposes a fresh empty working directory for each smoke process;
+8. launches each smoke as a separate subprocess;
+9. rechecks the package fingerprint after each smoke and fails closed on mutation;
+10. cleans the complete temporary matrix root on context exit or setup failure.
+
+The harness also neutralizes `PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`,
+user-site visibility, and ambient sibling-wheel environment variables for its
+subprocesses.
+
+This establishes the lifecycle needed for later wrapper migration while
+preserving the Slice 1 rule:
+
+```text
+shared dependency environment
+!= shared workflow state
+
+reuse environment
+!= reuse process
+```
+
+Until the validator is migrated in a later slice, the pre-#96 full-validation
+execution count remains unchanged.
+## Slice 3 — first prepared Core migration
+
+Slice 3 migrates the five program-backed Core-only historical wrappers from the
+normal repository-validator path into one shared prepared `core` environment:
+
+- grouping-signal generation;
+- grouping-signal preview/review;
+- grouping-signal export;
+- teacher workflows;
+- attention.
+
+The standalone `smoke_test_*_wheel.py` wrappers remain available for direct
+developer execution. The repository validator no longer invokes those wrappers;
+it invokes `scripts.installed_qualification_core_programs` once.
+
+The shared environment still launches **seven separate Python smoke processes**.
+Generation, preview/review, and export each receive their own fresh working
+directory. Teacher workflows intentionally run their export seed and workflow
+process in one dedicated workspace. Attention intentionally runs its
+preview/review seed and attention process in another dedicated workspace.
+Neither paired workflow shares state with any other smoke.
+
+This is the first intermediate structural reduction:
+
+| Metric | Pre-#96 | After Slice 3 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 24 | 20 |
+| Historical program-backed Core wrapper venvs | 5 | 0 |
+| Shared prepared Core venvs for that batch | 0 | 1 |
+
+The remaining Core-only historical wrappers are not migrated by this slice.
+They include the base wheel/foundation smoke, Grade Items, Academic Period
+proficiency, grouping-signal contract, grouping-signal policy, and explanation
+traces. Their isolation semantics will be migrated separately rather than
+collapsed into this batch without audit.
+
+## Slice 4 — remaining standalone Core workflow migration
+
+Slice 4 moves five additional Core-only workflows into the same prepared `core`
+environment introduced by Slice 3:
+
+- Grade Items / evidence-eligibility interpretation;
+- Academic Period proficiency;
+- Core grouping-signal contract;
+- grouping-signal derivation policy;
+- explanation traces.
+
+Each historical wrapper now exposes `run_prepared_smoke(...)`, which contains the
+existing installed acceptance logic after environment setup. Direct execution
+still follows the original standalone path:
+
+```text
+standalone wrapper
+-> create temporary venv
+-> install Core + candidate Meridian
+-> pip check
+-> run_prepared_smoke(...)
+```
+
+Repository qualification instead follows:
+
+```text
+prepared core matrix
+-> install once
+-> pip check once
+-> fresh workflow root
+-> run_prepared_smoke(...)
+-> verify package fingerprint unchanged
+```
+
+The large inline smoke programs are not copied or rewritten; their existing
+assertions are moved behind the reusable prepared boundary. Explanation-trace
+CLI checks likewise continue to execute as fresh subprocesses against the
+prepared environment's installed `meridian` executable.
+
+The intermediate structural count is now:
+
+| Metric | After Slice 3 | After Slice 4 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 20 | 15 |
+| Additional Core wrapper venvs removed in this slice | 0 | 5 |
+| Prepared Core venvs | 1 | 1 |
+
+The base wheel/foundation portion of `smoke_test_wheel.py` remains separate in
+this slice because that historical wrapper also owns the ScoreForm-only,
+Quillan-only, Concord-only, and all-adapters boundaries. It will be separated
+when those adapter matrices are migrated rather than weakening their isolation.
+
+## Slice 5 — central runner and embedded adapter matrix separation
+
+Slice 5 removes the direct `smoke_test_wheel.py` execution from the normal
+repository-validator path. Its five installed acceptance bodies are separated
+from virtual-environment ownership and exposed as prepared helpers for:
+
+- Core wheel/package/CLI foundation;
+- ScoreForm-only adapter acceptance;
+- Quillan-only adapter acceptance;
+- Concord-only adapter acceptance;
+- all-adapters composition.
+
+The standalone `smoke_test_wheel.py` entry point still creates the same five
+temporary environments when run directly. Repository qualification now uses
+`scripts.installed_qualification_runner`, which owns prepared matrix lifetimes.
+
+The central runner currently prepares these matrices in order:
+
+```text
+core
+scoreform
+quillan
+concord
+all-adapters
+```
+
+The Core matrix runs the wheel foundation and both Core batches from Slices 3
+and 4 before that environment is destroyed. Each adapter acceptance runs in its
+own exact package-presence boundary. The `scoreform-quillan` matrix is not opened
+yet because its historical workflows are migrated in a later slice.
+
+This changes the normal full-validator structural count from **15 to 14**
+temporary installed environments:
+
+| Metric | After Slice 4 | After Slice 5 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 15 | 14 |
+| Direct `smoke_test_wheel.py` internal venvs in validator | 5 | 0 |
+| Prepared matrices owned by central runner | 1 | 5 |
+
+The apparent increase from one to five prepared matrices is intentional: four
+of those replace the historical adapter environments one-for-one, while the
+Core foundation is folded into the already-required Core matrix. More important,
+the matrix lifetime now has one central owner. Subsequent slices can move the
+remaining ScoreForm, ScoreForm+Quillan, and all-adapters workflows into those
+matrix scopes without introducing another venv.
+
+## Slice 6 — ScoreForm-only workflow consolidation
+
+Slice 6 moves the two remaining ScoreForm-only installed workflows into the
+prepared `scoreform` matrix already owned by the central runner:
+
+- conventional Grade;
+- teacher Grade override.
+
+The historical wrappers remain directly runnable. Each now exposes a
+`run_prepared_smoke(...)` helper containing only the existing post-install
+acceptance sequence.
+
+Conventional Grade continues to execute as two separate Python processes in one
+fresh workflow directory:
+
+```text
+main conventional-Grade acceptance
+-> reload/history acceptance
+```
+
+Teacher Grade override continues to execute as three separate Python processes
+in one fresh workflow directory:
+
+```text
+main override lifecycle acceptance
+-> active-state reload acceptance
+-> withdrawn-state reload acceptance
+```
+
+The prepared ScoreForm matrix therefore reuses only installed package state.
+The two workflows receive separate fresh working directories, and their reload
+companions remain fresh interpreter processes.
+
+The structural count becomes:
+
+| Metric | After Slice 5 | After Slice 6 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 14 | 12 |
+| Standalone ScoreForm-only wrapper venvs in validator | 2 | 0 |
+| Prepared ScoreForm matrix venvs | 1 | 1 |
+
+## Slice 7 — ScoreForm + Quillan matrix consolidation
+
+Slice 7 introduces the sixth prepared dependency boundary,
+`scoreform-quillan`, and moves its three installed workflows into that one
+environment:
+
+- proficiency / signal export;
+- standards Grade;
+- bounded hybrid Grade.
+
+Concord remains intentionally absent from this matrix. The existing installed
+acceptance programs are unchanged: proficiency/signal export checks the absence
+of the `pds-concord` distribution and `concord` package in both its main and
+reload processes, while the standards and hybrid main programs also verify that
+Concord is not installed or importable. The prepared-environment harness adds
+its own excluded-producer import check before any workflow runs.
+
+Every workflow receives a fresh working root. Main and reload companions still
+run as separate Python processes while sharing only the workflow state needed
+for reload verification.
+
+The central runner now owns all six documented dependency matrices:
+
+```text
+core
+scoreform
+quillan
+scoreform-quillan
+concord
+all-adapters
+```
+
+The structural count becomes:
+
+| Metric | After Slice 6 | After Slice 7 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 12 | 10 |
+| Standalone ScoreForm+Quillan wrapper venvs in validator | 3 | 0 |
+| Prepared ScoreForm+Quillan matrix venvs | 0 | 1 |
+
+## Slice 8 — all-adapters consolidation and structural target
+
+Slice 8 moves the final four standalone repository-validation workflows into the
+already prepared `all-adapters` matrix:
+
+- Grade report preview;
+- immutable `ReportingSnapshot`;
+- report exports;
+- teacher main menu.
+
+Grade report preview and ReportingSnapshot keep their main and reload programs as
+separate Python processes. Report exports keeps its CLI-help check, snapshot seed,
+export acceptance, and reload acceptance as four separate processes in one fresh
+workflow directory.
+
+Teacher-menu acceptance keeps a separate fresh working directory and preserves
+its no-mutation contract. Launch/quit, navigation, help, and version operations
+must leave the working tree unchanged. The standalone teacher-menu wrapper still
+performs its own installed-origin check when run directly; repository
+qualification additionally receives the prepared harness's installed-origin and
+package-fingerprint checks.
+
+With these migrations, the normal full repository validator creates exactly one
+prepared environment for each documented dependency matrix:
+
+```text
+core
+scoreform
+quillan
+scoreform-quillan
+concord
+all-adapters
+```
+
+The structural target is reached:
+
+| Metric | After Slice 7 | After Slice 8 |
+| --- | ---: | ---: |
+| Temporary installed venvs in normal full validation | 10 | 6 |
+| Standalone all-adapters wrapper venvs in validator | 4 | 0 |
+| Prepared all-adapters matrix venvs | 1 | 1 |
+
+Standalone smoke wrappers remain available for focused developer execution.
+The optimization removes redundant environment setup from repository
+qualification; it does not remove acceptance evidence.
+
+## Slice 9 — artifact identity and harness hardening
+
+With the six-matrix structure in place, Slice 9 strengthens the prepared
+environment contract rather than reducing the matrix count further.
+
+Each supplied PDS wheel is now inspected before installation. The harness reads
+the wheel's own `METADATA` and records its distribution name and version.
+Expected distribution names are fixed by role:
+
+| Wheel role | Expected distribution |
+| --- | --- |
+| Meridian | `pds-meridian` |
+| Core | `pds-core` |
+| ScoreForm | `scoreform` |
+| Quillan | `quillan` |
+| Concord | `pds-concord` |
+
+Versions are deliberately **not hardcoded in the harness**. They are derived
+from the exact supplied wheel artifacts so the final compatibility recheck may
+advance a sibling release without creating a second source of version truth.
+
+After installation and `pip check`, the origin/isolation probe now verifies all
+of the following in one isolated interpreter:
+
+- every required module imports from inside the prepared venv;
+- every required PDS distribution is installed;
+- every installed PDS distribution version exactly matches the supplied wheel's
+  metadata;
+- every required distribution location is inside the prepared venv;
+- excluded producer modules are not importable;
+- excluded producer distributions are physically absent.
+
+This makes package absence a distribution-level guarantee as well as an import
+boundary.
+
+The normal repository validator also has a structural guard that it invokes only
+the central prepared runner for installed smoke qualification. The runner itself
+contains no venv creation, `pip install`, `pip uninstall`, or `pip check`
+commands; those operations remain centralized in the harness.
+
+A setup failure still closes its bounded temporary root. Normal completion and
+setup-error paths therefore leave no persistent matrix venv cache.
+
+### Consolidated structural evidence
+
+| Metric | Pre-#96 | Post-Slice-9 |
+| --- | ---: | ---: |
+| Distinct dependency matrices | 6 | 6 |
+| Temporary installed venvs | 24 | 6 |
+| Package-install setups | 24 | 6 |
+| `pip check` runs | 24 | 6 |
+| Persistent installed-env cache | 0 | 0 |
+
+The reduction is in setup duplication only. The smoke-to-matrix inventory above
+continues to enumerate all twenty-four historical installed qualification units.
+
+## Slice 10 — latest stable sibling-release recheck
+
+Issue #96 rechecked the latest stable GitHub Releases on 2026-09-26 before final
+qualification.
+
+| Sibling | Latest stable release used by Meridian qualification |
+| --- | --- |
+| Core | `0.6.3` |
+| ScoreForm | `0.11.0` |
+| Quillan | `0.10.3` |
+| Concord | `0.3.0` |
+
+Core, ScoreForm, and Concord remain at the issue-review versions. Quillan
+advanced from `0.10.2` to `0.10.3`.
+
+The Quillan v0.10.2 -> v0.10.3 GitHub comparison does not modify
+`quillan/academic_result_reader.py` or the Academic Result manifest modules
+consumed by Meridian. The changed production surface is concentrated in
+resubmission/review/export workflow support plus release-version metadata.
+Meridian therefore advances its single exact Quillan reader identity to
+`0.10.3` rather than widening the adapter across multiple reader versions.
+
+The authenticated v0.10.3 wheel identity is:
+
+```text
+quillan-0.10.3-py3-none-any.whl
+sha256 eb8f527d2dd43c3961374ac6a3f34a732827ce0bd3260943667160f8d2bf3e3b
+release commit 356ab008c3a80e74b30cade4254ae4c05e07c205
+```
+
+The compatibility promotion is complete only when the exact wheel passes
+Meridian's real six-matrix installed qualification. No editable Quillan checkout
+is accepted as evidence.
+
+The repository-wide release guards now follow the Issue #96 architecture:
+historical smoke wrappers remain required sdist members, while normal repository
+validation reaches their acceptance logic through the central prepared runner
+instead of asserting direct wrapper invocation.

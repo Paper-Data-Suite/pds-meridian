@@ -82,6 +82,114 @@ def _tree(root: Path) -> tuple[str, ...]:
     )
 
 
+def run_prepared_smoke(
+    python: Path,
+    meridian: Path,
+    outside: Path,
+) -> None:
+    """Run teacher-menu acceptance in a prepared environment."""
+    origin = _run(
+        [
+            str(python),
+            "-c",
+            (
+                "from pathlib import Path; import meridian, pds_core; "
+                "import meridian.menu, meridian.menu_planning_signal; "
+                "root=Path(__import__('sys').prefix).resolve(); "
+                "mods=(meridian,pds_core,meridian.menu,"
+                "meridian.menu_planning_signal); "
+                "assert all("
+                "Path(m.__file__).resolve().is_relative_to(root) "
+                "for m in mods)"
+            ),
+        ],
+        cwd=outside,
+    )
+    _require(origin.returncode == 0, origin.stdout + origin.stderr)
+
+    before = _tree(outside)
+    menu_text = (
+        "Review New Evidence",
+        "Manage Grade Items",
+        "Review Proficiency",
+        "Preview Grades",
+        "Overrides",
+        "Snapshots",
+        "Export",
+        "Explain",
+    )
+    _assert_menu_exit(
+        [str(meridian)],
+        cwd=outside,
+        stdin="q\n",
+        required_text=menu_text,
+    )
+    _assert_menu_exit(
+        [str(meridian), "menu"],
+        cwd=outside,
+        stdin="q\n",
+        required_text=menu_text,
+    )
+    _assert_menu_exit(
+        [str(python), "-m", "meridian"],
+        cwd=outside,
+        stdin="q\n",
+        required_text=menu_text,
+    )
+    _assert_menu_exit(
+        [str(python), "-m", "meridian", "menu"],
+        cwd=outside,
+        stdin="q\n",
+        required_text=menu_text,
+    )
+    after = _tree(outside)
+    _require(
+        after == before,
+        "Launching/quitting the installed menu created workspace state.",
+    )
+
+    navigation = _assert_menu_exit(
+        [str(meridian)],
+        cwd=outside,
+        stdin="3\n10\nb\nm\nq\n",
+        required_text=("Review Proficiency", "Create Planning Signal", "Meridian"),
+    )
+    _require(
+        navigation.count("Review Proficiency") >= 2,
+        "B did not return to Review Proficiency.",
+    )
+    _require(
+        navigation.count("1. Review New Evidence") >= 2,
+        "M did not return to the main menu.",
+    )
+    _require(
+        _tree(outside) == before,
+        "Installed navigation created workspace state.",
+    )
+
+    for command in (
+        [str(meridian), "--help"],
+        [str(meridian), "--version"],
+        [str(meridian), "reporting", "--help"],
+    ):
+        result = _run(command, cwd=outside)
+        _require(result.returncode == 0, result.stdout + result.stderr)
+        _require(
+            "Choice:" not in result.stdout,
+            "Direct CLI command became interactive.",
+        )
+        _require(
+            "Press Enter to continue" not in result.stdout,
+            "Direct CLI command paused.",
+        )
+
+    _require(
+        _tree(outside) == before,
+        "Direct CLI help/version created workspace state.",
+    )
+    print("Issue #57 installed teacher-menu acceptance passed.")
+
+
 def smoke_test(
     meridian_wheel: Path,
     core_wheel: Path,
@@ -118,106 +226,7 @@ def smoke_test(
         check = _run([str(python), "-m", "pip", "check"], cwd=outside)
         _require(check.returncode == 0, check.stdout + check.stderr)
 
-        origin = _run(
-            [
-                str(python),
-                "-c",
-                (
-                    "from pathlib import Path; import meridian, pds_core; "
-                    "import meridian.menu, meridian.menu_planning_signal; "
-                    "root=Path(__import__('sys').prefix).resolve(); "
-                    "mods=(meridian,pds_core,meridian.menu,"
-                    "meridian.menu_planning_signal); "
-                    "assert all("
-                    "Path(m.__file__).resolve().is_relative_to(root) "
-                    "for m in mods)"
-                ),
-            ],
-            cwd=outside,
-        )
-        _require(origin.returncode == 0, origin.stdout + origin.stderr)
-
-        before = _tree(outside)
-        menu_text = (
-            "Review New Evidence",
-            "Manage Grade Items",
-            "Review Proficiency",
-            "Preview Grades",
-            "Overrides",
-            "Snapshots",
-            "Export",
-            "Explain",
-        )
-        _assert_menu_exit(
-            [str(meridian)],
-            cwd=outside,
-            stdin="q\n",
-            required_text=menu_text,
-        )
-        _assert_menu_exit(
-            [str(meridian), "menu"],
-            cwd=outside,
-            stdin="q\n",
-            required_text=menu_text,
-        )
-        _assert_menu_exit(
-            [str(python), "-m", "meridian"],
-            cwd=outside,
-            stdin="q\n",
-            required_text=menu_text,
-        )
-        _assert_menu_exit(
-            [str(python), "-m", "meridian", "menu"],
-            cwd=outside,
-            stdin="q\n",
-            required_text=menu_text,
-        )
-        after = _tree(outside)
-        _require(
-            after == before,
-            "Launching/quitting the installed menu created workspace state.",
-        )
-
-        navigation = _assert_menu_exit(
-            [str(meridian)],
-            cwd=outside,
-            stdin="3\n10\nb\nm\nq\n",
-            required_text=("Review Proficiency", "Create Planning Signal", "Meridian"),
-        )
-        _require(
-            navigation.count("Review Proficiency") >= 2,
-            "B did not return to Review Proficiency.",
-        )
-        _require(
-            navigation.count("1. Review New Evidence") >= 2,
-            "M did not return to the main menu.",
-        )
-        _require(
-            _tree(outside) == before,
-            "Installed navigation created workspace state.",
-        )
-
-        for command in (
-            [str(meridian), "--help"],
-            [str(meridian), "--version"],
-            [str(meridian), "reporting", "--help"],
-        ):
-            result = _run(command, cwd=outside)
-            _require(result.returncode == 0, result.stdout + result.stderr)
-            _require(
-                "Choice:" not in result.stdout,
-                "Direct CLI command became interactive.",
-            )
-            _require(
-                "Press Enter to continue" not in result.stdout,
-                "Direct CLI command paused.",
-            )
-
-        _require(
-            _tree(outside) == before,
-            "Direct CLI help/version created workspace state.",
-        )
-        print("Issue #57 installed teacher-menu acceptance passed.")
+        run_prepared_smoke(python, meridian, outside)
 
 
 def main(argv: list[str] | None = None) -> int:

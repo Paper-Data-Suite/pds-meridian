@@ -19,7 +19,7 @@ def test_issue57_wheel_guard_requires_complete_menu_runtime() -> None:
         "meridian/menu_explain.py",
     ):
         assert f'"{module}"' in text
-    assert 'Requirement("quillan==0.10.2; extra == \'quillan\'")' in text
+    assert 'Requirement("quillan==0.10.3; extra == \'quillan\'")' in text
 
 
 def test_issue57_sdist_guard_requires_docs_smoke_and_menu_runtime() -> None:
@@ -35,18 +35,18 @@ def test_issue57_sdist_guard_requires_docs_smoke_and_menu_runtime() -> None:
         assert f'"{member}"' in text
 
 
-def test_issue57_current_quillan_release_is_exact_0102() -> None:
+def test_issue57_current_quillan_release_is_exact_0103() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     verifier = Path("scripts/verify_quillan_wheel.py").read_text(encoding="utf-8")
     adapter = Path("meridian/quillan_adapter.py").read_text(encoding="utf-8")
-    assert '"quillan==0.10.2"' in pyproject
-    assert 'EXPECTED_QUILLAN_VERSION = "0.10.2"' in verifier
+    assert '"quillan==0.10.3"' in pyproject
+    assert 'EXPECTED_QUILLAN_VERSION = "0.10.3"' in verifier
     assert (
-        'EXPECTED_QUILLAN_WHEEL_FILENAME = "quillan-0.10.2-py3-none-any.whl"'
+        'EXPECTED_QUILLAN_WHEEL_FILENAME = "quillan-0.10.3-py3-none-any.whl"'
         in verifier
     )
     assert (
-        "f64620123c43747bacc82679e98bc53b07a56293abdf6bf8d8038a4108b673e2"
+        "eb8f527d2dd43c3961374ac6a3f34a732827ce0bd3260943667160f8d2bf3e3b"
         in verifier
     )
-    assert 'QUILLAN_READER_VERSION: Final = "0.10.2"' in adapter
+    assert 'QUILLAN_READER_VERSION: Final = "0.10.3"' in adapter

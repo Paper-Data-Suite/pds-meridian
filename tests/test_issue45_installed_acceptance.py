@@ -82,7 +82,7 @@ def test_issue45_program_pins_released_versions_and_installed_origins() -> None:
     for required in (
         '"pds-core": "0.6.3"',
         '"scoreform": "0.11.0"',
-        '"quillan": "0.10.2"',
+        '"quillan": "0.10.3"',
         'metadata.version("pds-meridian")',
         '"site-packages"',
         'CLASS_ID = "synthetic_class_2026"',
@@ -272,5 +272,5 @@ def test_issue45_fresh_process_reload_verifies_persisted_history() -> None:
     ):
         assert required in reload_program
 
-    assert '"quillan": "0.10.2"' in reload_program
+    assert '"quillan": "0.10.3"' in reload_program
     assert '"quillan": "0.10.1"' not in reload_program

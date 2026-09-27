@@ -18,6 +18,7 @@ EXPECTED = (
     Path("docs/development/v0.1.1-release-audit.md"),
     Path("docs/development/v0.2.0-release-audit.md"),
     Path("docs/development/v0.2.0-release-notes.md"),
+    Path("docs/development/installed-qualification-matrix.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
     Path("docs/architecture/adapter-interface-and-registry.md"),
@@ -79,6 +80,30 @@ EXPECTED = (
 )
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 REQUIRED_TEXT = {
+    Path("docs/development/installed-qualification-matrix.md"): (
+        "pre-#96 normal full-validation path creates:",
+        "**24** installed virtual environments",
+        "Prepared-environment harness",
+        "After Slice 3",
+        "| Temporary installed venvs in normal full validation | 24 | 20 |",
+        "After Slice 4",
+        "| Temporary installed venvs in normal full validation | 20 | 15 |",
+        "Slice 5",
+        "| Temporary installed venvs in normal full validation | 15 | 14 |",
+        "Slice 6",
+        "| Temporary installed venvs in normal full validation | 14 | 12 |",
+        "Slice 7",
+        "| Temporary installed venvs in normal full validation | 12 | 10 |",
+        "Slice 8",
+        "| Temporary installed venvs in normal full validation | 10 | 6 |",
+        "Slice 9",
+        "| Temporary installed venvs | 24 | 6 |",
+        "| Package-install setups | 24 | 6 |",
+        "| `pip check` runs | 24 | 6 |",
+        "Slice 10",
+        "Quillan | `0.10.3`",
+        "2026-09-26",
+    ),
     Path("docs/development/v0.2.0-release-audit.md"): (
         "Release-preparation authorization — AUTHORIZED",
         "Substantive blocker count: **0**",
@@ -297,7 +322,7 @@ REQUIRED_TEXT = {
         "Consequential actions",
         "#58 and #59 boundaries",
         "Installed qualification",
-        "quillan      0.10.2",
+        "quillan      0.10.3",
     ),
     Path("docs/architecture/reporting-exports.md"): (
         "exact immutable ReportingSnapshot",

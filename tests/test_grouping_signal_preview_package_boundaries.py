@@ -135,7 +135,12 @@ def test_issue39_installed_smoke_is_release_guarded_and_export_free() -> None:
     )
     program = program_path.read_text(encoding="utf-8")
 
-    assert runner_path.name in validator
+    core_runner = Path(
+        "scripts/installed_qualification_core_programs.py"
+    ).read_text(encoding="utf-8")
+
+    assert "scripts.installed_qualification_runner" in validator
+    assert "grouping-signal-preview-review" in core_runner
     assert runner_path.name in sdist_checker
     assert program_path.name in sdist_checker
     assert "generate_grouping_signal_preview" in program
