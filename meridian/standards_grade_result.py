@@ -35,18 +35,22 @@ from meridian.grade_policy import (
     GradeRoundingStage,
     GradeStateConsequence,
     GradeStateTreatment,
-    ProficiencyGradeConversion,
     StandardGradeParticipation,
     StandardsBasedGradeConfiguration,
     grade_policy_reference_from_dict,
     grade_policy_reference_to_dict,
+    standards_based_grade_configuration_from_dict,
 )
 from meridian.grade_policy_activation import (
     GradePolicyActivationReference,
     grade_policy_activation_reference_from_dict,
     grade_policy_activation_reference_to_dict,
 )
-from meridian.proficiency_mapping import ProficiencyScaleReference
+from meridian.proficiency_mapping import (
+    ProficiencyScale,
+    ProficiencyScaleReference,
+    proficiency_scale_from_dict,
+)
 from meridian.standards_grade import (
     STANDARDS_GRADE_ALGORITHM_VERSION,
     StandardsGradeAction,
@@ -63,7 +67,7 @@ from meridian.standards_grade import (
     standards_grade_calculation_input_to_dict,
 )
 
-STANDARDS_GRADE_RESULT_SCHEMA_VERSION: Final[str] = "1"
+STANDARDS_GRADE_RESULT_SCHEMA_VERSION: Final[str] = "2"
 STANDARDS_GRADE_RESULT_RECORD_TYPE: Final[str] = "meridian_standards_grade_result"
 
 StandardsGradeFreshnessStatus: TypeAlias = Literal["current", "stale"]
@@ -105,6 +109,7 @@ _INPUT_KEYS: Final[frozenset[str]] = frozenset(
         "activation_reference",
         "policy_reference",
         "configuration",
+        "target_scale_definition",
         "state_treatment",
         "rounding",
         "standards",
@@ -812,6 +817,9 @@ def standards_grade_calculation_input_from_dict(
         policy_reference=_policy_reference_from_dict(mapping["policy_reference"]),
         configuration=configuration,
         state_treatment=_state_treatment_from_dict(mapping["state_treatment"]),
+        target_scale_definition=_scale_definition_from_dict(
+            mapping["target_scale_definition"]
+        ),
         rounding=_rounding_from_dict(mapping["rounding"]),
         standards=tuple(
             _standard_input_from_dict(item)
@@ -835,59 +843,21 @@ def standards_grade_calculation_input_from_json_bytes(
 
 
 def _configuration_from_dict(data: object) -> StandardsBasedGradeConfiguration:
-    mapping = _exact_mapping(
-        data,
-        frozenset(
-            {
-                "target_scale",
-                "standards",
-                "conversions",
-                "aggregation_strategy",
-                "minimum_calculated_results",
-            }
-        ),
-        "standards Grade configuration",
-    )
-    return StandardsBasedGradeConfiguration(
-        target_scale=_scale_reference_from_dict(mapping["target_scale"]),
-        standards=tuple(
-            StandardGradeParticipation(
-                standard_id=_required_str(item["standard_id"], "standard_id"),
-                weight=_required_decimal(item["weight"], "weight"),
-            )
-            for item in (
-                _exact_mapping(
-                    value,
-                    frozenset({"standard_id", "weight"}),
-                    "standard participation",
-                )
-                for value in _required_list(mapping["standards"], "standards")
-            )
-        ),
-        conversions=tuple(
-            ProficiencyGradeConversion(
-                proficiency_level_id=_required_str(
-                    item["proficiency_level_id"], "proficiency_level_id"
-                ),
-                grade_value=_required_decimal(item["grade_value"], "grade_value"),
-            )
-            for item in (
-                _exact_mapping(
-                    value,
-                    frozenset({"proficiency_level_id", "grade_value"}),
-                    "proficiency conversion",
-                )
-                for value in _required_list(mapping["conversions"], "conversions")
-            )
-        ),
-        aggregation_strategy=cast(
-            Literal["weighted_mean"],
-            _required_str(mapping["aggregation_strategy"], "aggregation_strategy"),
-        ),
-        minimum_calculated_results=_required_int(
-            mapping["minimum_calculated_results"], "minimum_calculated_results"
-        ),
-    )
+    try:
+        return standards_based_grade_configuration_from_dict(data)
+    except ValueError as error:
+        raise StandardsGradeResultValidationError(str(error)) from error
+
+
+def _scale_definition_from_dict(data: object) -> ProficiencyScale | None:
+    if data is None:
+        return None
+    try:
+        return proficiency_scale_from_dict(data)
+    except ValueError as error:
+        raise StandardsGradeResultValidationError(
+            f"target_scale_definition is invalid: {error}"
+        ) from error
 
 
 def _state_treatment_from_dict(data: object) -> GradeStateTreatment:

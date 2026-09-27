@@ -1818,6 +1818,22 @@ def _standards_from_dict(data: object) -> StandardsBasedGradeConfiguration:
     )
 
 
+def standards_based_grade_configuration_to_dict(
+    value: StandardsBasedGradeConfiguration,
+) -> dict[str, object]:
+    """Serialize one exact standards Grade-policy configuration."""
+
+    return _standards_to_dict(value)
+
+
+def standards_based_grade_configuration_from_dict(
+    data: object,
+) -> StandardsBasedGradeConfiguration:
+    """Parse one exact standards Grade-policy configuration."""
+
+    return _standards_from_dict(data)
+
+
 def _hybrid_to_dict(value: HybridGradeConfiguration) -> dict[str, object]:
     if not isinstance(value, HybridGradeConfiguration):
         raise GradePolicyValidationError(

@@ -47,6 +47,7 @@ from meridian.grade_policy import (
     StandardsBasedGradeConfiguration,
     grade_policy_reference,
     grade_policy_reference_to_dict,
+    standards_based_grade_configuration_to_dict,
     validate_grade_policy_revision,
 )
 from meridian.grade_policy_activation import (
@@ -56,10 +57,15 @@ from meridian.grade_policy_activation import (
     grade_policy_activation_reference_to_dict,
     validate_grade_policy_activation_decision,
 )
-from meridian.proficiency_mapping import ProficiencyScaleReference
+from meridian.proficiency_mapping import (
+    ProficiencyScale,
+    ProficiencyScaleReference,
+    proficiency_scale_reference,
+    proficiency_scale_to_dict,
+)
 from meridian.standards_evidence import normalize_standard_id
 
-STANDARDS_GRADE_ALGORITHM_VERSION: Final[str] = "1"
+STANDARDS_GRADE_ALGORITHM_VERSION: Final[str] = "2"
 
 StandardsGradeSourceState: TypeAlias = Literal[
     "calculated",
@@ -259,6 +265,7 @@ class StandardsGradeCalculationInput:
     state_treatment: GradeStateTreatment
     rounding: GradeRoundingPolicy
     standards: tuple[StandardsGradeStandardInput, ...]
+    target_scale_definition: ProficiencyScale | None = None
 
     def __post_init__(self) -> None:
         class_id = _identifier(self.class_id, "class_id")
@@ -280,6 +287,38 @@ class StandardsGradeCalculationInput:
             raise StandardsGradeValidationError(
                 "configuration must be StandardsBasedGradeConfiguration."
             )
+        scale_definition = self.target_scale_definition
+        if scale_definition is not None:
+            if not isinstance(scale_definition, ProficiencyScale):
+                raise StandardsGradeValidationError(
+                    "target_scale_definition must be ProficiencyScale or None."
+                )
+            try:
+                scale_reference = proficiency_scale_reference(scale_definition)
+            except ValueError as error:
+                raise StandardsGradeValidationError(str(error)) from error
+            if scale_reference != self.configuration.target_scale:
+                raise StandardsGradeValidationError(
+                    "target_scale_definition must match exact policy target_scale."
+                )
+        if self.configuration.aggregation_strategy == "profile_constrained_mean":
+            if scale_definition is None:
+                raise StandardsGradeValidationError(
+                    "profile_constrained_mean requires exact target_scale_definition."
+                )
+            constraints = self.configuration.profile_constraints
+            if constraints is None:
+                raise StandardsGradeValidationError(
+                    "profile_constrained_mean requires profile constraints."
+                )
+            level_ids = {level.level_id for level in scale_definition.levels}
+            for band in constraints.bands:
+                for predicate in band.predicates:
+                    if predicate.proficiency_level_id not in level_ids:
+                        raise StandardsGradeValidationError(
+                            "profile predicate proficiency level must exist in "
+                            "the exact target scale."
+                        )
         if not isinstance(self.state_treatment, GradeStateTreatment):
             raise StandardsGradeValidationError(
                 "state_treatment must be GradeStateTreatment."
@@ -683,6 +722,7 @@ def create_standards_grade_calculation_input(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
     standards: tuple[StandardsGradeStandardInput, ...],
+    target_scale_definition: ProficiencyScale | None = None,
 ) -> StandardsGradeCalculationInput:
     """Bind exact activated standards Grade policy authority to resolved inputs."""
 
@@ -731,6 +771,7 @@ def create_standards_grade_calculation_input(
         state_treatment=validated_policy.state_treatment,
         rounding=validated_policy.rounding,
         standards=standards,
+        target_scale_definition=target_scale_definition,
     )
 
 
@@ -1052,27 +1093,14 @@ def _calculation_input_to_dict(
             value.activation_reference
         ),
         "policy_reference": grade_policy_reference_to_dict(value.policy_reference),
-        "configuration": {
-            "target_scale": _scale_reference_to_dict(value.configuration.target_scale),
-            "standards": [
-                {
-                    "standard_id": item.standard_id,
-                    "weight": _decimal_to_text(item.weight),
-                }
-                for item in value.configuration.standards
-            ],
-            "conversions": [
-                {
-                    "proficiency_level_id": item.proficiency_level_id,
-                    "grade_value": _decimal_to_text(item.grade_value),
-                }
-                for item in value.configuration.conversions
-            ],
-            "aggregation_strategy": value.configuration.aggregation_strategy,
-            "minimum_calculated_results": (
-                value.configuration.minimum_calculated_results
-            ),
-        },
+        "configuration": standards_based_grade_configuration_to_dict(
+            value.configuration
+        ),
+        "target_scale_definition": (
+            None
+            if value.target_scale_definition is None
+            else proficiency_scale_to_dict(value.target_scale_definition)
+        ),
         "state_treatment": {
             field_name: getattr(value.state_treatment, field_name)
             for field_name in _NON_CALCULATED_STATES
