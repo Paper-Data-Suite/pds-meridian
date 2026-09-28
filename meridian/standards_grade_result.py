@@ -53,6 +53,7 @@ from meridian.proficiency_mapping import (
 )
 from meridian.standards_grade import (
     STANDARDS_GRADE_ALGORITHM_VERSION,
+    ProfileGradeAdjustment,
     StandardsGradeAction,
     StandardsGradeCalculationInput,
     StandardsGradeCalculationOutcome,
@@ -65,6 +66,11 @@ from meridian.standards_grade import (
     calculate_standards_grade,
     standards_grade_calculation_input_sha256,
     standards_grade_calculation_input_to_dict,
+)
+from meridian.standards_grade_profile import (
+    ProfileBandEvaluation,
+    ProfileConstraintEvaluation,
+    ProfilePredicateEvaluation,
 )
 
 STANDARDS_GRADE_RESULT_SCHEMA_VERSION: Final[str] = "2"
@@ -167,10 +173,39 @@ _OUTCOME_KEYS: Final[frozenset[str]] = frozenset(
         "minimum_calculated_results",
         "active_weight",
         "weighted_numerator",
+        "base_unrounded_grade",
         "unrounded_grade",
         "rounded_grade",
+        "profile_evaluation",
+        "selected_profile_band_id",
+        "selected_profile_band_minimum_grade",
+        "selected_profile_band_maximum_grade",
+        "profile_adjustment",
         "standard_results",
         "reasons",
+    }
+)
+_PROFILE_EVALUATION_KEYS: Final[frozenset[str]] = frozenset({"bands"})
+_PROFILE_BAND_EVALUATION_KEYS: Final[frozenset[str]] = frozenset(
+    {"band_id", "priority", "status", "predicates"}
+)
+_PROFILE_PREDICATE_EVALUATION_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "predicate_id",
+        "kind",
+        "group_id",
+        "threshold_level_id",
+        "status",
+        "group_size",
+        "known_count",
+        "unknown_count",
+        "at_or_above_count",
+        "below_count",
+        "at_or_above_standard_ids",
+        "below_standard_ids",
+        "unknown_standard_ids",
+        "minimum_count",
+        "minimum_proportion",
     }
 )
 _RESULT_KEYS: Final[frozenset[str]] = frozenset(
@@ -205,6 +240,7 @@ _RESULT_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
         "result_sha256",
     }
 )
+
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REASON_CODE: Final[re.Pattern[str]] = re.compile(r"^[a-z][a-z0-9_]*$")
 
@@ -693,6 +729,150 @@ def assess_standards_grade_result_freshness(
     )
 
 
+
+def _profile_evaluation_to_dict(
+    value: ProfileConstraintEvaluation,
+) -> dict[str, object]:
+    return {
+        "bands": [
+            {
+                "band_id": band.band_id,
+                "priority": band.priority,
+                "status": band.status,
+                "predicates": [
+                    {
+                        "predicate_id": predicate.predicate_id,
+                        "kind": predicate.kind,
+                        "group_id": predicate.group_id,
+                        "threshold_level_id": predicate.threshold_level_id,
+                        "status": predicate.status,
+                        "group_size": predicate.group_size,
+                        "known_count": predicate.known_count,
+                        "unknown_count": predicate.unknown_count,
+                        "at_or_above_count": predicate.at_or_above_count,
+                        "below_count": predicate.below_count,
+                        "at_or_above_standard_ids": list(
+                            predicate.at_or_above_standard_ids
+                        ),
+                        "below_standard_ids": list(predicate.below_standard_ids),
+                        "unknown_standard_ids": list(predicate.unknown_standard_ids),
+                        "minimum_count": predicate.minimum_count,
+                        "minimum_proportion": _optional_decimal_text(
+                            predicate.minimum_proportion
+                        ),
+                    }
+                    for predicate in band.predicates
+                ],
+            }
+            for band in value.bands
+        ]
+    }
+
+
+def _profile_evaluation_from_dict(
+    data: object,
+) -> ProfileConstraintEvaluation | None:
+    if data is None:
+        return None
+    mapping = _exact_mapping(
+        data,
+        _PROFILE_EVALUATION_KEYS,
+        "profile constraint evaluation",
+    )
+    bands: list[ProfileBandEvaluation] = []
+    for raw_band in _required_list(mapping["bands"], "bands"):
+        band = _exact_mapping(
+            raw_band,
+            _PROFILE_BAND_EVALUATION_KEYS,
+            "profile band evaluation",
+        )
+        predicates: list[ProfilePredicateEvaluation] = []
+        for raw_predicate in _required_list(
+            band["predicates"],
+            "predicates",
+        ):
+            predicate = _exact_mapping(
+                raw_predicate,
+                _PROFILE_PREDICATE_EVALUATION_KEYS,
+                "profile predicate evaluation",
+            )
+            minimum_count = predicate["minimum_count"]
+            predicates.append(
+                ProfilePredicateEvaluation(
+                    predicate_id=_required_str(
+                        predicate["predicate_id"],
+                        "predicate_id",
+                    ),
+                    kind=_required_str(predicate["kind"], "kind"),
+                    group_id=_required_str(predicate["group_id"], "group_id"),
+                    threshold_level_id=_required_str(
+                        predicate["threshold_level_id"],
+                        "threshold_level_id",
+                    ),
+                    status=cast(
+                        Literal["matched", "not_matched", "indeterminate"],
+                        _required_str(predicate["status"], "status"),
+                    ),
+                    group_size=_required_int(
+                        predicate["group_size"],
+                        "group_size",
+                    ),
+                    known_count=_required_int(
+                        predicate["known_count"],
+                        "known_count",
+                        allow_zero=True,
+                    ),
+                    unknown_count=_required_int(
+                        predicate["unknown_count"],
+                        "unknown_count",
+                        allow_zero=True,
+                    ),
+                    at_or_above_count=_required_int(
+                        predicate["at_or_above_count"],
+                        "at_or_above_count",
+                        allow_zero=True,
+                    ),
+                    below_count=_required_int(
+                        predicate["below_count"],
+                        "below_count",
+                        allow_zero=True,
+                    ),
+                    at_or_above_standard_ids=_string_tuple(
+                        predicate["at_or_above_standard_ids"],
+                        "at_or_above_standard_ids",
+                    ),
+                    below_standard_ids=_string_tuple(
+                        predicate["below_standard_ids"],
+                        "below_standard_ids",
+                    ),
+                    unknown_standard_ids=_string_tuple(
+                        predicate["unknown_standard_ids"],
+                        "unknown_standard_ids",
+                    ),
+                    minimum_count=(
+                        None
+                        if minimum_count is None
+                        else _required_int(minimum_count, "minimum_count")
+                    ),
+                    minimum_proportion=_optional_decimal(
+                        predicate["minimum_proportion"],
+                        "minimum_proportion",
+                    ),
+                )
+            )
+        bands.append(
+            ProfileBandEvaluation(
+                band_id=_required_str(band["band_id"], "band_id"),
+                priority=_required_int(band["priority"], "priority"),
+                status=cast(
+                    Literal["matched", "not_matched", "indeterminate"],
+                    _required_str(band["status"], "status"),
+                ),
+                predicates=tuple(predicates),
+            )
+        )
+    return ProfileConstraintEvaluation(bands=tuple(bands))
+
 def standards_grade_calculation_outcome_to_dict(
     value: StandardsGradeCalculationOutcome,
 ) -> dict[str, object]:
@@ -717,8 +897,24 @@ def standards_grade_calculation_outcome_to_dict(
         "minimum_calculated_results": value.minimum_calculated_results,
         "active_weight": _optional_decimal_text(value.active_weight),
         "weighted_numerator": _optional_decimal_text(value.weighted_numerator),
+        "base_unrounded_grade": _optional_decimal_text(
+            value.base_unrounded_grade
+        ),
         "unrounded_grade": _optional_decimal_text(value.unrounded_grade),
         "rounded_grade": _optional_decimal_text(value.rounded_grade),
+        "profile_evaluation": (
+            None
+            if value.profile_evaluation is None
+            else _profile_evaluation_to_dict(value.profile_evaluation)
+        ),
+        "selected_profile_band_id": value.selected_profile_band_id,
+        "selected_profile_band_minimum_grade": _optional_decimal_text(
+            value.selected_profile_band_minimum_grade
+        ),
+        "selected_profile_band_maximum_grade": _optional_decimal_text(
+            value.selected_profile_band_maximum_grade
+        ),
+        "profile_adjustment": value.profile_adjustment,
         "standard_results": [
             _standard_result_to_dict(item) for item in value.standard_results
         ],
@@ -766,10 +962,36 @@ def standards_grade_calculation_outcome_from_dict(
         weighted_numerator=_optional_decimal(
             mapping["weighted_numerator"], "weighted_numerator"
         ),
+        base_unrounded_grade=_optional_decimal(
+            mapping["base_unrounded_grade"],
+            "base_unrounded_grade",
+        ),
         unrounded_grade=_optional_decimal(
             mapping["unrounded_grade"], "unrounded_grade"
         ),
         rounded_grade=_optional_decimal(mapping["rounded_grade"], "rounded_grade"),
+        profile_evaluation=_profile_evaluation_from_dict(
+            mapping["profile_evaluation"]
+        ),
+        selected_profile_band_id=_optional_str(
+            mapping["selected_profile_band_id"],
+            "selected_profile_band_id",
+        ),
+        selected_profile_band_minimum_grade=_optional_decimal(
+            mapping["selected_profile_band_minimum_grade"],
+            "selected_profile_band_minimum_grade",
+        ),
+        selected_profile_band_maximum_grade=_optional_decimal(
+            mapping["selected_profile_band_maximum_grade"],
+            "selected_profile_band_maximum_grade",
+        ),
+        profile_adjustment=cast(
+            ProfileGradeAdjustment | None,
+            _optional_str(
+                mapping["profile_adjustment"],
+                "profile_adjustment",
+            ),
+        ),
         standard_results=tuple(
             _standard_result_from_dict(item)
             for item in _required_list(mapping["standard_results"], "standard_results")

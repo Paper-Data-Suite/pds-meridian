@@ -28,6 +28,7 @@ ProfileEvaluationStatus: TypeAlias = Literal[
     "not_matched",
     "indeterminate",
 ]
+ProfileBandSelectionStatus: TypeAlias = Literal["selected", "indeterminate"]
 
 _PROFILE_STATUSES = frozenset({"matched", "not_matched", "indeterminate"})
 
@@ -176,6 +177,58 @@ class ProfileConstraintEvaluation:
                 "profile evaluation bands must be ordered by contiguous priority."
             )
 
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileBandSelection:
+    """Deterministic ordered selection result over evaluated profile bands."""
+
+    status: ProfileBandSelectionStatus
+    selected_band_id: str | None
+    blocking_band_id: str | None
+
+    def __post_init__(self) -> None:
+        if self.status == "selected":
+            if self.selected_band_id is None or self.blocking_band_id is not None:
+                raise StandardsGradeProfileValidationError(
+                    "selected profile band requires selected_band_id only."
+                )
+        elif self.status == "indeterminate":
+            if self.blocking_band_id is None or self.selected_band_id is not None:
+                raise StandardsGradeProfileValidationError(
+                    "indeterminate profile selection requires blocking_band_id only."
+                )
+        else:
+            raise StandardsGradeProfileValidationError(
+                "profile band selection status is invalid."
+            )
+
+
+def select_profile_grade_band(
+    evaluation: ProfileConstraintEvaluation,
+) -> ProfileBandSelection:
+    """Select the first safely eligible band, blocking on earlier uncertainty."""
+
+    if not isinstance(evaluation, ProfileConstraintEvaluation):
+        raise StandardsGradeProfileValidationError(
+            "evaluation must be ProfileConstraintEvaluation."
+        )
+    for band in evaluation.bands:
+        if band.status == "indeterminate":
+            return ProfileBandSelection(
+                status="indeterminate",
+                selected_band_id=None,
+                blocking_band_id=band.band_id,
+            )
+        if band.status == "matched":
+            return ProfileBandSelection(
+                status="selected",
+                selected_band_id=band.band_id,
+                blocking_band_id=None,
+            )
+    raise StandardsGradeProfileValidationError(
+        "profile evaluation contains no selectable or indeterminate band."
+    )
 
 def evaluate_profile_constraints(
     constraints: ProfileConstraintConfiguration,
