@@ -507,4 +507,3 @@ def test_weighted_mean_has_no_selected_profile_band_bounds() -> None:
     assert outcome.selected_profile_band_minimum_grade is None
     assert outcome.selected_profile_band_maximum_grade is None
     assert outcome.profile_adjustment is None
-
