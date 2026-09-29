@@ -309,3 +309,10 @@ This installed boundary does not create teacher overrides, Grade preview
 presentation, ReportingSnapshots, exports, direct SIS/LMS writes, or official
 school-system Grade state. Teacher override records and precedence remain issue
 #53 work.
+
+## Issue #99 profile-constrained standards component
+
+Hybrid Grade algorithm version 2 consumes the final unrounded standards
+component. A profile floor/cap is upstream standards-policy calculation, not a
+Hybrid override. Hybrid does not reevaluate profile groups, predicates, or
+bands.

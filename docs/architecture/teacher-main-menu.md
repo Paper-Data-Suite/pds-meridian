@@ -195,3 +195,10 @@ The Quillan v0.10.2 -> v0.10.3 release comparison does not modify
 `quillan/academic_result_reader.py` or the Academic Result manifest modules
 consumed by Meridian. Meridian still pins one exact authenticated Quillan reader
 version so projection provenance records one exact producer-reader identity.
+
+## Issue #99 teacher navigation boundary
+
+Issue #99 adds no new primary menu task. Existing `Preview Grades` and
+`Explain` routes already dispatch by Grade family. Profile attention belongs to
+issue #58; suite doctor/launcher/backup/attention integration belongs to issue
+#59.

@@ -399,3 +399,10 @@ The runtime, bounded development CLI, adversarial/historical qualification, and
 isolated installed-wheel/fresh-process ReportingSnapshot smoke are implemented.
 Repository-wide regression/release qualification remains a validation gate, not
 another ReportingSnapshot runtime authority.
+
+## Issue #99 historical profile replay
+
+ReportingSnapshot reload validates frozen profile policy, predicate evidence,
+selected band/bounds, adjustment, and profile-specific observation basis.
+Legacy weighted snapshots remain readable; later policy/scale revisions do not
+alter frozen historical profile results.

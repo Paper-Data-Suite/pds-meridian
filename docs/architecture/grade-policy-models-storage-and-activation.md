@@ -512,3 +512,10 @@ The downstream sequence remains:
 -> #55 ReportingSnapshots
 -> #56 exports
 ```
+
+## Issue #99 profile authority
+
+Grade-policy schema version 2 may carry `ProfileConstraintConfiguration` for
+`profile_constrained_mean`. Profile groups, bands, thresholds, and the fallback
+band are canonical immutable Grade-policy authority. `weighted_mean` remains
+profile-free.

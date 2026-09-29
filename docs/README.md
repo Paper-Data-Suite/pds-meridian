@@ -801,3 +801,12 @@ fresh authorization, and current-state assessment never rewrites historical
 snapshot bytes.
 
 See [Exact projection snapshots and cache](architecture/exact-projection-snapshots-and-cache.md).
+
+## Issue #99 profile-constrained standards Grade
+
+The v0.3 Grade model now supports `profile_constrained_mean` alongside
+`weighted_mean`, with exact scale ordering, three-valued predicates, explicit
+Grade bands, deterministic floor/cap adjustment, Hybrid composition, and
+historical snapshot replay.
+
+See [Profile-constrained standards Grade policy](architecture/profile-constrained-standards-grade.md).

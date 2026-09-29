@@ -251,3 +251,10 @@ still has no GitHub Release and remains a nondependency.
 See also [ADR 0001](../decisions/0001-policy-driven-standards-proficiency-and-grade-calculation.md),
 [ADR 0002](../decisions/0002-provenance-bound-report-snapshots-and-subscriptions.md),
 and [ADR 0005](../decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md).
+
+## Issue #99 profile explanation and comparison
+
+Standards explanations preserve base mean, profile policy, predicate evidence,
+unknown standard IDs, selected band/bounds, adjustment, adjusted Grade, and
+rounding. Comparison distinguishes base-mean, profile-policy, predicate, band,
+and adjustment changes. Hybrid propagates the same profile basis.
