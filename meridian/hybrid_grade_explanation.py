@@ -445,8 +445,6 @@ def hybrid_grade_basis_entries(
         conventional_breakdown
     )
     standards = standards_grade_breakdown_basis_entries(standards_breakdown)
-    conventional_by_dimension = {item.dimension: item for item in conventional}
-    standards_by_dimension = {item.dimension: item for item in standards}
     component_identity = {
         "conventional": {
             "algorithm_version": (
@@ -471,18 +469,34 @@ def hybrid_grade_basis_entries(
     }
     formula = {
         "component_identity": component_identity,
-        "conventional_formula_sha256": (
-            conventional_by_dimension["formula"].sha256
+        "conventional_formula_sha256": _basis_sha256(
+            conventional,
+            "conventional_formula",
         ),
-        "standards_formula_sha256": standards_by_dimension["formula"].sha256,
+        "standards_formula_sha256": _basis_sha256(
+            standards,
+            "standards_formula",
+        ),
     }
     participation = {
-        "conventional": conventional_by_dimension["participation"].sha256,
-        "standards_based": standards_by_dimension["participation"].sha256,
+        "conventional": _basis_sha256(
+            conventional,
+            "conventional_participation",
+        ),
+        "standards_based": _basis_sha256(
+            standards,
+            "standards_participation",
+        ),
     }
     evidence = {
-        "conventional": conventional_by_dimension["evidence"].sha256,
-        "standards_based": standards_by_dimension["evidence"].sha256,
+        "conventional": _basis_sha256(
+            conventional,
+            "conventional_evidence_basis",
+        ),
+        "standards_based": _basis_sha256(
+            standards,
+            "standards_proficiency_basis",
+        ),
     }
     weighting = {
         "conventional_weight": _decimal_text(
@@ -491,14 +505,16 @@ def hybrid_grade_basis_entries(
         "standards_weight": _decimal_text(
             value.standards_component.configured_weight
         ),
-        "conventional_component_weighting": (
-            conventional_by_dimension["weighting"].sha256
+        "conventional_component_weighting": _basis_sha256(
+            conventional,
+            "conventional_weighting",
         ),
-        "standards_component_weighting": (
-            standards_by_dimension["weighting"].sha256
+        "standards_component_weighting": _basis_sha256(
+            standards,
+            "standards_weighting",
         ),
     }
-    return (
+    result = [
         GradePreviewBasisEntry(
             "formula",
             "hybrid_formula",
@@ -519,7 +535,36 @@ def hybrid_grade_basis_entries(
             "hybrid_weighting",
             _semantic_digest(weighting),
         ),
+    ]
+    profile_keys = {
+        "standards_profile_policy",
+        "standards_base_mean",
+        "standards_profile_predicates",
+        "standards_profile_band",
+        "standards_profile_adjustment",
+    }
+    result.extend(
+        GradePreviewBasisEntry(
+            entry.dimension,
+            f"hybrid_{entry.key}",
+            entry.sha256,
+        )
+        for entry in standards
+        if entry.key in profile_keys
     )
+    return tuple(result)
+
+
+def _basis_sha256(
+    entries: tuple[GradePreviewBasisEntry, ...],
+    key: str,
+) -> str:
+    matches = tuple(entry for entry in entries if entry.key == key)
+    if len(matches) != 1:
+        raise GradePreviewIntegrityError(
+            f"expected exactly one comparison basis entry for {key}."
+        )
+    return matches[0].sha256
 
 
 def hybrid_grade_preview_explanation_to_dict(

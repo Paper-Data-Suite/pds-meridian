@@ -35,6 +35,11 @@ GradePreviewChangeReason: TypeAlias = Literal[
     "base_grade_changed",
     "policy_changed",
     "formula_changed",
+    "base_mean_changed",
+    "profile_policy_changed",
+    "profile_predicates_changed",
+    "profile_band_changed",
+    "profile_adjustment_changed",
     "membership_or_participation_changed",
     "evidence_or_proficiency_basis_changed",
     "weighting_changed",
@@ -55,6 +60,11 @@ _CHANGE_REASON_ORDER: Final[tuple[GradePreviewChangeReason, ...]] = (
     "base_grade_changed",
     "policy_changed",
     "formula_changed",
+    "base_mean_changed",
+    "profile_policy_changed",
+    "profile_predicates_changed",
+    "profile_band_changed",
+    "profile_adjustment_changed",
     "membership_or_participation_changed",
     "evidence_or_proficiency_basis_changed",
     "weighting_changed",
@@ -68,6 +78,35 @@ _CHANGE_REASON_ORDER: Final[tuple[GradePreviewChangeReason, ...]] = (
     "effective_source_changed",
 )
 _CHANGE_REASON_SET: Final[frozenset[str]] = frozenset(_CHANGE_REASON_ORDER)
+
+_PROFILE_BASE_MEAN_KEYS: Final[frozenset[str]] = frozenset(
+    {"standards_base_mean", "hybrid_standards_base_mean"}
+)
+_PROFILE_POLICY_KEYS: Final[frozenset[str]] = frozenset(
+    {"standards_profile_policy", "hybrid_standards_profile_policy"}
+)
+_PROFILE_PREDICATE_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "standards_profile_predicates",
+        "hybrid_standards_profile_predicates",
+    }
+)
+_PROFILE_BAND_KEYS: Final[frozenset[str]] = frozenset(
+    {"standards_profile_band", "hybrid_standards_profile_band"}
+)
+_PROFILE_ADJUSTMENT_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "standards_profile_adjustment",
+        "hybrid_standards_profile_adjustment",
+    }
+)
+_PROFILE_BASIS_KEYS: Final[frozenset[str]] = frozenset().union(
+    _PROFILE_BASE_MEAN_KEYS,
+    _PROFILE_POLICY_KEYS,
+    _PROFILE_PREDICATE_KEYS,
+    _PROFILE_BAND_KEYS,
+    _PROFILE_ADJUSTMENT_KEYS,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -287,11 +326,31 @@ def _comparison_reasons(
         or _basis_changed(previous, current, {"activation", "policy"})
     ):
         present.add("policy_changed")
-    if _basis_changed(previous, current, {"formula"}):
+    if _basis_changed_excluding_keys(
+        previous,
+        current,
+        {"formula"},
+        _PROFILE_BASIS_KEYS,
+    ):
         present.add("formula_changed")
+    if _basis_keys_changed(previous, current, _PROFILE_BASE_MEAN_KEYS):
+        present.add("base_mean_changed")
+    if _basis_keys_changed(previous, current, _PROFILE_POLICY_KEYS):
+        present.add("profile_policy_changed")
+    if _basis_keys_changed(previous, current, _PROFILE_PREDICATE_KEYS):
+        present.add("profile_predicates_changed")
+    if _basis_keys_changed(previous, current, _PROFILE_BAND_KEYS):
+        present.add("profile_band_changed")
+    if _basis_keys_changed(previous, current, _PROFILE_ADJUSTMENT_KEYS):
+        present.add("profile_adjustment_changed")
     if _basis_changed(previous, current, {"participation"}):
         present.add("membership_or_participation_changed")
-    if _basis_changed(previous, current, {"evidence"}):
+    if _basis_changed_excluding_keys(
+        previous,
+        current,
+        {"evidence"},
+        _PROFILE_BASIS_KEYS,
+    ):
         present.add("evidence_or_proficiency_basis_changed")
     if _basis_changed(previous, current, {"weighting"}):
         present.add("weighting_changed")
@@ -336,14 +395,55 @@ def _basis_changed(
     )
 
 
+def _basis_changed_excluding_keys(
+    previous: GradePreviewObservation,
+    current: GradePreviewObservation,
+    dimensions: set[str],
+    excluded_keys: frozenset[str],
+) -> bool:
+    return _basis_subset(
+        previous.basis_entries,
+        dimensions,
+        excluded_keys=excluded_keys,
+    ) != _basis_subset(
+        current.basis_entries,
+        dimensions,
+        excluded_keys=excluded_keys,
+    )
+
+
+def _basis_keys_changed(
+    previous: GradePreviewObservation,
+    current: GradePreviewObservation,
+    keys: frozenset[str],
+) -> bool:
+    return _basis_key_subset(previous.basis_entries, keys) != _basis_key_subset(
+        current.basis_entries,
+        keys,
+    )
+
+
 def _basis_subset(
     entries: tuple[GradePreviewBasisEntry, ...],
     dimensions: set[str],
+    *,
+    excluded_keys: frozenset[str] = frozenset(),
 ) -> tuple[tuple[str, str, str], ...]:
     return tuple(
         (entry.dimension, entry.key, entry.sha256)
         for entry in entries
-        if entry.dimension in dimensions
+        if entry.dimension in dimensions and entry.key not in excluded_keys
+    )
+
+
+def _basis_key_subset(
+    entries: tuple[GradePreviewBasisEntry, ...],
+    keys: frozenset[str],
+) -> tuple[tuple[str, str, str], ...]:
+    return tuple(
+        (entry.dimension, entry.key, entry.sha256)
+        for entry in entries
+        if entry.key in keys
     )
 
 
@@ -356,6 +456,11 @@ def _require_material_changes_are_explained(
         "calculation_family_changed",
         "policy_changed",
         "formula_changed",
+        "base_mean_changed",
+        "profile_policy_changed",
+        "profile_predicates_changed",
+        "profile_band_changed",
+        "profile_adjustment_changed",
         "membership_or_participation_changed",
         "evidence_or_proficiency_basis_changed",
         "weighting_changed",

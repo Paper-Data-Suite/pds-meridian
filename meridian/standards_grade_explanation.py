@@ -26,7 +26,10 @@ from meridian.academic_period_proficiency_explanation import (
 )
 from meridian.effective_grade import EffectiveGradeResolution
 from meridian.grade_item_proficiency_explanation import ExplanationTraceError
-from meridian.grade_policy import GradePolicyRevision
+from meridian.grade_policy import (
+    GradePolicyRevision,
+    ProfileConstraintConfiguration,
+)
 from meridian.grade_policy_activation import GradePolicyActivationDecision
 from meridian.grade_preview_explanation import (
     GradePreviewBaseResultExplanation,
@@ -42,6 +45,7 @@ from meridian.grade_preview_explanation import (
 )
 from meridian.proficiency_mapping import ProficiencyScaleReference
 from meridian.standards_grade import (
+    ProfileGradeAdjustment,
     StandardsGradeAction,
     StandardsGradeCalculationInput,
     StandardsGradeCalculationOutcome,
@@ -49,6 +53,10 @@ from meridian.standards_grade import (
     StandardsGradeSourceState,
     StandardsGradeUpstreamFreshnessStatus,
     calculate_standards_grade,
+)
+from meridian.standards_grade_profile import (
+    ProfileConstraintEvaluation,
+    ProfilePredicateEvaluation,
 )
 from meridian.standards_grade_result import (
     StandardsGradeResultSnapshot,
@@ -215,7 +223,7 @@ class StandardsGradeReasonExplanation:
 
 @dataclass(frozen=True, slots=True)
 class StandardsGradeFormulaExplanation:
-    """Exact weighted-mean formula state persisted by #51."""
+    """Exact weighted-mean and optional profile-constraint Grade state."""
 
     aggregation_strategy: str
     minimum_calculated_results: int
@@ -224,11 +232,21 @@ class StandardsGradeFormulaExplanation:
     weighted_numerator: Decimal | None
     unrounded_grade: Decimal | None
     rounded_grade: Decimal | None
+    base_unrounded_grade: Decimal | None = None
+    profile_constraints: ProfileConstraintConfiguration | None = None
+    profile_evaluation: ProfileConstraintEvaluation | None = None
+    selected_profile_band_id: str | None = None
+    selected_profile_band_minimum_grade: Decimal | None = None
+    selected_profile_band_maximum_grade: Decimal | None = None
+    profile_adjustment: ProfileGradeAdjustment | None = None
 
     def __post_init__(self) -> None:
-        if self.aggregation_strategy != "weighted_mean":
+        if self.aggregation_strategy not in {
+            "weighted_mean",
+            "profile_constrained_mean",
+        }:
             raise GradePreviewTargetError(
-                "standards Grade aggregation_strategy must be weighted_mean."
+                "standards Grade aggregation_strategy is unsupported."
             )
         if (
             type(self.minimum_calculated_results) is not int
@@ -247,8 +265,11 @@ class StandardsGradeFormulaExplanation:
         for field_name in (
             "active_weight",
             "weighted_numerator",
+            "base_unrounded_grade",
             "unrounded_grade",
             "rounded_grade",
+            "selected_profile_band_minimum_grade",
+            "selected_profile_band_maximum_grade",
         ):
             value = getattr(self, field_name)
             if value is not None and (
@@ -260,6 +281,119 @@ class StandardsGradeFormulaExplanation:
         if self.active_weight is not None and self.active_weight <= 0:
             raise GradePreviewTargetError(
                 "active_weight must be positive when present."
+            )
+        minimum_band = self.selected_profile_band_minimum_grade
+        maximum_band = self.selected_profile_band_maximum_grade
+        if (minimum_band is None) != (maximum_band is None):
+            raise GradePreviewIntegrityError(
+                "selected profile band bounds must be present together."
+            )
+        if (
+            minimum_band is not None
+            and maximum_band is not None
+            and minimum_band > maximum_band
+        ):
+            raise GradePreviewIntegrityError(
+                "selected profile band minimum must not exceed maximum."
+            )
+
+        if self.aggregation_strategy == "weighted_mean":
+            if any(
+                value is not None
+                for value in (
+                    self.profile_constraints,
+                    self.profile_evaluation,
+                    self.selected_profile_band_id,
+                    minimum_band,
+                    maximum_band,
+                    self.profile_adjustment,
+                )
+            ):
+                raise GradePreviewIntegrityError(
+                    "weighted_mean explanation must not carry profile authority."
+                )
+            return
+
+        if not isinstance(
+            self.profile_constraints,
+            ProfileConstraintConfiguration,
+        ):
+            raise GradePreviewIntegrityError(
+                "profile_constrained_mean explanation requires profile constraints."
+            )
+        evaluation = self.profile_evaluation
+        if evaluation is None:
+            if any(
+                value is not None
+                for value in (
+                    self.selected_profile_band_id,
+                    minimum_band,
+                    maximum_band,
+                    self.profile_adjustment,
+                )
+            ):
+                raise GradePreviewIntegrityError(
+                    "profile selection provenance requires profile evaluation."
+                )
+            return
+        if not isinstance(evaluation, ProfileConstraintEvaluation):
+            raise GradePreviewTargetError(
+                "profile_evaluation must be ProfileConstraintEvaluation."
+            )
+
+        selected = self.selected_profile_band_id
+        if selected is None:
+            if any(
+                value is not None
+                for value in (
+                    minimum_band,
+                    maximum_band,
+                    self.profile_adjustment,
+                )
+            ):
+                raise GradePreviewIntegrityError(
+                    "indeterminate profile explanation must not invent selection."
+                )
+            return
+
+        if not isinstance(selected, str) or not selected:
+            raise GradePreviewTargetError(
+                "selected_profile_band_id must be nonempty text."
+            )
+        if (
+            minimum_band is None
+            or maximum_band is None
+            or self.profile_adjustment not in {"none", "floor", "cap"}
+        ):
+            raise GradePreviewIntegrityError(
+                "selected profile explanation requires bounds and adjustment."
+            )
+        configured_band = next(
+            (
+                band
+                for band in self.profile_constraints.bands
+                if band.band_id == selected
+            ),
+            None,
+        )
+        if configured_band is None:
+            raise GradePreviewIntegrityError(
+                "selected profile band must exist in profile policy."
+            )
+        if (
+            configured_band.minimum_grade != minimum_band
+            or configured_band.maximum_grade != maximum_band
+        ):
+            raise GradePreviewIntegrityError(
+                "selected profile band bounds must match profile policy."
+            )
+        evaluated_band = next(
+            (band for band in evaluation.bands if band.band_id == selected),
+            None,
+        )
+        if evaluated_band is None or evaluated_band.status != "matched":
+            raise GradePreviewIntegrityError(
+                "selected profile band must be a matched evaluated band."
             )
 
 
@@ -407,6 +541,17 @@ def explain_standards_grade_breakdown(
         weighted_numerator=outcome.weighted_numerator,
         unrounded_grade=outcome.unrounded_grade,
         rounded_grade=outcome.rounded_grade,
+        base_unrounded_grade=outcome.base_unrounded_grade,
+        profile_constraints=inputs.configuration.profile_constraints,
+        profile_evaluation=outcome.profile_evaluation,
+        selected_profile_band_id=outcome.selected_profile_band_id,
+        selected_profile_band_minimum_grade=(
+            outcome.selected_profile_band_minimum_grade
+        ),
+        selected_profile_band_maximum_grade=(
+            outcome.selected_profile_band_maximum_grade
+        ),
+        profile_adjustment=outcome.profile_adjustment,
     )
     reasons = tuple(
         StandardsGradeReasonExplanation(
@@ -571,9 +716,7 @@ def _standards_grade_basis_entries(
             for item in conversions
         ],
     }
-    participation = [
-        {"standard_id": item.standard_id} for item in standards
-    ]
+    participation = [{"standard_id": item.standard_id} for item in standards]
     weighting = [
         {
             "standard_id": item.standard_id,
@@ -604,7 +747,7 @@ def _standards_grade_basis_entries(
         }
         for item in standards
     ]
-    return (
+    entries: list[GradePreviewBasisEntry] = [
         GradePreviewBasisEntry(
             "formula",
             "standards_formula",
@@ -625,8 +768,75 @@ def _standards_grade_basis_entries(
             "standards_weighting",
             _semantic_digest(weighting),
         ),
-    )
+    ]
 
+    constraints = formula_value.profile_constraints
+    if constraints is None:
+        return tuple(entries)
+
+    evaluation = formula_value.profile_evaluation
+    entries.extend(
+        (
+            GradePreviewBasisEntry(
+                "formula",
+                "standards_profile_policy",
+                _semantic_digest(_profile_constraints_to_dict(constraints)),
+            ),
+            GradePreviewBasisEntry(
+                "formula",
+                "standards_base_mean",
+                _semantic_digest(
+                    {
+                        "base_unrounded_grade": _decimal_text(
+                            formula_value.base_unrounded_grade
+                        )
+                    }
+                ),
+            ),
+            GradePreviewBasisEntry(
+                "evidence",
+                "standards_profile_predicates",
+                _semantic_digest(_profile_predicate_basis(evaluation)),
+            ),
+            GradePreviewBasisEntry(
+                "evidence",
+                "standards_profile_band",
+                _semantic_digest(
+                    {
+                        "bands": (
+                            None
+                            if evaluation is None
+                            else [
+                                {
+                                    "band_id": band.band_id,
+                                    "priority": band.priority,
+                                    "status": band.status,
+                                }
+                                for band in evaluation.bands
+                            ]
+                        ),
+                        "selected_profile_band_id": (
+                            formula_value.selected_profile_band_id
+                        ),
+                        "selected_profile_band_minimum_grade": _decimal_text(
+                            formula_value.selected_profile_band_minimum_grade
+                        ),
+                        "selected_profile_band_maximum_grade": _decimal_text(
+                            formula_value.selected_profile_band_maximum_grade
+                        ),
+                    }
+                ),
+            ),
+            GradePreviewBasisEntry(
+                "formula",
+                "standards_profile_adjustment",
+                _semantic_digest(
+                    {"profile_adjustment": formula_value.profile_adjustment}
+                ),
+            ),
+        )
+    )
+    return tuple(entries)
 
 
 def standards_grade_breakdown_to_dict(
@@ -838,9 +1048,126 @@ def _formula_to_dict(value: StandardsGradeFormulaExplanation) -> dict[str, objec
         "actual_calculated_result_count": value.actual_calculated_result_count,
         "active_weight": _decimal_text(value.active_weight),
         "weighted_numerator": _decimal_text(value.weighted_numerator),
+        "base_unrounded_grade": _decimal_text(value.base_unrounded_grade),
         "unrounded_grade": _decimal_text(value.unrounded_grade),
         "rounded_grade": _decimal_text(value.rounded_grade),
+        "profile_constraints": (
+            None
+            if value.profile_constraints is None
+            else _profile_constraints_to_dict(value.profile_constraints)
+        ),
+        "profile_evaluation": (
+            None
+            if value.profile_evaluation is None
+            else _profile_evaluation_to_dict(value.profile_evaluation)
+        ),
+        "selected_profile_band_id": value.selected_profile_band_id,
+        "selected_profile_band_minimum_grade": _decimal_text(
+            value.selected_profile_band_minimum_grade
+        ),
+        "selected_profile_band_maximum_grade": _decimal_text(
+            value.selected_profile_band_maximum_grade
+        ),
+        "profile_adjustment": value.profile_adjustment,
     }
+
+
+def _profile_constraints_to_dict(
+    value: ProfileConstraintConfiguration,
+) -> dict[str, object]:
+    return {
+        "groups": [
+            {
+                "group_id": group.group_id,
+                "standard_ids": list(group.standard_ids),
+            }
+            for group in value.groups
+        ],
+        "bands": [
+            {
+                "band_id": band.band_id,
+                "priority": band.priority,
+                "minimum_grade": _decimal_text(band.minimum_grade),
+                "maximum_grade": _decimal_text(band.maximum_grade),
+                "predicates": [
+                    {
+                        "predicate_id": predicate.predicate_id,
+                        "kind": predicate.kind,
+                        "group_id": predicate.group_id,
+                        "proficiency_level_id": (
+                            predicate.proficiency_level_id
+                        ),
+                        "minimum_count": predicate.minimum_count,
+                        "minimum_proportion": _decimal_text(
+                            predicate.minimum_proportion
+                        ),
+                    }
+                    for predicate in band.predicates
+                ],
+            }
+            for band in value.bands
+        ],
+        "fallback_band_id": value.fallback_band_id,
+    }
+
+
+def _profile_evaluation_to_dict(
+    value: ProfileConstraintEvaluation,
+) -> dict[str, object]:
+    return {
+        "bands": [
+            {
+                "band_id": band.band_id,
+                "priority": band.priority,
+                "status": band.status,
+                "predicates": [
+                    _profile_predicate_evaluation_to_dict(predicate)
+                    for predicate in band.predicates
+                ],
+            }
+            for band in value.bands
+        ]
+    }
+
+
+def _profile_predicate_evaluation_to_dict(
+    value: ProfilePredicateEvaluation,
+) -> dict[str, object]:
+    return {
+        "predicate_id": value.predicate_id,
+        "kind": value.kind,
+        "group_id": value.group_id,
+        "threshold_level_id": value.threshold_level_id,
+        "status": value.status,
+        "group_size": value.group_size,
+        "known_count": value.known_count,
+        "unknown_count": value.unknown_count,
+        "at_or_above_count": value.at_or_above_count,
+        "below_count": value.below_count,
+        "at_or_above_standard_ids": list(value.at_or_above_standard_ids),
+        "below_standard_ids": list(value.below_standard_ids),
+        "unknown_standard_ids": list(value.unknown_standard_ids),
+        "minimum_count": value.minimum_count,
+        "minimum_proportion": _decimal_text(value.minimum_proportion),
+    }
+
+
+def _profile_predicate_basis(
+    value: ProfileConstraintEvaluation | None,
+) -> object:
+    if value is None:
+        return None
+    return [
+        {
+            "band_id": band.band_id,
+            "priority": band.priority,
+            "predicates": [
+                _profile_predicate_evaluation_to_dict(predicate)
+                for predicate in band.predicates
+            ],
+        }
+        for band in value.bands
+    ]
 
 
 def _reason_to_dict(value: StandardsGradeReasonExplanation) -> dict[str, object]:

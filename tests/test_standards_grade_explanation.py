@@ -14,6 +14,7 @@ from meridian.academic_period_proficiency import (
 from meridian.effective_grade import EffectiveGradeResolution
 from meridian.grade_item_proficiency_explanation import ExplanationTraceError
 from meridian.grade_policy import (
+    GRADE_POLICY_SCHEMA_VERSION,
     GradePolicyActor,
     GradePolicyRevision,
     GradeReassessmentHandling,
@@ -89,7 +90,7 @@ def _policy(
     state_treatment: GradeStateTreatment | None = None,
 ) -> GradePolicyRevision:
     return GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="standards_grade_policy",
