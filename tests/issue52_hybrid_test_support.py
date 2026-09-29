@@ -13,6 +13,7 @@ from meridian.conventional_grade import (
     ConventionalGradeItemInput,
 )
 from meridian.grade_policy import (
+    GRADE_POLICY_SCHEMA_VERSION,
     ConventionalGradeConfiguration,
     GradePolicyActor,
     GradePolicyItemParticipation,
@@ -116,7 +117,7 @@ def policy(
         standards_weight=Decimal(standards_weight),
     )
     return GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="hybrid_course_grade",

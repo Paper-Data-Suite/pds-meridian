@@ -67,7 +67,7 @@ from meridian.standards_grade import (
     standards_grade_calculation_input_to_dict,
 )
 
-HYBRID_GRADE_ALGORITHM_VERSION: Final[str] = "1"
+HYBRID_GRADE_ALGORITHM_VERSION: Final[str] = "2"
 
 HybridGradeComponentKind: TypeAlias = Literal["conventional", "standards_based"]
 HybridGradeComponentSourceStatus: TypeAlias = Literal[

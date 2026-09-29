@@ -26,6 +26,7 @@ from meridian.conventional_grade_assembly import (
     assemble_conventional_grade_component,
 )
 from meridian.grade_policy import (
+    GRADE_POLICY_SCHEMA_VERSION,
     ConventionalGradeConfiguration,
     GradePolicyActor,
     GradePolicyItemParticipation,
@@ -167,7 +168,7 @@ def _stored_basis(
         standards_weight=Decimal("0.3"),
     )
     policy = GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="hybrid_policy",
@@ -262,6 +263,7 @@ def _conventional_input(
 def _standards_input(
     stored_policy: StoredGradePolicyRevision,
     stored_activation: StoredGradePolicyActivationDecision,
+    stored_scale: StoredProficiencyScale,
     level: str = "developing",
 ) -> StandardsGradeCalculationInput:
     config = stored_policy.policy.configuration
@@ -299,6 +301,7 @@ def _standards_input(
         state_treatment=stored_policy.policy.state_treatment,
         rounding=stored_policy.policy.rounding,
         standards=(selected,),
+        target_scale_definition=stored_scale.scale,
     )
 
 
@@ -374,7 +377,11 @@ def test_standards_component_accepts_exact_embedded_hybrid_configuration(
     monkeypatch.setattr(
         standards_assembly,
         "_assemble_standard_input",
-        lambda *_: _standards_input(policy, activation).standards[0],
+        lambda *_: _standards_input(
+            policy,
+            activation,
+            scale,
+        ).standards[0],
     )
 
     component = assemble_standards_grade_component(
@@ -399,7 +406,12 @@ def test_hybrid_assembly_resolves_one_authority_and_composes_components(
 ) -> None:
     policy, activation, scale = _stored_basis(tmp_path)
     conventional_input = _conventional_input(policy, activation, "90")
-    standards_input = _standards_input(policy, activation, "developing")
+    standards_input = _standards_input(
+        policy,
+        activation,
+        scale,
+        "developing",
+    )
     conventional = ConventionalGradeComponentAssembly(
         work_evidence=(),
         inputs=conventional_input,
@@ -463,7 +475,7 @@ def test_hybrid_assembly_rejects_nonhybrid_activated_policy_before_components(
     config = hybrid_policy.policy.configuration
     assert isinstance(config, HybridGradeConfiguration)
     conventional_policy = GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="conventional_only",
