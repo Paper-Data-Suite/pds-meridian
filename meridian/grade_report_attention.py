@@ -11,7 +11,9 @@ and absent selections are deliberately not attention authority.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from typing import cast
 
 from pds_core.academic_periods import AcademicPeriodRef
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
@@ -35,6 +37,26 @@ from meridian.reporting_snapshot_storage import (
     list_reporting_snapshot_ids,
     load_reporting_snapshot,
 )
+from meridian.standards_grade_assembly import (
+    StandardsGradeAssemblyError,
+    assemble_standards_grade_calculation,
+)
+from meridian.standards_grade_result import (
+    StandardsGradeResultReference,
+    StandardsGradeResultValidationError,
+    assess_standards_grade_result_freshness,
+)
+from meridian.standards_grade_storage import (
+    DEFAULT_MAXIMUM_STANDARDS_GRADE_POINTER_BYTES,
+    STANDARDS_GRADE_RESULT_CURRENT_RECORD_TYPE,
+    STANDARDS_GRADE_RESULT_CURRENT_SCHEMA_VERSION,
+    StandardsGradeStorageError,
+    StoredStandardsGradeResult,
+    load_current_standards_grade_result,
+    standards_grade_result_current_path,
+    standards_grade_subject_key,
+    standards_grades_directory,
+)
 
 
 class GradeReportAttentionError(RuntimeError):
@@ -54,6 +76,22 @@ class GradeReportAttentionIntegrityError(GradeReportAttentionReadError):
 
 
 ReportingScopeKey = tuple[str, str, str, int]
+StandardsGradeTargetKey = tuple[str, str, str, int]
+
+_STANDARDS_GRADE_CURRENT_POINTER_KEYS = frozenset(
+    {
+        "schema_version",
+        "record_type",
+        "class_id",
+        "student_id",
+        "school_year",
+        "period_id",
+        "calendar_revision",
+        "subject_key",
+        "result_revision",
+        "result_sha256",
+    }
+)
 
 
 def inspect_grade_report_attention_for_class(
@@ -64,9 +102,14 @@ def inspect_grade_report_attention_for_class(
 ) -> MeridianAttentionSummary:
     """Inspect safely provable Grade/report attention for one exact class.
 
-    This slice derives only ``meridian_reporting_snapshot_selection_pending``.
-    One count represents one exact reporting scope, even if more than one
-    immutable successor names the same selected predecessor.
+    The neutral Core v1 boundary can safely reconstruct standards-based Grade
+    freshness from Meridian/Core canonical state, so selected stale standards
+    Grade targets are included. Conventional and hybrid freshness remains omitted
+    here because those families require caller-supplied protected work evidence.
+
+    ReportingSnapshot replacement attention remains one count per exact reporting
+    scope, even if more than one immutable successor names the same selected
+    predecessor.
     """
 
     root = Path(workspace_root).resolve()
@@ -75,6 +118,27 @@ def inspect_grade_report_attention_for_class(
     _require_exact_class(root, class_value)
 
     try:
+        stale_grades: dict[
+            StandardsGradeTargetKey, StandardsGradeResultReference
+        ] = {}
+        selected_standards = _discover_current_standards_grade_results(
+            root,
+            class_value,
+            active_school_year=school_year,
+        )
+        for stored in selected_standards:
+            if not _selected_standards_grade_result_is_stale(root, stored):
+                continue
+            key = _standards_grade_target_key(stored)
+            previous = stale_grades.get(key)
+            if previous is not None and previous != stored.reference:
+                raise GradeReportAttentionReadError(
+                    "Duplicate selected standards Grade target changed during "
+                "inspection."
+                )
+            stale_grades[key] = stored.reference
+        _revalidate_stale_grade_selections(root, class_value, stale_grades)
+
         snapshot_ids = list_reporting_snapshot_ids(root, class_value)
         if len(snapshot_ids) > MAX_MERIDIAN_ATTENTION_COUNT:
             raise GradeReportAttentionReadError(
@@ -148,6 +212,9 @@ def inspect_grade_report_attention_for_class(
     except (
         ReportingSnapshotStorageError,
         ReportingSnapshotSelectionError,
+        StandardsGradeAssemblyError,
+        StandardsGradeResultValidationError,
+        StandardsGradeStorageError,
         OSError,
         ValueError,
     ) as error:
@@ -155,16 +222,247 @@ def inspect_grade_report_attention_for_class(
             "Canonical Grade/report attention could not be inspected safely."
         ) from error
 
-    items: tuple[MeridianAttentionItem, ...] = ()
+    items: list[MeridianAttentionItem] = []
+    if stale_grades:
+        items.append(
+            MeridianAttentionItem(
+                code="meridian_grade_result_stale",
+                count=len(stale_grades),
+                class_id=class_value,
+            )
+        )
     if pending:
-        items = (
+        items.append(
             MeridianAttentionItem(
                 code="meridian_reporting_snapshot_selection_pending",
                 count=len(pending),
                 class_id=class_value,
-            ),
+            )
         )
-    return build_meridian_attention_summary(items)
+    return build_meridian_attention_summary(tuple(items))
+
+
+def _discover_current_standards_grade_results(
+    workspace_root: Path,
+    class_id: str,
+    *,
+    active_school_year: str | None,
+) -> tuple[StoredStandardsGradeResult, ...]:
+    """Discover exact selected standards Grade results from canonical pointers."""
+
+    collection = standards_grades_directory(workspace_root, class_id)
+    if not collection.exists():
+        return ()
+    if collection.is_symlink() or not collection.is_dir():
+        raise GradeReportAttentionReadError(
+            "Standards Grade result collection is not a regular directory."
+        )
+
+    pointers = tuple(
+        sorted(collection.rglob("current.json"), key=lambda path: path.as_posix())
+    )
+    if len(pointers) > MAX_MERIDIAN_ATTENTION_COUNT:
+        raise GradeReportAttentionReadError(
+            "Selected standards Grade target count exceeds the bounded "
+            "attention maximum."
+        )
+
+    selected: list[StoredStandardsGradeResult] = []
+    seen: set[StandardsGradeTargetKey] = set()
+    for pointer in pointers:
+        _require_regular_path_below(collection, pointer)
+        data = _read_standards_grade_current_pointer(pointer)
+        pointer_class = _required_identifier(data, "class_id")
+        if pointer_class != class_id:
+            raise GradeReportAttentionReadError(
+                "Standards Grade current pointer crosses class scope."
+            )
+        school_year = _required_school_year(data, "school_year")
+        if active_school_year is not None and school_year != active_school_year:
+            continue
+        student_id = _required_identifier(data, "student_id")
+        period_id = _required_identifier(data, "period_id")
+        calendar_revision = _required_positive_int(data, "calendar_revision")
+        period = AcademicPeriodRef(school_year, period_id)
+        expected = standards_grade_result_current_path(
+            workspace_root,
+            class_id,
+            student_id,
+            period,
+            calendar_revision,
+        )
+        if pointer != expected:
+            raise GradeReportAttentionReadError(
+                "Standards Grade current pointer is not at its canonical path."
+            )
+        if data["subject_key"] != standards_grade_subject_key(
+            class_id, student_id, period, calendar_revision
+        ):
+            raise GradeReportAttentionReadError(
+                "Standards Grade current pointer subject key is invalid."
+            )
+        stored = load_current_standards_grade_result(
+            workspace_root,
+            class_id,
+            student_id,
+            period,
+            calendar_revision,
+        )
+        if stored is None:
+            raise GradeReportAttentionReadError(
+                "Discovered standards Grade current pointer did not resolve."
+            )
+        key = _standards_grade_target_key(stored)
+        if key in seen:
+            raise GradeReportAttentionReadError(
+                "Standards Grade current pointer duplicates a logical target."
+            )
+        seen.add(key)
+        selected.append(stored)
+    return tuple(selected)
+
+
+def _selected_standards_grade_result_is_stale(
+    workspace_root: Path,
+    stored: StoredStandardsGradeResult,
+) -> bool:
+    """Apply the authoritative standards Grade freshness contract read-only."""
+
+    snapshot = stored.snapshot
+    assembly = assemble_standards_grade_calculation(
+        workspace_root,
+        snapshot.class_id,
+        snapshot.student_id,
+        snapshot.target_period,
+        snapshot.calendar_revision,
+    )
+    freshness = assess_standards_grade_result_freshness(
+        snapshot,
+        assembly.inputs,
+    )
+    current = load_current_standards_grade_result(
+        workspace_root,
+        snapshot.class_id,
+        snapshot.student_id,
+        snapshot.target_period,
+        snapshot.calendar_revision,
+    )
+    if current is None or current.reference != stored.reference:
+        raise GradeReportAttentionReadError(
+            "Standards Grade current selection changed during freshness inspection."
+        )
+    return freshness.status == "stale"
+
+
+def _revalidate_stale_grade_selections(
+    workspace_root: Path,
+    class_id: str,
+    stale: dict[StandardsGradeTargetKey, StandardsGradeResultReference],
+) -> None:
+    """Fail closed if any stale-result selector moves before summary return."""
+
+    for key in sorted(stale):
+        student_id, school_year, period_id, calendar_revision = key
+        current = load_current_standards_grade_result(
+            workspace_root,
+            class_id,
+            student_id,
+            AcademicPeriodRef(school_year, period_id),
+            calendar_revision,
+        )
+        if current is None or current.reference != stale[key]:
+            raise GradeReportAttentionReadError(
+                "Standards Grade current selection changed during attention inspection."
+            )
+
+
+def _standards_grade_target_key(
+    stored: StoredStandardsGradeResult,
+) -> StandardsGradeTargetKey:
+    snapshot = stored.snapshot
+    return (
+        snapshot.student_id,
+        snapshot.target_period.school_year,
+        snapshot.target_period.period_id,
+        snapshot.calendar_revision,
+    )
+
+
+def _read_standards_grade_current_pointer(path: Path) -> dict[str, object]:
+    try:
+        size = path.stat().st_size
+    except OSError as error:
+        raise GradeReportAttentionReadError(
+            "Could not inspect a standards Grade current pointer."
+        ) from error
+    if size <= 0 or size > DEFAULT_MAXIMUM_STANDARDS_GRADE_POINTER_BYTES:
+        raise GradeReportAttentionReadError(
+            "Standards Grade current pointer has invalid size."
+        )
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise GradeReportAttentionReadError(
+            "Standards Grade current pointer is unreadable."
+        ) from error
+    if not isinstance(data, dict) or frozenset(data) != (
+        _STANDARDS_GRADE_CURRENT_POINTER_KEYS
+    ):
+        raise GradeReportAttentionReadError(
+            "Standards Grade current pointer shape is invalid."
+        )
+    if data["schema_version"] != STANDARDS_GRADE_RESULT_CURRENT_SCHEMA_VERSION:
+        raise GradeReportAttentionReadError(
+            "Standards Grade current pointer schema is unsupported."
+        )
+    if data["record_type"] != STANDARDS_GRADE_RESULT_CURRENT_RECORD_TYPE:
+        raise GradeReportAttentionReadError(
+            "Standards Grade current pointer record type is invalid."
+        )
+    return cast(dict[str, object], data)
+
+
+def _required_identifier(data: dict[str, object], field: str) -> str:
+    return _identifier(data[field], field)
+
+
+def _required_school_year(data: dict[str, object], field: str) -> str:
+    value = data[field]
+    if not isinstance(value, str):
+        raise GradeReportAttentionReadError(f"{field} must be a string.")
+    try:
+        return validate_school_year(value)
+    except SchoolYearValidationError as error:
+        raise GradeReportAttentionReadError(str(error)) from error
+
+
+def _required_positive_int(data: dict[str, object], field: str) -> int:
+    value = data[field]
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise GradeReportAttentionReadError(
+            f"{field} must be a positive integer."
+        )
+    return value
+
+
+def _require_regular_path_below(root: Path, path: Path) -> None:
+    try:
+        relative = path.relative_to(root)
+    except ValueError as error:
+        raise GradeReportAttentionReadError(
+            "Standards Grade pointer escaped its canonical collection."
+        ) from error
+    current = root
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise GradeReportAttentionReadError(
+                "Standards Grade attention refuses symlinked state."
+            )
+    if not path.is_file():
+        raise GradeReportAttentionReadError(
+            "Standards Grade current pointer is not a regular file."
+        )
 
 
 def _revalidate_pending_selections(
