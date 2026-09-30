@@ -1,15 +1,15 @@
-"""Presentation-neutral Meridian proficiency-attention vocabulary and models.
+"""Presentation-neutral Meridian attention vocabulary and models.
 
-Issue #43 derives current teacher attention from canonical Core/Meridian state.
-This module intentionally owns only the stable native vocabulary, count units,
-#41 task/action routing, deterministic ordering, and JSON-ready projection.
-State discovery and the Core module-operations adapter are separate later slices.
+Issue #43 established the native deterministic attention model and Core adapter.
+Issue #58 extends that same model with Grade/report destinations while preserving
+legacy task routing, deterministic ordering, privacy-minimal aggregation, and
+read-only semantics. State discovery remains outside this vocabulary module.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Literal, TypeAlias
+from typing import Final, Literal, TypeAlias, cast
 
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
 
@@ -18,7 +18,9 @@ from meridian.teacher_workflows import (
     TeacherWorkflowTaskId,
 )
 
-PROFICIENCY_ATTENTION_SCHEMA_VERSION: Final = 1
+MERIDIAN_ATTENTION_SCHEMA_VERSION: Final = 2
+# Compatibility alias retained for existing imports from the v0.2 attention work.
+PROFICIENCY_ATTENTION_SCHEMA_VERSION: Final = MERIDIAN_ATTENTION_SCHEMA_VERSION
 MAX_MERIDIAN_ATTENTION_COUNT: Final = 1_000_000
 
 MeridianAttentionCode: TypeAlias = Literal[
@@ -31,6 +33,10 @@ MeridianAttentionCode: TypeAlias = Literal[
     "meridian_native_value_unmapped",
     "meridian_grade_item_calculation_stale",
     "meridian_academic_period_calculation_stale",
+    "meridian_grade_result_stale",
+    "meridian_reporting_publication_changed",
+    "meridian_reporting_snapshot_refresh_needed",
+    "meridian_reporting_snapshot_selection_pending",
     "meridian_planning_review_pending",
     "meridian_planning_review_selection_pending",
     "meridian_planning_review_stale",
@@ -45,8 +51,40 @@ MeridianAttentionCountUnit: TypeAlias = Literal[
     "mapping_inputs",
     "grade_item_proficiency_targets",
     "academic_period_proficiency_targets",
+    "grade_result_targets",
+    "reporting_snapshot_scopes",
     "planning_review_scopes",
 ]
+
+MeridianAttentionDestinationId: TypeAlias = Literal[
+    "new-evidence",
+    "grade-items",
+    "attempt-decisions",
+    "exclusions",
+    "standards-review",
+    "calculation-preview",
+    "preview-grades",
+    "snapshots",
+    "create-planning-signal",
+]
+
+MERIDIAN_ATTENTION_DESTINATION_IDS: Final[
+    tuple[MeridianAttentionDestinationId, ...]
+] = (
+    "new-evidence",
+    "grade-items",
+    "attempt-decisions",
+    "exclusions",
+    "standards-review",
+    "calculation-preview",
+    "preview-grades",
+    "snapshots",
+    "create-planning-signal",
+)
+
+_LEGACY_TEACHER_WORKFLOW_TASK_IDS: Final[frozenset[str]] = frozenset(
+    TEACHER_WORKFLOW_TASK_IDS
+)
 
 
 class MeridianAttentionValidationError(ValueError):
@@ -55,19 +93,19 @@ class MeridianAttentionValidationError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class MeridianAttentionDefinition:
-    """Stable meaning and navigation identity for one attention category."""
+    """Stable meaning and presentation-neutral navigation identity."""
 
     code: MeridianAttentionCode
     label: str
-    task_id: TeacherWorkflowTaskId
+    destination_id: MeridianAttentionDestinationId
     action_id: str
     count_unit: MeridianAttentionCountUnit
     category_order: int
 
     def __post_init__(self) -> None:
-        if self.task_id not in TEACHER_WORKFLOW_TASK_IDS:
+        if self.destination_id not in MERIDIAN_ATTENTION_DESTINATION_IDS:
             raise MeridianAttentionValidationError(
-                f"Unsupported teacher workflow task: {self.task_id!r}."
+                f"Unsupported Meridian attention destination: {self.destination_id!r}."
             )
         _bounded_text(self.label, "label", maximum=160)
         _bounded_identifier(self.action_id, "action_id", maximum=64)
@@ -79,6 +117,18 @@ class MeridianAttentionDefinition:
             raise MeridianAttentionValidationError(
                 "category_order must be a nonnegative integer."
             )
+
+    @property
+    def task_id(self) -> TeacherWorkflowTaskId | None:
+        """Return the legacy #41 task identity when this destination has one.
+
+        Grade/report destinations added by Issue #58 are v0.3 menu surfaces rather
+        than legacy #41 task identities, so they intentionally return ``None``.
+        """
+
+        if self.destination_id not in _LEGACY_TEACHER_WORKFLOW_TASK_IDS:
+            return None
+        return cast(TeacherWorkflowTaskId, self.destination_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,7 +177,7 @@ class MeridianAttentionSummary:
         expected = tuple(sorted(self.items, key=_item_order_key))
         if self.items != expected:
             raise MeridianAttentionValidationError(
-                "attention summary items must use canonical task/category order."
+                "attention summary items must use canonical destination/category order."
             )
 
 
@@ -161,13 +211,15 @@ def _validated_identifier(value: object, field: str) -> str:
     return _bounded_identifier(value, field, maximum=160)
 
 
-_ACTION_BY_TASK: Final[dict[TeacherWorkflowTaskId, str]] = {
+_ACTION_BY_DESTINATION: Final[dict[MeridianAttentionDestinationId, str]] = {
     "new-evidence": "open_new_evidence",
     "grade-items": "open_grade_items",
     "attempt-decisions": "open_attempt_decisions",
     "exclusions": "open_exclusions",
     "standards-review": "open_standards_review",
     "calculation-preview": "open_calculation_preview",
+    "preview-grades": "open_preview_grades",
+    "snapshots": "open_snapshots",
     "create-planning-signal": "open_create_planning_signal",
 }
 
@@ -175,96 +227,128 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
     MeridianAttentionDefinition(
         code="meridian_evidence_review_pending",
         label="Evidence review needs teacher attention",
-        task_id="new-evidence",
-        action_id=_ACTION_BY_TASK["new-evidence"],
+        destination_id="new-evidence",
+        action_id=_ACTION_BY_DESTINATION["new-evidence"],
         count_unit="work_review_scopes",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_membership_review_pending",
         label="Grade Item membership needs teacher review",
-        task_id="grade-items",
-        action_id=_ACTION_BY_TASK["grade-items"],
+        destination_id="grade-items",
+        action_id=_ACTION_BY_DESTINATION["grade-items"],
         count_unit="membership_review_scopes",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_attempt_decision_pending",
         label="Applicable attempt decisions are pending",
-        task_id="attempt-decisions",
-        action_id=_ACTION_BY_TASK["attempt-decisions"],
+        destination_id="attempt-decisions",
+        action_id=_ACTION_BY_DESTINATION["attempt-decisions"],
         count_unit="attempt_decision_scopes",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_contract_unsupported",
         label="Unsupported evidence contracts need teacher review",
-        task_id="exclusions",
-        action_id=_ACTION_BY_TASK["exclusions"],
+        destination_id="exclusions",
+        action_id=_ACTION_BY_DESTINATION["exclusions"],
         count_unit="evidence_review_scopes",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_source_withdrawn",
         label="Withdrawn evidence sources need teacher review",
-        task_id="exclusions",
-        action_id=_ACTION_BY_TASK["exclusions"],
+        destination_id="exclusions",
+        action_id=_ACTION_BY_DESTINATION["exclusions"],
         count_unit="source_review_scopes",
         category_order=1,
     ),
     MeridianAttentionDefinition(
         code="meridian_source_superseded",
         label="Superseded evidence sources need teacher review",
-        task_id="exclusions",
-        action_id=_ACTION_BY_TASK["exclusions"],
+        destination_id="exclusions",
+        action_id=_ACTION_BY_DESTINATION["exclusions"],
         count_unit="source_review_scopes",
         category_order=2,
     ),
     MeridianAttentionDefinition(
         code="meridian_native_value_unmapped",
         label="Applicable native values need mapping review",
-        task_id="standards-review",
-        action_id=_ACTION_BY_TASK["standards-review"],
+        destination_id="standards-review",
+        action_id=_ACTION_BY_DESTINATION["standards-review"],
         count_unit="mapping_inputs",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_grade_item_calculation_stale",
         label="Grade Item proficiency calculations are stale",
-        task_id="calculation-preview",
-        action_id=_ACTION_BY_TASK["calculation-preview"],
+        destination_id="calculation-preview",
+        action_id=_ACTION_BY_DESTINATION["calculation-preview"],
         count_unit="grade_item_proficiency_targets",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_academic_period_calculation_stale",
         label="Academic Period proficiency calculations are stale",
-        task_id="calculation-preview",
-        action_id=_ACTION_BY_TASK["calculation-preview"],
+        destination_id="calculation-preview",
+        action_id=_ACTION_BY_DESTINATION["calculation-preview"],
         count_unit="academic_period_proficiency_targets",
         category_order=1,
     ),
     MeridianAttentionDefinition(
+        code="meridian_grade_result_stale",
+        label="Selected Grade results need fresh preview review",
+        destination_id="preview-grades",
+        action_id=_ACTION_BY_DESTINATION["preview-grades"],
+        count_unit="grade_result_targets",
+        category_order=0,
+    ),
+    MeridianAttentionDefinition(
+        code="meridian_reporting_publication_changed",
+        label="Reporting publication changes need snapshot review",
+        destination_id="snapshots",
+        action_id=_ACTION_BY_DESTINATION["snapshots"],
+        count_unit="reporting_snapshot_scopes",
+        category_order=0,
+    ),
+    MeridianAttentionDefinition(
+        code="meridian_reporting_snapshot_refresh_needed",
+        label="Current ReportingSnapshots need refresh review",
+        destination_id="snapshots",
+        action_id=_ACTION_BY_DESTINATION["snapshots"],
+        count_unit="reporting_snapshot_scopes",
+        category_order=1,
+    ),
+    MeridianAttentionDefinition(
+        code="meridian_reporting_snapshot_selection_pending",
+        label="ReportingSnapshot replacements await explicit selection",
+        destination_id="snapshots",
+        action_id=_ACTION_BY_DESTINATION["snapshots"],
+        count_unit="reporting_snapshot_scopes",
+        category_order=2,
+    ),
+    MeridianAttentionDefinition(
         code="meridian_planning_review_pending",
         label="Planning previews are awaiting teacher review",
-        task_id="create-planning-signal",
-        action_id=_ACTION_BY_TASK["create-planning-signal"],
+        destination_id="create-planning-signal",
+        action_id=_ACTION_BY_DESTINATION["create-planning-signal"],
         count_unit="planning_review_scopes",
         category_order=0,
     ),
     MeridianAttentionDefinition(
         code="meridian_planning_review_selection_pending",
         label="Accepted planning reviews await explicit selection",
-        task_id="create-planning-signal",
-        action_id=_ACTION_BY_TASK["create-planning-signal"],
+        destination_id="create-planning-signal",
+        action_id=_ACTION_BY_DESTINATION["create-planning-signal"],
         count_unit="planning_review_scopes",
         category_order=1,
     ),
     MeridianAttentionDefinition(
         code="meridian_planning_review_stale",
         label="Selected planning reviews need fresh review",
-        task_id="create-planning-signal",
-        action_id=_ACTION_BY_TASK["create-planning-signal"],
+        destination_id="create-planning-signal",
+        action_id=_ACTION_BY_DESTINATION["create-planning-signal"],
         count_unit="planning_review_scopes",
         category_order=2,
     ),
@@ -273,13 +357,14 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
 _DEFINITION_BY_CODE: Final[dict[MeridianAttentionCode, MeridianAttentionDefinition]] = {
     definition.code: definition for definition in _ATTENTION_DEFINITIONS
 }
-_TASK_ORDER: Final[dict[TeacherWorkflowTaskId, int]] = {
-    task_id: index for index, task_id in enumerate(TEACHER_WORKFLOW_TASK_IDS)
+_DESTINATION_ORDER: Final[dict[MeridianAttentionDestinationId, int]] = {
+    destination_id: index
+    for index, destination_id in enumerate(MERIDIAN_ATTENTION_DESTINATION_IDS)
 }
 
 
 def meridian_attention_definitions() -> tuple[MeridianAttentionDefinition, ...]:
-    """Return the complete stable issue #43 attention vocabulary in display order."""
+    """Return the complete stable Meridian attention vocabulary in display order."""
 
     return _ATTENTION_DEFINITIONS
 
@@ -351,13 +436,14 @@ def meridian_attention_summary_to_dict(
         raise TypeError("summary must be a MeridianAttentionSummary.")
     summary.__post_init__()
     return {
-        "schema_version": PROFICIENCY_ATTENTION_SCHEMA_VERSION,
+        "schema_version": MERIDIAN_ATTENTION_SCHEMA_VERSION,
         "items": [
             {
                 "code": item.code,
                 "label": item.definition.label,
                 "count": item.count,
                 "count_unit": item.definition.count_unit,
+                "destination_id": item.definition.destination_id,
                 "task_id": item.definition.task_id,
                 "action_id": item.definition.action_id,
                 "class_id": item.class_id,
@@ -370,7 +456,7 @@ def meridian_attention_summary_to_dict(
 def _item_order_key(item: MeridianAttentionItem) -> tuple[int, int, str]:
     definition = attention_definition(item.code)
     return (
-        _TASK_ORDER[definition.task_id],
+        _DESTINATION_ORDER[definition.destination_id],
         definition.category_order,
         definition.code,
     )
@@ -378,10 +464,13 @@ def _item_order_key(item: MeridianAttentionItem) -> tuple[int, int, str]:
 
 __all__ = [
     "MAX_MERIDIAN_ATTENTION_COUNT",
+    "MERIDIAN_ATTENTION_DESTINATION_IDS",
+    "MERIDIAN_ATTENTION_SCHEMA_VERSION",
     "PROFICIENCY_ATTENTION_SCHEMA_VERSION",
     "MeridianAttentionCode",
     "MeridianAttentionCountUnit",
     "MeridianAttentionDefinition",
+    "MeridianAttentionDestinationId",
     "MeridianAttentionItem",
     "MeridianAttentionSummary",
     "MeridianAttentionValidationError",
