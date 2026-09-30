@@ -20,6 +20,7 @@ from meridian.conventional_grade import (
 )
 from meridian.evidence import NativePointValue
 from meridian.grade_policy import (
+    GRADE_POLICY_SCHEMA_VERSION,
     ConventionalGradeConfiguration,
     GradePolicyActor,
     GradePolicyCategory,
@@ -105,7 +106,7 @@ def policy(
     quantum: str = "0.01",
 ) -> GradePolicyRevision:
     return GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="course_grade_policy",

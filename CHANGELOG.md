@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Issue #99 adds bounded `profile_constrained_mean` standards Grades alongside
+  preserved `weighted_mean` semantics. Exact ordered scale authority,
+  three-valued predicates, deterministic Grade bands, floor/cap adjustment,
+  standards algorithm v2, Hybrid algorithm v2, explanation/comparison
+  provenance, ReportingSnapshot replay, packaging guards, and exact-wheel
+  installed acceptance are integrated. Current compatible releases are Core
+  0.6.3, ScoreForm 0.11.0, Quillan 0.10.3, and Concord 0.3.0.
+
 - Issue #96 latest-sibling compatibility recheck advances the exact active
   Quillan boundary from 0.10.2 to 0.10.3. The authenticated release wheel is
   `quillan-0.10.3-py3-none-any.whl` with SHA-256

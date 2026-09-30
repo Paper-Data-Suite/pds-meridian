@@ -432,3 +432,11 @@ This was the exact local representation the teacher explicitly exported.
 None of those facts, by themselves, claims that an external official
 school system accepted or recorded the Grade.
 ```
+
+## Issue #99 amendment — bounded proficiency-profile Grade constraints
+
+ADR 0005 now permits standards Grade policy to constrain a base weighted mean
+through explicit profile authority. The bounded predicate vocabulary is
+`all_at_or_above`, `count_at_or_above`, and `proportion_at_or_above`, with
+three-valued evaluation and exact scale ordering. Override, snapshot, export,
+and official-system authority boundaries are unchanged.

@@ -221,7 +221,7 @@ def test_calendar_scope_and_algorithm_reasons_use_canonical_order() -> None:
     freshness = assess_hybrid_grade_result_freshness(
         snapshot,
         changed,
-        hybrid_algorithm_version="2",
+        hybrid_algorithm_version="3",
     )
     assert freshness.reasons == (
         "calendar_scope_changed",
@@ -241,7 +241,7 @@ def test_component_algorithm_drift_is_algorithm_changed() -> None:
     assert assess_hybrid_grade_result_freshness(
         snapshot,
         snapshot.inputs,
-        standards_algorithm_version="2",
+        standards_algorithm_version="3",
     ).reasons == ("algorithm_changed",)
 
 

@@ -11,6 +11,12 @@ from pathlib import Path
 
 PROGRAM = Path(__file__).with_name("smoke_program_standards_grade.py")
 RELOAD_PROGRAM = Path(__file__).with_name("smoke_program_standards_grade_reload.py")
+PROFILE_PROGRAM = Path(__file__).with_name(
+    "smoke_program_profile_constrained_grade.py"
+)
+PROFILE_RELOAD_PROGRAM = Path(__file__).with_name(
+    "smoke_program_profile_constrained_grade_reload.py"
+)
 
 
 def _environment() -> dict[str, str]:
@@ -41,6 +47,19 @@ def run_prepared_smoke(
     """Run standards-Grade acceptance in a prepared environment."""
     _run([str(python), str(PROGRAM.resolve()), str(workspace)], outside)
     _run([str(python), str(RELOAD_PROGRAM.resolve()), str(workspace)], outside)
+    profile_workspace = workspace.parent / "profile-workspace"
+    _run(
+        [str(python), str(PROFILE_PROGRAM.resolve()), str(profile_workspace)],
+        outside,
+    )
+    _run(
+        [
+            str(python),
+            str(PROFILE_RELOAD_PROGRAM.resolve()),
+            str(profile_workspace),
+        ],
+        outside,
+    )
 
 
 def smoke_test(

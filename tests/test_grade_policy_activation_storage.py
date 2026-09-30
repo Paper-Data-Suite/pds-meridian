@@ -18,6 +18,7 @@ from pds_core.academic_periods import (
 from meridian.grade_item_storage import write_grade_item_revision
 from meridian.grade_items import GradeItemRevision
 from meridian.grade_policy import (
+    GRADE_POLICY_SCHEMA_VERSION,
     ConventionalGradeConfiguration,
     GradePolicyActor,
     GradePolicyItemParticipation,
@@ -164,7 +165,7 @@ def policy(
     title: str | None = None,
 ) -> GradePolicyRevision:
     return GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="course_grade_policy",

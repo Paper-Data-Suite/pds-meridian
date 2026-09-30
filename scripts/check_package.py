@@ -310,6 +310,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/conventional_grade_assembly.py",
         "meridian/conventional_grade_storage.py",
         "meridian/standards_grade.py",
+        "meridian/standards_grade_profile.py",
         "meridian/standards_grade_assembly.py",
         "meridian/standards_grade_result.py",
         "meridian/standards_grade_storage.py",

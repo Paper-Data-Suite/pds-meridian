@@ -143,6 +143,10 @@ class StandardsGradeAssembly:
             raise StandardsGradeAssemblyScopeError(
                 "stored target scale must match exact standards policy authority."
             )
+        if self.inputs.target_scale_definition != self.target_scale.scale:
+            raise StandardsGradeAssemblyScopeError(
+                "calculation input must bind the exact stored target scale."
+            )
         if calculate_standards_grade(self.inputs) != self.outcome:
             raise StandardsGradeAssemblyScopeError(
                 "outcome must exactly reproduce from the assembled inputs."
@@ -193,6 +197,10 @@ class StandardsGradeComponentAssembly:
         if self.target_scale.reference != self.inputs.configuration.target_scale:
             raise StandardsGradeAssemblyScopeError(
                 "target_scale must match exact component policy authority."
+            )
+        if self.inputs.target_scale_definition != self.target_scale.scale:
+            raise StandardsGradeAssemblyScopeError(
+                "component input must bind the exact stored target scale."
             )
         if calculate_standards_grade(self.inputs) != self.outcome:
             raise StandardsGradeAssemblyScopeError(
@@ -284,6 +292,7 @@ def assemble_standards_grade_calculation(
             target_period=period,
             calendar_revision=calendar,
             standards=standard_inputs,
+            target_scale_definition=target_scale.scale,
         )
         outcome = calculate_standards_grade(inputs)
     except ValueError as error:
@@ -407,6 +416,7 @@ def assemble_standards_grade_component(
             state_treatment=policy_value.state_treatment,
             rounding=policy_value.rounding,
             standards=standard_inputs,
+            target_scale_definition=target_scale.scale,
         )
         outcome = calculate_standards_grade(inputs)
     except ValueError as error:

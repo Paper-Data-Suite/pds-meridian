@@ -64,7 +64,7 @@ def test_issue96_grade_prepared_smoke_keeps_workspace_and_reload_process(
 
     program = getattr(module, program_name)
     reload_program = getattr(module, reload_name)
-    assert calls == [
+    expected_calls = [
         (
             ["prepared-python", str(program.resolve()), str(workspace)],
             tmp_path,
@@ -74,6 +74,29 @@ def test_issue96_grade_prepared_smoke_keeps_workspace_and_reload_process(
             tmp_path,
         ),
     ]
+    if module is standards:
+        profile_workspace = workspace.parent / "profile-workspace"
+        expected_calls.extend(
+            [
+                (
+                    [
+                        "prepared-python",
+                        str(standards.PROFILE_PROGRAM.resolve()),
+                        str(profile_workspace),
+                    ],
+                    tmp_path,
+                ),
+                (
+                    [
+                        "prepared-python",
+                        str(standards.PROFILE_RELOAD_PROGRAM.resolve()),
+                        str(profile_workspace),
+                    ],
+                    tmp_path,
+                ),
+            ]
+        )
+    assert calls == expected_calls
 
 
 def test_issue96_scoreform_quillan_wrappers_keep_standalone_setup() -> None:

@@ -22,7 +22,7 @@ from pds_core.identifiers import IdentifierValidationError, validate_identifier
 from meridian.proficiency_mapping import ProficiencyScaleReference
 from meridian.standards_evidence import normalize_standard_id
 
-GRADE_POLICY_SCHEMA_VERSION: Final[str] = "1"
+GRADE_POLICY_SCHEMA_VERSION: Final[str] = "2"
 GRADE_POLICY_RECORD_TYPE: Final[str] = "meridian_grade_policy"
 
 MAXIMUM_GRADE_POLICY_TITLE_LENGTH: Final[int] = 256
@@ -55,7 +55,15 @@ GradeRoundingMode: TypeAlias = Literal[
     "floor",
 ]
 GradeRoundingStage: TypeAlias = Literal["final"]
-StandardsGradeAggregationStrategy: TypeAlias = Literal["weighted_mean"]
+StandardsGradeAggregationStrategy: TypeAlias = Literal[
+    "weighted_mean",
+    "profile_constrained_mean",
+]
+ProfilePredicateKind: TypeAlias = Literal[
+    "all_at_or_above",
+    "count_at_or_above",
+    "proportion_at_or_above",
+]
 
 _CALCULATION_FAMILIES: Final[frozenset[str]] = frozenset(
     {"conventional", "standards_based", "hybrid"}
@@ -76,7 +84,16 @@ _ROUNDING_MODES: Final[frozenset[str]] = frozenset(
     }
 )
 _ROUNDING_STAGES: Final[frozenset[str]] = frozenset({"final"})
-_AGGREGATION_STRATEGIES: Final[frozenset[str]] = frozenset({"weighted_mean"})
+_AGGREGATION_STRATEGIES: Final[frozenset[str]] = frozenset(
+    {"weighted_mean", "profile_constrained_mean"}
+)
+_PROFILE_PREDICATE_KINDS: Final[frozenset[str]] = frozenset(
+    {
+        "all_at_or_above",
+        "count_at_or_above",
+        "proportion_at_or_above",
+    }
+)
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _T = TypeVar("_T")
 
@@ -137,7 +154,33 @@ _STANDARDS_KEYS: Final[frozenset[str]] = frozenset(
         "conversions",
         "aggregation_strategy",
         "minimum_calculated_results",
+        "profile_constraints",
     }
+)
+_PROFILE_GROUP_KEYS: Final[frozenset[str]] = frozenset(
+    {"group_id", "standard_ids"}
+)
+_PROFILE_PREDICATE_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "predicate_id",
+        "kind",
+        "group_id",
+        "proficiency_level_id",
+        "minimum_count",
+        "minimum_proportion",
+    }
+)
+_PROFILE_BAND_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "band_id",
+        "priority",
+        "minimum_grade",
+        "maximum_grade",
+        "predicates",
+    }
+)
+_PROFILE_CONSTRAINT_KEYS: Final[frozenset[str]] = frozenset(
+    {"groups", "bands", "fallback_band_id"}
 )
 _SCALE_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
     {"class_id", "scale_id", "scale_revision", "scale_sha256"}
@@ -465,14 +508,265 @@ class ProficiencyGradeConversion:
 
 
 @dataclass(frozen=True, slots=True)
+class ProfileStandardGroup:
+    """One named policy-owned group used only for profile eligibility."""
+
+    group_id: str
+    standard_ids: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        group_id = _identifier(self.group_id, "group_id")
+        try:
+            raw_standard_ids = tuple(self.standard_ids)
+        except TypeError as error:
+            raise GradePolicyValidationError(
+                "standard_ids must be an iterable of standard identifiers."
+            ) from error
+        if not raw_standard_ids:
+            raise GradePolicyValidationError(
+                "profile standard group must contain at least one standard."
+            )
+        standard_ids = tuple(
+            normalize_standard_id(standard_id)
+            for standard_id in raw_standard_ids
+        )
+        if len(set(standard_ids)) != len(standard_ids):
+            raise GradePolicyValidationError(
+                "profile standard group must not contain duplicate standards."
+            )
+        object.__setattr__(self, "group_id", group_id)
+        object.__setattr__(self, "standard_ids", tuple(sorted(standard_ids)))
+
+
+@dataclass(frozen=True, slots=True)
+class ProfilePredicate:
+    """One bounded conjunctive proficiency-profile predicate."""
+
+    predicate_id: str
+    kind: ProfilePredicateKind
+    group_id: str
+    proficiency_level_id: str
+    minimum_count: int | None = None
+    minimum_proportion: Decimal | None = None
+
+    def __post_init__(self) -> None:
+        predicate_id = _identifier(self.predicate_id, "predicate_id")
+        if self.kind not in _PROFILE_PREDICATE_KINDS:
+            raise GradePolicyValidationError(
+                "profile predicate kind is not supported."
+            )
+        group_id = _identifier(self.group_id, "group_id")
+        level_id = _identifier(
+            self.proficiency_level_id,
+            "proficiency_level_id",
+        )
+
+        minimum_count = self.minimum_count
+        minimum_proportion = self.minimum_proportion
+        if self.kind == "all_at_or_above":
+            if minimum_count is not None or minimum_proportion is not None:
+                raise GradePolicyValidationError(
+                    "all_at_or_above must not define a count or proportion."
+                )
+        elif self.kind == "count_at_or_above":
+            if minimum_count is None or minimum_proportion is not None:
+                raise GradePolicyValidationError(
+                    "count_at_or_above requires minimum_count only."
+                )
+            minimum_count = _positive_int(
+                minimum_count,
+                "minimum_count",
+            )
+        else:
+            if minimum_count is not None or minimum_proportion is None:
+                raise GradePolicyValidationError(
+                    "proportion_at_or_above requires minimum_proportion only."
+                )
+            minimum_proportion = _positive_decimal(
+                minimum_proportion,
+                "minimum_proportion",
+            )
+            if minimum_proportion > Decimal("1"):
+                raise GradePolicyValidationError(
+                    "minimum_proportion must not exceed 1."
+                )
+
+        object.__setattr__(self, "predicate_id", predicate_id)
+        object.__setattr__(self, "group_id", group_id)
+        object.__setattr__(self, "proficiency_level_id", level_id)
+        object.__setattr__(self, "minimum_count", minimum_count)
+        object.__setattr__(self, "minimum_proportion", minimum_proportion)
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileGradeBand:
+    """One ordered Grade band and its conjunctive profile predicates."""
+
+    band_id: str
+    priority: int
+    minimum_grade: Decimal
+    maximum_grade: Decimal
+    predicates: tuple[ProfilePredicate, ...]
+
+    def __post_init__(self) -> None:
+        band_id = _identifier(self.band_id, "band_id")
+        priority = _positive_int(self.priority, "priority")
+        minimum_grade = _nonnegative_decimal(
+            self.minimum_grade,
+            "minimum_grade",
+        )
+        maximum_grade = _nonnegative_decimal(
+            self.maximum_grade,
+            "maximum_grade",
+        )
+        if minimum_grade > maximum_grade:
+            raise GradePolicyValidationError(
+                "profile Grade band minimum_grade must not exceed maximum_grade."
+            )
+        predicates = _typed_tuple(
+            self.predicates,
+            ProfilePredicate,
+            "predicates",
+        )
+        predicate_ids = tuple(item.predicate_id for item in predicates)
+        if len(set(predicate_ids)) != len(predicate_ids):
+            raise GradePolicyValidationError(
+                "profile Grade band predicate IDs must not contain duplicates."
+            )
+
+        object.__setattr__(self, "band_id", band_id)
+        object.__setattr__(self, "priority", priority)
+        object.__setattr__(self, "minimum_grade", minimum_grade)
+        object.__setattr__(self, "maximum_grade", maximum_grade)
+        object.__setattr__(
+            self,
+            "predicates",
+            tuple(sorted(predicates, key=lambda item: item.predicate_id)),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileConstraintConfiguration:
+    """Bounded profile authority for a future profile-constrained mean."""
+
+    groups: tuple[ProfileStandardGroup, ...]
+    bands: tuple[ProfileGradeBand, ...]
+    fallback_band_id: str
+
+    def __post_init__(self) -> None:
+        groups = _typed_tuple(
+            self.groups,
+            ProfileStandardGroup,
+            "groups",
+        )
+        if not groups:
+            raise GradePolicyValidationError(
+                "profile constraints require at least one standard group."
+            )
+        group_ids = tuple(item.group_id for item in groups)
+        if len(set(group_ids)) != len(group_ids):
+            raise GradePolicyValidationError(
+                "profile standard group IDs must not contain duplicates."
+            )
+        groups = tuple(sorted(groups, key=lambda item: item.group_id))
+        group_by_id = {item.group_id: item for item in groups}
+
+        bands = _typed_tuple(
+            self.bands,
+            ProfileGradeBand,
+            "bands",
+        )
+        if not bands:
+            raise GradePolicyValidationError(
+                "profile constraints require at least one Grade band."
+            )
+        band_ids = tuple(item.band_id for item in bands)
+        if len(set(band_ids)) != len(band_ids):
+            raise GradePolicyValidationError(
+                "profile Grade band IDs must not contain duplicates."
+            )
+        priorities = tuple(item.priority for item in bands)
+        if len(set(priorities)) != len(priorities):
+            raise GradePolicyValidationError(
+                "profile Grade band priorities must not contain duplicates."
+            )
+        expected_priorities = tuple(range(1, len(bands) + 1))
+        if tuple(sorted(priorities)) != expected_priorities:
+            raise GradePolicyValidationError(
+                "profile Grade band priorities must be contiguous from 1."
+            )
+        bands = tuple(sorted(bands, key=lambda item: item.priority))
+        band_by_id = {item.band_id: item for item in bands}
+
+        fallback_band_id = _identifier(
+            self.fallback_band_id,
+            "fallback_band_id",
+        )
+        fallback = band_by_id.get(fallback_band_id)
+        if fallback is None:
+            raise GradePolicyValidationError(
+                "fallback_band_id must identify a configured Grade band."
+            )
+        if fallback.priority != len(bands):
+            raise GradePolicyValidationError(
+                "fallback Grade band must have the lowest priority."
+            )
+        if fallback.predicates:
+            raise GradePolicyValidationError(
+                "fallback Grade band must not define profile predicates."
+            )
+
+        predicate_ids: set[str] = set()
+        for band in bands:
+            if band.band_id != fallback_band_id and not band.predicates:
+                raise GradePolicyValidationError(
+                    "non-fallback Grade bands require profile predicates."
+                )
+            for predicate in band.predicates:
+                if predicate.predicate_id in predicate_ids:
+                    raise GradePolicyValidationError(
+                        "profile predicate IDs must be unique across Grade bands."
+                    )
+                predicate_ids.add(predicate.predicate_id)
+                group = group_by_id.get(predicate.group_id)
+                if group is None:
+                    raise GradePolicyValidationError(
+                        "profile predicate group_id must identify a configured group."
+                    )
+                if (
+                    predicate.kind == "count_at_or_above"
+                    and predicate.minimum_count is not None
+                    and predicate.minimum_count > len(group.standard_ids)
+                ):
+                    raise GradePolicyValidationError(
+                        "minimum_count must not exceed profile group size."
+                    )
+
+        numeric_bands = sorted(
+            bands,
+            key=lambda item: (item.minimum_grade, item.maximum_grade),
+        )
+        for lower, upper in zip(numeric_bands, numeric_bands[1:], strict=False):
+            if lower.maximum_grade >= upper.minimum_grade:
+                raise GradePolicyValidationError(
+                    "profile Grade band ranges must not overlap."
+                )
+
+        object.__setattr__(self, "groups", groups)
+        object.__setattr__(self, "bands", bands)
+        object.__setattr__(self, "fallback_band_id", fallback_band_id)
+
+
+@dataclass(frozen=True, slots=True)
 class StandardsBasedGradeConfiguration:
-    """Bounded v1 standards-based Grade-policy configuration."""
+    """Bounded v2 standards-based Grade-policy configuration."""
 
     target_scale: ProficiencyScaleReference
     standards: tuple[StandardGradeParticipation, ...]
     conversions: tuple[ProficiencyGradeConversion, ...]
     aggregation_strategy: StandardsGradeAggregationStrategy
     minimum_calculated_results: int
+    profile_constraints: ProfileConstraintConfiguration | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.target_scale, ProficiencyScaleReference):
@@ -524,8 +818,34 @@ class StandardsBasedGradeConfiguration:
 
         if self.aggregation_strategy not in _AGGREGATION_STRATEGIES:
             raise GradePolicyValidationError(
-                "aggregation_strategy must be weighted_mean."
+                "aggregation_strategy must be weighted_mean or "
+                "profile_constrained_mean."
             )
+
+        constraints = self.profile_constraints
+        if self.aggregation_strategy == "weighted_mean":
+            if constraints is not None:
+                raise GradePolicyValidationError(
+                    "weighted_mean must not define profile_constraints."
+                )
+        else:
+            if not isinstance(constraints, ProfileConstraintConfiguration):
+                raise GradePolicyValidationError(
+                    "profile_constrained_mean requires profile_constraints."
+                )
+            participating = set(standard_ids)
+            for group in constraints.groups:
+                unknown = tuple(
+                    standard_id
+                    for standard_id in group.standard_ids
+                    if standard_id not in participating
+                )
+                if unknown:
+                    raise GradePolicyValidationError(
+                        "profile group standards must participate in the "
+                        "standards Grade policy."
+                    )
+
         minimum = _positive_int(
             self.minimum_calculated_results,
             "minimum_calculated_results",
@@ -681,7 +1001,7 @@ class GradePolicyRevision:
     def __post_init__(self) -> None:
         if self.schema_version != GRADE_POLICY_SCHEMA_VERSION:
             raise GradePolicyValidationError(
-                'schema_version must be "1".'
+                f'schema_version must be "{GRADE_POLICY_SCHEMA_VERSION}".'
             )
         if self.record_type != GRADE_POLICY_RECORD_TYPE:
             raise GradePolicyValidationError(
@@ -1266,6 +1586,169 @@ def _proficiency_scale_reference_from_dict(
         ) from error
 
 
+def _profile_group_to_dict(value: ProfileStandardGroup) -> dict[str, object]:
+    if not isinstance(value, ProfileStandardGroup):
+        raise GradePolicyValidationError(
+            "profile group must be ProfileStandardGroup."
+        )
+    return {
+        "group_id": value.group_id,
+        "standard_ids": list(value.standard_ids),
+    }
+
+
+def _profile_group_from_dict(data: object) -> ProfileStandardGroup:
+    mapping = _exact_mapping(
+        data,
+        _PROFILE_GROUP_KEYS,
+        "profile standard group",
+    )
+    standard_ids = _require_list(mapping["standard_ids"], "standard_ids")
+    return ProfileStandardGroup(
+        group_id=_require_str(mapping["group_id"], "group_id"),
+        standard_ids=tuple(
+            _require_str(item, "standard_ids item")
+            for item in standard_ids
+        ),
+    )
+
+
+def _profile_predicate_to_dict(value: ProfilePredicate) -> dict[str, object]:
+    if not isinstance(value, ProfilePredicate):
+        raise GradePolicyValidationError(
+            "profile predicate must be ProfilePredicate."
+        )
+    return {
+        "predicate_id": value.predicate_id,
+        "kind": value.kind,
+        "group_id": value.group_id,
+        "proficiency_level_id": value.proficiency_level_id,
+        "minimum_count": value.minimum_count,
+        "minimum_proportion": (
+            _decimal_text(value.minimum_proportion, "minimum_proportion")
+            if value.minimum_proportion is not None
+            else None
+        ),
+    }
+
+
+def _profile_predicate_from_dict(data: object) -> ProfilePredicate:
+    mapping = _exact_mapping(
+        data,
+        _PROFILE_PREDICATE_KEYS,
+        "profile predicate",
+    )
+    minimum_count = mapping["minimum_count"]
+    if minimum_count is not None:
+        minimum_count = _require_int(minimum_count, "minimum_count")
+    minimum_proportion = mapping["minimum_proportion"]
+    if minimum_proportion is not None:
+        minimum_proportion = _decimal_from_text(
+            minimum_proportion,
+            "minimum_proportion",
+        )
+    return ProfilePredicate(
+        predicate_id=_require_str(mapping["predicate_id"], "predicate_id"),
+        kind=cast(
+            ProfilePredicateKind,
+            _require_str(mapping["kind"], "kind"),
+        ),
+        group_id=_require_str(mapping["group_id"], "group_id"),
+        proficiency_level_id=_require_str(
+            mapping["proficiency_level_id"],
+            "proficiency_level_id",
+        ),
+        minimum_count=minimum_count,
+        minimum_proportion=minimum_proportion,
+    )
+
+
+def _profile_band_to_dict(value: ProfileGradeBand) -> dict[str, object]:
+    if not isinstance(value, ProfileGradeBand):
+        raise GradePolicyValidationError(
+            "profile Grade band must be ProfileGradeBand."
+        )
+    return {
+        "band_id": value.band_id,
+        "priority": value.priority,
+        "minimum_grade": _decimal_text(
+            value.minimum_grade,
+            "minimum_grade",
+            allow_zero=True,
+        ),
+        "maximum_grade": _decimal_text(
+            value.maximum_grade,
+            "maximum_grade",
+            allow_zero=True,
+        ),
+        "predicates": [
+            _profile_predicate_to_dict(item)
+            for item in value.predicates
+        ],
+    }
+
+
+def _profile_band_from_dict(data: object) -> ProfileGradeBand:
+    mapping = _exact_mapping(
+        data,
+        _PROFILE_BAND_KEYS,
+        "profile Grade band",
+    )
+    predicates = _require_list(mapping["predicates"], "predicates")
+    return ProfileGradeBand(
+        band_id=_require_str(mapping["band_id"], "band_id"),
+        priority=_require_int(mapping["priority"], "priority"),
+        minimum_grade=_decimal_from_text(
+            mapping["minimum_grade"],
+            "minimum_grade",
+            allow_zero=True,
+        ),
+        maximum_grade=_decimal_from_text(
+            mapping["maximum_grade"],
+            "maximum_grade",
+            allow_zero=True,
+        ),
+        predicates=tuple(
+            _profile_predicate_from_dict(item)
+            for item in predicates
+        ),
+    )
+
+
+def _profile_constraints_to_dict(
+    value: ProfileConstraintConfiguration,
+) -> dict[str, object]:
+    if not isinstance(value, ProfileConstraintConfiguration):
+        raise GradePolicyValidationError(
+            "profile_constraints must be ProfileConstraintConfiguration."
+        )
+    return {
+        "groups": [_profile_group_to_dict(item) for item in value.groups],
+        "bands": [_profile_band_to_dict(item) for item in value.bands],
+        "fallback_band_id": value.fallback_band_id,
+    }
+
+
+def _profile_constraints_from_dict(
+    data: object,
+) -> ProfileConstraintConfiguration:
+    mapping = _exact_mapping(
+        data,
+        _PROFILE_CONSTRAINT_KEYS,
+        "profile constraints",
+    )
+    groups = _require_list(mapping["groups"], "groups")
+    bands = _require_list(mapping["bands"], "bands")
+    return ProfileConstraintConfiguration(
+        groups=tuple(_profile_group_from_dict(item) for item in groups),
+        bands=tuple(_profile_band_from_dict(item) for item in bands),
+        fallback_band_id=_require_str(
+            mapping["fallback_band_id"],
+            "fallback_band_id",
+        ),
+    )
+
+
 def _standards_to_dict(
     value: StandardsBasedGradeConfiguration,
 ) -> dict[str, object]:
@@ -1286,6 +1769,11 @@ def _standards_to_dict(
         ],
         "aggregation_strategy": value.aggregation_strategy,
         "minimum_calculated_results": value.minimum_calculated_results,
+        "profile_constraints": (
+            _profile_constraints_to_dict(value.profile_constraints)
+            if value.profile_constraints is not None
+            else None
+        ),
     }
 
 
@@ -1304,6 +1792,7 @@ def _standards_from_dict(data: object) -> StandardsBasedGradeConfiguration:
         mapping["aggregation_strategy"],
         "aggregation_strategy",
     )
+    profile_constraints_data = mapping["profile_constraints"]
     return StandardsBasedGradeConfiguration(
         target_scale=target_scale,
         standards=tuple(
@@ -1321,7 +1810,28 @@ def _standards_from_dict(data: object) -> StandardsBasedGradeConfiguration:
             mapping["minimum_calculated_results"],
             "minimum_calculated_results",
         ),
+        profile_constraints=(
+            _profile_constraints_from_dict(profile_constraints_data)
+            if profile_constraints_data is not None
+            else None
+        ),
     )
+
+
+def standards_based_grade_configuration_to_dict(
+    value: StandardsBasedGradeConfiguration,
+) -> dict[str, object]:
+    """Serialize one exact standards Grade-policy configuration."""
+
+    return _standards_to_dict(value)
+
+
+def standards_based_grade_configuration_from_dict(
+    data: object,
+) -> StandardsBasedGradeConfiguration:
+    """Parse one exact standards Grade-policy configuration."""
+
+    return _standards_from_dict(data)
 
 
 def _hybrid_to_dict(value: HybridGradeConfiguration) -> dict[str, object]:

@@ -948,3 +948,13 @@ issue #40 through Core `grouping_signal_set_v1` and optional
 
 See
 [Grouping-signal preview, diagnostics, and teacher review](docs/architecture/grouping-signal-preview-diagnostics.md).
+
+## Issue #99 profile-constrained standards Grades — implemented
+
+Issue #99 adds `profile_constrained_mean` without replacing `weighted_mean`.
+Exact ordered proficiency authority, three-valued profile predicates, Grade
+bands, floor/cap behavior, structured explanation provenance, Hybrid
+composition, preview comparison, ReportingSnapshot replay, and exact-wheel
+installed qualification are integrated.
+
+See [Profile-constrained standards Grade policy](docs/architecture/profile-constrained-standards-grade.md).

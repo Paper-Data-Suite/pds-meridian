@@ -237,3 +237,14 @@ the Grade layer.
 This installed boundary does not create Grade preview presentation, teacher
 override, hybrid Grade calculation, ReportingSnapshot, or official school-system
 Grade state.
+
+## Issue #99 profile-constrained strategy
+
+Standards Grade algorithm version 2 supports `weighted_mean` and
+`profile_constrained_mean`. The new strategy calculates the same base weighted
+mean, evaluates bounded predicates against the exact ordered target scale,
+selects a deterministic band, floors/caps/leaves the mean, and rounds once.
+Missing/non-calculated proficiency stays unknown; numeric zero does not invent
+low proficiency.
+
+See [Profile-constrained standards Grade policy](profile-constrained-standards-grade.md).

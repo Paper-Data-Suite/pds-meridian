@@ -43,10 +43,12 @@ from meridian.grade_policy import (
     GradeRoundingPolicy,
     GradeStateConsequence,
     GradeStateTreatment,
+    ProfileConstraintConfiguration,
     StandardGradeParticipation,
     StandardsBasedGradeConfiguration,
     grade_policy_reference,
     grade_policy_reference_to_dict,
+    standards_based_grade_configuration_to_dict,
     validate_grade_policy_revision,
 )
 from meridian.grade_policy_activation import (
@@ -56,10 +58,21 @@ from meridian.grade_policy_activation import (
     grade_policy_activation_reference_to_dict,
     validate_grade_policy_activation_decision,
 )
-from meridian.proficiency_mapping import ProficiencyScaleReference
+from meridian.proficiency_mapping import (
+    ProficiencyScale,
+    ProficiencyScaleReference,
+    proficiency_scale_reference,
+    proficiency_scale_to_dict,
+)
 from meridian.standards_evidence import normalize_standard_id
+from meridian.standards_grade_profile import (
+    ProfileConstraintEvaluation,
+    ProfileStandardObservation,
+    evaluate_profile_constraints,
+    select_profile_grade_band,
+)
 
-STANDARDS_GRADE_ALGORITHM_VERSION: Final[str] = "1"
+STANDARDS_GRADE_ALGORITHM_VERSION: Final[str] = "2"
 
 StandardsGradeSourceState: TypeAlias = Literal[
     "calculated",
@@ -87,6 +100,7 @@ StandardsGradeCalculationStatus: TypeAlias = Literal[
     "insufficient",
 ]
 StandardsGradeUpstreamFreshnessStatus: TypeAlias = Literal["current", "stale"]
+ProfileGradeAdjustment: TypeAlias = Literal["none", "floor", "cap"]
 
 _NON_CALCULATED_STATES: Final[tuple[str, ...]] = (
     "missing",
@@ -259,6 +273,7 @@ class StandardsGradeCalculationInput:
     state_treatment: GradeStateTreatment
     rounding: GradeRoundingPolicy
     standards: tuple[StandardsGradeStandardInput, ...]
+    target_scale_definition: ProficiencyScale | None = None
 
     def __post_init__(self) -> None:
         class_id = _identifier(self.class_id, "class_id")
@@ -280,6 +295,38 @@ class StandardsGradeCalculationInput:
             raise StandardsGradeValidationError(
                 "configuration must be StandardsBasedGradeConfiguration."
             )
+        scale_definition = self.target_scale_definition
+        if scale_definition is not None:
+            if not isinstance(scale_definition, ProficiencyScale):
+                raise StandardsGradeValidationError(
+                    "target_scale_definition must be ProficiencyScale or None."
+                )
+            try:
+                scale_reference = proficiency_scale_reference(scale_definition)
+            except ValueError as error:
+                raise StandardsGradeValidationError(str(error)) from error
+            if scale_reference != self.configuration.target_scale:
+                raise StandardsGradeValidationError(
+                    "target_scale_definition must match exact policy target_scale."
+                )
+        if self.configuration.aggregation_strategy == "profile_constrained_mean":
+            if scale_definition is None:
+                raise StandardsGradeValidationError(
+                    "profile_constrained_mean requires exact target_scale_definition."
+                )
+            constraints = self.configuration.profile_constraints
+            if constraints is None:
+                raise StandardsGradeValidationError(
+                    "profile_constrained_mean requires profile constraints."
+                )
+            level_ids = {level.level_id for level in scale_definition.levels}
+            for band in constraints.bands:
+                for predicate in band.predicates:
+                    if predicate.proficiency_level_id not in level_ids:
+                        raise StandardsGradeValidationError(
+                            "profile predicate proficiency level must exist in "
+                            "the exact target scale."
+                        )
         if not isinstance(self.state_treatment, GradeStateTreatment):
             raise StandardsGradeValidationError(
                 "state_treatment must be GradeStateTreatment."
@@ -580,6 +627,12 @@ class StandardsGradeCalculationOutcome:
     rounded_grade: Decimal | None
     standard_results: tuple[StandardsGradeStandardResult, ...]
     reasons: tuple[StandardsGradeReason, ...]
+    base_unrounded_grade: Decimal | None = None
+    profile_evaluation: ProfileConstraintEvaluation | None = None
+    selected_profile_band_id: str | None = None
+    selected_profile_band_minimum_grade: Decimal | None = None
+    selected_profile_band_maximum_grade: Decimal | None = None
+    profile_adjustment: ProfileGradeAdjustment | None = None
 
     def __post_init__(self) -> None:
         if self.status not in {"calculated", "blocked", "insufficient"}:
@@ -609,9 +662,12 @@ class StandardsGradeCalculationOutcome:
             raise StandardsGradeValidationError("invalid policy_reference.")
         if not isinstance(self.target_scale, ProficiencyScaleReference):
             raise StandardsGradeValidationError("invalid target_scale.")
-        if self.aggregation_strategy != "weighted_mean":
+        if self.aggregation_strategy not in {
+            "weighted_mean",
+            "profile_constrained_mean",
+        }:
             raise StandardsGradeValidationError(
-                "standards Grade aggregation_strategy must be weighted_mean."
+                "standards Grade aggregation_strategy is unsupported."
             )
         object.__setattr__(
             self,
@@ -637,6 +693,9 @@ class StandardsGradeCalculationOutcome:
         for field_name in (
             "active_weight",
             "weighted_numerator",
+            "base_unrounded_grade",
+            "selected_profile_band_minimum_grade",
+            "selected_profile_band_maximum_grade",
             "unrounded_grade",
             "rounded_grade",
         ):
@@ -656,12 +715,50 @@ class StandardsGradeCalculationOutcome:
             )
         if any(not isinstance(reason, StandardsGradeReason) for reason in self.reasons):
             raise StandardsGradeValidationError("reasons contains an invalid entry.")
+        if self.profile_evaluation is not None and not isinstance(
+            self.profile_evaluation,
+            ProfileConstraintEvaluation,
+        ):
+            raise StandardsGradeValidationError(
+                "profile_evaluation must be ProfileConstraintEvaluation or None."
+            )
+        selected_band_id = self.selected_profile_band_id
+        if selected_band_id is not None:
+            selected_band_id = _identifier(
+                selected_band_id,
+                "selected_profile_band_id",
+            )
+            object.__setattr__(
+                self,
+                "selected_profile_band_id",
+                selected_band_id,
+            )
+        minimum_band_grade = self.selected_profile_band_minimum_grade
+        maximum_band_grade = self.selected_profile_band_maximum_grade
+        if (minimum_band_grade is None) != (maximum_band_grade is None):
+            raise StandardsGradeValidationError(
+                "selected profile band bounds must be present together."
+            )
+        if (
+            minimum_band_grade is not None
+            and maximum_band_grade is not None
+            and minimum_band_grade > maximum_band_grade
+        ):
+            raise StandardsGradeValidationError(
+                "selected profile band minimum must not exceed maximum."
+            )
+        if self.profile_adjustment not in {None, "none", "floor", "cap"}:
+            raise StandardsGradeValidationError(
+                "profile_adjustment must be none, floor, cap, or null."
+            )
+
         if self.status == "calculated":
             if any(
                 value is None
                 for value in (
                     self.active_weight,
                     self.weighted_numerator,
+                    self.base_unrounded_grade,
                     self.unrounded_grade,
                     self.rounded_grade,
                 )
@@ -674,6 +771,121 @@ class StandardsGradeCalculationOutcome:
                 "non-calculated outcome must not carry a final Grade."
             )
 
+        if self.aggregation_strategy == "weighted_mean":
+            if any(
+                value is not None
+                for value in (
+                    self.profile_evaluation,
+                    self.selected_profile_band_id,
+                    self.selected_profile_band_minimum_grade,
+                    self.selected_profile_band_maximum_grade,
+                    self.profile_adjustment,
+                )
+            ):
+                raise StandardsGradeValidationError(
+                    "weighted_mean outcome must not carry profile selection data."
+                )
+            if self.status == "calculated":
+                if self.base_unrounded_grade != self.unrounded_grade:
+                    raise StandardsGradeValidationError(
+                        "weighted_mean base and final unrounded Grade must match."
+                    )
+            elif self.base_unrounded_grade is not None:
+                raise StandardsGradeValidationError(
+                    "non-calculated weighted_mean must not carry a base Grade."
+                )
+        elif self.status == "calculated":
+            if (
+                self.profile_evaluation is None
+                or self.selected_profile_band_id is None
+                or self.selected_profile_band_minimum_grade is None
+                or self.selected_profile_band_maximum_grade is None
+                or self.profile_adjustment is None
+            ):
+                raise StandardsGradeValidationError(
+                    "calculated profile-constrained outcome requires complete "
+                    "profile selection data."
+                )
+            selection = select_profile_grade_band(self.profile_evaluation)
+            if (
+                selection.status != "selected"
+                or selection.selected_band_id != self.selected_profile_band_id
+            ):
+                raise StandardsGradeValidationError(
+                    "selected profile band must match ordered profile evaluation."
+                )
+            minimum_band_grade = self.selected_profile_band_minimum_grade
+            maximum_band_grade = self.selected_profile_band_maximum_grade
+            if minimum_band_grade is None or maximum_band_grade is None:
+                raise StandardsGradeValidationError(
+                    "calculated profile outcome requires selected band bounds."
+                )
+            base_grade = self.base_unrounded_grade
+            adjusted_grade = self.unrounded_grade
+            if base_grade is None or adjusted_grade is None:
+                raise StandardsGradeValidationError(
+                    "calculated profile outcome requires base and adjusted Grades."
+                )
+            if self.profile_adjustment == "floor":
+                if not (
+                    base_grade < minimum_band_grade
+                    and adjusted_grade == minimum_band_grade
+                ):
+                    raise StandardsGradeValidationError(
+                        "profile floor must move a below-band base Grade "
+                        "to the selected band minimum."
+                    )
+            elif self.profile_adjustment == "cap":
+                if not (
+                    base_grade > maximum_band_grade
+                    and adjusted_grade == maximum_band_grade
+                ):
+                    raise StandardsGradeValidationError(
+                        "profile cap must move an above-band base Grade "
+                        "to the selected band maximum."
+                    )
+            elif self.profile_adjustment == "none":
+                if not (
+                    minimum_band_grade <= base_grade <= maximum_band_grade
+                    and adjusted_grade == base_grade
+                ):
+                    raise StandardsGradeValidationError(
+                        "profile none adjustment requires the base Grade "
+                        "inside the selected band unchanged."
+                    )
+        elif self.profile_evaluation is not None:
+            if (
+                self.status != "insufficient"
+                or self.base_unrounded_grade is None
+                or self.selected_profile_band_id is not None
+                or self.selected_profile_band_minimum_grade is not None
+                or self.selected_profile_band_maximum_grade is not None
+                or self.profile_adjustment is not None
+            ):
+                raise StandardsGradeValidationError(
+                    "indeterminate profile outcome must preserve only base Grade "
+                    "and profile evaluation."
+                )
+            selection = select_profile_grade_band(self.profile_evaluation)
+            if selection.status != "indeterminate":
+                raise StandardsGradeValidationError(
+                    "non-calculated profile evaluation must be indeterminate."
+                )
+        elif any(
+            value is not None
+            for value in (
+                self.base_unrounded_grade,
+                self.selected_profile_band_id,
+                self.selected_profile_band_minimum_grade,
+                self.selected_profile_band_maximum_grade,
+                self.profile_adjustment,
+            )
+        ):
+            raise StandardsGradeValidationError(
+                "profile outcome without evaluation must not carry profile "
+                "calculation data."
+            )
+
 
 def create_standards_grade_calculation_input(
     *,
@@ -683,6 +895,7 @@ def create_standards_grade_calculation_input(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
     standards: tuple[StandardsGradeStandardInput, ...],
+    target_scale_definition: ProficiencyScale | None = None,
 ) -> StandardsGradeCalculationInput:
     """Bind exact activated standards Grade policy authority to resolved inputs."""
 
@@ -731,6 +944,7 @@ def create_standards_grade_calculation_input(
         state_treatment=validated_policy.state_treatment,
         rounding=validated_policy.rounding,
         standards=standards,
+        target_scale_definition=target_scale_definition,
     )
 
 
@@ -880,8 +1094,82 @@ def calculate_standards_grade(
             ),
             Decimal("0"),
         )
-        unrounded_grade = weighted_numerator / active_weight
+        base_unrounded_grade = weighted_numerator / active_weight
+
+    if inputs.configuration.aggregation_strategy == "weighted_mean":
+        unrounded_grade = base_unrounded_grade
         rounded_grade = _round_final_grade(unrounded_grade, inputs.rounding)
+        return _outcome(
+            inputs,
+            fingerprint,
+            standard_results,
+            actual_calculated,
+            status="calculated",
+            active_weight=active_weight,
+            weighted_numerator=weighted_numerator,
+            unrounded_grade=unrounded_grade,
+            rounded_grade=rounded_grade,
+            reasons=(),
+            base_unrounded_grade=base_unrounded_grade,
+        )
+
+    constraints = inputs.configuration.profile_constraints
+    scale_definition = inputs.target_scale_definition
+    if constraints is None or scale_definition is None:
+        raise StandardsGradeValidationError(
+            "profile-constrained calculation requires exact profile authority."
+        )
+    observations = _profile_observations(constraints, standard_results)
+    profile_evaluation = evaluate_profile_constraints(
+        constraints,
+        scale_definition,
+        observations,
+    )
+    selection = select_profile_grade_band(profile_evaluation)
+    if selection.status == "indeterminate":
+        return _outcome(
+            inputs,
+            fingerprint,
+            standard_results,
+            actual_calculated,
+            status="insufficient",
+            active_weight=active_weight,
+            weighted_numerator=weighted_numerator,
+            unrounded_grade=None,
+            rounded_grade=None,
+            reasons=(StandardsGradeReason("profile_band_indeterminate"),),
+            base_unrounded_grade=base_unrounded_grade,
+            profile_evaluation=profile_evaluation,
+        )
+
+    selected_band_id = selection.selected_band_id
+    if selected_band_id is None:
+        raise StandardsGradeValidationError(
+            "selected profile band identity is unavailable."
+        )
+    selected_band = next(
+        (
+            band
+            for band in constraints.bands
+            if band.band_id == selected_band_id
+        ),
+        None,
+    )
+    if selected_band is None:
+        raise StandardsGradeValidationError(
+            "selected profile band is not present in policy authority."
+        )
+
+    if base_unrounded_grade < selected_band.minimum_grade:
+        unrounded_grade = selected_band.minimum_grade
+        profile_adjustment: ProfileGradeAdjustment = "floor"
+    elif base_unrounded_grade > selected_band.maximum_grade:
+        unrounded_grade = selected_band.maximum_grade
+        profile_adjustment = "cap"
+    else:
+        unrounded_grade = base_unrounded_grade
+        profile_adjustment = "none"
+    rounded_grade = _round_final_grade(unrounded_grade, inputs.rounding)
 
     return _outcome(
         inputs,
@@ -894,8 +1182,46 @@ def calculate_standards_grade(
         unrounded_grade=unrounded_grade,
         rounded_grade=rounded_grade,
         reasons=(),
+        base_unrounded_grade=base_unrounded_grade,
+        profile_evaluation=profile_evaluation,
+        selected_profile_band_id=selected_band_id,
+        selected_profile_band_minimum_grade=selected_band.minimum_grade,
+        selected_profile_band_maximum_grade=selected_band.maximum_grade,
+        profile_adjustment=profile_adjustment,
     )
 
+
+
+def _profile_observations(
+    constraints: ProfileConstraintConfiguration,
+    standard_results: tuple[StandardsGradeStandardResult, ...],
+) -> tuple[ProfileStandardObservation, ...]:
+    grouped_ids = {
+        standard_id
+        for group in constraints.groups
+        for standard_id in group.standard_ids
+    }
+    by_standard = {result.standard_id: result for result in standard_results}
+    observations: list[ProfileStandardObservation] = []
+    for standard_id in sorted(grouped_ids):
+        result = by_standard.get(standard_id)
+        if result is None:
+            raise StandardsGradeValidationError(
+                "profile group standard is missing from calculation results."
+            )
+        level_id = (
+            result.proficiency_level_id
+            if result.source_state == "calculated"
+            and result.action == "contribute"
+            else None
+        )
+        observations.append(
+            ProfileStandardObservation(
+                standard_id=standard_id,
+                proficiency_level_id=level_id,
+            )
+        )
+    return tuple(observations)
 
 def _resolve_standard_result(
     item: StandardsGradeStandardInput,
@@ -1017,6 +1343,12 @@ def _outcome(
     unrounded_grade: Decimal | None,
     rounded_grade: Decimal | None,
     reasons: tuple[StandardsGradeReason, ...],
+    base_unrounded_grade: Decimal | None = None,
+    profile_evaluation: ProfileConstraintEvaluation | None = None,
+    selected_profile_band_id: str | None = None,
+    selected_profile_band_minimum_grade: Decimal | None = None,
+    selected_profile_band_maximum_grade: Decimal | None = None,
+    profile_adjustment: ProfileGradeAdjustment | None = None,
 ) -> StandardsGradeCalculationOutcome:
     return StandardsGradeCalculationOutcome(
         status=status,
@@ -1037,6 +1369,12 @@ def _outcome(
         rounded_grade=rounded_grade,
         standard_results=standard_results,
         reasons=reasons,
+        base_unrounded_grade=base_unrounded_grade,
+        profile_evaluation=profile_evaluation,
+        selected_profile_band_id=selected_profile_band_id,
+        selected_profile_band_minimum_grade=selected_profile_band_minimum_grade,
+        selected_profile_band_maximum_grade=selected_profile_band_maximum_grade,
+        profile_adjustment=profile_adjustment,
     )
 
 
@@ -1052,27 +1390,14 @@ def _calculation_input_to_dict(
             value.activation_reference
         ),
         "policy_reference": grade_policy_reference_to_dict(value.policy_reference),
-        "configuration": {
-            "target_scale": _scale_reference_to_dict(value.configuration.target_scale),
-            "standards": [
-                {
-                    "standard_id": item.standard_id,
-                    "weight": _decimal_to_text(item.weight),
-                }
-                for item in value.configuration.standards
-            ],
-            "conversions": [
-                {
-                    "proficiency_level_id": item.proficiency_level_id,
-                    "grade_value": _decimal_to_text(item.grade_value),
-                }
-                for item in value.configuration.conversions
-            ],
-            "aggregation_strategy": value.configuration.aggregation_strategy,
-            "minimum_calculated_results": (
-                value.configuration.minimum_calculated_results
-            ),
-        },
+        "configuration": standards_based_grade_configuration_to_dict(
+            value.configuration
+        ),
+        "target_scale_definition": (
+            None
+            if value.target_scale_definition is None
+            else proficiency_scale_to_dict(value.target_scale_definition)
+        ),
         "state_treatment": {
             field_name: getattr(value.state_treatment, field_name)
             for field_name in _NON_CALCULATED_STATES

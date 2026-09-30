@@ -294,7 +294,7 @@ _STANDARD_KEYS: Final[frozenset[str]] = frozenset(
         "nested_proficiency_explanation",
     }
 )
-_STANDARDS_FORMULA_KEYS: Final[frozenset[str]] = frozenset(
+_STANDARDS_FORMULA_LEGACY_KEYS: Final[frozenset[str]] = frozenset(
     {
         "aggregation_strategy",
         "minimum_calculated_results",
@@ -303,6 +303,60 @@ _STANDARDS_FORMULA_KEYS: Final[frozenset[str]] = frozenset(
         "weighted_numerator",
         "unrounded_grade",
         "rounded_grade",
+    }
+)
+_STANDARDS_FORMULA_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        *_STANDARDS_FORMULA_LEGACY_KEYS,
+        "base_unrounded_grade",
+        "profile_constraints",
+        "profile_evaluation",
+        "selected_profile_band_id",
+        "selected_profile_band_minimum_grade",
+        "selected_profile_band_maximum_grade",
+        "profile_adjustment",
+    }
+)
+_PROFILE_CONSTRAINT_KEYS: Final[frozenset[str]] = frozenset(
+    {"groups", "bands", "fallback_band_id"}
+)
+_PROFILE_GROUP_KEYS: Final[frozenset[str]] = frozenset(
+    {"group_id", "standard_ids"}
+)
+_PROFILE_CONSTRAINT_BAND_KEYS: Final[frozenset[str]] = frozenset(
+    {"band_id", "priority", "minimum_grade", "maximum_grade", "predicates"}
+)
+_PROFILE_PREDICATE_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "predicate_id",
+        "kind",
+        "group_id",
+        "proficiency_level_id",
+        "minimum_count",
+        "minimum_proportion",
+    }
+)
+_PROFILE_EVALUATION_KEYS: Final[frozenset[str]] = frozenset({"bands"})
+_PROFILE_EVALUATION_BAND_KEYS: Final[frozenset[str]] = frozenset(
+    {"band_id", "priority", "status", "predicates"}
+)
+_PROFILE_PREDICATE_EVALUATION_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "predicate_id",
+        "kind",
+        "group_id",
+        "threshold_level_id",
+        "status",
+        "group_size",
+        "known_count",
+        "unknown_count",
+        "at_or_above_count",
+        "below_count",
+        "at_or_above_standard_ids",
+        "below_standard_ids",
+        "unknown_standard_ids",
+        "minimum_count",
+        "minimum_proportion",
     }
 )
 _STANDARDS_REASON_KEYS: Final[frozenset[str]] = frozenset(
@@ -741,12 +795,7 @@ def _validate_explanation_handoff(
         (entry.dimension, entry.key): entry.sha256
         for entry in observation.basis_entries
     }
-    expected_keys_all = (
-        _COMMON_BASIS_KEYS
-        | {("algorithm", family)}
-        | _FAMILY_BASIS_KEYS[family]
-    )
-    if set(actual) != expected_keys_all:
+    if set(actual) != set(expected_basis):
         raise ReportingSnapshotPreviewIntegrityError(
             "observation basis entries do not match the exact #54 family contract."
         )
@@ -1229,7 +1278,7 @@ def _validate_grade_item_reference(data: object) -> Mapping[str, object]:
 def _validate_standards_detail(
     mapping: Mapping[str, object],
 ) -> dict[tuple[str, str], str]:
-    _require_str(mapping["status"], "standards.status")
+    status = _require_str(mapping["status"], "standards.status")
     scale = _validate_scale_reference(mapping["target_scale"])
     conversions = tuple(
         _validate_conversion(item)
@@ -1239,24 +1288,10 @@ def _validate_standards_detail(
         _validate_standard(item)
         for item in _require_list(mapping["standards"], "standards.standards")
     )
-    formula = _exact_mapping(
-        mapping["formula"], _STANDARDS_FORMULA_KEYS, "standards.formula"
-    )
-    aggregation = _require_str(formula["aggregation_strategy"], "aggregation_strategy")
-    minimum = _positive_int(
-        formula["minimum_calculated_results"], "minimum_calculated_results"
-    )
-    _nonnegative_int(
-        formula["actual_calculated_result_count"],
-        "actual_calculated_result_count",
-    )
-    for key in (
-        "active_weight",
-        "weighted_numerator",
-        "unrounded_grade",
-        "rounded_grade",
-    ):
-        _canonical_optional_decimal_text(formula[key], f"standards.formula.{key}")
+    formula = _validate_standards_formula(mapping["formula"], status)
+    aggregation = cast(str, formula["aggregation_strategy"])
+    minimum = cast(int, formula["minimum_calculated_results"])
+
     for reason in _require_list(mapping["reasons"], "standards.reasons"):
         value = _exact_mapping(reason, _STANDARDS_REASON_KEYS, "standards reason")
         _require_str(value["code"], "reason.code")
@@ -1292,7 +1327,7 @@ def _validate_standards_detail(
         }
         for item in standards
     ]
-    return {
+    result = {
         ("formula", "standards_formula"): _compact_semantic_digest(formula_basis),
         ("participation", "standards_participation"): (
             _compact_semantic_digest(participation)
@@ -1300,6 +1335,625 @@ def _validate_standards_detail(
         ("evidence", "standards_proficiency_basis"): _compact_semantic_digest(evidence),
         ("weighting", "standards_weighting"): _compact_semantic_digest(weighting),
     }
+
+    constraints = formula["profile_constraints"]
+    if constraints is None:
+        return result
+
+    evaluation = cast(Mapping[str, object] | None, formula["profile_evaluation"])
+    result.update(
+        {
+            ("formula", "standards_profile_policy"): _compact_semantic_digest(
+                constraints
+            ),
+            ("formula", "standards_base_mean"): _compact_semantic_digest(
+                {"base_unrounded_grade": formula["base_unrounded_grade"]}
+            ),
+            ("evidence", "standards_profile_predicates"): (
+                _compact_semantic_digest(_profile_predicate_basis(evaluation))
+            ),
+            ("evidence", "standards_profile_band"): _compact_semantic_digest(
+                {
+                    "bands": (
+                        None
+                        if evaluation is None
+                        else [
+                            {
+                                "band_id": band["band_id"],
+                                "priority": band["priority"],
+                                "status": band["status"],
+                            }
+                            for band in cast(
+                                list[Mapping[str, object]], evaluation["bands"]
+                            )
+                        ]
+                    ),
+                    "selected_profile_band_id": formula["selected_profile_band_id"],
+                    "selected_profile_band_minimum_grade": (
+                        formula["selected_profile_band_minimum_grade"]
+                    ),
+                    "selected_profile_band_maximum_grade": (
+                        formula["selected_profile_band_maximum_grade"]
+                    ),
+                }
+            ),
+            ("formula", "standards_profile_adjustment"): (
+                _compact_semantic_digest(
+                    {"profile_adjustment": formula["profile_adjustment"]}
+                )
+            ),
+        }
+    )
+    return result
+
+
+def _validate_standards_formula(
+    data: object,
+    status: str,
+) -> dict[str, object]:
+    raw = _require_mapping(data, "standards.formula")
+    keys = frozenset(raw)
+    if keys == _STANDARDS_FORMULA_LEGACY_KEYS:
+        formula = dict(raw)
+        legacy = True
+    elif keys == _STANDARDS_FORMULA_KEYS:
+        formula = dict(raw)
+        legacy = False
+    else:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "standards.formula does not match an exact supported schema."
+        )
+
+    aggregation = _require_str(
+        formula["aggregation_strategy"], "aggregation_strategy"
+    )
+    if aggregation not in {"weighted_mean", "profile_constrained_mean"}:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "standards aggregation_strategy is unsupported."
+        )
+    if legacy and aggregation != "weighted_mean":
+        raise ReportingSnapshotPreviewIntegrityError(
+            "legacy standards formula can only represent weighted_mean."
+        )
+
+    minimum = _positive_int(
+        formula["minimum_calculated_results"], "minimum_calculated_results"
+    )
+    actual = _nonnegative_int(
+        formula["actual_calculated_result_count"],
+        "actual_calculated_result_count",
+    )
+    active_weight = _canonical_optional_decimal_text(
+        formula["active_weight"], "standards.formula.active_weight"
+    )
+    weighted_numerator = _canonical_optional_decimal_text(
+        formula["weighted_numerator"], "standards.formula.weighted_numerator"
+    )
+    unrounded = _canonical_optional_decimal_text(
+        formula["unrounded_grade"], "standards.formula.unrounded_grade"
+    )
+    rounded = _canonical_optional_decimal_text(
+        formula["rounded_grade"], "standards.formula.rounded_grade"
+    )
+
+    if legacy:
+        return {
+            "aggregation_strategy": aggregation,
+            "minimum_calculated_results": minimum,
+            "actual_calculated_result_count": actual,
+            "active_weight": active_weight,
+            "weighted_numerator": weighted_numerator,
+            "base_unrounded_grade": unrounded,
+            "unrounded_grade": unrounded,
+            "rounded_grade": rounded,
+            "profile_constraints": None,
+            "profile_evaluation": None,
+            "selected_profile_band_id": None,
+            "selected_profile_band_minimum_grade": None,
+            "selected_profile_band_maximum_grade": None,
+            "profile_adjustment": None,
+        }
+
+    base_unrounded = _canonical_optional_decimal_text(
+        formula["base_unrounded_grade"], "standards.formula.base_unrounded_grade"
+    )
+    constraints = (
+        None
+        if formula["profile_constraints"] is None
+        else _validate_profile_constraints(formula["profile_constraints"])
+    )
+    evaluation = (
+        None
+        if formula["profile_evaluation"] is None
+        else _validate_profile_evaluation(formula["profile_evaluation"])
+    )
+    selected_band_id = _optional_str(
+        formula["selected_profile_band_id"], "selected_profile_band_id"
+    )
+    minimum_band = _canonical_optional_decimal_text(
+        formula["selected_profile_band_minimum_grade"],
+        "selected_profile_band_minimum_grade",
+    )
+    maximum_band = _canonical_optional_decimal_text(
+        formula["selected_profile_band_maximum_grade"],
+        "selected_profile_band_maximum_grade",
+    )
+    adjustment = _optional_str(formula["profile_adjustment"], "profile_adjustment")
+    if adjustment not in {None, "none", "floor", "cap"}:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile_adjustment is unsupported."
+        )
+    if (minimum_band is None) != (maximum_band is None):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "selected profile band bounds must be present together."
+        )
+    if (
+        minimum_band is not None
+        and maximum_band is not None
+        and Decimal(minimum_band) > Decimal(maximum_band)
+    ):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "selected profile band minimum must not exceed maximum."
+        )
+
+    if aggregation == "weighted_mean":
+        if any(
+            value is not None
+            for value in (
+                constraints,
+                evaluation,
+                selected_band_id,
+                minimum_band,
+                maximum_band,
+                adjustment,
+            )
+        ):
+            raise ReportingSnapshotPreviewIntegrityError(
+                "weighted_mean snapshot formula must not carry profile authority."
+            )
+    else:
+        if constraints is None:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "profile_constrained_mean requires frozen profile constraints."
+            )
+        if evaluation is None:
+            if any(
+                value is not None
+                for value in (
+                    selected_band_id,
+                    minimum_band,
+                    maximum_band,
+                    adjustment,
+                )
+            ):
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "profile selection requires frozen profile evaluation."
+                )
+        elif selected_band_id is None:
+            if any(
+                value is not None
+                for value in (minimum_band, maximum_band, adjustment)
+            ):
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "indeterminate profile snapshot must not invent selection."
+                )
+        else:
+            if minimum_band is None or maximum_band is None or adjustment is None:
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "selected profile snapshot requires bounds and adjustment."
+                )
+            configured = next(
+                (
+                    band
+                    for band in cast(
+                        list[Mapping[str, object]], constraints["bands"]
+                    )
+                    if band["band_id"] == selected_band_id
+                ),
+                None,
+            )
+            if configured is None:
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "selected profile band is absent from frozen policy."
+                )
+            if (
+                configured["minimum_grade"] != minimum_band
+                or configured["maximum_grade"] != maximum_band
+            ):
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "selected profile band bounds do not match frozen policy."
+                )
+            evaluated = next(
+                (
+                    band
+                    for band in cast(
+                        list[Mapping[str, object]], evaluation["bands"]
+                    )
+                    if band["band_id"] == selected_band_id
+                ),
+                None,
+            )
+            if evaluated is None or evaluated["status"] != "matched":
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "selected profile band must be matched in frozen evaluation."
+                )
+            if base_unrounded is None or unrounded is None:
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "selected profile snapshot requires base and adjusted Grades."
+                )
+            base_value = Decimal(base_unrounded)
+            adjusted_value = Decimal(unrounded)
+            minimum_value = Decimal(minimum_band)
+            maximum_value = Decimal(maximum_band)
+            if adjustment == "floor" and not (
+                base_value < minimum_value and adjusted_value == minimum_value
+            ):
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "frozen profile floor does not reproduce selected band."
+                )
+            if adjustment == "cap" and not (
+                base_value > maximum_value and adjusted_value == maximum_value
+            ):
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "frozen profile cap does not reproduce selected band."
+                )
+            if adjustment == "none" and not (
+                minimum_value <= base_value <= maximum_value
+                and adjusted_value == base_value
+            ):
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "frozen profile no-adjustment does not reproduce selected band."
+                )
+
+    if status == "calculated" and (unrounded is None or rounded is None):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "calculated standards snapshot requires numeric final Grade."
+        )
+    if status in {"blocked", "insufficient"} and (
+        unrounded is not None or rounded is not None
+    ):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "nonnumeric standards snapshot must not carry final Grade."
+        )
+
+    return {
+        "aggregation_strategy": aggregation,
+        "minimum_calculated_results": minimum,
+        "actual_calculated_result_count": actual,
+        "active_weight": active_weight,
+        "weighted_numerator": weighted_numerator,
+        "base_unrounded_grade": base_unrounded,
+        "unrounded_grade": unrounded,
+        "rounded_grade": rounded,
+        "profile_constraints": constraints,
+        "profile_evaluation": evaluation,
+        "selected_profile_band_id": selected_band_id,
+        "selected_profile_band_minimum_grade": minimum_band,
+        "selected_profile_band_maximum_grade": maximum_band,
+        "profile_adjustment": adjustment,
+    }
+
+
+def _validate_profile_constraints(data: object) -> dict[str, object]:
+    value = _exact_mapping(data, _PROFILE_CONSTRAINT_KEYS, "profile constraints")
+    groups: list[dict[str, object]] = []
+    group_ids: set[str] = set()
+    group_sizes: dict[str, int] = {}
+    for raw in _require_list(value["groups"], "profile.groups"):
+        group = _exact_mapping(raw, _PROFILE_GROUP_KEYS, "profile group")
+        group_id = _require_str(group["group_id"], "profile.group_id")
+        standard_ids = _string_tuple(group["standard_ids"], "profile.standard_ids")
+        if not standard_ids or len(set(standard_ids)) != len(standard_ids):
+            raise ReportingSnapshotPreviewIntegrityError(
+                "profile group standards must be nonempty and unique."
+            )
+        if group_id in group_ids:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "profile group IDs must be unique."
+            )
+        group_ids.add(group_id)
+        group_sizes[group_id] = len(standard_ids)
+        groups.append({"group_id": group_id, "standard_ids": list(standard_ids)})
+    if not groups:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile constraints require groups."
+        )
+
+    bands: list[dict[str, object]] = []
+    band_ids: set[str] = set()
+    predicate_ids: set[str] = set()
+    for raw in _require_list(value["bands"], "profile.bands"):
+        band = _exact_mapping(raw, _PROFILE_CONSTRAINT_BAND_KEYS, "profile band")
+        band_id = _require_str(band["band_id"], "profile.band_id")
+        priority = _positive_int(band["priority"], "profile.priority")
+        minimum_grade = _canonical_decimal_text(
+            band["minimum_grade"], "profile.minimum_grade"
+        )
+        maximum_grade = _canonical_decimal_text(
+            band["maximum_grade"], "profile.maximum_grade"
+        )
+        if Decimal(minimum_grade) > Decimal(maximum_grade):
+            raise ReportingSnapshotPreviewIntegrityError(
+                "profile band minimum must not exceed maximum."
+            )
+        predicates: list[dict[str, object]] = []
+        for raw_predicate in _require_list(
+            band["predicates"], "profile.predicates"
+        ):
+            predicate = _exact_mapping(
+                raw_predicate, _PROFILE_PREDICATE_KEYS, "profile predicate"
+            )
+            predicate_id = _require_str(
+                predicate["predicate_id"], "profile.predicate_id"
+            )
+            kind = _require_str(predicate["kind"], "profile.kind")
+            if kind not in {
+                "all_at_or_above",
+                "count_at_or_above",
+                "proportion_at_or_above",
+            }:
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "profile predicate kind is unsupported."
+                )
+            group_id = _require_str(
+                predicate["group_id"], "profile.predicate.group_id"
+            )
+            if group_id not in group_ids:
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "profile predicate group is absent from frozen policy."
+                )
+            level_id = _require_str(
+                predicate["proficiency_level_id"],
+                "profile.proficiency_level_id",
+            )
+            minimum_count = (
+                None
+                if predicate["minimum_count"] is None
+                else _positive_int(
+                    predicate["minimum_count"], "profile.minimum_count"
+                )
+            )
+            minimum_proportion = _canonical_optional_decimal_text(
+                predicate["minimum_proportion"], "profile.minimum_proportion"
+            )
+            if kind == "all_at_or_above":
+                if minimum_count is not None or minimum_proportion is not None:
+                    raise ReportingSnapshotPreviewIntegrityError(
+                        "all_at_or_above cannot carry count/proportion threshold."
+                    )
+            elif kind == "count_at_or_above":
+                if minimum_count is None or minimum_proportion is not None:
+                    raise ReportingSnapshotPreviewIntegrityError(
+                        "count_at_or_above requires minimum_count only."
+                    )
+                if minimum_count > group_sizes[group_id]:
+                    raise ReportingSnapshotPreviewIntegrityError(
+                        "profile minimum_count exceeds frozen group size."
+                    )
+            else:
+                if minimum_count is not None or minimum_proportion is None:
+                    raise ReportingSnapshotPreviewIntegrityError(
+                        "proportion_at_or_above requires minimum_proportion only."
+                    )
+                proportion = Decimal(minimum_proportion)
+                if proportion <= 0 or proportion > 1:
+                    raise ReportingSnapshotPreviewIntegrityError(
+                        "profile minimum_proportion must be in (0, 1]."
+                    )
+            if predicate_id in predicate_ids:
+                raise ReportingSnapshotPreviewIntegrityError(
+                    "profile predicate IDs must be unique."
+                )
+            predicate_ids.add(predicate_id)
+            predicates.append(
+                {
+                    "predicate_id": predicate_id,
+                    "kind": kind,
+                    "group_id": group_id,
+                    "proficiency_level_id": level_id,
+                    "minimum_count": minimum_count,
+                    "minimum_proportion": minimum_proportion,
+                }
+            )
+        if band_id in band_ids:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "profile band IDs must be unique."
+            )
+        band_ids.add(band_id)
+        bands.append(
+            {
+                "band_id": band_id,
+                "priority": priority,
+                "minimum_grade": minimum_grade,
+                "maximum_grade": maximum_grade,
+                "predicates": predicates,
+            }
+        )
+    if not bands:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile constraints require bands."
+        )
+    if [band["priority"] for band in bands] != list(range(1, len(bands) + 1)):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile bands must use ordered contiguous priorities."
+        )
+    fallback = _require_str(value["fallback_band_id"], "profile.fallback_band_id")
+    fallback_band = next(
+        (band for band in bands if band["band_id"] == fallback), None
+    )
+    if fallback_band is None:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile fallback band is absent from frozen policy."
+        )
+    if fallback_band["priority"] != len(bands) or fallback_band["predicates"]:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile fallback must be lowest priority without predicates."
+        )
+    if any(
+        not band["predicates"]
+        for band in bands
+        if band["band_id"] != fallback
+    ):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "non-fallback profile bands require predicates."
+        )
+    return {"groups": groups, "bands": bands, "fallback_band_id": fallback}
+
+
+def _validate_profile_evaluation(data: object) -> dict[str, object]:
+    value = _exact_mapping(data, _PROFILE_EVALUATION_KEYS, "profile evaluation")
+    bands: list[dict[str, object]] = []
+    for raw in _require_list(value["bands"], "profile evaluation bands"):
+        band = _exact_mapping(
+            raw, _PROFILE_EVALUATION_BAND_KEYS, "profile evaluation band"
+        )
+        band_id = _require_str(band["band_id"], "profile evaluation band_id")
+        priority = _positive_int(band["priority"], "profile evaluation priority")
+        status = _require_str(band["status"], "profile evaluation status")
+        if status not in {"matched", "not_matched", "indeterminate"}:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "profile evaluation status is unsupported."
+            )
+        predicates = [
+            _validate_profile_predicate_evaluation(item)
+            for item in _require_list(
+                band["predicates"], "profile evaluation predicates"
+            )
+        ]
+        bands.append(
+            {
+                "band_id": band_id,
+                "priority": priority,
+                "status": status,
+                "predicates": predicates,
+            }
+        )
+    if not bands:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile evaluation requires bands."
+        )
+    if [band["priority"] for band in bands] != list(range(1, len(bands) + 1)):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile evaluation bands must use ordered contiguous priorities."
+        )
+    if len({cast(str, band["band_id"]) for band in bands}) != len(bands):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile evaluation band IDs must be unique."
+        )
+    return {"bands": bands}
+
+
+def _validate_profile_predicate_evaluation(data: object) -> dict[str, object]:
+    value = _exact_mapping(
+        data,
+        _PROFILE_PREDICATE_EVALUATION_KEYS,
+        "profile predicate evaluation",
+    )
+    predicate_id = _require_str(value["predicate_id"], "predicate_id")
+    kind = _require_str(value["kind"], "predicate.kind")
+    if kind not in {
+        "all_at_or_above",
+        "count_at_or_above",
+        "proportion_at_or_above",
+    }:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile evaluation predicate kind is unsupported."
+        )
+    group_id = _require_str(value["group_id"], "predicate.group_id")
+    threshold = _require_str(
+        value["threshold_level_id"], "predicate.threshold_level_id"
+    )
+    status = _require_str(value["status"], "predicate.status")
+    if status not in {"matched", "not_matched", "indeterminate"}:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile predicate status is unsupported."
+        )
+    group_size = _positive_int(value["group_size"], "predicate.group_size")
+    known_count = _nonnegative_int(value["known_count"], "predicate.known_count")
+    unknown_count = _nonnegative_int(
+        value["unknown_count"], "predicate.unknown_count"
+    )
+    at_or_above_count = _nonnegative_int(
+        value["at_or_above_count"], "predicate.at_or_above_count"
+    )
+    below_count = _nonnegative_int(value["below_count"], "predicate.below_count")
+    if known_count + unknown_count != group_size:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile predicate known/unknown counts do not match group size."
+        )
+    if at_or_above_count + below_count != known_count:
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile predicate known evidence does not partition threshold result."
+        )
+    at_or_above_ids = _string_tuple(
+        value["at_or_above_standard_ids"], "predicate.at_or_above_standard_ids"
+    )
+    below_ids = _string_tuple(
+        value["below_standard_ids"], "predicate.below_standard_ids"
+    )
+    unknown_ids = _string_tuple(
+        value["unknown_standard_ids"], "predicate.unknown_standard_ids"
+    )
+    evidence_ids = at_or_above_ids + below_ids + unknown_ids
+    if len(evidence_ids) != group_size or len(set(evidence_ids)) != len(evidence_ids):
+        raise ReportingSnapshotPreviewIntegrityError(
+            "profile predicate evidence IDs must exactly partition the group."
+        )
+    minimum_count = (
+        None
+        if value["minimum_count"] is None
+        else _positive_int(value["minimum_count"], "predicate.minimum_count")
+    )
+    minimum_proportion = _canonical_optional_decimal_text(
+        value["minimum_proportion"], "predicate.minimum_proportion"
+    )
+    if kind == "all_at_or_above":
+        if minimum_count is not None or minimum_proportion is not None:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "all_at_or_above evaluation cannot carry count/proportion threshold."
+            )
+    elif kind == "count_at_or_above":
+        if minimum_count is None or minimum_proportion is not None:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "count_at_or_above evaluation requires minimum_count only."
+            )
+    else:
+        if minimum_count is not None or minimum_proportion is None:
+            raise ReportingSnapshotPreviewIntegrityError(
+                "proportion evaluation requires minimum_proportion only."
+            )
+    return {
+        "predicate_id": predicate_id,
+        "kind": kind,
+        "group_id": group_id,
+        "threshold_level_id": threshold,
+        "status": status,
+        "group_size": group_size,
+        "known_count": known_count,
+        "unknown_count": unknown_count,
+        "at_or_above_count": at_or_above_count,
+        "below_count": below_count,
+        "at_or_above_standard_ids": list(at_or_above_ids),
+        "below_standard_ids": list(below_ids),
+        "unknown_standard_ids": list(unknown_ids),
+        "minimum_count": minimum_count,
+        "minimum_proportion": minimum_proportion,
+    }
+
+
+def _profile_predicate_basis(
+    evaluation: Mapping[str, object] | None,
+) -> object:
+    if evaluation is None:
+        return None
+    return [
+        {
+            "band_id": band["band_id"],
+            "priority": band["priority"],
+            "predicates": band["predicates"],
+        }
+        for band in cast(list[Mapping[str, object]], evaluation["bands"])
+    ]
 
 
 def _validate_standards_breakdown(data: object) -> dict[tuple[str, str], str]:
@@ -1471,7 +2125,7 @@ def _validate_hybrid_detail(
             ("weighting", "standards_weighting")
         ],
     }
-    return {
+    result = {
         ("formula", "hybrid_formula"): _pretty_semantic_digest(formula_basis),
         ("participation", "hybrid_participation"): (
             _pretty_semantic_digest(participation)
@@ -1479,6 +2133,32 @@ def _validate_hybrid_detail(
         ("evidence", "hybrid_component_basis"): _pretty_semantic_digest(evidence),
         ("weighting", "hybrid_weighting"): _pretty_semantic_digest(weighting),
     }
+    profile_keys = {
+        ("formula", "standards_profile_policy"): (
+            "formula",
+            "hybrid_standards_profile_policy",
+        ),
+        ("formula", "standards_base_mean"): (
+            "formula",
+            "hybrid_standards_base_mean",
+        ),
+        ("evidence", "standards_profile_predicates"): (
+            "evidence",
+            "hybrid_standards_profile_predicates",
+        ),
+        ("evidence", "standards_profile_band"): (
+            "evidence",
+            "hybrid_standards_profile_band",
+        ),
+        ("formula", "standards_profile_adjustment"): (
+            "formula",
+            "hybrid_standards_profile_adjustment",
+        ),
+    }
+    for source, target in profile_keys.items():
+        if source in standards_basis:
+            result[target] = standards_basis[source]
+    return result
 
 
 def _validate_hybrid_component(data: object, expected_kind: str) -> dict[str, object]:

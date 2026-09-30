@@ -11,6 +11,7 @@ from meridian.academic_period_proficiency import (
     AcademicPeriodProficiencyResultReference,
 )
 from meridian.grade_policy import (
+    GRADE_POLICY_SCHEMA_VERSION,
     GradePolicyActor,
     GradePolicyRevision,
     GradeReassessmentHandling,
@@ -87,7 +88,7 @@ def _configuration() -> StandardsBasedGradeConfiguration:
 
 def _policy() -> GradePolicyRevision:
     return GradePolicyRevision(
-        schema_version="1",
+        schema_version=GRADE_POLICY_SCHEMA_VERSION,
         record_type="meridian_grade_policy",
         class_id=CLASS_ID,
         policy_id="standards_grade_policy",
@@ -315,7 +316,7 @@ def test_freshness_reasons_are_independent_and_deterministically_ordered() -> No
     freshness = assess_standards_grade_result_freshness(
         snapshot,
         changed,
-        algorithm_version="2",
+        algorithm_version="3",
     )
     assert freshness.reasons == (
         "calendar_scope_changed",

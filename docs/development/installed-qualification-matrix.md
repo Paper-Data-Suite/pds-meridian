@@ -492,3 +492,10 @@ The repository-wide release guards now follow the Issue #96 architecture:
 historical smoke wrappers remain required sdist members, while normal repository
 validation reaches their acceptance logic through the central prepared runner
 instead of asserting direct wrapper invocation.
+
+## Issue #99 profile-constrained Grade acceptance
+
+Issue #99 adds profile calculation and fresh-process reload inside the existing
+`scoreform-quillan` prepared environment. It creates no seventh dependency
+matrix and preserves the historical pre-#96 24-setup inventory and the
+post-#96 six-environment target.
