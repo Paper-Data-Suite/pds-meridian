@@ -20,11 +20,24 @@ from pds_core.identifiers import IdentifierValidationError, validate_identifier
 from pds_core.routes import class_dir
 from pds_core.school_years import SchoolYearValidationError, validate_school_year
 
+from meridian.grade_preview_comparison import compare_grade_preview_basis
+from meridian.grade_preview_explanation import (
+    GradePreviewError,
+    GradePreviewSourceError,
+)
+from meridian.grade_report_preview import (
+    GradeReportPreviewRequest,
+    explain_grade_report_preview,
+)
 from meridian.proficiency_attention import (
     MAX_MERIDIAN_ATTENTION_COUNT,
     MeridianAttentionItem,
     MeridianAttentionSummary,
     build_meridian_attention_summary,
+)
+from meridian.reporting_snapshot_comparison import (
+    ReportingSnapshotComparisonError,
+    reporting_snapshot_prior_grade_basis,
 )
 from meridian.reporting_snapshot_record import ReportingSnapshot
 from meridian.reporting_snapshot_selection import (
@@ -109,7 +122,10 @@ def inspect_grade_report_attention_for_class(
 
     ReportingSnapshot replacement attention remains one count per exact reporting
     scope, even if more than one immutable successor names the same selected
-    predecessor.
+    predecessor. Selected current-use snapshots are also compared against live
+    standards-based Grade observations when that comparison is safely resolvable.
+    Conventional and hybrid rows remain outside the neutral Core v1 evidence
+    boundary and therefore cannot make a snapshot refresh claim here.
     """
 
     root = Path(workspace_root).resolve()
@@ -145,6 +161,7 @@ def inspect_grade_report_attention_for_class(
                 "ReportingSnapshot count exceeds the bounded attention maximum."
             )
 
+        reporting_scopes: set[ReportingScopeKey] = set()
         pending: dict[
             ReportingScopeKey,
             ReportingSnapshotSelectionReference,
@@ -162,6 +179,7 @@ def inspect_grade_report_attention_for_class(
             ):
                 continue
 
+            reporting_scopes.add(_reporting_scope(snapshot))
             predecessor_link = snapshot.predecessor
             if (
                 predecessor_link is None
@@ -206,10 +224,48 @@ def inspect_grade_report_attention_for_class(
                 )
             pending[scope] = selected.reference
 
-        _revalidate_pending_selections(root, class_value, pending)
+        _revalidate_reporting_selections(root, class_value, pending)
+
+        refresh_needed: dict[
+            ReportingScopeKey,
+            ReportingSnapshotSelectionReference,
+        ] = {}
+        for scope in sorted(reporting_scopes):
+            definition_id, scope_year, period_id, calendar_revision = scope
+            selected = load_current_reporting_snapshot_selection(
+                root,
+                class_value,
+                definition_id,
+                AcademicPeriodRef(scope_year, period_id),
+                calendar_revision,
+            )
+            if selected is None:
+                continue
+            selected_snapshot = load_reporting_snapshot(
+                root,
+                class_value,
+                selected.selection.snapshot_reference.snapshot_id,
+            )
+            if selected_snapshot.reference != selected.selection.snapshot_reference:
+                raise GradeReportAttentionIntegrityError(
+                    "Selected ReportingSnapshot changed unexpectedly."
+                )
+            if _reporting_scope(selected_snapshot.snapshot) != scope:
+                raise GradeReportAttentionIntegrityError(
+                    "Selected ReportingSnapshot crosses its selector scope."
+                )
+            if not _selected_reporting_snapshot_needs_refresh(
+                root, selected_snapshot.snapshot
+            ):
+                continue
+            refresh_needed[scope] = selected.reference
+
+        _revalidate_reporting_selections(root, class_value, refresh_needed)
     except GradeReportAttentionReadError:
         raise
     except (
+        GradePreviewError,
+        ReportingSnapshotComparisonError,
         ReportingSnapshotStorageError,
         ReportingSnapshotSelectionError,
         StandardsGradeAssemblyError,
@@ -228,6 +284,14 @@ def inspect_grade_report_attention_for_class(
             MeridianAttentionItem(
                 code="meridian_grade_result_stale",
                 count=len(stale_grades),
+                class_id=class_value,
+            )
+        )
+    if refresh_needed:
+        items.append(
+            MeridianAttentionItem(
+                code="meridian_reporting_snapshot_refresh_needed",
+                count=len(refresh_needed),
                 class_id=class_value,
             )
         )
@@ -465,14 +529,53 @@ def _require_regular_path_below(root: Path, path: Path) -> None:
         )
 
 
-def _revalidate_pending_selections(
+def _selected_reporting_snapshot_needs_refresh(
+    workspace_root: Path,
+    snapshot: ReportingSnapshot,
+) -> bool:
+    """Return true only for safely proven material standards-row changes.
+
+    A selected ReportingSnapshot may contain conventional, standards-based, and
+    hybrid rows. The neutral Core v1 request has no protected-evidence capability,
+    so only standards-based rows are reconstructed here. An unavailable current
+    standards basis is omitted rather than treated as changed.
+    """
+
+    for request in snapshot.build_request.grade_requests:
+        target = request.target
+        if target.calculation_family != "standards_based":
+            continue
+        prior = reporting_snapshot_prior_grade_basis(snapshot, target)
+        try:
+            preview = explain_grade_report_preview(
+                workspace_root,
+                (GradeReportPreviewRequest(target=target),),
+            )
+        except GradePreviewSourceError:
+            # Current state exists but cannot be safely resolved at this neutral
+            # boundary. Issue #58 requires omission instead of a guessed claim.
+            continue
+        if len(preview.rows) != 1 or preview.rows[0].target != target:
+            raise GradeReportAttentionIntegrityError(
+                "Standards Grade report preview did not preserve its exact target."
+            )
+        current = preview.rows[0].observation
+        if prior is None and current is None:
+            continue
+        comparison = compare_grade_preview_basis(current, prior)
+        if comparison.changed:
+            return True
+    return False
+
+
+def _revalidate_reporting_selections(
     workspace_root: Path,
     class_id: str,
-    pending: dict[ReportingScopeKey, ReportingSnapshotSelectionReference],
+    observed: dict[ReportingScopeKey, ReportingSnapshotSelectionReference],
 ) -> None:
     """Fail closed if mutable selector authority moves during inspection."""
 
-    for scope in sorted(pending):
+    for scope in sorted(observed):
         definition_id, school_year, period_id, calendar_revision = scope
         current = load_current_reporting_snapshot_selection(
             workspace_root,
@@ -481,7 +584,7 @@ def _revalidate_pending_selections(
             AcademicPeriodRef(school_year, period_id),
             calendar_revision,
         )
-        if current is None or current.reference != pending[scope]:
+        if current is None or current.reference != observed[scope]:
             raise GradeReportAttentionReadError(
                 "ReportingSnapshot current-use selection changed during inspection."
             )
