@@ -1,12 +1,12 @@
 """Read-only Grade/report attention derived from canonical Meridian state.
 
 Issue #58 extends Meridian's existing attention system without inventing a
-parallel currentness model.  This slice implements only the safest reporting
-fact: an explicit ``replaces_for_current_use`` successor while the exact
-predecessor remains the explicit current-use ReportingSnapshot selection.
+parallel currentness model. Attention is emitted only when explicit selected
+Grade/report authority and privacy-safe canonical state can prove teacher work.
 
 Snapshot timestamps, lexical order, mere snapshot existence, exportability,
-and absent selections are deliberately not attention authority.
+and absent selections are deliberately not attention authority. Conventional
+and hybrid evidence is not reopened at the neutral Core v1 boundary.
 """
 
 from __future__ import annotations
@@ -28,6 +28,10 @@ from meridian.grade_preview_explanation import (
 from meridian.grade_report_preview import (
     GradeReportPreviewRequest,
     explain_grade_report_preview,
+)
+from meridian.ingestion import (
+    PublicationIngestionError,
+    load_canonical_publication_context,
 )
 from meridian.proficiency_attention import (
     MAX_MERIDIAN_ATTENTION_COUNT,
@@ -90,6 +94,33 @@ class GradeReportAttentionIntegrityError(GradeReportAttentionReadError):
 
 ReportingScopeKey = tuple[str, str, str, int]
 StandardsGradeTargetKey = tuple[str, str, str, int]
+
+_CORE_PUBLICATION_OBSERVATION_KEYS = frozenset(
+    {
+        "publication_id",
+        "series_publication_ids",
+        "target_index",
+        "observed_head_publication_id",
+        "observed_successor_publication_id",
+        "observed_canonical_state",
+        "withdrawal",
+        "source_status",
+        "reuse_status",
+        "reason_codes",
+        "current_canonical_state",
+        "current_head_publication_id",
+        "observed_current_registration_revision",
+        "current_registration_revision",
+    }
+)
+_CANONICAL_PUBLICATION_STATES = frozenset(
+    {
+        "current_selectable",
+        "withdrawn_head",
+        "historical",
+        "withdrawn_historical",
+    }
+)
 
 _STANDARDS_GRADE_CURRENT_POINTER_KEYS = frozenset(
     {
@@ -226,6 +257,10 @@ def inspect_grade_report_attention_for_class(
 
         _revalidate_reporting_selections(root, class_value, pending)
 
+        publication_changed: dict[
+            ReportingScopeKey,
+            ReportingSnapshotSelectionReference,
+        ] = {}
         refresh_needed: dict[
             ReportingScopeKey,
             ReportingSnapshotSelectionReference,
@@ -254,17 +289,26 @@ def inspect_grade_report_attention_for_class(
                 raise GradeReportAttentionIntegrityError(
                     "Selected ReportingSnapshot crosses its selector scope."
                 )
-            if not _selected_reporting_snapshot_needs_refresh(
+            if _selected_reporting_snapshot_publication_changed(
                 root, selected_snapshot.snapshot
             ):
-                continue
-            refresh_needed[scope] = selected.reference
+                publication_changed[scope] = selected.reference
+            if _selected_reporting_snapshot_needs_refresh(
+                root, selected_snapshot.snapshot
+            ):
+                refresh_needed[scope] = selected.reference
 
+        _revalidate_reporting_selections(
+            root,
+            class_value,
+            publication_changed,
+        )
         _revalidate_reporting_selections(root, class_value, refresh_needed)
     except GradeReportAttentionReadError:
         raise
     except (
         GradePreviewError,
+        PublicationIngestionError,
         ReportingSnapshotComparisonError,
         ReportingSnapshotStorageError,
         ReportingSnapshotSelectionError,
@@ -284,6 +328,14 @@ def inspect_grade_report_attention_for_class(
             MeridianAttentionItem(
                 code="meridian_grade_result_stale",
                 count=len(stale_grades),
+                class_id=class_value,
+            )
+        )
+    if publication_changed:
+        items.append(
+            MeridianAttentionItem(
+                code="meridian_reporting_publication_changed",
+                count=len(publication_changed),
                 class_id=class_value,
             )
         )
@@ -527,6 +579,265 @@ def _require_regular_path_below(root: Path, path: Path) -> None:
         raise GradeReportAttentionReadError(
             "Standards Grade current pointer is not a regular file."
         )
+
+
+def _selected_reporting_snapshot_publication_changed(
+    workspace_root: Path,
+    snapshot: ReportingSnapshot,
+) -> bool:
+    """Return true only when selected reporting use has provable Core drift.
+
+    Issue #55 freezes privacy-minimized Core publication-series observations in
+    ReportingSnapshot provenance. The neutral attention provider may re-read
+    those Core-owned canonical records without reopening protected producer
+    evidence. Deployment authorization and projection reuse assessments are not
+    recomputed here.
+    """
+
+    bindings = tuple(
+        binding
+        for binding in snapshot.provenance_bindings
+        if binding.authority_kind == "core_publication_state"
+        and binding.reference_kind == "core_publication_observation"
+    )
+    if len(bindings) > MAX_MERIDIAN_ATTENTION_COUNT:
+        raise GradeReportAttentionReadError(
+            "ReportingSnapshot publication-state provenance exceeds the bounded "
+            "attention maximum."
+        )
+
+    seen_publications: set[str] = set()
+    for binding in bindings:
+        frozen = _read_core_publication_observation(binding.reference_json)
+        publication_id = _required_identifier(frozen, "publication_id")
+        if publication_id in seen_publications:
+            raise GradeReportAttentionIntegrityError(
+                "ReportingSnapshot duplicates Core publication-state provenance."
+            )
+        seen_publications.add(publication_id)
+        _validate_frozen_core_publication_observation(frozen)
+
+        current = load_canonical_publication_context(
+            workspace_root,
+            publication_id,
+        )
+        if current.publication.publication_id != publication_id:
+            raise GradeReportAttentionIntegrityError(
+                "Canonical Core publication context changed publication identity."
+            )
+
+        current_registration_revision = (
+            None
+            if current.current_registration is None
+            else current.current_registration.registration_revision
+        )
+        current_state = (
+            tuple(
+                member.publication.publication_id
+                for member in current.series.members
+            ),
+            current.series.target_index,
+            current.series.head_publication_id,
+            current.series.successor_publication_id,
+            current.canonical_state,
+            current_registration_revision,
+        )
+        frozen_state = (
+            tuple(
+                _identifier(item, "series publication ID")
+                for item in _required_list(
+                    frozen,
+                    "series_publication_ids",
+                )
+            ),
+            _required_nonnegative_int(frozen, "target_index"),
+            _required_identifier(frozen, "observed_head_publication_id"),
+            _optional_identifier(
+                frozen,
+                "observed_successor_publication_id",
+            ),
+            _required_canonical_publication_state(
+                frozen,
+                "observed_canonical_state",
+            ),
+            _optional_positive_int(
+                frozen,
+                "observed_current_registration_revision",
+            ),
+        )
+        if current_state != frozen_state:
+            return True
+    return False
+
+
+def _read_core_publication_observation(data: bytes) -> dict[str, object]:
+    try:
+        decoded = json.loads(data)
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot Core publication provenance is unreadable."
+        ) from error
+    if not isinstance(decoded, dict) or frozenset(decoded) != (
+        _CORE_PUBLICATION_OBSERVATION_KEYS
+    ):
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot Core publication provenance shape is invalid."
+        )
+    return cast(dict[str, object], decoded)
+
+
+def _validate_frozen_core_publication_observation(
+    value: dict[str, object],
+) -> None:
+    publication_id = _required_identifier(value, "publication_id")
+    series = tuple(
+        _identifier(item, "series publication ID")
+        for item in _required_list(value, "series_publication_ids")
+    )
+    if not series or len(set(series)) != len(series):
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot publication series identity is invalid."
+        )
+    target_index = _required_nonnegative_int(value, "target_index")
+    if target_index >= len(series) or series[target_index] != publication_id:
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot publication target index is invalid."
+        )
+
+    observed_head = _required_identifier(value, "observed_head_publication_id")
+    if observed_head != series[-1]:
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot publication head does not match its series."
+        )
+    observed_successor = _optional_identifier(
+        value,
+        "observed_successor_publication_id",
+    )
+    expected_successor = (
+        None if target_index == len(series) - 1 else series[target_index + 1]
+    )
+    if observed_successor != expected_successor:
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot publication successor does not match its series."
+        )
+
+    observed_state = _required_canonical_publication_state(
+        value,
+        "observed_canonical_state",
+    )
+    current_state = _required_canonical_publication_state(
+        value,
+        "current_canonical_state",
+    )
+    if current_state != observed_state:
+        raise GradeReportAttentionIntegrityError(
+            "Frozen publication observation did not capture one coherent state."
+        )
+    current_head = _required_identifier(value, "current_head_publication_id")
+    if current_head != observed_head:
+        raise GradeReportAttentionIntegrityError(
+            "Frozen publication observation contains conflicting head authority."
+        )
+
+    observed_registration = _optional_positive_int(
+        value,
+        "observed_current_registration_revision",
+    )
+    current_registration = _optional_positive_int(
+        value,
+        "current_registration_revision",
+    )
+    if current_registration != observed_registration:
+        raise GradeReportAttentionIntegrityError(
+            "Frozen publication observation contains conflicting registration "
+            "authority."
+        )
+
+    withdrawal = value["withdrawal"]
+    if withdrawal is not None and not isinstance(withdrawal, dict):
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot publication withdrawal provenance is invalid."
+        )
+    withdrawn = observed_state in {"withdrawn_head", "withdrawn_historical"}
+    if withdrawn != (withdrawal is not None):
+        raise GradeReportAttentionIntegrityError(
+            "ReportingSnapshot withdrawal provenance contradicts canonical state."
+        )
+
+    _required_text(value, "source_status")
+    _required_text(value, "reuse_status")
+    for reason in _required_list(value, "reason_codes"):
+        if not isinstance(reason, str) or not reason:
+            raise GradeReportAttentionIntegrityError(
+                "ReportingSnapshot publication reason code is invalid."
+            )
+
+
+def _required_list(
+    data: dict[str, object],
+    field: str,
+) -> list[object]:
+    value = data[field]
+    if not isinstance(value, list):
+        raise GradeReportAttentionIntegrityError(f"{field} must be a list.")
+    return cast(list[object], value)
+
+
+def _required_text(data: dict[str, object], field: str) -> str:
+    value = data[field]
+    if not isinstance(value, str) or not value:
+        raise GradeReportAttentionIntegrityError(
+            f"{field} must be a nonempty string."
+        )
+    return value
+
+
+def _optional_identifier(
+    data: dict[str, object],
+    field: str,
+) -> str | None:
+    value = data[field]
+    if value is None:
+        return None
+    return _identifier(value, field)
+
+
+def _required_nonnegative_int(
+    data: dict[str, object],
+    field: str,
+) -> int:
+    value = data[field]
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise GradeReportAttentionIntegrityError(
+            f"{field} must be a nonnegative integer."
+        )
+    return value
+
+
+def _optional_positive_int(
+    data: dict[str, object],
+    field: str,
+) -> int | None:
+    value = data[field]
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise GradeReportAttentionIntegrityError(
+            f"{field} must be a positive integer or null."
+        )
+    return value
+
+
+def _required_canonical_publication_state(
+    data: dict[str, object],
+    field: str,
+) -> str:
+    value = _required_text(data, field)
+    if value not in _CANONICAL_PUBLICATION_STATES:
+        raise GradeReportAttentionIntegrityError(
+            f"{field} contains an unsupported canonical publication state."
+        )
+    return value
 
 
 def _selected_reporting_snapshot_needs_refresh(

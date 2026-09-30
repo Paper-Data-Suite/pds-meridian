@@ -141,6 +141,7 @@ def test_class_inspection_counts_one_refresh_per_selected_reporting_scope(
         target_period=PERIOD,
         calendar_revision=1,
         predecessor=None,
+        provenance_bindings=(),
         build_request=SimpleNamespace(grade_requests=()),
     )
     stored = SimpleNamespace(snapshot=snapshot, reference=snapshot_reference)
