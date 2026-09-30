@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 
 from meridian.grade_policy import GRADE_POLICY_SCHEMA_VERSION
@@ -28,3 +29,36 @@ def test_issue99_release_document_covers_followup_audits() -> None:
         "quillan 0.10.3",
     ):
         assert value in text
+
+def test_no_test_fixture_hard_codes_retired_grade_policy_schema_one() -> None:
+    root = Path(__file__).resolve().parents[1]
+    offenders: list[str] = []
+    for path in sorted((root / "tests").glob("test_*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            function = node.func
+            is_grade_policy_revision = (
+                isinstance(function, ast.Name)
+                and function.id == "GradePolicyRevision"
+            ) or (
+                isinstance(function, ast.Attribute)
+                and function.attr == "GradePolicyRevision"
+            )
+            if not is_grade_policy_revision:
+                continue
+            for keyword in node.keywords:
+                if (
+                    keyword.arg == "schema_version"
+                    and isinstance(keyword.value, ast.Constant)
+                    and keyword.value.value == "1"
+                ):
+                    offenders.append(
+                        f"{path.relative_to(root)}:{node.lineno}"
+                    )
+    assert offenders == [], (
+        "GradePolicyRevision test fixtures must use "
+        "GRADE_POLICY_SCHEMA_VERSION, not retired literal schema '1': "
+        + ", ".join(offenders)
+    )
