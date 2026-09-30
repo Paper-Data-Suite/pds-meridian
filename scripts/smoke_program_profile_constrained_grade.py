@@ -261,7 +261,13 @@ def main() -> int:
     quillan = base._persist_grade_item_result(
         workspace, base.QUILLAN_WORK, "proficient", scale, standard_policy
     )
-    base._persist_period_result(workspace, calendar, scale, (scoreform, quillan))
+    base._persist_period_result(
+        workspace,
+        calendar,
+        scale,
+        (scoreform, quillan),
+        expected_level_id="proficient",
+    )
     upstream_before = base._upstream_snapshot(workspace)
     _install_policy(workspace, scale)
     result = _calculate(workspace)

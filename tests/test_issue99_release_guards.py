@@ -62,3 +62,19 @@ def test_no_test_fixture_hard_codes_retired_grade_policy_schema_one() -> None:
         "GRADE_POLICY_SCHEMA_VERSION, not retired literal schema '1': "
         + ", ".join(offenders)
     )
+
+def test_issue99_installed_smoke_preserves_profile_floor_fixture() -> None:
+    root = Path(__file__).resolve().parents[1]
+    standards = (
+        root / "scripts/smoke_program_standards_grade.py"
+    ).read_text(encoding="utf-8")
+    profile = (
+        root / "scripts/smoke_program_profile_constrained_grade.py"
+    ).read_text(encoding="utf-8")
+
+    assert 'expected_level_id: str = "advanced"' in standards
+    assert 'outcome.proficiency_level_id == expected_level_id' in standards
+    assert 'expected_level_id="proficient"' in profile
+    assert 'outcome.base_unrounded_grade == Decimal("90")' in profile
+    assert 'outcome.profile_adjustment == "floor"' in profile
+    assert 'outcome.unrounded_grade == Decimal("95")' in profile

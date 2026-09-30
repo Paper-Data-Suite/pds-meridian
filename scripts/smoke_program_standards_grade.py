@@ -598,6 +598,8 @@ def _persist_period_result(
     calendar: AcademicPeriodCalendar,
     scale: StoredProficiencyScale,
     candidates: tuple[ResolvedAcademicPeriodProficiencyCandidate, ...],
+    *,
+    expected_level_id: str = "advanced",
 ) -> None:
     policy = AcademicPeriodProficiencyAggregationPolicy(
         schema_version=ACADEMIC_PERIOD_PROFICIENCY_POLICY_SCHEMA_VERSION,
@@ -646,8 +648,9 @@ def _persist_period_result(
     )
     _require(outcome.status == "calculated", "Academic Period proficiency failed.")
     _require(
-        outcome.proficiency_level_id == "advanced",
-        "Expected highest Academic Period proficiency to be advanced.",
+        outcome.proficiency_level_id == expected_level_id,
+        "Academic Period proficiency level changed unexpectedly: "
+        f"expected {expected_level_id!r}, got {outcome.proficiency_level_id!r}.",
     )
     snapshot = create_academic_period_proficiency_result_snapshot(
         inputs,
