@@ -406,3 +406,10 @@ ReportingSnapshot reload validates frozen profile policy, predicate evidence,
 selected band/bounds, adjustment, and profile-specific observation basis.
 Legacy weighted snapshots remain readable; later policy/scale revisions do not
 alter frozen historical profile results.
+
+## Attention integration
+
+Issue #58 treats explicit current-use selection and currentness as attention
+authority where safely provable. Snapshot age, timestamp order, and mere
+existence of a newer snapshot never imply expiration or replacement. See
+[Grade and report attention summaries](grade-report-attention-summaries.md).

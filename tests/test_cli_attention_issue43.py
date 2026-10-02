@@ -124,6 +124,7 @@ def test_attention_json_is_deterministic_and_forwards_exact_scope(
                 "count": 2,
                 "count_unit": "academic_period_proficiency_targets",
                 "label": "Academic Period proficiency calculations are stale",
+                "destination_id": "calculation-preview",
                 "task_id": "calculation-preview",
             },
             {
@@ -133,10 +134,11 @@ def test_attention_json_is_deterministic_and_forwards_exact_scope(
                 "count": 1,
                 "count_unit": "planning_review_scopes",
                 "label": "Planning previews are awaiting teacher review",
+                "destination_id": "create-planning-signal",
                 "task_id": "create-planning-signal",
             },
         ],
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": {
             "active_school_year": "2026-2027",
             "class_id": "class-a",
@@ -310,7 +312,7 @@ def test_attention_empty_workspace_is_successful_and_read_only(
         },
         "evaluation": "evaluated",
         "items": [],
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": {
             "active_school_year": None,
             "class_id": None,

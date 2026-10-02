@@ -6,6 +6,7 @@ import pytest
 
 from meridian.proficiency_attention import (
     MAX_MERIDIAN_ATTENTION_COUNT,
+    MERIDIAN_ATTENTION_DESTINATION_IDS,
     MeridianAttentionItem,
     MeridianAttentionSummary,
     MeridianAttentionValidationError,
@@ -14,10 +15,9 @@ from meridian.proficiency_attention import (
     meridian_attention_definitions,
     meridian_attention_summary_to_dict,
 )
-from meridian.teacher_workflows import TEACHER_WORKFLOW_TASK_IDS
 
 
-def test_attention_vocabulary_is_stable_and_follows_teacher_task_order() -> None:
+def test_attention_vocabulary_is_stable_and_follows_destination_order() -> None:
     definitions = meridian_attention_definitions()
 
     assert tuple(definition.code for definition in definitions) == (
@@ -30,17 +30,27 @@ def test_attention_vocabulary_is_stable_and_follows_teacher_task_order() -> None
         "meridian_native_value_unmapped",
         "meridian_grade_item_calculation_stale",
         "meridian_academic_period_calculation_stale",
+        "meridian_grade_result_stale",
+        "meridian_reporting_publication_changed",
+        "meridian_reporting_snapshot_refresh_needed",
+        "meridian_reporting_snapshot_selection_pending",
         "meridian_planning_review_pending",
         "meridian_planning_review_selection_pending",
         "meridian_planning_review_stale",
     )
-    task_rank = {
-        task_id: index for index, task_id in enumerate(TEACHER_WORKFLOW_TASK_IDS)
+    destination_rank = {
+        destination_id: index
+        for index, destination_id in enumerate(MERIDIAN_ATTENTION_DESTINATION_IDS)
     }
-    ranks = tuple(task_rank[definition.task_id] for definition in definitions)
+    ranks = tuple(
+        destination_rank[definition.destination_id] for definition in definitions
+    )
     assert ranks == tuple(sorted(ranks))
     assert len({definition.code for definition in definitions}) == len(definitions)
     assert "meridian_export_pending" not in {
+        definition.code for definition in definitions
+    }
+    assert "meridian_export_ready" not in {
         definition.code for definition in definitions
     }
 
@@ -88,9 +98,10 @@ def test_attention_definitions_fix_count_units_and_owner_actions() -> None:
         definition = attention_definition(code)  # type: ignore[arg-type]
         assert (
             definition.count_unit,
-            definition.task_id,
+            definition.destination_id,
             definition.action_id,
         ) == values
+        assert definition.task_id == definition.destination_id
 
 
 def test_attention_item_is_frozen_and_validates_count_and_class_id() -> None:
@@ -123,7 +134,7 @@ def test_attention_definition_rejects_unknown_runtime_code() -> None:
         attention_definition("meridian_export_pending")  # type: ignore[arg-type]
 
 
-def test_summary_factory_sorts_by_task_then_category_not_count() -> None:
+def test_summary_factory_sorts_by_destination_then_category_not_count() -> None:
     summary = build_meridian_attention_summary(
         (
             MeridianAttentionItem(
@@ -197,13 +208,14 @@ def test_json_ready_projection_is_deterministic_and_privacy_minimal() -> None:
 
     assert first == second
     assert first == {
-        "schema_version": 1,
+        "schema_version": 2,
         "items": [
             {
                 "code": "meridian_attempt_decision_pending",
                 "label": "Applicable attempt decisions are pending",
                 "count": 4,
                 "count_unit": "attempt_decision_scopes",
+                "destination_id": "attempt-decisions",
                 "task_id": "attempt-decisions",
                 "action_id": "open_attempt_decisions",
                 "class_id": "class-01",
@@ -213,6 +225,7 @@ def test_json_ready_projection_is_deterministic_and_privacy_minimal() -> None:
                 "label": "Academic Period proficiency calculations are stale",
                 "count": 3,
                 "count_unit": "academic_period_proficiency_targets",
+                "destination_id": "calculation-preview",
                 "task_id": "calculation-preview",
                 "action_id": "open_calculation_preview",
                 "class_id": "class-01",

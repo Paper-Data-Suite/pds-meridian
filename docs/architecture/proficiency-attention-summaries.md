@@ -266,3 +266,11 @@ producer/Concord absence, and no provider/CLI workspace mutation.
 Issue #45 owns the later full installed proficiency/signal-export acceptance
 without Concord. Issue #46 owns the final v0.2.0 policy, fairness, privacy,
 interoperability, and release audit.
+
+## v0.3 Grade/report extension
+
+Issue #58 extends this same unified native attention/provider boundary into
+Grade and ReportingSnapshot currentness. The v0.2 categories retain their
+existing meanings; Grade/report categories and authorization constraints are
+documented in
+[Grade and report attention summaries](grade-report-attention-summaries.md).

@@ -20,6 +20,9 @@ from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_fo
 from scripts.smoke_test_conventional_grade_wheel import (
     run_prepared_smoke as run_conventional_grade_prepared_smoke,
 )
+from scripts.smoke_test_grade_report_attention_wheel import (
+    run_prepared_smoke as run_grade_report_attention_prepared_smoke,
+)
 from scripts.smoke_test_grade_report_preview_wheel import (
     run_prepared_smoke as run_grade_report_preview_prepared_smoke,
 )
@@ -103,6 +106,17 @@ def run_migrated_matrices(
         )
         run_core_inline_smokes(prepared)
         run_core_program_smokes(prepared)
+
+        _, outside = _working_layout(prepared, "grade-report-attention")
+        _run_acceptance(
+            prepared,
+            "grade-report-attention",
+            lambda: run_grade_report_attention_prepared_smoke(
+                prepared.python,
+                prepared.meridian,
+                outside,
+            ),
+        )
 
     with PreparedInstalledEnvironment(
         matrix_for(DependencyMatrixId.SCOREFORM),

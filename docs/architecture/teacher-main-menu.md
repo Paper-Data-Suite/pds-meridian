@@ -202,3 +202,10 @@ Issue #99 adds no new primary menu task. Existing `Preview Grades` and
 `Explain` routes already dispatch by Grade family. Profile attention belongs to
 issue #58; suite doctor/launcher/backup/attention integration belongs to issue
 #59.
+
+## Attention routing
+
+Issue #58 adds stable owner actions that route Grade-result attention to Preview
+Grades and ReportingSnapshot attention to Snapshots. Attention definitions name
+stable destinations/actions rather than menu numbers or executable commands.
+See [Grade and report attention summaries](grade-report-attention-summaries.md).

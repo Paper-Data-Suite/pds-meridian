@@ -248,3 +248,10 @@ Academic Period/publication state, producer data, Grade Items, membership,
 eligibility, attempt/reassessment decisions, proficiency results, Grade
 policies/activations/results, teacher overrides, ReportingSnapshots, and
 ReportingSnapshot current-use selection remain unchanged by preview or export.
+
+## Attention boundary
+
+Issue #58 preserves the issue #56 distinction between export capability and
+teacher intent. Exportability, missing ExportReceipts, and historical exports
+do not create generic export-ready or export-pending attention. See
+[Grade and report attention summaries](grade-report-attention-summaries.md).

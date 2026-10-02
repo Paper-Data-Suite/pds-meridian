@@ -13,6 +13,10 @@ from meridian.academic_period_attention import (
     AcademicPeriodAttentionReadError,
     inspect_academic_period_attention_for_class,
 )
+from meridian.grade_report_attention import (
+    GradeReportAttentionReadError,
+    inspect_grade_report_attention_for_class,
+)
 from meridian.planning_attention import (
     PlanningAttentionReadError,
     inspect_planning_attention_for_class,
@@ -135,10 +139,18 @@ def _inspect_class(
             class_id,
             active_school_year=active_school_year,
         )
-        return merge_meridian_attention_summaries((planning, academic_period))
+        grade_report = inspect_grade_report_attention_for_class(
+            workspace_root,
+            class_id,
+            active_school_year=active_school_year,
+        )
+        return merge_meridian_attention_summaries(
+            (planning, academic_period, grade_report)
+        )
     except (
         PlanningAttentionReadError,
         AcademicPeriodAttentionReadError,
+        GradeReportAttentionReadError,
         MeridianAttentionValidationError,
     ) as error:
         raise MeridianAttentionReadError(

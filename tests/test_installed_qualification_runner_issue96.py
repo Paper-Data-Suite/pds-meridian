@@ -99,6 +99,11 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     monkeypatch.setattr(runner, "run_core_program_smokes", record("core-programs"))
     monkeypatch.setattr(
         runner,
+        "run_grade_report_attention_prepared_smoke",
+        record("grade-report-attention"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_scoreform_adapter_prepared_smoke",
         record("scoreform"),
     )
@@ -178,6 +183,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "core",
         "core-inline",
         "core-programs",
+        "grade-report-attention",
         "scoreform",
         "conventional-grade",
         "teacher-grade-override",
@@ -194,6 +200,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     ]
     assert FakePreparedEnvironment.immutable == [
         (DependencyMatrixId.CORE, "wheel-foundation"),
+        (DependencyMatrixId.CORE, "grade-report-attention"),
         (DependencyMatrixId.SCOREFORM, "scoreform-adapter"),
         (DependencyMatrixId.SCOREFORM, "conventional-grade"),
         (DependencyMatrixId.SCOREFORM, "teacher-grade-override"),
@@ -238,6 +245,11 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         runner,
         "run_core_foundation_prepared_smoke",
         capture("core"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_grade_report_attention_prepared_smoke",
+        capture("grade-report-attention"),
     )
     monkeypatch.setattr(
         runner,
@@ -309,6 +321,7 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
 
     assert observed == {
         "core": Path("python-core"),
+        "grade-report-attention": Path("python-core"),
         "scoreform": Path("python-scoreform"),
         "conventional-grade": Path("python-scoreform"),
         "teacher-grade-override": Path("python-scoreform"),

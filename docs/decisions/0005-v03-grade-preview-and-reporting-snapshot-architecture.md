@@ -440,3 +440,12 @@ through explicit profile authority. The bounded predicate vocabulary is
 `all_at_or_above`, `count_at_or_above`, and `proportion_at_or_above`, with
 three-valued evaluation and exact scale ordering. Override, snapshot, export,
 and official-system authority boundaries are unchanged.
+
+## Issue #58 attention application
+
+Issue #58 applies this ADR's Grade/report authority boundaries to the existing
+read-only Meridian attention provider. ReportingSnapshot age is not expiration,
+export eligibility is not attention, and protected-evidence requirements are
+not weakened for Core v1 attention inspection. Detailed provider semantics are
+recorded in
+[Grade and report attention summaries](../architecture/grade-report-attention-summaries.md).
