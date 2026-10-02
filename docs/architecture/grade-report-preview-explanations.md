@@ -258,3 +258,11 @@ Standards explanations preserve base mean, profile policy, predicate evidence,
 unknown standard IDs, selected band/bounds, adjustment, adjusted Grade, and
 rounding. Comparison distinguishes base-mean, profile-policy, predicate, band,
 and adjustment changes. Hybrid propagates the same profile basis.
+
+## Attention integration
+
+Issue #58 reuses this comparison/currentness layer for bounded Grade/report
+attention where the neutral Core v1 request can safely prove a material change.
+It does not create a second Grade diff engine or bypass protected-evidence
+requirements. See
+[Grade and report attention summaries](grade-report-attention-summaries.md).

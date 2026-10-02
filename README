@@ -958,3 +958,12 @@ composition, preview comparison, ReportingSnapshot replay, and exact-wheel
 installed qualification are integrated.
 
 See [Profile-constrained standards Grade policy](docs/architecture/profile-constrained-standards-grade.md).
+
+## Grade/report attention
+
+Issue #58 extends the existing read-only Meridian attention system into the
+v0.3 Grade/report surfaces without adding readiness, snapshot-age expiration,
+or export-readiness attention. Safely provable Grade/report work routes back to
+Preview Grades or Snapshots through privacy-minimal Core v1 owner actions.
+See
+[Grade and report attention summaries](docs/architecture/grade-report-attention-summaries.md).

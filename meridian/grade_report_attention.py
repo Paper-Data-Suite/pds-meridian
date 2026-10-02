@@ -304,6 +304,18 @@ def inspect_grade_report_attention_for_class(
             publication_changed,
         )
         _revalidate_reporting_selections(root, class_value, refresh_needed)
+
+        final_reporting_selections = _merge_reporting_selection_observations(
+            pending,
+            publication_changed,
+            refresh_needed,
+        )
+        _revalidate_stale_grade_selections(root, class_value, stale_grades)
+        _revalidate_reporting_selections(
+            root,
+            class_value,
+            final_reporting_selections,
+        )
     except GradeReportAttentionReadError:
         raise
     except (
@@ -877,6 +889,31 @@ def _selected_reporting_snapshot_needs_refresh(
         if comparison.changed:
             return True
     return False
+
+
+def _merge_reporting_selection_observations(
+    *observed_groups: dict[
+        ReportingScopeKey,
+        ReportingSnapshotSelectionReference,
+    ],
+) -> dict[ReportingScopeKey, ReportingSnapshotSelectionReference]:
+    """Combine category observations without hiding selector movement."""
+
+    merged: dict[
+        ReportingScopeKey,
+        ReportingSnapshotSelectionReference,
+    ] = {}
+    for observed in observed_groups:
+        for scope in sorted(observed):
+            reference = observed[scope]
+            previous = merged.get(scope)
+            if previous is not None and previous != reference:
+                raise GradeReportAttentionReadError(
+                    "ReportingSnapshot current-use selection changed between "
+                    "attention categories."
+                )
+            merged[scope] = reference
+    return merged
 
 
 def _revalidate_reporting_selections(

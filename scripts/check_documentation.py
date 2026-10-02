@@ -48,6 +48,7 @@ EXPECTED = (
     ),
     Path("docs/architecture/proficiency-planning-export-explanation-traces.md"),
     Path("docs/architecture/proficiency-attention-summaries.md"),
+    Path("docs/architecture/grade-report-attention-summaries.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path(
@@ -725,6 +726,20 @@ REQUIRED_TEXT = {
             "#45 installed proficiency and signal-export acceptance "
             "without Concord — implemented"
         ),
+    ),
+    Path("docs/architecture/grade-report-attention-summaries.md"): (
+        "meridian_grade_result_stale",
+        "meridian_reporting_publication_changed",
+        "meridian_reporting_snapshot_refresh_needed",
+        "meridian_reporting_snapshot_selection_pending",
+        "ReportingSnapshots never become attention merely because they are old.",
+        "Export readiness is intentionally not attention.",
+        "Successful empty evaluation remains distinct from unavailable evaluation.",
+        "pds-core 0.6.3",
+        "ScoreForm, Quillan, and Concord remain absent",
+        "Issue #59",
+        "Paper Data Suite issues #20, #22, and #23",
+        "Issue #58 Grade/report attention summaries — implemented and qualified.",
     ),
     Path("docs/architecture/proficiency-attention-summaries.md"): (
         "What Meridian work currently needs my attention?",

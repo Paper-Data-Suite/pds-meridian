@@ -202,7 +202,7 @@ def test_final_stale_selector_revalidation_rejects_late_movement(
     root = _workspace(tmp_path)
     original = _stored(reference="selected-a")
     moved = _stored(reference="selected-b")
-    reads = iter((original, moved))
+    reads = iter((original, original, moved))
     _install_no_snapshots(monkeypatch)
     monkeypatch.setattr(
         attention,

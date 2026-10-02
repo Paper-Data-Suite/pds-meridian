@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Issue #58 Grade/report attention summaries extend the read-only Core v1
+  operations provider into v0.3 without creating a parallel Grade/report
+  authority layer. New privacy-minimal categories cover selected standards
+  Grade staleness, selected ReportingSnapshot Core-publication changes,
+  safely provable snapshot refresh needs, and explicit current-use replacement
+  selection. Routing targets Preview Grades or Snapshots through opaque
+  module-owned actions; no export-readiness or snapshot-age attention is
+  invented. Final qualification documents the boundary, guards distribution
+  assets, and runs installed acceptance in the issue #96 prepared Core-only
+  matrix against exact Core 0.6.3 with ScoreForm, Quillan, and Concord absent.
+
 - Issue #99 adds bounded `profile_constrained_mean` standards Grades alongside
   preserved `weighted_mean` semantics. Exact ordered scale authority,
   three-valued predicates, deterministic Grade bands, floor/cap adjustment,

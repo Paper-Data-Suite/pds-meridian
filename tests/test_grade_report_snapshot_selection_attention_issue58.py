@@ -8,6 +8,7 @@ import pytest
 from pds_core.academic_periods import AcademicPeriodRef
 
 import meridian.attention_service as attention_service
+import meridian.grade_report_attention as attention
 from meridian.grade_preview_explanation import GradePreviewTarget
 from meridian.grade_report_attention import (
     GradeReportAttentionReadError,
@@ -220,6 +221,45 @@ def test_explicit_replacement_with_predecessor_selected_is_attention(
             class_id=CLASS_ID,
         ),
     )
+
+
+def test_final_reporting_selector_revalidation_rejects_late_movement(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, predecessor, _ = _setup(tmp_path)
+    _select(root, predecessor, None, 10)
+
+    real_load = attention.load_current_reporting_snapshot_selection
+    read_count = 0
+
+    def moving_selection(*args, **kwargs):
+        nonlocal read_count
+        read_count += 1
+        if read_count <= 3:
+            return real_load(*args, **kwargs)
+        return None
+
+    monkeypatch.setattr(
+        attention,
+        "load_current_reporting_snapshot_selection",
+        moving_selection,
+    )
+    monkeypatch.setattr(
+        attention,
+        "_selected_reporting_snapshot_publication_changed",
+        lambda *_args, **_kwargs: False,
+    )
+    monkeypatch.setattr(
+        attention,
+        "_selected_reporting_snapshot_needs_refresh",
+        lambda *_args, **_kwargs: False,
+    )
+
+    with pytest.raises(GradeReportAttentionReadError, match="selection changed"):
+        inspect_grade_report_attention_for_class(root, CLASS_ID)
+
+    assert read_count == 4
 
 
 def test_replacement_attention_disappears_when_successor_is_selected(

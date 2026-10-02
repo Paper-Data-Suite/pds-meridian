@@ -105,6 +105,14 @@ eight-task application; direct named commands remain noninteractive. Final
 compatibility qualification uses exact `quillan==0.10.3`. See
 [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md).
 
+Issue #58 extends the existing issue #43 read-only attention provider into the
+v0.3 Grade/report surfaces. Exact selected standards Grade staleness, selected
+ReportingSnapshot publication changes, safely provable snapshot refresh needs,
+and explicit replacement-selection pending state route to Preview Grades or
+Snapshots without exposing Grade/evidence detail to Core or inventing export
+readiness. See
+[Grade and report attention summaries](architecture/grade-report-attention-summaries.md).
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -156,6 +164,7 @@ compatibility qualification uses exact `quillan==0.10.3`. See
 47. [Immutable ReportingSnapshots](architecture/reporting-snapshots.md)
 48. [Reporting exports](architecture/reporting-exports.md)
 49. [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md)
+50. [Grade and report attention summaries](architecture/grade-report-attention-summaries.md)
 
 
 ## Development foundation
