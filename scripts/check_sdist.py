@@ -106,6 +106,7 @@ REQUIRED_MEMBERS = frozenset(
         "meridian/grade_item_membership_storage.py",
         "meridian/grade_item_memberships.py",
         "meridian/grade_item_storage.py",
+        "meridian/storage_path_keys.py",
         "meridian/grade_items.py",
         "meridian/grade_policy.py",
         "meridian/grade_policy_storage.py",
