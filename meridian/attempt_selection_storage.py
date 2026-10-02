@@ -49,6 +49,7 @@ from meridian.evidence_eligibility_storage import (
 from meridian.grade_item_membership_storage import (
     GradeItemMembershipStorageError,
     grade_item_membership_directory,
+    grade_item_membership_relative_directory,
     load_current_grade_item_membership_decision,
     load_grade_item_membership_revision,
 )
@@ -380,6 +381,28 @@ def attempt_selection_directory(
     ) / "attempt_selection"
 
 
+def attempt_selection_relative_directory(
+    class_id: str,
+    grade_item_id: str,
+    work: ModuleWorkRef,
+) -> str:
+    """Return the canonical relative root for one attempt-selection relation."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise AttemptSelectionStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    membership_root = grade_item_membership_relative_directory(
+        class_value,
+        item,
+        validated_work,
+    )
+    return f"{membership_root}/attempt_selection"
+
+
 def attempt_selection_policies_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -499,8 +522,7 @@ def attempt_selection_policy_revision_relative_path(
     policy_value = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
     return (
-        f"classes/{class_value}/modules/meridian/grade_items/{item}/memberships/"
-        f"{validated_work.module_id}/{validated_work.work_id}/attempt_selection/"
+        f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
         f"policies/{policy_value}/revisions/{revision}.json"
     )
 
@@ -523,8 +545,7 @@ def attempt_selection_decision_revision_relative_path(
     revision = _positive_int(decision_revision, "decision_revision")
     key = attempt_subject_key(class_value, item, validated_work, student)
     return (
-        f"classes/{class_value}/modules/meridian/grade_items/{item}/memberships/"
-        f"{validated_work.module_id}/{validated_work.work_id}/attempt_selection/"
+        f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
         f"students/{key}/revisions/{revision}.json"
     )
 

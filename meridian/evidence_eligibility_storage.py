@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal, TypeAlias, cast
 
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
-from pds_core.routes import class_module_dir
 from pds_core.routing_models import (
     ModuleWorkRef,
     RoutingModelError,
@@ -31,6 +30,10 @@ from meridian.evidence_eligibility import (
     validate_evidence_eligibility_decision,
     validate_evidence_eligibility_transition,
     validate_evidence_source_reference,
+)
+from meridian.grade_item_membership_storage import (
+    grade_item_membership_directory,
+    grade_item_membership_relative_directory,
 )
 
 if TYPE_CHECKING:
@@ -348,12 +351,12 @@ def evidence_eligibility_collection_directory(
         )
     root = _root(workspace_root)
     return (
-        class_module_dir(root, class_value, "meridian")
-        / "grade_items"
-        / item
-        / "memberships"
-        / validated_work.module_id
-        / validated_work.work_id
+        grade_item_membership_directory(
+            root,
+            class_value,
+            item,
+            validated_work,
+        )
         / "evidence_eligibility"
     )
 
@@ -442,9 +445,13 @@ def evidence_eligibility_revision_relative_path(
         )
     revision = _positive_int(eligibility_revision, "eligibility_revision")
     key = evidence_source_key(validated)
+    membership_root = grade_item_membership_relative_directory(
+        class_value,
+        item,
+        validated.work,
+    )
     return (
-        f"classes/{class_value}/modules/meridian/grade_items/{item}/memberships/"
-        f"{validated.work.module_id}/{validated.work.work_id}/evidence_eligibility/"
+        f"{membership_root}/evidence_eligibility/"
         f"{key}/revisions/{revision}.json"
     )
 

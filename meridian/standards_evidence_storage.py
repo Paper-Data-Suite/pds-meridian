@@ -53,6 +53,7 @@ from meridian.grade_item_membership_storage import (
     GradeItemMembershipStorageError,
     StoredGradeItemMembershipDecision,
     grade_item_membership_directory,
+    grade_item_membership_relative_directory,
     load_current_grade_item_membership_decision,
 )
 from meridian.grade_item_storage import (
@@ -516,11 +517,16 @@ def standard_evidence_association_revision_relative_path(
     key = standard_evidence_association_key(
         class_id, grade_item_id, validated, standard_id
     )
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    membership_root = grade_item_membership_relative_directory(
+        class_value,
+        item,
+        validated.work,
+    )
     return (
-        f"classes/{_identifier(class_id, 'class_id')}/modules/meridian/grade_items/"
-        f"{_identifier(grade_item_id, 'grade_item_id')}/memberships/"
-        f"{validated.work.module_id}/{validated.work.work_id}/standards_evidence/"
-        f"associations/{key}/revisions/"
+        f"{membership_root}/standards_evidence/associations/"
+        f"{key}/revisions/"
         f"{_positive_int(association_revision, 'association_revision')}.json"
     )
 

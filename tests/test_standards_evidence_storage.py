@@ -132,6 +132,13 @@ def test_raw_standard_id_is_absent_from_canonical_path(tmp_path: Path) -> None:
     assert path.parent.parent.name == storage.standard_evidence_association_key(
         WORK.class_id, "grade_item_1", source(), STANDARD
     )
+    assert storage.standard_evidence_association_revision_relative_path(
+        WORK.class_id,
+        "grade_item_1",
+        source(),
+        STANDARD,
+        1,
+    ) == path.relative_to(tmp_path).as_posix()
 
 
 def test_same_revision_different_content_conflicts(

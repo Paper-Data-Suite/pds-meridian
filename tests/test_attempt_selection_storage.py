@@ -169,11 +169,25 @@ def test_policy_path_is_nested_under_membership_relation(tmp_path: Path) -> None
     path = storage.attempt_selection_policy_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "teacher_explicit_attempts", 1
     )
-    assert path.as_posix().endswith(
-        "/classes/synthetic_class_2026/modules/meridian/grade_items/"
-        "unit1_assessment/memberships/scoreform/test_1/attempt_selection/"
-        "policies/teacher_explicit_attempts/revisions/1.json"
+    assert path == (
+        storage.attempt_selection_directory(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+        )
+        / "policies"
+        / "teacher_explicit_attempts"
+        / "revisions"
+        / "1.json"
     )
+    assert storage.attempt_selection_policy_revision_relative_path(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "teacher_explicit_attempts",
+        1,
+    ) == path.relative_to(workspace).as_posix()
 
 
 def test_subject_path_uses_deterministic_hash(tmp_path: Path) -> None:

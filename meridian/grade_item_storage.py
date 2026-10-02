@@ -23,6 +23,7 @@ from meridian.grade_items import (
     validate_grade_item_revision,
     validate_grade_item_revision_transition,
 )
+from meridian.storage_path_keys import storage_path_key
 
 GRADE_ITEM_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 GRADE_ITEM_CURRENT_RECORD_TYPE: Final[str] = "meridian_grade_item_current"
@@ -255,6 +256,27 @@ def grade_items_directory(workspace_root: str | Path, class_id: str) -> Path:
     return path
 
 
+def grade_item_path_key(grade_item_id: str) -> str:
+    """Return the bounded filesystem key for one logical Grade Item."""
+
+    item = _identifier(grade_item_id, "grade_item_id")
+    return storage_path_key("grade_item", item)
+
+
+def grade_item_relative_directory(
+    class_id: str,
+    grade_item_id: str,
+) -> str:
+    """Return the bounded workspace-relative directory for one Grade Item."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    return (
+        f"classes/{class_value}/modules/meridian/grade_items/"
+        f"{grade_item_path_key(item)}"
+    )
+
+
 def grade_item_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -262,7 +284,7 @@ def grade_item_directory(
 ) -> Path:
     """Return one logical Grade Item's canonical storage root."""
     item = _identifier(grade_item_id, "grade_item_id")
-    return grade_items_directory(workspace_root, class_id) / item
+    return grade_items_directory(workspace_root, class_id) / grade_item_path_key(item)
 
 
 def grade_item_revisions_directory(
@@ -329,8 +351,8 @@ def grade_item_revision_relative_path(
     item = _identifier(grade_item_id, "grade_item_id")
     revision = _positive_int(grade_item_revision, "grade_item_revision")
     return (
-        f"classes/{class_value}/modules/meridian/grade_items/"
-        f"{item}/revisions/{revision}.json"
+        f"{grade_item_relative_directory(class_value, item)}/"
+        f"revisions/{revision}.json"
     )
 
 
@@ -488,8 +510,8 @@ def list_grade_item_ids(
             raise GradeItemStorageIntegrityError(
                 "Grade Item collection contains an unexpected non-directory entry."
             )
-        item = _identifier(entry.name, "grade_item_id")
         _validate_item_directory_entries(entry)
+        item = _grade_item_id_from_directory(root, class_value, entry)
         revisions = list_grade_item_revisions(root, class_value, item)
         if not revisions:
             raise GradeItemStorageIntegrityError(
@@ -898,6 +920,47 @@ def _require_existing_core_class(root: Path, class_id: str) -> None:
             "Core class workspace must exist before Grade Item creation."
         )
     _validate_existing_directory_chain(root, path)
+
+
+def _grade_item_id_from_directory(
+    root: Path,
+    class_id: str,
+    item_dir: Path,
+) -> str:
+    """Recover and verify logical identity from authoritative revision 1."""
+
+    revision_path = item_dir / "revisions" / "1.json"
+    digest_path = Path(str(revision_path) + ".sha256")
+    content = _read_bounded_regular_file(
+        revision_path,
+        DEFAULT_MAXIMUM_GRADE_ITEM_REVISION_BYTES,
+        missing_message="Grade Item revision 1 does not exist.",
+    )
+    digest_bytes = _read_bounded_regular_file(
+        digest_path,
+        DEFAULT_MAXIMUM_GRADE_ITEM_DIGEST_BYTES,
+        missing_message="Grade Item revision 1 digest does not exist.",
+    )
+    expected_digest = _parse_digest_sidecar(digest_bytes)
+    if hashlib.sha256(content).hexdigest() != expected_digest:
+        raise GradeItemStorageIntegrityError(
+            "Grade Item revision 1 digest does not match exact JSON bytes."
+        )
+    try:
+        revision = grade_item_revision_from_json_bytes(content)
+    except (GradeItemSerializationError, GradeItemValidationError) as error:
+        raise GradeItemStorageIntegrityError(
+            f"Grade Item revision 1 is invalid or noncanonical: {error}"
+        ) from error
+    if revision.class_id != class_id or revision.grade_item_revision != 1:
+        raise GradeItemStorageIntegrityError(
+            "Grade Item revision 1 identity does not match its collection scope."
+        )
+    if item_dir.name != grade_item_path_key(revision.grade_item_id):
+        raise GradeItemStorageIntegrityError(
+            "Grade Item directory key does not match authoritative identity."
+        )
+    return revision.grade_item_id
 
 
 def _validate_item_directory_entries(item_dir: Path) -> None:

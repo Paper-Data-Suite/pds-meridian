@@ -53,9 +53,11 @@ from meridian.grade_item_storage import (
     GradeItemStorageError,
     StoredGradeItemRevision,
     grade_item_directory,
+    grade_item_relative_directory,
     list_grade_item_revisions,
     load_grade_item_revision,
 )
+from meridian.storage_path_keys import storage_path_key
 
 GRADE_ITEM_MEMBERSHIP_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 GRADE_ITEM_MEMBERSHIP_CURRENT_RECORD_TYPE: Final[str] = (
@@ -343,21 +345,52 @@ def grade_item_memberships_directory(
     ) / "memberships"
 
 
-def grade_item_membership_module_directory(
-    workspace_root: str | Path,
+def grade_item_membership_path_key(
     class_id: str,
     grade_item_id: str,
-    module_id: str,
-) -> Path:
-    """Return one producer module's membership collection for a Grade Item."""
-    module = _identifier(module_id, "module_id")
-    if module != module.lower():
+    work: ModuleWorkRef,
+) -> str:
+    """Return the bounded key for one Grade Item/work relationship."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated = _work(work)
+    if validated.class_id != class_value:
         raise GradeItemMembershipStorageValidationError(
-            "module_id must be lowercase."
+            "work.class_id must match class_id."
         )
-    return grade_item_memberships_directory(
-        workspace_root, class_id, grade_item_id
-    ) / module
+    return storage_path_key(
+        "grade_item_membership",
+        class_value,
+        item,
+        validated.module_id,
+        validated.work_id,
+    )
+
+
+def grade_item_membership_relative_directory(
+    class_id: str,
+    grade_item_id: str,
+    work: ModuleWorkRef,
+) -> str:
+    """Return the bounded relative root for one Grade Item/work relationship."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated = _work(work)
+    if validated.class_id != class_value:
+        raise GradeItemMembershipStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    relation_key = grade_item_membership_path_key(
+        class_value,
+        item,
+        validated,
+    )
+    return (
+        f"{grade_item_relative_directory(class_value, item)}/"
+        f"memberships/{relation_key}"
+    )
 
 
 def grade_item_membership_directory(
@@ -373,12 +406,15 @@ def grade_item_membership_directory(
         raise GradeItemMembershipStorageValidationError(
             "work.class_id must match class_id."
         )
-    return grade_item_membership_module_directory(
+    return grade_item_memberships_directory(
         workspace_root,
         class_value,
         grade_item_id,
-        validated.module_id,
-    ) / validated.work_id
+    ) / grade_item_membership_path_key(
+        class_value,
+        grade_item_id,
+        validated,
+    )
 
 
 def grade_item_membership_revisions_directory(
@@ -457,8 +493,8 @@ def grade_item_membership_revision_relative_path(
         )
     revision = _positive_int(membership_revision, "membership_revision")
     return (
-        f"classes/{class_value}/modules/meridian/grade_items/{item}/memberships/"
-        f"{validated.module_id}/{validated.work_id}/revisions/{revision}.json"
+        f"{grade_item_membership_relative_directory(class_value, item, validated)}/"
+        f"revisions/{revision}.json"
     )
 
 
@@ -746,40 +782,25 @@ def list_grade_item_membership_work_refs(
         return ()
     _validate_existing_directory_chain(root, collection)
     refs: list[ModuleWorkRef] = []
-    for module_entry in _visible_directories(collection, "membership module"):
-        try:
-            module_id = _identifier(module_entry.name, "module_id")
-        except GradeItemMembershipStorageValidationError as error:
+    for relation in _visible_directories(collection, "membership relationship"):
+        _validate_membership_directory_entries(relation)
+        work = _membership_work_from_directory(
+            root,
+            class_value,
+            item,
+            relation,
+        )
+        revisions = list_grade_item_membership_revisions(
+            root,
+            class_value,
+            item,
+            work,
+        )
+        if not revisions:
             raise GradeItemMembershipStorageIntegrityError(
-                "Membership module directory identity is invalid."
-            ) from error
-        if module_id != module_id.lower():
-            raise GradeItemMembershipStorageIntegrityError(
-                "Membership module directory must use lowercase module_id."
+                "Membership relationship exists without immutable revision history."
             )
-        for work_entry in _visible_directories(module_entry, "membership work"):
-            try:
-                work_id = _identifier(work_entry.name, "work_id")
-                work = _work(
-                    ModuleWorkRef(
-                        module_id=module_id,
-                        class_id=class_value,
-                        work_id=work_id,
-                    )
-                )
-            except GradeItemMembershipStorageValidationError as error:
-                raise GradeItemMembershipStorageIntegrityError(
-                    "Membership work directory identity is invalid."
-                ) from error
-            _validate_membership_directory_entries(work_entry)
-            revisions = list_grade_item_membership_revisions(
-                root, class_value, item, work
-            )
-            if not revisions:
-                raise GradeItemMembershipStorageIntegrityError(
-                    "Membership relationship exists without immutable revision history."
-                )
-            refs.append(work)
+        refs.append(work)
     return tuple(
         sorted(refs, key=lambda value: (value.module_id, value.work_id))
     )
@@ -1268,6 +1289,60 @@ def _require_existing_grade_item(root: Path, class_id: str, grade_item_id: str) 
         raise GradeItemMembershipStorageIntegrityError(
             "Grade Item exists without immutable revision history."
         )
+
+
+def _membership_work_from_directory(
+    root: Path,
+    class_id: str,
+    grade_item_id: str,
+    relation: Path,
+) -> ModuleWorkRef:
+    """Recover and verify work identity from authoritative revision 1."""
+
+    revision_path = relation / "revisions" / "1.json"
+    digest_path = Path(str(revision_path) + ".sha256")
+    content = _read_bounded_regular_file(
+        revision_path,
+        DEFAULT_MAXIMUM_GRADE_ITEM_MEMBERSHIP_REVISION_BYTES,
+        missing_message="Membership revision 1 does not exist.",
+    )
+    digest_bytes = _read_bounded_regular_file(
+        digest_path,
+        DEFAULT_MAXIMUM_GRADE_ITEM_MEMBERSHIP_DIGEST_BYTES,
+        missing_message="Membership revision 1 digest does not exist.",
+    )
+    expected_digest = _parse_digest_sidecar(digest_bytes)
+    if hashlib.sha256(content).hexdigest() != expected_digest:
+        raise GradeItemMembershipStorageIntegrityError(
+            "Membership revision 1 digest does not match exact JSON bytes."
+        )
+    try:
+        decision = grade_item_membership_decision_from_json_bytes(content)
+    except (
+        GradeItemMembershipSerializationError,
+        GradeItemMembershipValidationError,
+    ) as error:
+        raise GradeItemMembershipStorageIntegrityError(
+            f"Membership revision 1 is invalid or noncanonical: {error}"
+        ) from error
+    if (
+        decision.class_id != class_id
+        or decision.grade_item_id != grade_item_id
+        or decision.membership_revision != 1
+    ):
+        raise GradeItemMembershipStorageIntegrityError(
+            "Membership revision 1 identity does not match its collection scope."
+        )
+    work = decision.work_reference.work
+    if relation.name != grade_item_membership_path_key(
+        class_id,
+        grade_item_id,
+        work,
+    ):
+        raise GradeItemMembershipStorageIntegrityError(
+            "Membership directory key does not match authoritative identity."
+        )
+    return work
 
 
 def _validate_membership_directory_entries(relation: Path) -> None:

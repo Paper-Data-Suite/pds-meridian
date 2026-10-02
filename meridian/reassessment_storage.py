@@ -24,6 +24,7 @@ from meridian.attempt_selection_storage import (
     AttemptSelectionResolution,
     AttemptSelectionStorageError,
     attempt_selection_directory,
+    attempt_selection_relative_directory,
     load_attempt_selection_decision_revision,
     resolve_current_attempt_selection,
 )
@@ -429,10 +430,19 @@ def reassessment_policy_revision_relative_path(
     policy_id: str,
     policy_revision: int,
 ) -> str:
-    path = reassessment_policy_revision_path(
-        Path("."), class_id, grade_item_id, work, policy_id, policy_revision
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise ReassessmentStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    policy = _identifier(policy_id, "policy_id")
+    revision = _positive_int(policy_revision, "policy_revision")
+    return (
+        f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
+        f"reassessment/policies/{policy}/revisions/{revision}.json"
     )
-    return path.as_posix().removeprefix("./")
 
 
 def reassessment_decision_revision_relative_path(
@@ -442,10 +452,25 @@ def reassessment_decision_revision_relative_path(
     student_id: str,
     decision_revision: int,
 ) -> str:
-    path = reassessment_decision_revision_path(
-        Path("."), class_id, grade_item_id, work, student_id, decision_revision
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise ReassessmentStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    student = _identifier(student_id, "student_id")
+    revision = _positive_int(decision_revision, "decision_revision")
+    subject_key = reassessment_subject_key(
+        class_value,
+        item,
+        validated_work,
+        student,
     )
-    return path.as_posix().removeprefix("./")
+    return (
+        f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
+        f"reassessment/students/{subject_key}/revisions/{revision}.json"
+    )
 
 
 def write_reassessment_policy_revision(

@@ -31,6 +31,7 @@ from meridian.grade_item_membership_storage import (
     get_current_grade_item_membership_revision,
     grade_item_membership_current_path,
     grade_item_membership_directory,
+    grade_item_membership_path_key,
     grade_item_membership_revision_digest_path,
     grade_item_membership_revision_path,
     grade_item_membership_revision_relative_path,
@@ -48,6 +49,7 @@ from meridian.grade_item_memberships import (
     GradeItemMembershipDecision,
 )
 from meridian.grade_item_storage import (
+    grade_item_path_key,
     list_grade_item_revisions,
     select_grade_item_revision,
     write_grade_item_revision,
@@ -326,7 +328,9 @@ def test_canonical_path_and_relative_path(tmp_path: Path) -> None:
     stored = write_grade_item_membership_revision(root, membership(digest)).stored
     assert stored.relative_path == (
         "classes/synthetic_class_2026/modules/meridian/grade_items/"
-        "unit1_assessment/memberships/scoreform/test_1/revisions/1.json"
+        f"{grade_item_path_key(ITEM_ID)}/memberships/"
+        f"{grade_item_membership_path_key(CLASS_ID, ITEM_ID, WORK)}/"
+        "revisions/1.json"
     )
     assert stored.path == grade_item_membership_revision_path(
         root, CLASS_ID, ITEM_ID, WORK, 1
@@ -334,6 +338,37 @@ def test_canonical_path_and_relative_path(tmp_path: Path) -> None:
     assert grade_item_membership_revision_relative_path(
         CLASS_ID, ITEM_ID, WORK, 1
     ) == stored.relative_path
+
+
+def test_long_membership_identity_uses_one_bounded_relation_key(
+    tmp_path: Path,
+) -> None:
+    root = make_workspace(tmp_path)
+    long_item_id = "grade_" + ("g" * 5000)
+    long_work = ModuleWorkRef(
+        module_id="scoreform",
+        class_id=CLASS_ID,
+        work_id="work_" + ("w" * 5000),
+    )
+
+    relation = grade_item_membership_directory(
+        root,
+        CLASS_ID,
+        long_item_id,
+        long_work,
+    )
+
+    assert relation.parent.name == "memberships"
+    assert len(relation.name) == 67
+    assert relation.name == grade_item_membership_path_key(
+        CLASS_ID,
+        long_item_id,
+        long_work,
+    )
+    assert len(relation.parent.parent.name) == 67
+    assert relation.parent.parent.name == grade_item_path_key(long_item_id)
+    assert long_item_id not in relation.as_posix()
+    assert long_work.work_id not in relation.as_posix()
 
 
 def test_revision_write_is_immutable_and_exact_retry_is_idempotent(

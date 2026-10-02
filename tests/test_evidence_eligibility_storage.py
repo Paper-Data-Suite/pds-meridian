@@ -141,11 +141,23 @@ def test_canonical_storage_path_uses_deterministic_source_key(tmp_path: Path) ->
     path = storage.evidence_eligibility_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, source(), 1
     )
-    assert path.as_posix().endswith(
-        "/classes/synthetic_class_2026/modules/meridian/grade_items/"
-        "unit1_assessment/memberships/scoreform/test_1/evidence_eligibility/"
-        f"{evidence_source_key(source())}/revisions/1.json"
+    assert path == (
+        storage.evidence_eligibility_collection_directory(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            source().work,
+        )
+        / evidence_source_key(source())
+        / "revisions"
+        / "1.json"
     )
+    assert storage.evidence_eligibility_revision_relative_path(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        source(),
+        1,
+    ) == path.relative_to(workspace).as_posix()
 
 
 def test_revision_write_is_immutable_idempotent_and_not_current(

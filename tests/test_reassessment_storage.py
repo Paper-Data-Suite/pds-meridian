@@ -191,12 +191,26 @@ def test_canonical_paths_are_nested_under_attempt_selection(tmp_path: Path) -> N
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "teacher_reassessment", 1
     )
     assert "attempt_selection/reassessment/policies" in path.as_posix()
+    assert storage.reassessment_policy_revision_relative_path(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "teacher_reassessment",
+        1,
+    ) == path.relative_to(workspace).as_posix()
     decision_path = storage.reassessment_decision_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1", 1
     )
     assert reassessment_subject_key(
         CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
     ) in decision_path.as_posix()
+    assert storage.reassessment_decision_revision_relative_path(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "student_1",
+        1,
+    ) == decision_path.relative_to(workspace).as_posix()
 
 
 def test_policy_write_is_immutable_idempotent_and_not_current(

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -24,6 +25,7 @@ from meridian.grade_item_storage import (
     get_current_grade_item_revision,
     grade_item_current_path,
     grade_item_directory,
+    grade_item_path_key,
     grade_item_revision_digest_path,
     grade_item_revision_path,
     grade_item_revision_relative_path,
@@ -81,12 +83,34 @@ def test_write_revision_uses_canonical_class_module_path(tmp_path: Path) -> None
     assert result.disposition == "created"
     assert result.stored.relative_path == (
         "classes/english10_p2/modules/meridian/grade_items/"
-        "unit1_assessment/revisions/1.json"
+        f"{grade_item_path_key(ITEM_ID)}/revisions/1.json"
     )
     assert result.stored.path == grade_item_revision_path(root, CLASS_ID, ITEM_ID, 1)
     assert result.stored.path.is_file()
     assert grade_item_revision_digest_path(root, CLASS_ID, ITEM_ID, 1).is_file()
     assert get_current_grade_item_revision(root, CLASS_ID, ITEM_ID) is None
+
+
+def test_long_grade_item_id_uses_bounded_key_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    root = make_workspace(tmp_path)
+    long_item_id = "grade_" + ("x" * 5000)
+    candidate = replace(revision(1), grade_item_id=long_item_id)
+
+    stored = write_grade_item_revision(root, candidate).stored
+    item_dir = grade_item_directory(root, CLASS_ID, long_item_id)
+
+    assert len(item_dir.name) == 67
+    assert item_dir.name == grade_item_path_key(long_item_id)
+    assert long_item_id not in stored.relative_path
+    assert load_grade_item_revision(
+        root,
+        CLASS_ID,
+        long_item_id,
+        1,
+    ).revision.grade_item_id == long_item_id
+    assert list_grade_item_ids(root, CLASS_ID) == (long_item_id,)
 
 
 def test_write_does_not_create_missing_core_class(tmp_path: Path) -> None:
@@ -312,7 +336,7 @@ def test_relative_path_is_platform_neutral(tmp_path: Path) -> None:
     make_workspace(tmp_path)
     assert grade_item_revision_relative_path(CLASS_ID, ITEM_ID, 3) == (
         "classes/english10_p2/modules/meridian/grade_items/"
-        "unit1_assessment/revisions/3.json"
+        f"{grade_item_path_key(ITEM_ID)}/revisions/3.json"
     )
     assert "\\" not in grade_item_revision_relative_path(CLASS_ID, ITEM_ID, 3)
 
