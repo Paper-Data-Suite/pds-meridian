@@ -49,6 +49,7 @@ from meridian.grade_policy_storage import (
     load_grade_policy_revision,
     validate_grade_policy_dependencies,
 )
+from meridian.storage_path_keys import storage_path_key
 
 GRADE_POLICY_ACTIVATION_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 GRADE_POLICY_ACTIVATION_CURRENT_RECORD_TYPE: Final[str] = (
@@ -348,6 +349,36 @@ def grade_policy_activations_directory(
     return path
 
 
+def grade_policy_activation_period_key(
+    class_id: str,
+    target_period: AcademicPeriodRef,
+) -> str:
+    """Return the bounded key for one class-local Academic Period activation."""
+
+    class_value = _identifier(class_id, "class_id")
+    period = _period_ref(target_period)
+    return storage_path_key(
+        "grade_policy_activation_period",
+        class_value,
+        period.school_year,
+        period.period_id,
+    )
+
+
+def grade_policy_activation_relative_directory(
+    class_id: str,
+    target_period: AcademicPeriodRef,
+) -> str:
+    """Return one activation family's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    period = _period_ref(target_period)
+    return (
+        f"classes/{class_value}/modules/meridian/grade_policy_activations/"
+        f"{grade_policy_activation_period_key(class_value, period)}"
+    )
+
+
 def grade_policy_activation_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -356,8 +387,7 @@ def grade_policy_activation_directory(
     period = _period_ref(target_period)
     return (
         grade_policy_activations_directory(workspace_root, class_id)
-        / period.school_year
-        / period.period_id
+        / grade_policy_activation_period_key(class_id, period)
     )
 
 
@@ -420,10 +450,11 @@ def grade_policy_activation_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(target_period)
     revision = _positive_int(activation_revision, "activation_revision")
-    return (
-        f"classes/{class_value}/modules/meridian/grade_policy_activations/"
-        f"{period.school_year}/{period.period_id}/revisions/{revision}.json"
+    activation_root = grade_policy_activation_relative_directory(
+        class_value,
+        period,
     )
+    return f"{activation_root}/revisions/{revision}.json"
 
 
 def validate_grade_policy_activation_dependencies(

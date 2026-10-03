@@ -349,12 +349,8 @@ def teacher_grade_override_family_directory(
     )
     path = (
         teacher_grade_overrides_directory(root, class_value)
-        / "periods"
-        / period.school_year
-        / period.period_id
-        / "students"
+        / "subjects"
         / subject_key
-        / family
     )
     _require_containment(root, path)
     return path
@@ -450,8 +446,7 @@ def teacher_grade_override_revision_relative_path(
     )
     return (
         f"classes/{class_value}/modules/meridian/grade_overrides/"
-        f"periods/{period.school_year}/{period.period_id}/students/"
-        f"{subject_key}/{family}/revisions/{revision}.json"
+        f"subjects/{subject_key}/revisions/{revision}.json"
     )
 
 

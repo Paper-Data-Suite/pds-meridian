@@ -184,10 +184,11 @@ def test_write_uses_privacy_minimized_family_scoped_path(
     assert result.disposition == "created"
     assert result.stored.relative_path == (
         "classes/synthetic_class_2026/modules/meridian/grade_overrides/"
-        f"periods/2026-2027/mp1/students/{subject_key}/{family}/"
-        "revisions/1.json"
+        f"subjects/{subject_key}/revisions/1.json"
     )
     assert STUDENT_ID not in result.stored.relative_path
+    assert PERIOD.school_year not in result.stored.relative_path
+    assert PERIOD.period_id not in result.stored.relative_path
     assert get_current_teacher_grade_override_reference(
         root, CLASS_ID, STUDENT_ID, PERIOD, 1, value.calculation_family
     ) is None
@@ -533,12 +534,43 @@ def test_family_histories_are_independent(tmp_path: Path) -> None:
     ) == (1,)
 
 
-def test_relative_path_never_contains_raw_student_identifier() -> None:
+def test_relative_path_never_contains_raw_scope_identifiers() -> None:
     value = teacher_grade_override_revision_relative_path(
         CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional", 1
     )
     assert STUDENT_ID not in value
-    assert "/students/" in value
+    assert PERIOD.school_year not in value
+    assert PERIOD.period_id not in value
+    assert "/subjects/" in value
+
+
+def test_long_override_scope_keeps_family_path_bounded(tmp_path: Path) -> None:
+    long_student_id = "student_" + ("s" * 5000)
+    long_period = AcademicPeriodRef(
+        PERIOD.school_year,
+        "period_" + ("p" * 5000),
+    )
+    family = teacher_grade_override_family_directory(
+        tmp_path,
+        CLASS_ID,
+        long_student_id,
+        long_period,
+        1,
+        "conventional",
+    )
+    subject_key = teacher_grade_override_subject_key(
+        CLASS_ID,
+        long_student_id,
+        long_period,
+        1,
+        "conventional",
+    )
+
+    assert len(subject_key) == 64
+    assert family.name == subject_key
+    assert family.parent.name == "subjects"
+    assert long_student_id not in family.as_posix()
+    assert long_period.period_id not in family.as_posix()
 
 
 def test_symlinked_revision_is_rejected_when_supported(tmp_path: Path) -> None:
