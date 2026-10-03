@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal, TypeAlias, TypeVar, cast
 
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
+from pds_core.routes import class_module_dir
 from pds_core.routing_models import (
     ModuleWorkRef,
     RoutingModelError,
@@ -49,7 +50,7 @@ from meridian.evidence_eligibility_storage import (
 from meridian.grade_item_membership_storage import (
     GradeItemMembershipStorageError,
     grade_item_membership_directory,
-    grade_item_membership_relative_directory,
+    grade_item_membership_path_key,
     load_current_grade_item_membership_decision,
     load_grade_item_membership_revision,
 )
@@ -372,26 +373,26 @@ class AttemptSelectionResolution:
             )
 
 
+def attempt_selection_storage_directory(
+    workspace_root: str | Path,
+    class_id: str,
+) -> Path:
+    """Return the class-local bounded attempt-selection storage root."""
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    path = class_module_dir(root, class_value, "meridian") / "attempts"
+    _require_containment(root, path)
+    return path
+
+
 def attempt_selection_directory(
     workspace_root: str | Path,
     class_id: str,
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return grade_item_membership_directory(
-        _root(workspace_root),
-        _identifier(class_id, "class_id"),
-        _identifier(grade_item_id, "grade_item_id"),
-        _work(work),
-    ) / "attempt_selection"
-
-
-def attempt_selection_relative_directory(
-    class_id: str,
-    grade_item_id: str,
-    work: ModuleWorkRef,
-) -> str:
-    """Return the canonical relative root for one attempt-selection relation."""
+    """Return the exact relation marker for one Grade Item/work pair."""
 
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
@@ -400,12 +401,41 @@ def attempt_selection_relative_directory(
         raise AttemptSelectionStorageValidationError(
             "work.class_id must match class_id."
         )
-    membership_root = grade_item_membership_relative_directory(
+    marker_key = grade_item_membership_path_key(
         class_value,
         item,
         validated_work,
     )
-    return f"{membership_root}/attempt_selection"
+    return (
+        attempt_selection_storage_directory(workspace_root, class_value)
+        / "r"
+        / marker_key
+    )
+
+
+def attempt_selection_relative_directory(
+    class_id: str,
+    grade_item_id: str,
+    work: ModuleWorkRef,
+) -> str:
+    """Return the canonical relative relation-marker directory."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise AttemptSelectionStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    marker_key = grade_item_membership_path_key(
+        class_value,
+        item,
+        validated_work,
+    )
+    return (
+        f"classes/{class_value}/modules/meridian/attempts/r/"
+        f"{marker_key}"
+    )
 
 
 def attempt_selection_policies_directory(
@@ -414,10 +444,18 @@ def attempt_selection_policies_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return (
-        attempt_selection_directory(workspace_root, class_id, grade_item_id, work)
-        / "policies"
-    )
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise AttemptSelectionStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    _ = item
+    return attempt_selection_storage_directory(
+        workspace_root,
+        class_value,
+    ) / "p"
 
 
 def attempt_selection_policy_path_key(
@@ -480,7 +518,7 @@ def attempt_selection_policy_revision_path(
     revision = _positive_int(policy_revision, "policy_revision")
     return attempt_selection_policy_directory(
         workspace_root, class_id, grade_item_id, work, policy_id
-    ) / "revisions" / f"{revision}.json"
+    ) / f"{revision}.json"
 
 
 def attempt_selection_policy_current_path(
@@ -501,10 +539,18 @@ def attempt_selection_students_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return (
-        attempt_selection_directory(workspace_root, class_id, grade_item_id, work)
-        / "students"
-    )
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise AttemptSelectionStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    _ = item
+    return attempt_selection_storage_directory(
+        workspace_root,
+        class_value,
+    ) / "s"
 
 
 def attempt_selection_subject_directory(
@@ -532,7 +578,7 @@ def attempt_selection_decision_revision_path(
     revision = _positive_int(decision_revision, "decision_revision")
     return attempt_selection_subject_directory(
         workspace_root, class_id, grade_item_id, work, student_id
-    ) / "revisions" / f"{revision}.json"
+    ) / f"{revision}.json"
 
 
 def attempt_selection_decision_current_path(
@@ -570,8 +616,8 @@ def attempt_selection_policy_revision_relative_path(
     )
     revision = _positive_int(policy_revision, "policy_revision")
     return (
-        f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
-        f"policies/{policy_key}/revisions/{revision}.json"
+        f"classes/{class_value}/modules/meridian/attempts/p/"
+        f"{policy_key}/{revision}.json"
     )
 
 
@@ -593,8 +639,8 @@ def attempt_selection_decision_revision_relative_path(
     revision = _positive_int(decision_revision, "decision_revision")
     key = attempt_subject_key(class_value, item, validated_work, student)
     return (
-        f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
-        f"students/{key}/revisions/{revision}.json"
+        f"classes/{class_value}/modules/meridian/attempts/s/"
+        f"{key}/{revision}.json"
     )
 
 
@@ -746,6 +792,15 @@ def write_attempt_selection_policy_revision(
     _require_membership_history(
         root, candidate.class_id, candidate.grade_item_id, candidate.work
     )
+    _ensure_directory_chain(
+        root,
+        attempt_selection_directory(
+            root,
+            candidate.class_id,
+            candidate.grade_item_id,
+            candidate.work,
+        ),
+    )
     target = attempt_selection_policy_revision_path(
         root,
         candidate.class_id,
@@ -776,7 +831,7 @@ def write_attempt_selection_policy_revision(
                 "different content."
             )
         return AttemptSelectionPolicyWriteResult("existing", stored)
-    relation = target.parent.parent
+    relation = target.parent
     _ensure_directory_chain(root, target.parent)
     _validate_attempt_selection_collections(
         root, candidate.class_id, candidate.grade_item_id, candidate.work
@@ -1063,7 +1118,16 @@ def write_attempt_selection_decision_revision(
             "Attempt candidate or eligibility basis changed before decision write."
         )
 
-    relation = target.parent.parent
+    _ensure_directory_chain(
+        root,
+        attempt_selection_directory(
+            root,
+            candidate.class_id,
+            candidate.grade_item_id,
+            candidate.work,
+        ),
+    )
+    relation = target.parent
     _ensure_directory_chain(root, target.parent)
     _validate_attempt_selection_collections(
         root, candidate.class_id, candidate.grade_item_id, candidate.work
@@ -1747,6 +1811,15 @@ def _read_pointer(path: Path, root: Path, keys: frozenset[str]) -> dict[str, obj
     return cast(dict[str, object], decoded)
 
 
+def _directory_entries(path: Path, label: str) -> tuple[Path, ...]:
+    try:
+        return tuple(path.iterdir())
+    except OSError as error:
+        raise AttemptSelectionStorageReadError(
+            f"Could not inspect {label}."
+        ) from error
+
+
 def _validate_attempt_selection_collections(
     root: Path,
     class_id: str,
@@ -1754,7 +1827,16 @@ def _validate_attempt_selection_collections(
     work: ModuleWorkRef,
 ) -> None:
     """Fail closed on unexpected/symlinked #30 collection entries."""
-    base = attempt_selection_directory(root, class_id, grade_item_id, work)
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise AttemptSelectionStorageValidationError(
+            "work.class_id must match class_id."
+        )
+
+    base = attempt_selection_storage_directory(root, class_value)
     if not base.exists():
         return
     _validate_existing_directory_chain(root, base)
@@ -1764,7 +1846,7 @@ def _validate_attempt_selection_collections(
         raise AttemptSelectionStorageReadError(
             "Could not inspect attempt-selection collection root."
         ) from error
-    allowed = {"policies", "reassessment", "students"}
+    allowed = {"r", "p", "s"}
     for entry in entries:
         if entry.name not in allowed:
             raise AttemptSelectionStorageIntegrityError(
@@ -1775,15 +1857,52 @@ def _validate_attempt_selection_collections(
                 "Attempt-selection collection children must be real directories."
             )
 
-    policies = base / "policies"
+    relations = base / "r"
+    if relations.exists():
+        for entry in _directory_entries(
+            relations,
+            "attempt-selection relation collection",
+        ):
+            if entry.is_symlink() or not entry.is_dir():
+                raise AttemptSelectionStorageIntegrityError(
+                    "Attempt-selection relation collection contains a "
+                    "non-directory entry."
+                )
+            try:
+                validate_storage_path_key(entry.name)
+            except StoragePathKeyError as error:
+                raise AttemptSelectionStorageIntegrityError(
+                    "Attempt-selection relation collection contains an invalid "
+                    "bounded storage key."
+                ) from error
+            for child in _directory_entries(
+                entry,
+                "attempt-selection relation marker",
+            ):
+                if child.name != "reassessment":
+                    raise AttemptSelectionStorageIntegrityError(
+                        "Attempt-selection relation marker has unexpected entry."
+                    )
+                if child.is_symlink() or not child.is_dir():
+                    raise AttemptSelectionStorageIntegrityError(
+                        "Reassessment marker must be a real directory."
+                    )
+
+    marker = attempt_selection_directory(
+        root,
+        class_value,
+        item,
+        validated_work,
+    )
+    if marker.exists():
+        _validate_existing_directory_chain(root, marker)
+
+    policies = base / "p"
     if policies.exists():
-        try:
-            policy_entries = tuple(policies.iterdir())
-        except OSError as error:
-            raise AttemptSelectionStorageReadError(
-                "Could not inspect attempt-selection policy collection."
-            ) from error
-        for entry in policy_entries:
+        for entry in _directory_entries(
+            policies,
+            "attempt-selection policy collection",
+        ):
             if entry.is_symlink() or not entry.is_dir():
                 raise AttemptSelectionStorageIntegrityError(
                     "Attempt-selection policy collection contains a "
@@ -1796,16 +1915,14 @@ def _validate_attempt_selection_collections(
                     "Attempt-selection policy collection contains an invalid "
                     "bounded storage key."
                 ) from error
+            _validate_history_root(entry)
 
-    students = base / "students"
+    students = base / "s"
     if students.exists():
-        try:
-            student_entries = tuple(students.iterdir())
-        except OSError as error:
-            raise AttemptSelectionStorageReadError(
-                "Could not inspect attempt-selection student collection."
-            ) from error
-        for entry in student_entries:
+        for entry in _directory_entries(
+            students,
+            "attempt-selection student collection",
+        ):
             if entry.is_symlink() or not entry.is_dir():
                 raise AttemptSelectionStorageIntegrityError(
                     "Attempt-selection student collection contains a "
@@ -1816,6 +1933,7 @@ def _validate_attempt_selection_collections(
                     "Attempt-selection student collection contains an invalid "
                     "subject key."
                 )
+            _validate_history_root(entry)
 
 
 def _list_history_revisions(
@@ -1828,18 +1946,17 @@ def _list_history_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_history_root(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
     jsons: set[int] = set()
     digests: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise AttemptSelectionStorageReadError(
             "Could not enumerate attempt-selection revisions."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise AttemptSelectionStorageIntegrityError(
                 "Revision storage contains nonregular entry."
@@ -1882,7 +1999,6 @@ def _validate_history_root(relation: Path) -> None:
         raise AttemptSelectionStorageIntegrityError(
             "Attempt-selection history root is unsafe."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1890,20 +2006,23 @@ def _validate_history_root(relation: Path) -> None:
             "Could not inspect attempt-selection history root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
-            raise AttemptSelectionStorageIntegrityError(
-                "Attempt-selection history root has unexpected entry."
-            )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise AttemptSelectionStorageIntegrityError(
-                    "Revisions entry must be a real directory."
-                )
-        else:
+        if entry.name in {"current.json", ".write.lock"}:
             if entry.is_symlink() or not entry.is_file():
                 raise AttemptSelectionStorageIntegrityError(
                     "Pointer/lock entry must be regular file."
                 )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
+            raise AttemptSelectionStorageIntegrityError(
+                "Attempt-selection history root has unexpected entry."
+            )
+        if entry.is_symlink() or not entry.is_file():
+            raise AttemptSelectionStorageIntegrityError(
+                "Revision entry must be a regular file."
+            )
 
 
 def _read_revision_pair(root: Path, path: Path, maximum: int) -> tuple[bytes, str]:

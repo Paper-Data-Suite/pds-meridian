@@ -189,12 +189,13 @@ def allow_decision_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-def test_canonical_paths_are_nested_under_attempt_selection(tmp_path: Path) -> None:
+def test_canonical_paths_use_attempt_relation_marker(tmp_path: Path) -> None:
     workspace = root(tmp_path)
     path = storage.reassessment_policy_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "teacher_reassessment", 1
     )
-    assert "attempt_selection/reassessment/policies" in path.as_posix()
+    assert "/attempts/r/" in path.as_posix()
+    assert "/reassessment/policies/" in path.as_posix()
     assert storage.reassessment_policy_revision_relative_path(
         CLASS_ID,
         GRADE_ITEM_ID,

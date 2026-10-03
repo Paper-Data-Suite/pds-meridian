@@ -168,26 +168,21 @@ def derivation(
     )
 
 
-def test_policy_path_is_nested_under_membership_relation(tmp_path: Path) -> None:
+def test_policy_path_is_flat_and_class_local(tmp_path: Path) -> None:
     workspace = root(tmp_path)
     path = storage.attempt_selection_policy_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "teacher_explicit_attempts", 1
     )
+    policy_key = storage.attempt_selection_policy_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "teacher_explicit_attempts",
+    )
     assert path == (
-        storage.attempt_selection_directory(
-            workspace,
-            CLASS_ID,
-            GRADE_ITEM_ID,
-            WORK,
-        )
-        / "policies"
-        / storage.attempt_selection_policy_path_key(
-            CLASS_ID,
-            GRADE_ITEM_ID,
-            WORK,
-            "teacher_explicit_attempts",
-        )
-        / "revisions"
+        storage.attempt_selection_storage_directory(workspace, CLASS_ID)
+        / "p"
+        / policy_key
         / "1.json"
     )
     assert storage.attempt_selection_policy_revision_relative_path(
@@ -197,6 +192,8 @@ def test_policy_path_is_nested_under_membership_relation(tmp_path: Path) -> None
         "teacher_explicit_attempts",
         1,
     ) == path.relative_to(workspace).as_posix()
+    assert len(path.relative_to(workspace).as_posix()) <= 131
+    assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 138
 
 
 def test_subject_path_uses_deterministic_hash(tmp_path: Path) -> None:
@@ -205,8 +202,9 @@ def test_subject_path_uses_deterministic_hash(tmp_path: Path) -> None:
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1", 1
     )
     key = attempt_subject_key(CLASS_ID, GRADE_ITEM_ID, WORK, "student_1")
-    assert f"/students/{key}/revisions/1.json" in path.as_posix()
-    assert "student_1" not in path.parent.parent.name
+    assert f"/attempts/s/{key}/1.json" in path.as_posix()
+    assert "student_1" not in path.parent.name
+    assert len(path.relative_to(workspace).as_posix()) <= 128
 
 
 def test_long_policy_id_uses_bounded_key_and_round_trips(
@@ -221,7 +219,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         workspace,
         policy(policy_id=long_policy_id),
     ).stored
-    relation = stored.path.parent.parent
+    relation = stored.path.parent
 
     assert len(relation.name) == 67
     assert relation.name == storage.attempt_selection_policy_path_key(
@@ -231,6 +229,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         long_policy_id,
     )
     assert long_policy_id not in stored.relative_path
+    assert len(stored.relative_path) <= 131
     assert storage.load_attempt_selection_policy_revision(
         workspace,
         CLASS_ID,
@@ -537,7 +536,7 @@ def test_lock_conflict_is_fail_closed(
     relation = storage.attempt_selection_policy_directory(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
     )
-    (relation / "revisions").mkdir(parents=True)
+    relation.mkdir(parents=True)
     (relation / ".write.lock").write_bytes(b"busy\n")
     with pytest.raises(storage.AttemptSelectionStorageLockError):
         storage.write_attempt_selection_policy_revision(workspace, policy())
