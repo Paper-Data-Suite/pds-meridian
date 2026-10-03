@@ -89,7 +89,11 @@ def candidates() -> tuple[AttemptCandidate, ...]:
 
 
 def policy(
-    *, revision: int = 1, minimum: int = 0, maximum: int | None = 1
+    *,
+    revision: int = 1,
+    minimum: int = 0,
+    maximum: int | None = 1,
+    policy_id: str = "teacher_explicit_attempts",
 ) -> AttemptSelectionPolicy:
     return AttemptSelectionPolicy(
         schema_version="1",
@@ -97,7 +101,7 @@ def policy(
         class_id=CLASS_ID,
         grade_item_id=GRADE_ITEM_ID,
         work=WORK,
-        policy_id="teacher_explicit_attempts",
+        policy_id=policy_id,
         policy_revision=revision,
         supersedes_revision=None if revision == 1 else revision - 1,
         selection_basis="explicit",
@@ -177,7 +181,12 @@ def test_policy_path_is_nested_under_membership_relation(tmp_path: Path) -> None
             WORK,
         )
         / "policies"
-        / "teacher_explicit_attempts"
+        / storage.attempt_selection_policy_path_key(
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            "teacher_explicit_attempts",
+        )
         / "revisions"
         / "1.json"
     )
@@ -198,6 +207,38 @@ def test_subject_path_uses_deterministic_hash(tmp_path: Path) -> None:
     key = attempt_subject_key(CLASS_ID, GRADE_ITEM_ID, WORK, "student_1")
     assert f"/students/{key}/revisions/1.json" in path.as_posix()
     assert "student_1" not in path.parent.parent.name
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    allow_policy_root(monkeypatch)
+    workspace = root(tmp_path)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = storage.write_attempt_selection_policy_revision(
+        workspace,
+        policy(policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == storage.attempt_selection_policy_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert storage.load_attempt_selection_policy_revision(
+        workspace,
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
 
 
 def test_policy_write_is_immutable_and_does_not_auto_select(

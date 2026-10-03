@@ -64,14 +64,18 @@ def actor() -> ReassessmentActor:
     return ReassessmentActor("teacher", "teacher_local")
 
 
-def policy(*, revision: int = 1) -> ReassessmentPolicy:
+def policy(
+    *,
+    revision: int = 1,
+    policy_id: str = "teacher_reassessment",
+) -> ReassessmentPolicy:
     return ReassessmentPolicy(
         schema_version="1",
         record_type="meridian_reassessment_policy",
         class_id=CLASS_ID,
         grade_item_id=GRADE_ITEM_ID,
         work=WORK,
-        policy_id="teacher_reassessment",
+        policy_id=policy_id,
         policy_revision=revision,
         supersedes_revision=None if revision == 1 else revision - 1,
         relationship_basis="explicit",
@@ -211,6 +215,38 @@ def test_canonical_paths_are_nested_under_attempt_selection(tmp_path: Path) -> N
         "student_1",
         1,
     ) == decision_path.relative_to(workspace).as_posix()
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    allow_policy_root(monkeypatch)
+    workspace = root(tmp_path)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = storage.write_reassessment_policy_revision(
+        workspace,
+        policy(policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == storage.reassessment_policy_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert storage.load_reassessment_policy_revision(
+        workspace,
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
 
 
 def test_policy_write_is_immutable_idempotent_and_not_current(

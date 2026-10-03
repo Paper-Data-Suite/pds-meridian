@@ -53,6 +53,11 @@ from meridian.grade_item_membership_storage import (
     load_current_grade_item_membership_decision,
     load_grade_item_membership_revision,
 )
+from meridian.storage_path_keys import (
+    StoragePathKeyError,
+    storage_path_key,
+    validate_storage_path_key,
+)
 
 if TYPE_CHECKING:
     from meridian.evidence import EvidenceItem
@@ -415,6 +420,32 @@ def attempt_selection_policies_directory(
     )
 
 
+def attempt_selection_policy_path_key(
+    class_id: str,
+    grade_item_id: str,
+    work: ModuleWorkRef,
+    policy_id: str,
+) -> str:
+    """Return the bounded key for one attempt-selection policy family."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise AttemptSelectionStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key(
+        "attempt_selection_policy",
+        class_value,
+        item,
+        validated_work.module_id,
+        validated_work.work_id,
+        policy,
+    )
+
+
 def attempt_selection_policy_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -422,9 +453,20 @@ def attempt_selection_policy_directory(
     work: ModuleWorkRef,
     policy_id: str,
 ) -> Path:
-    return attempt_selection_policies_directory(
-        workspace_root, class_id, grade_item_id, work
-    ) / _identifier(policy_id, "policy_id")
+    return (
+        attempt_selection_policies_directory(
+            workspace_root,
+            class_id,
+            grade_item_id,
+            work,
+        )
+        / attempt_selection_policy_path_key(
+            class_id,
+            grade_item_id,
+            work,
+            policy_id,
+        )
+    )
 
 
 def attempt_selection_policy_revision_path(
@@ -520,10 +562,16 @@ def attempt_selection_policy_revision_relative_path(
             "work.class_id must match class_id."
         )
     policy_value = _identifier(policy_id, "policy_id")
+    policy_key = attempt_selection_policy_path_key(
+        class_value,
+        item,
+        validated_work,
+        policy_value,
+    )
     revision = _positive_int(policy_revision, "policy_revision")
     return (
         f"{attempt_selection_relative_directory(class_value, item, validated_work)}/"
-        f"policies/{policy_value}/revisions/{revision}.json"
+        f"policies/{policy_key}/revisions/{revision}.json"
     )
 
 
@@ -1742,10 +1790,11 @@ def _validate_attempt_selection_collections(
                     "non-directory entry."
                 )
             try:
-                validate_identifier(entry.name, "persisted policy_id")
-            except IdentifierValidationError as error:
+                validate_storage_path_key(entry.name)
+            except StoragePathKeyError as error:
                 raise AttemptSelectionStorageIntegrityError(
-                    "Attempt-selection policy collection contains an invalid policy ID."
+                    "Attempt-selection policy collection contains an invalid "
+                    "bounded storage key."
                 ) from error
 
     students = base / "students"
