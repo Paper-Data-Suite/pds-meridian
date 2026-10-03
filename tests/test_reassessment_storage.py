@@ -189,13 +189,28 @@ def allow_decision_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-def test_canonical_paths_use_attempt_relation_marker(tmp_path: Path) -> None:
+def test_canonical_paths_are_flat_and_class_local(tmp_path: Path) -> None:
     workspace = root(tmp_path)
     path = storage.reassessment_policy_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "teacher_reassessment", 1
     )
-    assert "/attempts/r/" in path.as_posix()
-    assert "/reassessment/policies/" in path.as_posix()
+    policy_key = storage.reassessment_policy_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "teacher_reassessment",
+    )
+    assert path == (
+        storage.reassessment_directory(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+        )
+        / "p"
+        / policy_key
+        / "1.json"
+    )
     assert storage.reassessment_policy_revision_relative_path(
         CLASS_ID,
         GRADE_ITEM_ID,
@@ -203,12 +218,16 @@ def test_canonical_paths_use_attempt_relation_marker(tmp_path: Path) -> None:
         "teacher_reassessment",
         1,
     ) == path.relative_to(workspace).as_posix()
+    assert len(path.relative_to(workspace).as_posix()) <= 133
+    assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 140
+
     decision_path = storage.reassessment_decision_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1", 1
     )
-    assert reassessment_subject_key(
+    subject_key = reassessment_subject_key(
         CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
-    ) in decision_path.as_posix()
+    )
+    assert f"/reassess/s/{subject_key}/1.json" in decision_path.as_posix()
     assert storage.reassessment_decision_revision_relative_path(
         CLASS_ID,
         GRADE_ITEM_ID,
@@ -216,6 +235,7 @@ def test_canonical_paths_use_attempt_relation_marker(tmp_path: Path) -> None:
         "student_1",
         1,
     ) == decision_path.relative_to(workspace).as_posix()
+    assert len(decision_path.relative_to(workspace).as_posix()) <= 130
 
 
 def test_long_policy_id_uses_bounded_key_and_round_trips(
@@ -230,7 +250,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         workspace,
         policy(policy_id=long_policy_id),
     ).stored
-    relation = stored.path.parent.parent
+    relation = stored.path.parent
 
     assert len(relation.name) == 67
     assert relation.name == storage.reassessment_policy_path_key(
@@ -240,6 +260,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         long_policy_id,
     )
     assert long_policy_id not in stored.relative_path
+    assert len(stored.relative_path) <= 133
     assert storage.load_reassessment_policy_revision(
         workspace,
         CLASS_ID,
@@ -669,7 +690,7 @@ def test_symlinked_collection_is_rejected(tmp_path: Path) -> None:
     base.mkdir(parents=True)
     target = tmp_path / "outside"
     target.mkdir()
-    link = base / "policies"
+    link = base / "p"
     try:
         link.symlink_to(target, target_is_directory=True)
     except OSError:
