@@ -303,7 +303,7 @@ def grade_policies_directory(
     """Return the class-local canonical Grade-policy collection."""
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = class_module_dir(root, class_value, "meridian") / "grade_policies"
+    path = class_module_dir(root, class_value, "meridian") / "gp"
     _require_containment(root, path)
     return path
 
@@ -322,7 +322,7 @@ def grade_policy_relative_directory(class_id: str, policy_id: str) -> str:
     class_value = _identifier(class_id, "class_id")
     policy = _identifier(policy_id, "policy_id")
     return (
-        f"classes/{class_value}/modules/meridian/grade_policies/"
+        f"classes/{class_value}/modules/meridian/gp/"
         f"{grade_policy_path_key(class_value, policy)}"
     )
 
@@ -350,7 +350,7 @@ def grade_policy_revisions_directory(
         workspace_root,
         class_id,
         policy_id,
-    ) / "revisions"
+    )
 
 
 def grade_policy_revision_path(
@@ -412,7 +412,7 @@ def grade_policy_revision_relative_path(
     revision = _positive_int(policy_revision, "policy_revision")
     return (
         f"{grade_policy_relative_directory(class_value, policy)}/"
-        f"revisions/{revision}.json"
+        f"{revision}.json"
     )
 
 
@@ -710,20 +710,17 @@ def list_grade_policy_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_policy_directory(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
-    _validate_existing_directory_chain(root, revisions_dir)
-
     json_revisions: set[int] = set()
     digest_revisions: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise GradePolicyStorageReadError(
             "Could not enumerate Grade-policy revision storage."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink():
             raise GradePolicyStorageIntegrityError(
                 "Grade-policy revision storage contains a symlink."
@@ -1180,7 +1177,7 @@ def _grade_policy_id_from_directory(
 ) -> str:
     """Recover and verify one logical policy ID from authoritative revision 1."""
 
-    revision_path = relation / "revisions" / "1.json"
+    revision_path = relation / "1.json"
     digest_path = Path(str(revision_path) + ".sha256")
     content = _read_bounded_regular_file(
         revision_path,
@@ -1219,7 +1216,6 @@ def _validate_policy_directory(relation: Path) -> None:
         raise GradePolicyStorageIntegrityError(
             "Grade-policy canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1227,23 +1223,22 @@ def _validate_policy_directory(relation: Path) -> None:
             "Could not inspect Grade-policy canonical root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise GradePolicyStorageIntegrityError(
+                    "Grade-policy pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise GradePolicyStorageIntegrityError(
                 "Grade-policy canonical root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise GradePolicyStorageIntegrityError(
-                    "Grade-policy revisions entry must be a real directory."
-                )
-        elif entry.name == "current.json":
-            if entry.is_symlink() or not entry.is_file():
-                raise GradePolicyStorageIntegrityError(
-                    "Grade-policy current pointer must be a regular file."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise GradePolicyStorageIntegrityError(
-                "Grade-policy lock entry must be a regular file."
+                "Grade-policy revision entry must be a regular file."
             )
 
 

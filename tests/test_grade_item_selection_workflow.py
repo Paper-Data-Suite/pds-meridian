@@ -7,7 +7,10 @@ from types import SimpleNamespace
 import pytest
 
 import meridian.grade_item_selection_workflow as workflow
-from meridian.grade_item_storage import StoredGradeItemRevision
+from meridian.grade_item_storage import (
+    StoredGradeItemRevision,
+    grade_item_revision_relative_path,
+)
 from meridian.grade_items import GradeItemRevision, grade_item_revision_to_json_bytes
 
 CLASS_ID = "synthetic_class_2026"
@@ -47,9 +50,10 @@ def _stored(
         revision=revision,
         revision_sha256=digest or actual,
         path=Path(f"{number}.json"),
-        relative_path=(
-            f"classes/{CLASS_ID}/modules/meridian/grade_items/"
-            f"{GRADE_ITEM_ID}/revisions/{number}.json"
+        relative_path=grade_item_revision_relative_path(
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            number,
         ),
         content=content,
     )

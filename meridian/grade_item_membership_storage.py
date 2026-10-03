@@ -341,10 +341,7 @@ def grade_item_memberships_directory(
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
     _identifier(grade_item_id, "grade_item_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "grade_item_memberships"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "gm"
     _require_lexical_containment(root, path)
     return path
 
@@ -392,7 +389,7 @@ def grade_item_membership_relative_directory(
         validated,
     )
     return (
-        f"classes/{class_value}/modules/meridian/grade_item_memberships/"
+        f"classes/{class_value}/modules/meridian/gm/"
         f"{relation_key}"
     )
 
@@ -430,7 +427,7 @@ def grade_item_membership_revisions_directory(
     """Return one membership relationship's immutable revision collection."""
     return grade_item_membership_directory(
         workspace_root, class_id, grade_item_id, work
-    ) / "revisions"
+    )
 
 
 def grade_item_membership_revision_path(
@@ -498,7 +495,7 @@ def grade_item_membership_revision_relative_path(
     revision = _positive_int(membership_revision, "membership_revision")
     return (
         f"{grade_item_membership_relative_directory(class_value, item, validated)}/"
-        f"revisions/{revision}.json"
+        f"{revision}.json"
     )
 
 
@@ -716,19 +713,17 @@ def list_grade_item_membership_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_membership_directory_entries(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
-    _validate_existing_directory_chain(root, revisions_dir)
     json_revisions: set[int] = set()
     digest_revisions: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise GradeItemMembershipStorageReadError(
             "Could not enumerate membership revision storage."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink():
             raise GradeItemMembershipStorageIntegrityError(
                 "Membership revision storage contains a symlink."
@@ -824,8 +819,7 @@ def write_grade_item_membership_revision(
     relation = grade_item_membership_directory(
         root, candidate.class_id, candidate.grade_item_id, validated_work
     )
-    revisions_dir = relation / "revisions"
-    _ensure_directory_chain(root, revisions_dir)
+    _ensure_directory_chain(root, relation)
     lock = relation / ".write.lock"
     _acquire_lock(lock)
     try:
@@ -1303,7 +1297,7 @@ def _membership_identity_from_directory(
 ) -> tuple[str, ModuleWorkRef]:
     """Recover and verify Grade Item/work identity from revision 1."""
 
-    revision_path = relation / "revisions" / "1.json"
+    revision_path = relation / "1.json"
     digest_path = Path(str(revision_path) + ".sha256")
     content = _read_bounded_regular_file(
         revision_path,
@@ -1351,14 +1345,6 @@ def _validate_membership_directory_entries(relation: Path) -> None:
         raise GradeItemMembershipStorageIntegrityError(
             "Membership relationship root is unsafe or not a directory."
         )
-    allowed = {
-        "revisions",
-        "current.json",
-        ".write.lock",
-        "evidence_eligibility",
-        "attempt_selection",
-        "standards_evidence",
-    }
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1366,34 +1352,22 @@ def _validate_membership_directory_entries(relation: Path) -> None:
             "Could not inspect membership relationship root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise GradeItemMembershipStorageIntegrityError(
+                    "Membership pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise GradeItemMembershipStorageIntegrityError(
                 "Membership relationship root contains an unexpected entry."
             )
-        if entry.name in {
-            "revisions",
-            "evidence_eligibility",
-            "attempt_selection",
-            "standards_evidence",
-        }:
-            if entry.is_symlink() or not entry.is_dir():
-                label = {
-                    "revisions": "Membership revisions",
-                    "evidence_eligibility": "Evidence eligibility",
-                    "attempt_selection": "Attempt selection",
-                    "standards_evidence": "Standards evidence",
-                }[entry.name]
-                raise GradeItemMembershipStorageIntegrityError(
-                    f"{label} entry must be a real directory."
-                )
-        elif entry.name == "current.json":
-            if entry.is_symlink() or not entry.is_file():
-                raise GradeItemMembershipStorageIntegrityError(
-                    "Membership current pointer must be a regular file."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise GradeItemMembershipStorageIntegrityError(
-                "Membership lock entry must be a regular file."
+                "Membership revision entry must be a regular file."
             )
 
 

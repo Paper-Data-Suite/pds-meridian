@@ -82,8 +82,8 @@ def test_write_revision_uses_canonical_class_module_path(tmp_path: Path) -> None
     result = write_grade_item_revision(root, revision(1))
     assert result.disposition == "created"
     assert result.stored.relative_path == (
-        "classes/english10_p2/modules/meridian/grade_items/"
-        f"{grade_item_path_key(ITEM_ID)}/revisions/1.json"
+        "classes/english10_p2/modules/meridian/gi/"
+        f"{grade_item_path_key(ITEM_ID)}/1.json"
     )
     assert result.stored.path == grade_item_revision_path(root, CLASS_ID, ITEM_ID, 1)
     assert result.stored.path.is_file()
@@ -104,6 +104,7 @@ def test_long_grade_item_id_uses_bounded_key_and_round_trips(
     assert len(item_dir.name) == 67
     assert item_dir.name == grade_item_path_key(long_item_id)
     assert long_item_id not in stored.relative_path
+    assert len(f"{stored.relative_path}.sha256") <= 130
     assert load_grade_item_revision(
         root,
         CLASS_ID,
@@ -335,8 +336,8 @@ def test_bounded_revision_read_rejects_oversize(tmp_path: Path) -> None:
 def test_relative_path_is_platform_neutral(tmp_path: Path) -> None:
     make_workspace(tmp_path)
     assert grade_item_revision_relative_path(CLASS_ID, ITEM_ID, 3) == (
-        "classes/english10_p2/modules/meridian/grade_items/"
-        f"{grade_item_path_key(ITEM_ID)}/revisions/3.json"
+        "classes/english10_p2/modules/meridian/gi/"
+        f"{grade_item_path_key(ITEM_ID)}/3.json"
     )
     assert "\\" not in grade_item_revision_relative_path(CLASS_ID, ITEM_ID, 3)
 

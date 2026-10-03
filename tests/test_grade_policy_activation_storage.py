@@ -245,8 +245,9 @@ def test_write_uses_period_scoped_canonical_path_and_does_not_select(
     period_key = grade_policy_activation_period_key(CLASS_ID, PERIOD1)
     assert result.stored.relative_path == (
         "classes/synthetic_class_2026/modules/meridian/"
-        f"grade_policy_activations/{period_key}/revisions/1.json"
+        f"ga/{period_key}/1.json"
     )
+    assert len(f"{result.stored.relative_path}.sha256") <= 130
     assert get_current_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1
     ) is None
@@ -593,7 +594,7 @@ def test_relative_path_is_platform_neutral(tmp_path: Path) -> None:
     period_key = grade_policy_activation_period_key(CLASS_ID, PERIOD1)
     assert path == (
         "classes/synthetic_class_2026/modules/meridian/"
-        f"grade_policy_activations/{period_key}/revisions/3.json"
+        f"ga/{period_key}/3.json"
     )
     assert "\\" not in path
 

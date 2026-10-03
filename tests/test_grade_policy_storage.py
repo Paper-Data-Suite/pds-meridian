@@ -259,8 +259,8 @@ def test_write_uses_canonical_path_and_does_not_select(tmp_path: Path) -> None:
     )
     assert result.disposition == "created"
     assert result.stored.relative_path == (
-        "classes/synthetic_class_2026/modules/meridian/grade_policies/"
-        f"{grade_policy_path_key(CLASS_ID, POLICY_ID)}/revisions/1.json"
+        "classes/synthetic_class_2026/modules/meridian/gp/"
+        f"{grade_policy_path_key(CLASS_ID, POLICY_ID)}/1.json"
     )
     assert result.stored.path == grade_policy_revision_path(
         root,
@@ -289,7 +289,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         root,
         policy(configuration, policy_id=long_policy_id),
     ).stored
-    relation = stored.path.parent.parent
+    relation = stored.path.parent
 
     assert len(relation.name) == 67
     assert relation.name == grade_policy_path_key(
@@ -297,6 +297,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         long_policy_id,
     )
     assert long_policy_id not in stored.relative_path
+    assert len(f"{stored.relative_path}.sha256") <= 130
     assert load_grade_policy_revision(
         root,
         CLASS_ID,
@@ -601,8 +602,8 @@ def test_bounded_read_rejects_oversize(tmp_path: Path) -> None:
 def test_relative_path_is_platform_neutral() -> None:
     value = grade_policy_revision_relative_path(CLASS_ID, POLICY_ID, 3)
     assert value == (
-        "classes/synthetic_class_2026/modules/meridian/grade_policies/"
-        f"{grade_policy_path_key(CLASS_ID, POLICY_ID)}/revisions/3.json"
+        "classes/synthetic_class_2026/modules/meridian/gp/"
+        f"{grade_policy_path_key(CLASS_ID, POLICY_ID)}/3.json"
     )
     assert "\\" not in value
 

@@ -251,7 +251,7 @@ def grade_items_directory(workspace_root: str | Path, class_id: str) -> Path:
     """Return the canonical collection root for one class's Grade Items."""
     class_value = _identifier(class_id, "class_id")
     root = _root(workspace_root)
-    path = class_module_dir(root, class_value, "meridian") / "grade_items"
+    path = class_module_dir(root, class_value, "meridian") / "gi"
     _require_lexical_containment(root, path)
     return path
 
@@ -272,7 +272,7 @@ def grade_item_relative_directory(
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
     return (
-        f"classes/{class_value}/modules/meridian/grade_items/"
+        f"classes/{class_value}/modules/meridian/gi/"
         f"{grade_item_path_key(item)}"
     )
 
@@ -293,7 +293,7 @@ def grade_item_revisions_directory(
     grade_item_id: str,
 ) -> Path:
     """Return the immutable revision collection for one logical Grade Item."""
-    return grade_item_directory(workspace_root, class_id, grade_item_id) / "revisions"
+    return grade_item_directory(workspace_root, class_id, grade_item_id)
 
 
 def grade_item_revision_path(
@@ -352,7 +352,7 @@ def grade_item_revision_relative_path(
     revision = _positive_int(grade_item_revision, "grade_item_revision")
     return (
         f"{grade_item_relative_directory(class_value, item)}/"
-        f"revisions/{revision}.json"
+        f"{revision}.json"
     )
 
 
@@ -433,19 +433,17 @@ def list_grade_item_revisions(
         return ()
     _validate_existing_directory_chain(root, item_dir)
     _validate_item_directory_entries(item_dir)
-    revisions_dir = item_dir / "revisions"
-    if not revisions_dir.exists():
-        return ()
-    _validate_existing_directory_chain(root, revisions_dir)
     json_revisions: set[int] = set()
     digest_revisions: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(item_dir.iterdir())
     except OSError as error:
         raise GradeItemStorageReadError(
             "Could not enumerate Grade Item revision storage."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink():
             raise GradeItemStorageIntegrityError(
                 "Grade Item revision storage contains a symlink."
@@ -533,8 +531,7 @@ def write_grade_item_revision(
     root = _root(workspace_root)
     _require_existing_core_class(root, candidate.class_id)
     item_dir = grade_item_directory(root, candidate.class_id, candidate.grade_item_id)
-    revisions_dir = item_dir / "revisions"
-    _ensure_directory_chain(root, revisions_dir)
+    _ensure_directory_chain(root, item_dir)
     lock = item_dir / ".write.lock"
     _acquire_lock(lock)
     try:
@@ -929,7 +926,7 @@ def _grade_item_id_from_directory(
 ) -> str:
     """Recover and verify logical identity from authoritative revision 1."""
 
-    revision_path = item_dir / "revisions" / "1.json"
+    revision_path = item_dir / "1.json"
     digest_path = Path(str(revision_path) + ".sha256")
     content = _read_bounded_regular_file(
         revision_path,
@@ -968,7 +965,6 @@ def _validate_item_directory_entries(item_dir: Path) -> None:
         raise GradeItemStorageIntegrityError(
             "Grade Item canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "memberships", "current.json", ".write.lock"}
     try:
         entries = tuple(item_dir.iterdir())
     except OSError as error:
@@ -976,24 +972,22 @@ def _validate_item_directory_entries(item_dir: Path) -> None:
             "Could not inspect Grade Item canonical root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise GradeItemStorageIntegrityError(
+                    "Grade Item pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise GradeItemStorageIntegrityError(
                 "Grade Item canonical root contains an unexpected entry."
             )
-        if entry.name in {"revisions", "memberships"}:
-            if entry.is_symlink() or not entry.is_dir():
-                label = "revisions" if entry.name == "revisions" else "memberships"
-                raise GradeItemStorageIntegrityError(
-                    f"Grade Item {label} entry must be a real directory."
-                )
-        elif entry.name == "current.json":
-            if entry.is_symlink() or not entry.is_file():
-                raise GradeItemStorageIntegrityError(
-                    "Grade Item current pointer must be a regular file."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise GradeItemStorageIntegrityError(
-                "Grade Item lock entry must be a regular file."
+                "Grade Item revision entry must be a regular file."
             )
 
 

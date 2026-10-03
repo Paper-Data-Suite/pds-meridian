@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
@@ -327,10 +326,11 @@ def test_canonical_path_and_relative_path(tmp_path: Path) -> None:
     stored = write_grade_item_membership_revision(root, membership(digest)).stored
     assert stored.relative_path == (
         "classes/synthetic_class_2026/modules/meridian/"
-        "grade_item_memberships/"
+        "gm/"
         f"{grade_item_membership_path_key(CLASS_ID, ITEM_ID, WORK)}/"
-        "revisions/1.json"
+        "1.json"
     )
+    assert len(f"{stored.relative_path}.sha256") <= 130
     assert stored.path == grade_item_membership_revision_path(
         root, CLASS_ID, ITEM_ID, WORK, 1
     )
@@ -357,7 +357,7 @@ def test_long_membership_identity_uses_one_bounded_relation_key(
         long_work,
     )
 
-    assert relation.parent.name == "grade_item_memberships"
+    assert relation.parent.name == "gm"
     assert len(relation.name) == 67
     assert relation.name == grade_item_membership_path_key(
         CLASS_ID,
@@ -661,28 +661,37 @@ def test_membership_subtree_does_not_break_grade_item_history_or_selection(
     assert selected.stored.revision.grade_item_id == ITEM_ID
 
 
-def test_membership_storage_allows_evidence_eligibility_child(tmp_path: Path) -> None:
+def test_membership_storage_rejects_obsolete_evidence_eligibility_child(
+    tmp_path: Path,
+) -> None:
     root, digest = prepared(tmp_path)
     write_grade_item_membership_revision(root, membership(digest))
     relation = grade_item_membership_directory(root, CLASS_ID, ITEM_ID, WORK)
     (relation / "evidence_eligibility").mkdir()
-    assert list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK) == (1,)
+    with pytest.raises(GradeItemMembershipStorageIntegrityError, match="unexpected"):
+        list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK)
 
 
-def test_membership_storage_allows_attempt_selection_child(tmp_path: Path) -> None:
+def test_membership_storage_rejects_obsolete_attempt_selection_child(
+    tmp_path: Path,
+) -> None:
     root, digest = prepared(tmp_path)
     write_grade_item_membership_revision(root, membership(digest))
     relation = grade_item_membership_directory(root, CLASS_ID, ITEM_ID, WORK)
     (relation / "attempt_selection").mkdir()
-    assert list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK) == (1,)
+    with pytest.raises(GradeItemMembershipStorageIntegrityError, match="unexpected"):
+        list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK)
 
 
-def test_membership_storage_allows_standards_evidence_child(tmp_path: Path) -> None:
+def test_membership_storage_rejects_obsolete_standards_evidence_child(
+    tmp_path: Path,
+) -> None:
     root, digest = prepared(tmp_path)
     write_grade_item_membership_revision(root, membership(digest))
     relation = grade_item_membership_directory(root, CLASS_ID, ITEM_ID, WORK)
     (relation / "standards_evidence").mkdir()
-    assert list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK) == (1,)
+    with pytest.raises(GradeItemMembershipStorageIntegrityError, match="unexpected"):
+        list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK)
 
 
 def test_unexpected_visible_entry_and_lock_conflict_fail_closed(tmp_path: Path) -> None:
@@ -723,13 +732,13 @@ def test_symlinked_membership_component_is_rejected_when_supported(
     root, digest = prepared(tmp_path)
     write_grade_item_membership_revision(root, membership(digest))
     relation = grade_item_membership_directory(root, CLASS_ID, ITEM_ID, WORK)
-    revisions = relation / "revisions"
-    moved = relation / "real_revisions"
-    revisions.rename(moved)
+    revision_path = relation / "1.json"
+    outside = tmp_path / "membership-revision.json"
+    outside.write_bytes(revision_path.read_bytes())
+    revision_path.unlink()
     try:
-        os.symlink(moved, revisions, target_is_directory=True)
+        revision_path.symlink_to(outside)
     except (OSError, NotImplementedError):
-        moved.rename(revisions)
         pytest.skip("symlink creation is not permitted on this platform")
     with pytest.raises(GradeItemMembershipStorageIntegrityError):
         list_grade_item_membership_revisions(root, CLASS_ID, ITEM_ID, WORK)
