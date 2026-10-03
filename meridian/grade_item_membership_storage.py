@@ -31,7 +31,7 @@ from pds_core.class_metadata import (
     load_class_metadata,
 )
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
-from pds_core.routes import class_metadata_path
+from pds_core.routes import class_metadata_path, class_module_dir
 from pds_core.routing_models import (
     ModuleWorkRef,
     RoutingModelError,
@@ -53,7 +53,6 @@ from meridian.grade_item_storage import (
     GradeItemStorageError,
     StoredGradeItemRevision,
     grade_item_directory,
-    grade_item_relative_directory,
     list_grade_item_revisions,
     load_grade_item_revision,
 )
@@ -337,12 +336,17 @@ def grade_item_memberships_directory(
     class_id: str,
     grade_item_id: str,
 ) -> Path:
-    """Return one Grade Item's canonical membership collection."""
-    return grade_item_directory(
-        _root(workspace_root),
-        _identifier(class_id, "class_id"),
-        _identifier(grade_item_id, "grade_item_id"),
-    ) / "memberships"
+    """Return the class-local canonical membership collection."""
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    _identifier(grade_item_id, "grade_item_id")
+    path = (
+        class_module_dir(root, class_value, "meridian")
+        / "grade_item_memberships"
+    )
+    _require_lexical_containment(root, path)
+    return path
 
 
 def grade_item_membership_path_key(
@@ -388,8 +392,8 @@ def grade_item_membership_relative_directory(
         validated,
     )
     return (
-        f"{grade_item_relative_directory(class_value, item)}/"
-        f"memberships/{relation_key}"
+        f"classes/{class_value}/modules/meridian/grade_item_memberships/"
+        f"{relation_key}"
     )
 
 
@@ -784,12 +788,13 @@ def list_grade_item_membership_work_refs(
     refs: list[ModuleWorkRef] = []
     for relation in _visible_directories(collection, "membership relationship"):
         _validate_membership_directory_entries(relation)
-        work = _membership_work_from_directory(
+        relation_item, work = _membership_identity_from_directory(
             root,
             class_value,
-            item,
             relation,
         )
+        if relation_item != item:
+            continue
         revisions = list_grade_item_membership_revisions(
             root,
             class_value,
@@ -1291,13 +1296,12 @@ def _require_existing_grade_item(root: Path, class_id: str, grade_item_id: str) 
         )
 
 
-def _membership_work_from_directory(
+def _membership_identity_from_directory(
     root: Path,
     class_id: str,
-    grade_item_id: str,
     relation: Path,
-) -> ModuleWorkRef:
-    """Recover and verify work identity from authoritative revision 1."""
+) -> tuple[str, ModuleWorkRef]:
+    """Recover and verify Grade Item/work identity from revision 1."""
 
     revision_path = relation / "revisions" / "1.json"
     digest_path = Path(str(revision_path) + ".sha256")
@@ -1325,24 +1329,21 @@ def _membership_work_from_directory(
         raise GradeItemMembershipStorageIntegrityError(
             f"Membership revision 1 is invalid or noncanonical: {error}"
         ) from error
-    if (
-        decision.class_id != class_id
-        or decision.grade_item_id != grade_item_id
-        or decision.membership_revision != 1
-    ):
+    if decision.class_id != class_id or decision.membership_revision != 1:
         raise GradeItemMembershipStorageIntegrityError(
             "Membership revision 1 identity does not match its collection scope."
         )
+    item = decision.grade_item_id
     work = decision.work_reference.work
     if relation.name != grade_item_membership_path_key(
         class_id,
-        grade_item_id,
+        item,
         work,
     ):
         raise GradeItemMembershipStorageIntegrityError(
             "Membership directory key does not match authoritative identity."
         )
-    return work
+    return item, work
 
 
 def _validate_membership_directory_entries(relation: Path) -> None:

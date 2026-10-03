@@ -49,7 +49,6 @@ from meridian.grade_item_memberships import (
     GradeItemMembershipDecision,
 )
 from meridian.grade_item_storage import (
-    grade_item_path_key,
     list_grade_item_revisions,
     select_grade_item_revision,
     write_grade_item_revision,
@@ -327,8 +326,8 @@ def test_canonical_path_and_relative_path(tmp_path: Path) -> None:
     root, digest = prepared(tmp_path)
     stored = write_grade_item_membership_revision(root, membership(digest)).stored
     assert stored.relative_path == (
-        "classes/synthetic_class_2026/modules/meridian/grade_items/"
-        f"{grade_item_path_key(ITEM_ID)}/memberships/"
+        "classes/synthetic_class_2026/modules/meridian/"
+        "grade_item_memberships/"
         f"{grade_item_membership_path_key(CLASS_ID, ITEM_ID, WORK)}/"
         "revisions/1.json"
     )
@@ -358,17 +357,17 @@ def test_long_membership_identity_uses_one_bounded_relation_key(
         long_work,
     )
 
-    assert relation.parent.name == "memberships"
+    assert relation.parent.name == "grade_item_memberships"
     assert len(relation.name) == 67
     assert relation.name == grade_item_membership_path_key(
         CLASS_ID,
         long_item_id,
         long_work,
     )
-    assert len(relation.parent.parent.name) == 67
-    assert relation.parent.parent.name == grade_item_path_key(long_item_id)
     assert long_item_id not in relation.as_posix()
     assert long_work.work_id not in relation.as_posix()
+    relative = relation.relative_to(root).as_posix()
+    assert len(relative) < 140
 
 
 def test_revision_write_is_immutable_and_exact_retry_is_idempotent(
