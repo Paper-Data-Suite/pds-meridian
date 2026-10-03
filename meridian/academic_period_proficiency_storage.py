@@ -63,6 +63,11 @@ from meridian.standards_proficiency_storage import (
     StandardProficiencyStorageError,
     load_standard_proficiency_result_revision,
 )
+from meridian.storage_path_keys import (
+    StoragePathKeyError,
+    storage_path_key,
+    validate_storage_path_key,
+)
 
 ACADEMIC_PERIOD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 ACADEMIC_PERIOD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE: Final[str] = (
@@ -791,6 +796,26 @@ def academic_period_proficiency_standard_key(standard_id: str) -> str:
     ).hexdigest()
 
 
+def academic_period_proficiency_result_subject_key(
+    class_id: str,
+    school_year: str,
+    period_id: str,
+    student_id: str,
+) -> str:
+    """Return the bounded key for one class/period/student result subject."""
+
+    class_value = _identifier(class_id, "class_id")
+    period = _period_ref(school_year, period_id)
+    student = _identifier(student_id, "student_id")
+    return storage_path_key(
+        "academic_period_proficiency_subject",
+        class_value,
+        period.school_year,
+        period.period_id,
+        student,
+    )
+
+
 def academic_period_proficiency_result_family_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -805,15 +830,17 @@ def academic_period_proficiency_result_family_directory(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(school_year, period_id)
     student = _identifier(student_id, "student_id")
+    subject_key = academic_period_proficiency_result_subject_key(
+        class_value,
+        period.school_year,
+        period.period_id,
+        student,
+    )
     standard_key = academic_period_proficiency_standard_key(standard_id)
     path = (
         academic_period_proficiency_results_directory(root, class_value)
-        / "school_years"
-        / period.school_year
-        / "periods"
-        / period.period_id
-        / "students"
-        / student
+        / "subjects"
+        / subject_key
         / "standards"
         / standard_key
     )
@@ -890,12 +917,18 @@ def academic_period_proficiency_result_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(school_year, period_id)
     student = _identifier(student_id, "student_id")
+    subject_key = academic_period_proficiency_result_subject_key(
+        class_value,
+        period.school_year,
+        period.period_id,
+        student,
+    )
     standard_key = academic_period_proficiency_standard_key(standard_id)
     revision = _positive_int(result_revision, "result_revision")
     return (
         f"classes/{class_value}/modules/meridian/academic_period_proficiency/"
-        f"results/school_years/{period.school_year}/periods/{period.period_id}/"
-        f"students/{student}/standards/{standard_key}/revisions/{revision}.json"
+        f"results/subjects/{subject_key}/standards/{standard_key}/"
+        f"revisions/{revision}.json"
     )
 
 
@@ -1590,63 +1623,33 @@ def _validate_result_ancestor_shape(
         return
     _validate_existing_directory_chain(root, results)
 
-    school_years = _require_only_named_directory(
+    subjects = _require_only_named_directory(
         results,
-        "school_years",
+        "subjects",
         "Academic Period proficiency result root",
     )
-    if school_years is None:
+    if subjects is None:
         return
-    _require_real_directory(school_years, "result school-year collection")
-    _require_school_year_directory_collection(
-        school_years,
-        "result school-year collection",
+    _require_real_directory(subjects, "result subject collection")
+    _require_storage_key_directory_collection(
+        subjects,
+        "result subject collection",
     )
 
-    school_year_path = school_years / school_year
-    if not school_year_path.exists():
-        return
-    _require_real_directory(school_year_path, "result school-year scope")
-    periods = _require_only_named_directory(
-        school_year_path,
-        "periods",
-        "result school-year scope",
+    subject_key = academic_period_proficiency_result_subject_key(
+        class_id,
+        school_year,
+        period_id,
+        student_id,
     )
-    if periods is None:
+    subject_path = subjects / subject_key
+    if not subject_path.exists():
         return
-    _require_real_directory(periods, "result period collection")
-    _require_identifier_directory_collection(
-        periods,
-        "period_id",
-        "result period collection",
-    )
-
-    period_path = periods / period_id
-    if not period_path.exists():
-        return
-    _require_real_directory(period_path, "result period scope")
-    students = _require_only_named_directory(
-        period_path,
-        "students",
-        "result period scope",
-    )
-    if students is None:
-        return
-    _require_real_directory(students, "result student collection")
-    _require_identifier_directory_collection(
-        students,
-        "student_id",
-        "result student collection",
-    )
-
-    student_path = students / student_id
-    if not student_path.exists():
-        return
-    _require_real_directory(student_path, "result student scope")
+    _require_real_directory(subject_path, "result subject scope")
     standards = _require_only_named_directory(
-        student_path,
+        subject_path,
         "standards",
-        "result student scope",
+        "result subject scope",
     )
     if standards is None:
         return
@@ -1840,6 +1843,29 @@ def _require_identifier_directory_collection(
                 f"{label} contains an unexpected entry."
             )
         _identifier(entry.name, field_name)
+
+
+def _require_storage_key_directory_collection(
+    parent: Path,
+    label: str,
+) -> None:
+    try:
+        entries = tuple(parent.iterdir())
+    except OSError as error:
+        raise AcademicPeriodProficiencyStorageReadError(
+            f"Could not inspect {label}."
+        ) from error
+    for entry in entries:
+        if entry.is_symlink() or not entry.is_dir():
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                f"{label} contains an unexpected entry."
+            )
+        try:
+            validate_storage_path_key(entry.name)
+        except StoragePathKeyError as error:
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                f"{label} contains an invalid bounded storage key."
+            ) from error
 
 
 def _require_school_year_directory_collection(parent: Path, label: str) -> None:

@@ -28,12 +28,16 @@ from meridian.proficiency_mapping_storage import (
     ProficiencyMappingStorageIntegrityError,
     get_current_mapping_profile_revision,
     get_current_proficiency_scale_revision,
+    list_mapping_profile_ids,
+    list_proficiency_scale_ids,
     load_current_mapping_profile,
     load_current_proficiency_scale,
     load_mapping_profile_revision,
     load_proficiency_scale_revision,
+    mapping_profile_path_key,
     mapping_profile_revision_relative_path,
     proficiency_scale_current_path,
+    proficiency_scale_path_key,
     proficiency_scale_revision_relative_path,
     select_mapping_profile_revision,
     select_proficiency_scale_revision,
@@ -121,15 +125,85 @@ def profile(
 
 
 def test_canonical_relative_paths() -> None:
+    scale_key = proficiency_scale_path_key(CLASS_ID, "course_proficiency")
+    profile_key = mapping_profile_path_key(
+        CLASS_ID,
+        "course_proficiency",
+        "quillan_024",
+    )
     assert proficiency_scale_revision_relative_path(
         CLASS_ID, "course_proficiency", 1
     ) == (
         "classes/synthetic_class_2026/modules/meridian/proficiency_scales/"
-        "course_proficiency/revisions/1.json"
+        f"{scale_key}/revisions/1.json"
     )
     assert mapping_profile_revision_relative_path(
         CLASS_ID, "course_proficiency", "quillan_024", 1
-    ).endswith("mapping_profiles/quillan_024/revisions/1.json")
+    ).endswith(
+        f"{scale_key}/mapping_profiles/{profile_key}/revisions/1.json"
+    )
+
+
+def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
+    tmp_path: Path,
+) -> None:
+    workspace = root(tmp_path)
+    long_scale_id = "scale_" + ("s" * 5000)
+    long_scale = replace(scale(), scale_id=long_scale_id)
+
+    stored_scale = write_proficiency_scale_revision(
+        workspace,
+        long_scale,
+    ).stored
+    scale_dir = stored_scale.path.parent.parent
+
+    assert len(scale_dir.name) == 67
+    assert scale_dir.name == proficiency_scale_path_key(
+        CLASS_ID,
+        long_scale_id,
+    )
+    assert long_scale_id not in stored_scale.relative_path
+    assert load_proficiency_scale_revision(
+        workspace,
+        CLASS_ID,
+        long_scale_id,
+        1,
+    ).scale.scale_id == long_scale_id
+    assert list_proficiency_scale_ids(
+        workspace,
+        CLASS_ID,
+    ) == (long_scale_id,)
+
+    long_profile_id = "profile_" + ("p" * 5000)
+    long_profile = replace(
+        profile(stored_scale.scale),
+        profile_id=long_profile_id,
+    )
+    stored_profile = write_mapping_profile_revision(
+        workspace,
+        long_profile,
+    ).stored
+    profile_dir = stored_profile.path.parent.parent
+
+    assert len(profile_dir.name) == 67
+    assert profile_dir.name == mapping_profile_path_key(
+        CLASS_ID,
+        long_scale_id,
+        long_profile_id,
+    )
+    assert long_profile_id not in stored_profile.relative_path
+    assert load_mapping_profile_revision(
+        workspace,
+        CLASS_ID,
+        long_scale_id,
+        long_profile_id,
+        1,
+    ).profile.profile_id == long_profile_id
+    assert list_mapping_profile_ids(
+        workspace,
+        CLASS_ID,
+        long_scale_id,
+    ) == (long_profile_id,)
 
 
 def test_scale_write_is_immutable_and_does_not_auto_select(tmp_path: Path) -> None:
