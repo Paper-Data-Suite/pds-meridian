@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal, TypeAlias, cast
 
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
+from pds_core.routes import class_module_dir
 from pds_core.routing_models import (
     ModuleWorkRef,
     RoutingModelError,
@@ -31,10 +32,7 @@ from meridian.evidence_eligibility import (
     validate_evidence_eligibility_transition,
     validate_evidence_source_reference,
 )
-from meridian.grade_item_membership_storage import (
-    grade_item_membership_directory,
-    grade_item_membership_relative_directory,
-)
+from meridian.storage_path_keys import storage_path_key
 
 if TYPE_CHECKING:
     from meridian.evidence import EvidenceItem
@@ -341,7 +339,8 @@ def evidence_eligibility_collection_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    """Return the eligibility collection beneath one #28 membership relation."""
+    """Return the class-local bounded eligibility collection."""
+
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
@@ -349,15 +348,32 @@ def evidence_eligibility_collection_directory(
         raise EvidenceEligibilityStorageValidationError(
             "work.class_id must match class_id."
         )
+    _ = item
     root = _root(workspace_root)
-    return (
-        grade_item_membership_directory(
-            root,
-            class_value,
-            item,
-            validated_work,
+    path = class_module_dir(root, class_value, "meridian") / "elig"
+    _require_lexical_containment(root, path)
+    return path
+
+
+def evidence_eligibility_source_path_key(
+    class_id: str,
+    grade_item_id: str,
+    source: EvidenceSourceReference,
+) -> str:
+    """Return the bounded key for one Grade Item/evidence-source family."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated = validate_evidence_source_reference(source)
+    if validated.work.class_id != class_value:
+        raise EvidenceEligibilityStorageValidationError(
+            "source work class_id must match class_id."
         )
-        / "evidence_eligibility"
+    return storage_path_key(
+        "evidence_eligibility_source",
+        class_value,
+        item,
+        evidence_source_key(validated),
     )
 
 
@@ -368,10 +384,15 @@ def evidence_eligibility_source_directory(
     source: EvidenceSourceReference,
 ) -> Path:
     """Return one exact source's canonical eligibility history root."""
+
     validated = validate_evidence_source_reference(source)
     return evidence_eligibility_collection_directory(
         workspace_root, class_id, grade_item_id, validated.work
-    ) / evidence_source_key(validated)
+    ) / evidence_eligibility_source_path_key(
+        class_id,
+        grade_item_id,
+        validated,
+    )
 
 
 def evidence_eligibility_revisions_directory(
@@ -382,7 +403,7 @@ def evidence_eligibility_revisions_directory(
 ) -> Path:
     return evidence_eligibility_source_directory(
         workspace_root, class_id, grade_item_id, source
-    ) / "revisions"
+    )
 
 
 def evidence_eligibility_revision_path(
@@ -444,15 +465,14 @@ def evidence_eligibility_revision_relative_path(
             "source work class_id must match class_id."
         )
     revision = _positive_int(eligibility_revision, "eligibility_revision")
-    key = evidence_source_key(validated)
-    membership_root = grade_item_membership_relative_directory(
+    key = evidence_eligibility_source_path_key(
         class_value,
         item,
-        validated.work,
+        validated,
     )
     return (
-        f"{membership_root}/evidence_eligibility/"
-        f"{key}/revisions/{revision}.json"
+        f"classes/{class_value}/modules/meridian/elig/"
+        f"{key}/{revision}.json"
     )
 
 
@@ -755,19 +775,17 @@ def list_evidence_eligibility_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_source_directory_entries(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
-    _validate_existing_directory_chain(root, revisions_dir)
     json_revisions: set[int] = set()
     digest_revisions: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise EvidenceEligibilityStorageReadError(
             "Could not enumerate evidence eligibility revision storage."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise EvidenceEligibilityStorageIntegrityError(
                 "Eligibility revision storage contains a nonregular entry."
@@ -826,35 +844,23 @@ def list_evidence_eligibility_sources(
     _validate_existing_directory_chain(root, collection)
     sources: list[tuple[str, EvidenceSourceReference]] = []
     for source_dir in _visible_directories(collection, "evidence eligibility source"):
-        key = _sha256(source_dir.name, "source_key")
-        revisions_dir = source_dir / "revisions"
-        if not revisions_dir.exists():
-            raise EvidenceEligibilityStorageIntegrityError(
-                "Eligibility source exists without immutable revision history."
-            )
-        revision_one = source_dir / "revisions" / "1.json"
-        content = _read_bounded_regular_file(
-            revision_one,
-            DEFAULT_MAXIMUM_EVIDENCE_ELIGIBILITY_REVISION_BYTES,
-            missing_message="Eligibility source revision 1 does not exist.",
+        decision = _eligibility_identity_from_directory(
+            root,
+            class_value,
+            source_dir,
         )
-        try:
-            decision = evidence_eligibility_decision_from_json_bytes(content)
-        except (
-            EvidenceEligibilitySerializationError,
-            EvidenceEligibilityValidationError,
-        ) as error:
-            raise EvidenceEligibilityStorageIntegrityError(
-                "Eligibility source revision 1 is invalid."
-            ) from error
-        if evidence_source_key(decision.source) != key:
-            raise EvidenceEligibilityStorageIntegrityError(
-                "Eligibility source directory key does not match persisted source."
-            )
+        if (
+            decision.grade_item_id != item
+            or decision.source.work != validated_work
+        ):
+            continue
         list_evidence_eligibility_revisions(
-            root, class_value, item, decision.source
+            root,
+            class_value,
+            item,
+            decision.source,
         )
-        sources.append((key, decision.source))
+        sources.append((evidence_source_key(decision.source), decision.source))
     return tuple(source for _, source in sorted(sources, key=lambda pair: pair[0]))
 
 
@@ -920,8 +926,7 @@ def write_evidence_eligibility_revision(
         require_current_membership=False,
         require_authored_source_state=True,
     )
-    revisions_dir = relation / "revisions"
-    _ensure_directory_chain(root, revisions_dir)
+    _ensure_directory_chain(root, relation)
     lock = relation / ".write.lock"
     _acquire_lock(lock)
     try:
@@ -1365,7 +1370,6 @@ def _validate_source_directory_entries(relation: Path) -> None:
         raise EvidenceEligibilityStorageIntegrityError(
             "Eligibility source root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1373,24 +1377,73 @@ def _validate_source_directory_entries(relation: Path) -> None:
             "Could not inspect eligibility source root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise EvidenceEligibilityStorageIntegrityError(
+                    "Eligibility history metadata must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise EvidenceEligibilityStorageIntegrityError(
                 "Eligibility source root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise EvidenceEligibilityStorageIntegrityError(
-                    "Eligibility revisions entry must be a real directory."
-                )
-        elif entry.name == "current.json":
-            if entry.is_symlink() or not entry.is_file():
-                raise EvidenceEligibilityStorageIntegrityError(
-                    "Eligibility current pointer must be a regular file."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise EvidenceEligibilityStorageIntegrityError(
-                "Eligibility lock entry must be a regular file."
+                "Eligibility revision entry must be a regular file."
             )
+
+
+def _eligibility_identity_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> EvidenceEligibilityDecision:
+    """Recover and verify logical identity from authoritative revision 1."""
+
+    _validate_source_directory_entries(relation)
+    revision_path = relation / "1.json"
+    digest_path = relation / "1.json.sha256"
+    content = _read_bounded_regular_file(
+        revision_path,
+        DEFAULT_MAXIMUM_EVIDENCE_ELIGIBILITY_REVISION_BYTES,
+        missing_message="Eligibility source revision 1 does not exist.",
+    )
+    digest_bytes = _read_bounded_regular_file(
+        digest_path,
+        DEFAULT_MAXIMUM_EVIDENCE_ELIGIBILITY_DIGEST_BYTES,
+        missing_message="Eligibility source revision 1 digest does not exist.",
+    )
+    expected_digest = _parse_digest_sidecar(digest_bytes)
+    if hashlib.sha256(content).hexdigest() != expected_digest:
+        raise EvidenceEligibilityStorageIntegrityError(
+            "Eligibility source revision 1 digest does not match exact JSON bytes."
+        )
+    try:
+        decision = evidence_eligibility_decision_from_json_bytes(content)
+    except (
+        EvidenceEligibilitySerializationError,
+        EvidenceEligibilityValidationError,
+    ) as error:
+        raise EvidenceEligibilityStorageIntegrityError(
+            "Eligibility source revision 1 is invalid."
+        ) from error
+    if decision.class_id != class_id or decision.eligibility_revision != 1:
+        raise EvidenceEligibilityStorageIntegrityError(
+            "Eligibility source revision 1 identity does not match collection scope."
+        )
+    expected_key = evidence_eligibility_source_path_key(
+        class_id,
+        decision.grade_item_id,
+        decision.source,
+    )
+    if relation.name != expected_key:
+        raise EvidenceEligibilityStorageIntegrityError(
+            "Eligibility source directory key does not match authoritative identity."
+        )
+    return decision
 
 
 def _visible_directories(root: Path, label: str) -> tuple[Path, ...]:

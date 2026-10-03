@@ -141,6 +141,11 @@ def test_canonical_storage_path_uses_deterministic_source_key(tmp_path: Path) ->
     path = storage.evidence_eligibility_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, source(), 1
     )
+    source_key = storage.evidence_eligibility_source_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        source(),
+    )
     assert path == (
         storage.evidence_eligibility_collection_directory(
             workspace,
@@ -148,10 +153,12 @@ def test_canonical_storage_path_uses_deterministic_source_key(tmp_path: Path) ->
             GRADE_ITEM_ID,
             source().work,
         )
-        / evidence_source_key(source())
-        / "revisions"
+        / source_key
         / "1.json"
     )
+    assert len(source_key) == 67
+    assert len(path.relative_to(workspace).as_posix()) <= 126
+    assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 133
     assert storage.evidence_eligibility_revision_relative_path(
         CLASS_ID,
         GRADE_ITEM_ID,
@@ -404,7 +411,7 @@ def test_unexpected_visible_entry_fails_closed(
     stored = storage.write_evidence_eligibility_revision(
         workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
     ).stored
-    relation = stored.path.parent.parent
+    relation = stored.path.parent
     (relation / "unexpected.txt").write_text("unexpected\n")
     with pytest.raises(
         storage.EvidenceEligibilityStorageIntegrityError, match="unexpected"

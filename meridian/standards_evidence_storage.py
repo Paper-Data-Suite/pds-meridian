@@ -17,8 +17,12 @@ from pds_core.class_metadata import (
     load_class_metadata,
 )
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
-from pds_core.routes import class_metadata_path
-from pds_core.routing_models import ModuleWorkRef
+from pds_core.routes import class_metadata_path, class_module_dir
+from pds_core.routing_models import (
+    ModuleWorkRef,
+    RoutingModelError,
+    validate_module_work_ref,
+)
 from pds_core.standards import (
     StandardDefinition,
     StandardsFrameworkMetadata,
@@ -52,8 +56,6 @@ from meridian.evidence_eligibility_storage import (
 from meridian.grade_item_membership_storage import (
     GradeItemMembershipStorageError,
     StoredGradeItemMembershipDecision,
-    grade_item_membership_directory,
-    grade_item_membership_relative_directory,
     load_current_grade_item_membership_decision,
 )
 from meridian.grade_item_storage import (
@@ -436,15 +438,20 @@ def standards_evidence_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return (
-        grade_item_membership_directory(
-            _root(workspace_root),
-            _identifier(class_id, "class_id"),
-            _identifier(grade_item_id, "grade_item_id"),
-            work,
+    """Return the class-local bounded standards-association collection."""
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise StandardsEvidenceStorageValidationError(
+            "work.class_id must match class_id."
         )
-        / "standards_evidence"
-    )
+    _ = item
+    path = class_module_dir(root, class_value, "meridian") / "std_assoc"
+    _require_containment(root, path)
+    return path
 
 
 def standard_evidence_associations_directory(
@@ -453,9 +460,11 @@ def standard_evidence_associations_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return (
-        standards_evidence_directory(workspace_root, class_id, grade_item_id, work)
-        / "associations"
+    return standards_evidence_directory(
+        workspace_root,
+        class_id,
+        grade_item_id,
+        work,
     )
 
 
@@ -486,7 +495,6 @@ def standard_evidence_association_revision_path(
         standard_evidence_association_directory(
             workspace_root, class_id, grade_item_id, source, standard_id
         )
-        / "revisions"
         / f"{_positive_int(association_revision, 'association_revision')}.json"
     )
 
@@ -518,15 +526,10 @@ def standard_evidence_association_revision_relative_path(
         class_id, grade_item_id, validated, standard_id
     )
     class_value = _identifier(class_id, "class_id")
-    item = _identifier(grade_item_id, "grade_item_id")
-    membership_root = grade_item_membership_relative_directory(
-        class_value,
-        item,
-        validated.work,
-    )
+    _identifier(grade_item_id, "grade_item_id")
     return (
-        f"{membership_root}/standards_evidence/associations/"
-        f"{key}/revisions/"
+        f"classes/{class_value}/modules/meridian/std_assoc/"
+        f"{key}/"
         f"{_positive_int(association_revision, 'association_revision')}.json"
     )
 
@@ -676,7 +679,7 @@ def load_standard_evidence_association_revision(
     expected_key = standard_evidence_association_key(
         class_value, item, validated, standard
     )
-    if path.parents[1].name != expected_key:
+    if path.parent.name != expected_key:
         raise StandardsEvidenceStorageIntegrityError(
             "Association directory key does not match persisted identity."
         )
@@ -712,12 +715,11 @@ def list_standard_evidence_association_revisions(
         validate_evidence_source_reference(source).work,
     )
     _validate_association_history_root(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
     jsons: set[int] = set()
     digests: set[int] = set()
-    for entry in _directory_entries(revisions_dir, "association revisions"):
+    for entry in _directory_entries(relation, "association revisions"):
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise StandardsEvidenceStorageIntegrityError(
                 "Association revision entry must be a regular file."
@@ -811,7 +813,7 @@ def write_standard_evidence_association_revision(
         authorized_snapshot,
         standards_library=standards_library,
     )
-    _ensure_directory_chain(root, relation / "revisions")
+    _ensure_directory_chain(root, relation)
     lock = relation / ".write.lock"
     _acquire_lock(lock)
     try:
@@ -1536,20 +1538,23 @@ def _validate_association_history_root(relation: Path) -> None:
         raise StandardsEvidenceStorageIntegrityError(
             "Association history root must be a real directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     for entry in _directory_entries(relation, "association history root"):
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise StandardsEvidenceStorageIntegrityError(
+                    "Association history metadata must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise StandardsEvidenceStorageIntegrityError(
                 "Association history root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise StandardsEvidenceStorageIntegrityError(
-                    "Association revisions path must be a real directory."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise StandardsEvidenceStorageIntegrityError(
-                "Association history metadata must be a regular file."
+                "Association revision entry must be a regular file."
             )
 
 
@@ -1563,17 +1568,7 @@ def _validate_standards_evidence_collections(
     if not base.exists():
         return
     _validate_existing_directory_chain(root, base)
-    entries = _directory_entries(base, "standards-evidence collection")
-    if len(entries) != 1 or entries[0].name != "associations":
-        raise StandardsEvidenceStorageIntegrityError(
-            "Standards-evidence collection contains an unexpected entry."
-        )
-    associations = entries[0]
-    if associations.is_symlink() or not associations.is_dir():
-        raise StandardsEvidenceStorageIntegrityError(
-            "Standards-evidence associations must be a real directory."
-        )
-    for entry in _directory_entries(associations, "association collection"):
+    for entry in _directory_entries(base, "association collection"):
         if _SHA256.fullmatch(entry.name) is None:
             raise StandardsEvidenceStorageIntegrityError(
                 "Association collection contains an invalid association key."
@@ -1812,6 +1807,17 @@ def _identifier(value: object, field_name: str) -> str:
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
+        raise StandardsEvidenceStorageValidationError(str(error)) from error
+
+
+def _work(value: object) -> ModuleWorkRef:
+    if not isinstance(value, ModuleWorkRef):
+        raise StandardsEvidenceStorageValidationError(
+            "work must be a Core ModuleWorkRef."
+        )
+    try:
+        return validate_module_work_ref(value)
+    except RoutingModelError as error:
         raise StandardsEvidenceStorageValidationError(str(error)) from error
 
 

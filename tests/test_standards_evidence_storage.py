@@ -129,9 +129,11 @@ def test_raw_standard_id_is_absent_from_canonical_path(tmp_path: Path) -> None:
         tmp_path, WORK.class_id, "grade_item_1", source(), STANDARD, 1
     )
     assert STANDARD not in str(path)
-    assert path.parent.parent.name == storage.standard_evidence_association_key(
+    assert path.parent.name == storage.standard_evidence_association_key(
         WORK.class_id, "grade_item_1", source(), STANDARD
     )
+    assert len(path.relative_to(tmp_path).as_posix()) <= 129
+    assert len(f"{path.relative_to(tmp_path).as_posix()}.sha256") <= 136
     assert storage.standard_evidence_association_revision_relative_path(
         WORK.class_id,
         "grade_item_1",
