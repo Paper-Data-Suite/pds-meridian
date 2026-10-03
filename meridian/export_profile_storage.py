@@ -36,6 +36,7 @@ from meridian.export_profile import (
     validate_export_profile_revision,
     validate_export_profile_transition,
 )
+from meridian.storage_path_keys import storage_path_key
 
 EXPORT_PROFILE_SELECTION_SCHEMA_VERSION: Final[str] = "1"
 EXPORT_PROFILE_SELECTION_RECORD_TYPE: Final[str] = (
@@ -443,14 +444,37 @@ def export_profiles_directory(workspace_root: str | Path, class_id: str) -> Path
     return path
 
 
+def export_profile_path_key(class_id: str, profile_id: str) -> str:
+    """Return the bounded key for one Export Profile family."""
+
+    class_value = _identifier(class_id, "class_id")
+    profile = _identifier(profile_id, "profile_id")
+    return storage_path_key(
+        "export_profile",
+        class_value,
+        profile,
+    )
+
+
+def export_profile_relative_directory(class_id: str, profile_id: str) -> str:
+    """Return one Export Profile family's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    profile = _identifier(profile_id, "profile_id")
+    return (
+        f"classes/{class_value}/modules/meridian/export_profiles/"
+        f"{export_profile_path_key(class_value, profile)}"
+    )
+
+
 def export_profile_directory(
     workspace_root: str | Path,
     class_id: str,
     profile_id: str,
 ) -> Path:
-    return export_profiles_directory(workspace_root, class_id) / _identifier(
-        profile_id,
-        "profile_id",
+    return (
+        export_profiles_directory(workspace_root, class_id)
+        / export_profile_path_key(class_id, profile_id)
     )
 
 
@@ -515,18 +539,19 @@ def export_profile_revision_relative_path(
     profile_value = _identifier(profile_id, "profile_id")
     revision = _positive_int(profile_revision, "profile_revision")
     return (
-        f"classes/{class_value}/modules/meridian/export_profiles/"
-        f"{profile_value}/revisions/{revision}.json"
+        f"{export_profile_relative_directory(class_value, profile_value)}/"
+        f"revisions/{revision}.json"
     )
 
 
 def export_profile_selection_relative_path(class_id: str, profile_id: str) -> str:
     class_value = _identifier(class_id, "class_id")
     profile_value = _identifier(profile_id, "profile_id")
-    return (
-        f"classes/{class_value}/modules/meridian/export_profiles/"
-        f"{profile_value}/current.json"
+    profile_root = export_profile_relative_directory(
+        class_value,
+        profile_value,
     )
+    return f"{profile_root}/current.json"
 
 
 def write_export_profile_revision(
@@ -790,8 +815,12 @@ def list_export_profile_ids(
             raise ExportProfileStorageIntegrityError(
                 "Export Profile collection contains a non-directory entry."
             )
-        profile_id = _identifier(entry.name, "profile_id")
         _validate_profile_family_directory(entry)
+        profile_id = _export_profile_id_from_directory(
+            root,
+            class_value,
+            entry,
+        )
         revisions = list_export_profile_revisions(
             root,
             class_value,
@@ -1148,6 +1177,41 @@ def _require_existing_core_class(root: Path, class_id: str) -> None:
             "Core class workspace must exist before Export Profile creation."
         )
     _validate_existing_directory_chain(root, path)
+
+
+def _export_profile_id_from_directory(
+    root: Path,
+    class_id: str,
+    family: Path,
+) -> str:
+    """Recover and verify a profile ID from authoritative revision 1."""
+
+    revision_path = family / "revisions" / "1.json"
+    digest_path = Path(str(revision_path) + ".sha256")
+    content, digest = _read_pair(
+        revision_path,
+        digest_path,
+        DEFAULT_MAXIMUM_EXPORT_PROFILE_BYTES,
+    )
+    try:
+        profile = export_profile_revision_from_json_bytes(content)
+    except (ExportProfileSerializationError, ExportProfileValidationError) as error:
+        raise ExportProfileStorageIntegrityError(
+            "Export Profile family lacks a valid authoritative revision 1."
+        ) from error
+    if profile.class_id != class_id or profile.profile_revision != 1:
+        raise ExportProfileStorageIntegrityError(
+            "Export Profile revision 1 identity does not match collection scope."
+        )
+    if export_profile_reference(profile).profile_sha256 != digest:
+        raise ExportProfileStorageIntegrityError(
+            "Export Profile revision 1 digest does not match canonical reference."
+        )
+    if family.name != export_profile_path_key(class_id, profile.profile_id):
+        raise ExportProfileStorageIntegrityError(
+            "Export Profile directory key does not match authoritative identity."
+        )
+    return profile.profile_id
 
 
 def _validate_profile_family_directory(family: Path) -> None:

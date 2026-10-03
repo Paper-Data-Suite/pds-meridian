@@ -39,6 +39,7 @@ from meridian.reporting_snapshot_record import (
     reporting_snapshot_reference,
     reporting_snapshot_to_json_bytes,
 )
+from meridian.storage_path_keys import storage_path_key
 
 DEFAULT_MAXIMUM_REPORTING_DEFINITION_BYTES: Final[int] = 512 * 1024
 DEFAULT_MAXIMUM_REPORTING_DIGEST_BYTES: Final[int] = 128
@@ -51,10 +52,10 @@ _REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
     r"^([1-9]\d*)\.json\.sha256$"
 )
 _SNAPSHOT_JSON: Final[re.Pattern[str]] = re.compile(
-    r"^([A-Za-z0-9_-]+)\.json$"
+    r"^(mk_[0-9a-f]{64})\.json$"
 )
 _SNAPSHOT_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([A-Za-z0-9_-]+)\.json\.sha256$"
+    r"^(mk_[0-9a-f]{64})\.json\.sha256$"
 )
 
 
@@ -239,7 +240,11 @@ class StoredReportingSnapshot:
             raise ReportingSnapshotStorageValidationError(
                 "relative_path is not the canonical ReportingSnapshot location."
             )
-        if self.path.name != f"{self.snapshot.snapshot_id}.json":
+        snapshot_key = reporting_snapshot_path_key(
+            self.snapshot.class_id,
+            self.snapshot.snapshot_id,
+        )
+        if self.path.name != f"{snapshot_key}.json":
             raise ReportingSnapshotStorageValidationError(
                 "path filename does not match ReportingSnapshot identity."
             )
@@ -287,6 +292,35 @@ def reporting_definitions_directory(
     ) / "reporting_definitions"
 
 
+def reporting_definition_path_key(
+    class_id: str,
+    definition_id: str,
+) -> str:
+    """Return the bounded key for one reporting-definition family."""
+
+    class_value = _identifier(class_id, "class_id")
+    definition = _identifier(definition_id, "definition_id")
+    return storage_path_key(
+        "reporting_definition",
+        class_value,
+        definition,
+    )
+
+
+def reporting_definition_relative_directory(
+    class_id: str,
+    definition_id: str,
+) -> str:
+    """Return one reporting-definition family's bounded relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    definition = _identifier(definition_id, "definition_id")
+    return (
+        f"classes/{class_value}/modules/meridian/reporting_definitions/"
+        f"{reporting_definition_path_key(class_value, definition)}"
+    )
+
+
 def reporting_definition_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -294,10 +328,13 @@ def reporting_definition_directory(
 ) -> Path:
     """Return one reporting-definition family directory."""
 
-    return reporting_definitions_directory(
-        workspace_root,
-        class_id,
-    ) / _identifier(definition_id, "definition_id")
+    return (
+        reporting_definitions_directory(
+            workspace_root,
+            class_id,
+        )
+        / reporting_definition_path_key(class_id, definition_id)
+    )
 
 
 def reporting_definition_revisions_directory(
@@ -353,10 +390,11 @@ def reporting_definition_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     definition_value = _identifier(definition_id, "definition_id")
     revision = _positive_int(definition_revision, "definition_revision")
-    return (
-        f"classes/{class_value}/modules/meridian/reporting_definitions/"
-        f"{definition_value}/revisions/{revision}.json"
+    definition_root = reporting_definition_relative_directory(
+        class_value,
+        definition_value,
     )
+    return f"{definition_root}/revisions/{revision}.json"
 
 
 def reporting_snapshots_directory(
@@ -372,15 +410,31 @@ def reporting_snapshots_directory(
     ) / "reporting_snapshots"
 
 
+def reporting_snapshot_path_key(
+    class_id: str,
+    snapshot_id: str,
+) -> str:
+    """Return the bounded key for one immutable ReportingSnapshot."""
+
+    class_value = _identifier(class_id, "class_id")
+    snapshot = _identifier(snapshot_id, "snapshot_id")
+    return storage_path_key(
+        "reporting_snapshot",
+        class_value,
+        snapshot,
+    )
+
+
 def reporting_snapshot_path(
     workspace_root: str | Path,
     class_id: str,
     snapshot_id: str,
 ) -> Path:
+    key = reporting_snapshot_path_key(class_id, snapshot_id)
     return reporting_snapshots_directory(
         workspace_root,
         class_id,
-    ) / f"{_identifier(snapshot_id, 'snapshot_id')}.json"
+    ) / f"{key}.json"
 
 
 def reporting_snapshot_digest_path(
@@ -397,9 +451,10 @@ def reporting_snapshot_digest_path(
 def reporting_snapshot_relative_path(class_id: str, snapshot_id: str) -> str:
     class_value = _identifier(class_id, "class_id")
     snapshot_value = _identifier(snapshot_id, "snapshot_id")
+    key = reporting_snapshot_path_key(class_value, snapshot_value)
     return (
         f"classes/{class_value}/modules/meridian/reporting_snapshots/"
-        f"{snapshot_value}.json"
+        f"{key}.json"
     )
 
 
@@ -686,8 +741,12 @@ def list_reporting_definition_ids(
             raise ReportingSnapshotStorageIntegrityError(
                 "Reporting-definition collection contains a non-directory entry."
             )
-        definition_id = _identifier(entry.name, "definition_id")
         _validate_definition_directory(entry)
+        definition_id = _reporting_definition_id_from_directory(
+            root,
+            class_value,
+            entry,
+        )
         revisions = list_reporting_definition_revisions(
             root,
             class_value,
@@ -806,8 +865,8 @@ def list_reporting_snapshot_ids(
         return ()
     _validate_existing_directory_chain(root, collection)
     _validate_snapshots_directory(collection)
-    json_ids: set[str] = set()
-    digest_ids: set[str] = set()
+    json_keys: set[str] = set()
+    digest_keys: set[str] = set()
     try:
         entries = tuple(collection.iterdir())
     except OSError as error:
@@ -824,20 +883,32 @@ def list_reporting_snapshot_ids(
             )
         json_match = _SNAPSHOT_JSON.fullmatch(entry.name)
         if json_match is not None:
-            json_ids.add(_identifier(json_match.group(1), "snapshot_id"))
+            json_keys.add(json_match.group(1))
             continue
         digest_match = _SNAPSHOT_DIGEST.fullmatch(entry.name)
         if digest_match is not None:
-            digest_ids.add(_identifier(digest_match.group(1), "snapshot_id"))
+            digest_keys.add(digest_match.group(1))
             continue
         raise ReportingSnapshotStorageIntegrityError(
             f"Unexpected ReportingSnapshot collection entry: {entry.name}."
         )
-    if json_ids != digest_ids:
+    if json_keys != digest_keys:
         raise ReportingSnapshotStorageIntegrityError(
             "ReportingSnapshot JSON/digest pairs are incomplete."
         )
-    ordered = tuple(sorted(json_ids))
+    snapshot_ids = {
+        _reporting_snapshot_id_from_path_key(
+            root,
+            class_value,
+            key,
+        )
+        for key in json_keys
+    }
+    if len(snapshot_ids) != len(json_keys):
+        raise ReportingSnapshotStorageIntegrityError(
+            "ReportingSnapshot collection contains duplicate logical identity."
+        )
+    ordered = tuple(sorted(snapshot_ids))
     for snapshot_id in ordered:
         load_reporting_snapshot(root, class_value, snapshot_id)
     return ordered
@@ -892,6 +963,84 @@ def _load_reporting_snapshot_raw(
         ),
         content=content,
     )
+
+
+def _reporting_definition_id_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> str:
+    """Recover and verify a definition ID from authoritative revision 1."""
+
+    revision_path = relation / "revisions" / "1.json"
+    digest_path = Path(str(revision_path) + ".sha256")
+    content, _ = _read_pair(
+        revision_path,
+        digest_path,
+        DEFAULT_MAXIMUM_REPORTING_DEFINITION_BYTES,
+        missing_label="Reporting-definition revision 1",
+    )
+    try:
+        definition = reporting_definition_revision_from_json_bytes(content)
+    except (
+        ReportingSnapshotSerializationError,
+        ReportingDefinitionValidationError,
+        ReportingSnapshotValidationError,
+    ) as error:
+        raise ReportingSnapshotStorageIntegrityError(
+            "Reporting-definition family lacks a valid authoritative revision 1."
+        ) from error
+    if definition.class_id != class_id or definition.definition_revision != 1:
+        raise ReportingSnapshotStorageIntegrityError(
+            "Reporting-definition revision 1 identity does not match collection "
+            "scope."
+        )
+    if relation.name != reporting_definition_path_key(
+        class_id,
+        definition.definition_id,
+    ):
+        raise ReportingSnapshotStorageIntegrityError(
+            "Reporting-definition directory key does not match authoritative "
+            "identity."
+        )
+    return definition.definition_id
+
+
+def _reporting_snapshot_id_from_path_key(
+    root: Path,
+    class_id: str,
+    key: str,
+) -> str:
+    """Recover and verify a snapshot ID from one bounded file-pair key."""
+
+    collection = reporting_snapshots_directory(root, class_id)
+    path = collection / f"{key}.json"
+    digest_path = collection / f"{key}.json.sha256"
+    content, digest = _read_pair(
+        path,
+        digest_path,
+        DEFAULT_MAXIMUM_REPORTING_SNAPSHOT_BYTES,
+        missing_label="ReportingSnapshot",
+    )
+    try:
+        snapshot = reporting_snapshot_from_json_bytes(content)
+    except ReportingSnapshotIntegrityError as error:
+        raise ReportingSnapshotStorageIntegrityError(
+            "ReportingSnapshot collection contains invalid canonical content."
+        ) from error
+    if snapshot.class_id != class_id:
+        raise ReportingSnapshotStorageIntegrityError(
+            "ReportingSnapshot collection entry has the wrong class identity."
+        )
+    if key != reporting_snapshot_path_key(class_id, snapshot.snapshot_id):
+        raise ReportingSnapshotStorageIntegrityError(
+            "ReportingSnapshot file key does not match authoritative identity."
+        )
+    if reporting_snapshot_reference(snapshot).snapshot_sha256 != digest:
+        raise ReportingSnapshotStorageIntegrityError(
+            "ReportingSnapshot sidecar digest does not match canonical reference."
+        )
+    return snapshot.snapshot_id
 
 
 def _verify_snapshot_dependencies(root: Path, snapshot: ReportingSnapshot) -> None:

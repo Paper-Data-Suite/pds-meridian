@@ -38,11 +38,13 @@ from meridian.reporting_snapshot_storage import (
     list_reporting_snapshot_ids,
     load_reporting_definition_revision,
     load_reporting_snapshot,
+    reporting_definition_path_key,
     reporting_definition_revision_digest_path,
     reporting_definition_revision_path,
     reporting_definition_revision_relative_path,
     reporting_snapshot_digest_path,
     reporting_snapshot_path,
+    reporting_snapshot_path_key,
     reporting_snapshot_relative_path,
     write_reporting_definition_revision,
     write_reporting_snapshot,
@@ -292,13 +294,63 @@ def test_definition_relative_path_is_class_local_and_canonical(tmp_path: Path) -
 
     assert stored.relative_path == (
         "classes/english_12/modules/meridian/reporting_definitions/"
-        "quarter_grade_report/revisions/1.json"
+        f"{reporting_definition_path_key(CLASS_ID, 'quarter_grade_report')}/"
+        "revisions/1.json"
     )
     assert stored.relative_path == reporting_definition_revision_relative_path(
         CLASS_ID, "quarter_grade_report", 1
     )
     assert stored.path == reporting_definition_revision_path(
         root, CLASS_ID, "quarter_grade_report", 1
+    )
+
+
+def test_long_reporting_ids_use_bounded_paths_and_round_trip(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    long_definition_id = "definition_" + ("d" * 5000)
+    definition = write_reporting_definition_revision(
+        root,
+        _definition(definition_id=long_definition_id),
+    ).stored
+    definition_family = definition.path.parent.parent
+
+    assert len(definition_family.name) == 67
+    assert definition_family.name == reporting_definition_path_key(
+        CLASS_ID,
+        long_definition_id,
+    )
+    assert long_definition_id not in definition.relative_path
+    assert list_reporting_definition_ids(root, CLASS_ID) == (
+        long_definition_id,
+    )
+
+    normal_definition = write_reporting_definition_revision(
+        root,
+        _definition(definition_id="snapshot_dependency"),
+    ).stored
+    long_snapshot_id = "snapshot_" + ("s" * 5000)
+    snapshot = write_reporting_snapshot(
+        root,
+        _snapshot(
+            normal_definition.reference,
+            snapshot_id=long_snapshot_id,
+        ),
+    ).stored
+
+    assert snapshot.path.name == (
+        f"{reporting_snapshot_path_key(CLASS_ID, long_snapshot_id)}.json"
+    )
+    assert len(snapshot.path.stem) == 67
+    assert long_snapshot_id not in snapshot.relative_path
+    assert load_reporting_snapshot(
+        root,
+        CLASS_ID,
+        long_snapshot_id,
+    ).snapshot.snapshot_id == long_snapshot_id
+    assert list_reporting_snapshot_ids(root, CLASS_ID) == (
+        long_snapshot_id,
     )
 
 

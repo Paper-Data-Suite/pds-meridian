@@ -31,6 +31,7 @@ from meridian.export_profile_storage import (
     ExportProfileStorageTooLargeError,
     ExportProfileStorageValidationError,
     export_profile_current_path,
+    export_profile_path_key,
     export_profile_revision_relative_path,
     export_profile_selection_from_json_bytes,
     export_profile_selection_relative_path,
@@ -177,12 +178,42 @@ def test_revision_path_is_class_local_and_privacy_safe(tmp_path: Path) -> None:
 
     assert stored.relative_path == (
         "classes/english_12/modules/meridian/export_profiles/"
-        "district_gradebook/revisions/1.json"
+        f"{export_profile_path_key(CLASS_ID, 'district_gradebook')}/"
+        "revisions/1.json"
     )
     assert stored.relative_path == export_profile_revision_relative_path(
         CLASS_ID, "district_gradebook", 1
     )
     assert "student" not in stored.relative_path.lower()
+
+
+def test_long_profile_id_uses_bounded_key_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    long_profile_id = "profile_" + ("p" * 5000)
+
+    stored = write_export_profile_revision(
+        root,
+        _profile(profile_id=long_profile_id),
+    ).stored
+    family = stored.path.parent.parent
+
+    assert len(family.name) == 67
+    assert family.name == export_profile_path_key(
+        CLASS_ID,
+        long_profile_id,
+    )
+    assert long_profile_id not in stored.relative_path
+    assert load_export_profile_revision(
+        root,
+        CLASS_ID,
+        long_profile_id,
+        1,
+    ).profile.profile_id == long_profile_id
+    assert list_export_profile_ids(root, CLASS_ID) == (
+        long_profile_id,
+    )
 
 
 def test_load_reference_requires_exact_digest(tmp_path: Path) -> None:
@@ -318,7 +349,7 @@ def test_selector_path_is_family_local_and_contains_no_student_identity(
 
     assert result.selection.relative_path == (
         "classes/english_12/modules/meridian/export_profiles/"
-        "district_gradebook/current.json"
+        f"{export_profile_path_key(CLASS_ID, 'district_gradebook')}/current.json"
     )
     assert result.selection.relative_path == export_profile_selection_relative_path(
         CLASS_ID, "district_gradebook"
