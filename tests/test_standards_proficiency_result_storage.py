@@ -196,7 +196,20 @@ def test_result_path_bounds_subject_and_hashes_raw_standard_id(
     assert GRADE_ITEM_ID not in relative
     assert STUDENT_ID not in relative
     assert STANDARD_ID not in relative
-    assert f"/subjects/{subject_key}/standards/{standard_key}/" in relative
+    family = standard_proficiency_result_family_directory(
+        root,
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        STUDENT_ID,
+        STANDARD_ID,
+    )
+    assert len(family.name) == 67
+    assert relative == (
+        "classes/synthetic_class_2026/modules/meridian/"
+        f"sp/r/{family.name}/1.json"
+    )
+    assert len(relative) <= 125
+    assert len(f"{relative}.sha256") <= 132
 
     stored = write_standard_proficiency_result_revision(root, value).stored
     assert stored.relative_path == relative
@@ -222,11 +235,21 @@ def test_long_grade_item_and_student_ids_keep_result_path_bounded(
     )
 
     assert len(subject_key) == 67
-    assert family.parent.parent.name == subject_key
-    assert family.parent.parent.parent.name == "subjects"
+    assert len(family.name) == 67
+    assert family.parent.name == "r"
+    assert family.parent.parent.name == "sp"
     assert long_grade_item_id not in family.as_posix()
     assert long_student_id not in family.as_posix()
     assert STANDARD_ID not in family.as_posix()
+    relative = standard_proficiency_result_revision_relative_path(
+        CLASS_ID,
+        long_grade_item_id,
+        long_student_id,
+        STANDARD_ID,
+        1,
+    )
+    assert len(relative) <= 125
+    assert len(f"{relative}.sha256") <= 132
 
 
 def test_result_write_is_immutable_and_does_not_auto_select(
@@ -566,7 +589,7 @@ def test_result_family_lock_conflict_is_narrow(tmp_path: Path) -> None:
         STUDENT_ID,
         STANDARD_ID,
     )
-    (family / "revisions").mkdir(parents=True)
+    family.mkdir(parents=True)
     (family / ".write.lock").write_text("held\n", encoding="utf-8")
 
     with pytest.raises(StandardProficiencyStorageLockError):

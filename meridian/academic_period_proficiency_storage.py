@@ -335,14 +335,11 @@ def academic_period_proficiency_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    "Return the class-local Academic Period proficiency storage root."
+    "Return the short class-local Academic Period proficiency storage root."
 
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "academic_period_proficiency"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "ap"
     _require_containment(root, path)
     return path
 
@@ -354,7 +351,7 @@ def academic_period_proficiency_policies_directory(
     return academic_period_proficiency_directory(
         workspace_root,
         class_id,
-    ) / "policies"
+    ) / "p"
 
 
 def academic_period_proficiency_policy_path_key(
@@ -381,8 +378,7 @@ def academic_period_proficiency_policy_relative_directory(
     class_value = _identifier(class_id, "class_id")
     policy = _identifier(policy_id, "policy_id")
     return (
-        f"classes/{class_value}/modules/meridian/academic_period_proficiency/"
-        f"policies/"
+        f"classes/{class_value}/modules/meridian/ap/p/"
         f"{academic_period_proficiency_policy_path_key(class_value, policy)}"
     )
 
@@ -411,7 +407,7 @@ def academic_period_proficiency_policy_revisions_directory(
         workspace_root,
         class_id,
         policy_id,
-    ) / "revisions"
+    )
 
 
 def academic_period_proficiency_policy_revision_path(
@@ -452,7 +448,7 @@ def academic_period_proficiency_policy_revision_relative_path(
         class_value,
         policy,
     )
-    return f"{policy_root}/revisions/{revision}.json"
+    return f"{policy_root}/{revision}.json"
 
 
 def write_academic_period_proficiency_policy_revision(
@@ -823,7 +819,7 @@ def academic_period_proficiency_results_directory(
     return academic_period_proficiency_directory(
         workspace_root,
         class_id,
-    ) / "results"
+    ) / "r"
 
 
 def academic_period_proficiency_standard_key(standard_id: str) -> str:
@@ -869,19 +865,18 @@ def academic_period_proficiency_result_family_directory(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(school_year, period_id)
     student = _identifier(student_id, "student_id")
-    subject_key = academic_period_proficiency_result_subject_key(
+    standard = _standard_id(standard_id)
+    family_key = storage_path_key(
+        "academic_period_proficiency_result",
         class_value,
         period.school_year,
         period.period_id,
         student,
+        standard,
     )
-    standard_key = academic_period_proficiency_standard_key(standard_id)
     path = (
         academic_period_proficiency_results_directory(root, class_value)
-        / "subjects"
-        / subject_key
-        / "standards"
-        / standard_key
+        / family_key
     )
     _require_containment(root, path)
     return path
@@ -902,7 +897,7 @@ def academic_period_proficiency_result_revisions_directory(
         period_id,
         student_id,
         standard_id,
-    ) / "revisions"
+    )
 
 
 def academic_period_proficiency_result_revision_path(
@@ -956,18 +951,19 @@ def academic_period_proficiency_result_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(school_year, period_id)
     student = _identifier(student_id, "student_id")
-    subject_key = academic_period_proficiency_result_subject_key(
+    standard = _standard_id(standard_id)
+    family_key = storage_path_key(
+        "academic_period_proficiency_result",
         class_value,
         period.school_year,
         period.period_id,
         student,
+        standard,
     )
-    standard_key = academic_period_proficiency_standard_key(standard_id)
     revision = _positive_int(result_revision, "result_revision")
     return (
-        f"classes/{class_value}/modules/meridian/academic_period_proficiency/"
-        f"results/subjects/{subject_key}/standards/{standard_key}/"
-        f"revisions/{revision}.json"
+        f"classes/{class_value}/modules/meridian/ap/r/"
+        f"{family_key}/{revision}.json"
     )
 
 
@@ -1002,8 +998,7 @@ def write_academic_period_proficiency_result_revision(
         snapshot.student_id,
         snapshot.standard_id,
     )
-    revisions = family / "revisions"
-    _ensure_directory_chain(root, revisions)
+    _ensure_directory_chain(root, family)
     _validate_result_ancestor_shape(
         root,
         snapshot.class_id,
@@ -1015,7 +1010,14 @@ def write_academic_period_proficiency_result_revision(
     lock = family / ".write.lock"
     _acquire_lock(lock)
     try:
-        _validate_result_family_directory(family, snapshot.standard_id)
+        _validate_result_family_directory(
+            family,
+            snapshot.class_id,
+            period.school_year,
+            period.period_id,
+            snapshot.student_id,
+            snapshot.standard_id,
+        )
         _check_write_size(
             content,
             DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULT_BYTES,
@@ -1158,7 +1160,14 @@ def load_academic_period_proficiency_result_revision(
         period.period_id,
         student,
     )
-    _validate_result_family_directory(family, standard)
+    _validate_result_family_directory(
+        family,
+        class_value,
+        period.school_year,
+        period.period_id,
+        student,
+        standard,
+    )
     path = academic_period_proficiency_result_revision_path(
         root,
         class_value,
@@ -1200,10 +1209,18 @@ def load_academic_period_proficiency_result_revision(
             "match its canonical path."
         )
 
-    expected_key = academic_period_proficiency_standard_key(snapshot.standard_id)
+    expected_key = storage_path_key(
+        "academic_period_proficiency_result",
+        snapshot.class_id,
+        snapshot.target_period.period.school_year,
+        snapshot.target_period.period.period_id,
+        snapshot.student_id,
+        snapshot.standard_id,
+    )
     if family.name != expected_key:
         raise AcademicPeriodProficiencyStorageIntegrityError(
-            "Persisted standard identity does not match its hashed canonical path."
+            "Persisted Academic Period proficiency result identity does not "
+            "match its bounded canonical path."
         )
 
     return StoredAcademicPeriodProficiencyResult(
@@ -1254,7 +1271,14 @@ def list_academic_period_proficiency_result_revisions(
         period.period_id,
         student,
     )
-    _validate_result_family_directory(family, standard)
+    _validate_result_family_directory(
+        family,
+        class_value,
+        period.school_year,
+        period.period_id,
+        student,
+        standard,
+    )
     revisions = _result_revision_numbers(family)
     previous: AcademicPeriodProficiencyResultSnapshot | None = None
     for revision in revisions:
@@ -1657,73 +1681,44 @@ def _validate_result_ancestor_shape(
     period_id: str,
     student_id: str,
 ) -> None:
-    results = academic_period_proficiency_results_directory(root, class_id)
+    class_value = _identifier(class_id, "class_id")
+    _period_ref(school_year, period_id)
+    _identifier(student_id, "student_id")
+    results = academic_period_proficiency_results_directory(root, class_value)
     if not results.exists():
         return
     _validate_existing_directory_chain(root, results)
-
-    subjects = _require_only_named_directory(
-        results,
-        "subjects",
-        "Academic Period proficiency result root",
-    )
-    if subjects is None:
-        return
-    _require_real_directory(subjects, "result subject collection")
     _require_storage_key_directory_collection(
-        subjects,
-        "result subject collection",
+        results,
+        "Academic Period proficiency result collection",
     )
-
-    subject_key = academic_period_proficiency_result_subject_key(
-        class_id,
-        school_year,
-        period_id,
-        student_id,
-    )
-    subject_path = subjects / subject_key
-    if not subject_path.exists():
-        return
-    _require_real_directory(subject_path, "result subject scope")
-    standards = _require_only_named_directory(
-        subject_path,
-        "standards",
-        "result subject scope",
-    )
-    if standards is None:
-        return
-    _require_real_directory(standards, "result standards collection")
-    try:
-        entries = tuple(standards.iterdir())
-    except OSError as error:
-        raise AcademicPeriodProficiencyStorageReadError(
-            "Could not inspect Academic Period proficiency result families."
-        ) from error
-    for entry in entries:
-        if (
-            _SHA256.fullmatch(entry.name) is None
-            or entry.is_symlink()
-            or not entry.is_dir()
-        ):
-            raise AcademicPeriodProficiencyStorageIntegrityError(
-                "Academic Period proficiency standards collection contains an "
-                "unsafe or unexpected entry."
-            )
 
 
 def _validate_result_family_directory(
     family: Path,
+    class_id: str,
+    school_year: str,
+    period_id: str,
+    student_id: str,
     standard_id: str,
 ) -> None:
     if not family.exists():
         return
     _require_real_directory(family, "Academic Period proficiency result family")
-    if family.name != academic_period_proficiency_standard_key(standard_id):
+    period = _period_ref(school_year, period_id)
+    expected_key = storage_path_key(
+        "academic_period_proficiency_result",
+        _identifier(class_id, "class_id"),
+        period.school_year,
+        period.period_id,
+        _identifier(student_id, "student_id"),
+        _standard_id(standard_id),
+    )
+    if family.name != expected_key:
         raise AcademicPeriodProficiencyStorageIntegrityError(
             "Academic Period proficiency result-family key does not match "
-            "standard identity."
+            "its complete logical identity."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(family.iterdir())
     except OSError as error:
@@ -1731,31 +1726,31 @@ def _validate_result_family_directory(
             "Could not inspect Academic Period proficiency result family."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise AcademicPeriodProficiencyStorageIntegrityError(
+                    "Academic Period proficiency result metadata must be a "
+                    "regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise AcademicPeriodProficiencyStorageIntegrityError(
                 "Academic Period proficiency result family contains an "
                 "unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise AcademicPeriodProficiencyStorageIntegrityError(
-                    "Academic Period proficiency result revisions entry must be a "
-                    "real directory."
-                )
-            _validate_result_revision_directory_shape(entry)
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise AcademicPeriodProficiencyStorageIntegrityError(
-                "Academic Period proficiency result pointer/lock entry must be "
-                "a regular file."
+                "Academic Period proficiency result revision must be a regular file."
             )
 
 
 def _result_revision_numbers(family: Path) -> tuple[int, ...]:
-    revisions_dir = family / "revisions"
-    if not revisions_dir.exists():
+    if not family.exists():
         return ()
-    _validate_result_revision_directory_shape(revisions_dir)
-    json_numbers, digest_numbers = _result_revision_number_sets(revisions_dir)
+    json_numbers, digest_numbers = _result_revision_number_sets(family)
     if json_numbers != digest_numbers:
         raise AcademicPeriodProficiencyStorageIntegrityError(
             "Academic Period proficiency result JSON and digest sidecars are "
@@ -1793,9 +1788,16 @@ def _result_revision_number_sets(path: Path) -> tuple[set[int], set[int]]:
     json_numbers: set[int] = set()
     digest_numbers: set[int] = set()
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise AcademicPeriodProficiencyStorageIntegrityError(
+                    "Academic Period proficiency result metadata must be a "
+                    "regular file."
+                )
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise AcademicPeriodProficiencyStorageIntegrityError(
-                "Immutable Academic Period proficiency result revision directory "
+                "Immutable Academic Period proficiency result history "
                 "contains an unsafe entry."
             )
         json_match = _REVISION_JSON.fullmatch(entry.name)
@@ -2049,7 +2051,14 @@ def _load_result_pointer(
         period.period_id,
         student,
     )
-    _validate_result_family_directory(family, standard)
+    _validate_result_family_directory(
+        family,
+        class_value,
+        period.school_year,
+        period.period_id,
+        student,
+        standard,
+    )
     path = family / "current.json"
     if not path.exists():
         if missing_ok:
@@ -2195,12 +2204,11 @@ def _list_history_revisions(
     loader: Callable[[int], _HistoryT],
     transition: Callable[[_HistoryT, _HistoryT], _HistoryT],
 ) -> tuple[int, ...]:
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
+    if not relation.exists():
         return ()
-    _validate_existing_directory_chain(root, revisions_dir)
+    _validate_existing_directory_chain(root, relation)
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise AcademicPeriodProficiencyStorageReadError(
             "Could not inspect immutable Academic Period proficiency policy history."
@@ -2209,6 +2217,8 @@ def _list_history_revisions(
     json_numbers: set[int] = set()
     digest_numbers: set[int] = set()
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise AcademicPeriodProficiencyStorageIntegrityError(
                 "Academic Period proficiency policy history contains an unsafe entry."
@@ -2261,7 +2271,7 @@ def _academic_period_proficiency_policy_id_from_directory(
 ) -> str:
     """Recover and verify a policy ID from authoritative revision 1."""
 
-    revision_path = relation / "revisions" / "1.json"
+    revision_path = relation / "1.json"
     try:
         content, _ = _read_revision_pair(
             root,
@@ -2304,33 +2314,7 @@ def _validate_policy_directory(path: Path) -> None:
             "Academic Period proficiency policy canonical root is unsafe or not "
             "a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
-    try:
-        entries = tuple(path.iterdir())
-    except OSError as error:
-        raise AcademicPeriodProficiencyStorageReadError(
-            "Could not inspect Academic Period proficiency policy canonical root."
-        ) from error
-
-    for entry in entries:
-        if entry.name not in allowed:
-            raise AcademicPeriodProficiencyStorageIntegrityError(
-                "Academic Period proficiency policy canonical root contains an "
-                "unexpected entry."
-            )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise AcademicPeriodProficiencyStorageIntegrityError(
-                    "Academic Period proficiency policy revisions entry must be a real "
-                    "directory."
-                )
-            _validate_revision_directory_shape(entry)
-        elif entry.is_symlink() or not entry.is_file():
-            raise AcademicPeriodProficiencyStorageIntegrityError(
-                "Academic Period proficiency policy pointer/lock entry must be a "
-                "regular "
-                "file."
-            )
+    _validate_revision_directory_shape(path)
 
 
 def _validate_revision_directory_shape(path: Path) -> None:
@@ -2345,10 +2329,16 @@ def _validate_revision_directory_shape(path: Path) -> None:
     json_numbers: set[int] = set()
     digest_numbers: set[int] = set()
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise AcademicPeriodProficiencyStorageIntegrityError(
+                    "Academic Period proficiency policy metadata must be a "
+                    "regular file."
+                )
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise AcademicPeriodProficiencyStorageIntegrityError(
-                "Immutable Academic Period proficiency policy revision directory "
-                "contains "
+                "Immutable Academic Period proficiency policy history contains "
                 "an unsafe entry."
             )
         json_match = _REVISION_JSON.fullmatch(entry.name)

@@ -142,7 +142,7 @@ def test_policy_relative_path_is_class_local_and_scale_independent() -> None:
         1,
     ) == (
         "classes/synthetic_class_2026/modules/meridian/"
-        f"standards_proficiency/policies/{policy_key}/revisions/1.json"
+        f"sp/p/{policy_key}/1.json"
     )
 
 
@@ -157,7 +157,7 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         workspace,
         policy(target, policy_id=long_policy_id),
     ).stored
-    relation = stored.path.parent.parent
+    relation = stored.path.parent
 
     assert len(relation.name) == 67
     assert relation.name == standard_proficiency_policy_path_key(
@@ -165,6 +165,8 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         long_policy_id,
     )
     assert long_policy_id not in stored.relative_path
+    assert len(stored.relative_path) <= 125
+    assert len(f"{stored.relative_path}.sha256") <= 132
     assert load_standard_proficiency_policy_revision(
         workspace,
         CLASS_ID,
@@ -438,7 +440,7 @@ def test_unexpected_policy_entry_fails_closed(tmp_path: Path) -> None:
         policy(target),
     ).stored
 
-    (stored.path.parent.parent / "latest.json").write_text(
+    (stored.path.parent / "latest.json").write_text(
         "{}",
         encoding="utf-8",
     )
