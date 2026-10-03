@@ -40,7 +40,11 @@ from meridian.standards_proficiency import (
     validate_standard_proficiency_calculation_policy_transition,
     validate_standard_proficiency_result_transition,
 )
-from meridian.storage_path_keys import storage_path_key
+from meridian.storage_path_keys import (
+    StoragePathKeyError,
+    storage_path_key,
+    validate_storage_path_key,
+)
 
 STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 STANDARD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE: Final[str] = (
@@ -751,6 +755,24 @@ def standard_proficiency_standard_key(standard_id: str) -> str:
     ).hexdigest()
 
 
+def standard_proficiency_result_subject_key(
+    class_id: str,
+    grade_item_id: str,
+    student_id: str,
+) -> str:
+    "Return the bounded key for one Grade Item/student result subject."
+
+    class_value = _identifier(class_id, "class_id")
+    grade_item = _identifier(grade_item_id, "grade_item_id")
+    student = _identifier(student_id, "student_id")
+    return storage_path_key(
+        "standard_proficiency_result_subject",
+        class_value,
+        grade_item,
+        student,
+    )
+
+
 def standard_proficiency_result_family_directory(
     workspace_root: str | Path,
     class_id: str,
@@ -764,13 +786,16 @@ def standard_proficiency_result_family_directory(
     class_value = _identifier(class_id, "class_id")
     grade_item = _identifier(grade_item_id, "grade_item_id")
     student = _identifier(student_id, "student_id")
+    subject_key = standard_proficiency_result_subject_key(
+        class_value,
+        grade_item,
+        student,
+    )
     standard_key = standard_proficiency_standard_key(standard_id)
     path = (
         standard_proficiency_results_directory(root, class_value)
-        / "grade_items"
-        / grade_item
-        / "students"
-        / student
+        / "subjects"
+        / subject_key
         / "standards"
         / standard_key
     )
@@ -838,11 +863,16 @@ def standard_proficiency_result_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     grade_item = _identifier(grade_item_id, "grade_item_id")
     student = _identifier(student_id, "student_id")
+    subject_key = standard_proficiency_result_subject_key(
+        class_value,
+        grade_item,
+        student,
+    )
     standard_key = standard_proficiency_standard_key(standard_id)
     revision = _positive_int(result_revision, "result_revision")
     return (
         f"classes/{class_value}/modules/meridian/standards_proficiency/"
-        f"results/grade_items/{grade_item}/students/{student}/standards/"
+        f"results/subjects/{subject_key}/standards/"
         f"{standard_key}/revisions/{revision}.json"
     )
 
@@ -1477,50 +1507,34 @@ def _validate_result_ancestor_shape(
 
     _require_only_named_directory(
         results,
-        "grade_items",
+        "subjects",
         "standards-proficiency result root",
     )
-    grade_items = results / "grade_items"
-    if not grade_items.exists():
+    subjects = results / "subjects"
+    if not subjects.exists():
         return
-    _require_real_directory(grade_items, "result Grade Item collection")
-    _require_identifier_directory_collection(
-        grade_items,
-        "grade_item_id",
-        "result Grade Item collection",
+    _require_real_directory(subjects, "result subject collection")
+    _require_storage_key_directory_collection(
+        subjects,
+        "result subject collection",
     )
 
-    grade_item = grade_items / grade_item_id
-    if not grade_item.exists():
+    subject_key = standard_proficiency_result_subject_key(
+        class_id,
+        grade_item_id,
+        student_id,
+    )
+    subject = subjects / subject_key
+    if not subject.exists():
         return
-    _require_real_directory(grade_item, "result Grade Item scope")
+    _require_real_directory(subject, "result subject scope")
     _require_only_named_directory(
-        grade_item,
-        "students",
-        "result Grade Item scope",
-    )
-
-    students = grade_item / "students"
-    if not students.exists():
-        return
-    _require_real_directory(students, "result student collection")
-    _require_identifier_directory_collection(
-        students,
-        "student_id",
-        "result student collection",
-    )
-
-    student = students / student_id
-    if not student.exists():
-        return
-    _require_real_directory(student, "result student scope")
-    _require_only_named_directory(
-        student,
+        subject,
         "standards",
-        "result student scope",
+        "result subject scope",
     )
 
-    standards = student / "standards"
+    standards = subject / "standards"
     if not standards.exists():
         return
     _require_real_directory(standards, "result standards collection")
@@ -1605,6 +1619,29 @@ def _require_identifier_directory_collection(
                 f"{label} contains an unexpected entry."
             )
         _identifier(entry.name, field_name)
+
+
+def _require_storage_key_directory_collection(
+    parent: Path,
+    label: str,
+) -> None:
+    try:
+        entries = tuple(parent.iterdir())
+    except OSError as error:
+        raise StandardProficiencyStorageReadError(
+            f"Could not inspect {label}."
+        ) from error
+    for entry in entries:
+        if entry.is_symlink() or not entry.is_dir():
+            raise StandardProficiencyStorageIntegrityError(
+                f"{label} contains an unexpected entry."
+            )
+        try:
+            validate_storage_path_key(entry.name)
+        except StoragePathKeyError as error:
+            raise StandardProficiencyStorageIntegrityError(
+                f"{label} contains an invalid bounded storage key."
+            ) from error
 
 
 def _require_only_named_directory(
