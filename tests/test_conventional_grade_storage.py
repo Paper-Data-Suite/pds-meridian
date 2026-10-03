@@ -168,8 +168,38 @@ def test_subject_path_is_hashed_and_result_retains_student_identity(
     )
     assert len(subject_key) == 64
     assert STUDENT_ID not in stored.relative_path
-    assert f"/students/{subject_key}/" in stored.relative_path
+    assert PERIOD.school_year not in stored.relative_path
+    assert PERIOD.period_id not in stored.relative_path
+    assert f"/subjects/{subject_key}/" in stored.relative_path
     assert stored.snapshot.student_id == STUDENT_ID
+
+
+def test_long_student_id_keeps_result_family_path_bounded(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _workspace(tmp_path, monkeypatch)
+    long_student_id = "student_" + ("s" * 5000)
+    family = storage.conventional_grade_result_family_directory(
+        tmp_path,
+        CLASS_ID,
+        long_student_id,
+        PERIOD,
+        1,
+    )
+    subject_key = storage.conventional_grade_subject_key(
+        CLASS_ID,
+        long_student_id,
+        PERIOD,
+        1,
+    )
+
+    assert len(subject_key) == 64
+    assert family.name == subject_key
+    assert family.parent.name == "subjects"
+    assert long_student_id not in family.as_posix()
+    assert PERIOD.school_year not in family.as_posix()
+    assert PERIOD.period_id not in family.as_posix()
 
 
 def test_same_revision_different_bytes_conflicts(

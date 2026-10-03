@@ -263,10 +263,7 @@ def conventional_grade_result_family_directory(
     )
     path = (
         conventional_grades_directory(root, class_value)
-        / "periods"
-        / period.school_year
-        / period.period_id
-        / "students"
+        / "subjects"
         / subject_key
     )
     _require_containment(root, path)
@@ -331,8 +328,7 @@ def conventional_grade_result_revision_relative_path(
     )
     return (
         f"classes/{class_value}/modules/meridian/conventional_grades/"
-        f"periods/{period.school_year}/{period.period_id}/students/"
-        f"{subject_key}/revisions/{revision}.json"
+        f"subjects/{subject_key}/revisions/{revision}.json"
     )
 
 
@@ -1027,12 +1023,12 @@ def _validate_result_ancestor_shape_values(
         calendar_revision,
     )
     _validate_existing_directory_chain(root, family)
-    students = family.parent
+    subjects = family.parent
     try:
-        entries = tuple(students.iterdir())
+        entries = tuple(subjects.iterdir())
     except OSError as error:
         raise ConventionalGradeStorageReadError(
-            "Could not inspect conventional Grade student result collection."
+            "Could not inspect conventional Grade subject result collection."
         ) from error
     for entry in entries:
         if (
@@ -1041,7 +1037,7 @@ def _validate_result_ancestor_shape_values(
             or _SHA256.fullmatch(entry.name) is None
         ):
             raise ConventionalGradeStorageIntegrityError(
-                "Student result collection contains an unexpected entry."
+                "Subject result collection contains an unexpected entry."
             )
 
 
