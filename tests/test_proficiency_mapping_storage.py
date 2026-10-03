@@ -134,13 +134,14 @@ def test_canonical_relative_paths() -> None:
     assert proficiency_scale_revision_relative_path(
         CLASS_ID, "course_proficiency", 1
     ) == (
-        "classes/synthetic_class_2026/modules/meridian/proficiency_scales/"
-        f"{scale_key}/revisions/1.json"
+        "classes/synthetic_class_2026/modules/meridian/prof/s/"
+        f"{scale_key}/1.json"
     )
     assert mapping_profile_revision_relative_path(
         CLASS_ID, "course_proficiency", "quillan_024", 1
-    ).endswith(
-        f"{scale_key}/mapping_profiles/{profile_key}/revisions/1.json"
+    ) == (
+        "classes/synthetic_class_2026/modules/meridian/prof/p/"
+        f"{profile_key}/1.json"
     )
 
 
@@ -155,7 +156,7 @@ def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
         workspace,
         long_scale,
     ).stored
-    scale_dir = stored_scale.path.parent.parent
+    scale_dir = stored_scale.path.parent
 
     assert len(scale_dir.name) == 67
     assert scale_dir.name == proficiency_scale_path_key(
@@ -163,6 +164,8 @@ def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
         long_scale_id,
     )
     assert long_scale_id not in stored_scale.relative_path
+    assert len(stored_scale.relative_path) <= 127
+    assert len(f"{stored_scale.relative_path}.sha256") <= 134
     assert load_proficiency_scale_revision(
         workspace,
         CLASS_ID,
@@ -183,7 +186,7 @@ def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
         workspace,
         long_profile,
     ).stored
-    profile_dir = stored_profile.path.parent.parent
+    profile_dir = stored_profile.path.parent
 
     assert len(profile_dir.name) == 67
     assert profile_dir.name == mapping_profile_path_key(
@@ -192,6 +195,8 @@ def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
         long_profile_id,
     )
     assert long_profile_id not in stored_profile.relative_path
+    assert len(stored_profile.relative_path) <= 127
+    assert len(f"{stored_profile.relative_path}.sha256") <= 134
     assert load_mapping_profile_revision(
         workspace,
         CLASS_ID,
@@ -349,7 +354,7 @@ def test_revision_digest_tamper_fails_closed(tmp_path: Path) -> None:
 def test_unexpected_scale_entry_fails_closed(tmp_path: Path) -> None:
     workspace = root(tmp_path)
     stored = write_proficiency_scale_revision(workspace, scale()).stored
-    (stored.path.parent.parent / "latest.json").write_text("{}", encoding="utf-8")
+    (stored.path.parent / "latest.json").write_text("{}", encoding="utf-8")
     with pytest.raises(ProficiencyMappingStorageIntegrityError, match="unexpected"):
         load_proficiency_scale_revision(
             workspace, CLASS_ID, "course_proficiency", 1
