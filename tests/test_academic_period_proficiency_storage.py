@@ -38,6 +38,7 @@ from meridian.academic_period_proficiency_storage import (
     AcademicPeriodProficiencyStorageConflictError,
     AcademicPeriodProficiencyStorageIntegrityError,
     academic_period_proficiency_policy_current_path,
+    academic_period_proficiency_policy_path_key,
     academic_period_proficiency_policy_revision_relative_path,
     academic_period_proficiency_result_current_path,
     academic_period_proficiency_result_family_directory,
@@ -167,14 +168,49 @@ def persisted_scale(workspace: Path) -> ProficiencyScale:
 
 
 def test_policy_relative_path_is_class_local_and_scale_independent() -> None:
+    policy_key = academic_period_proficiency_policy_path_key(
+        CLASS_ID,
+        "course_policy",
+    )
     assert academic_period_proficiency_policy_revision_relative_path(
         CLASS_ID,
         "course_policy",
         1,
     ) == (
         "classes/synthetic_class_2026/modules/meridian/"
-        "academic_period_proficiency/policies/course_policy/revisions/1.json"
+        f"academic_period_proficiency/policies/{policy_key}/revisions/1.json"
     )
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    workspace = root(tmp_path)
+    target = persisted_scale(workspace)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = write_academic_period_proficiency_policy_revision(
+        workspace,
+        policy(target, policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == academic_period_proficiency_policy_path_key(
+        CLASS_ID,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert load_academic_period_proficiency_policy_revision(
+        workspace,
+        CLASS_ID,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
+    assert list_academic_period_proficiency_policy_ids(
+        workspace,
+        CLASS_ID,
+    ) == (long_policy_id,)
 
 
 def test_policy_requires_exact_persisted_target_scale(

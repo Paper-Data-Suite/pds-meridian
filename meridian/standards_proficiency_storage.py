@@ -40,6 +40,7 @@ from meridian.standards_proficiency import (
     validate_standard_proficiency_calculation_policy_transition,
     validate_standard_proficiency_result_transition,
 )
+from meridian.storage_path_keys import storage_path_key
 
 STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 STANDARD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE: Final[str] = (
@@ -274,16 +275,48 @@ def standard_proficiency_policies_directory(
     ) / "policies"
 
 
+def standard_proficiency_policy_path_key(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return the bounded key for one standards-proficiency policy."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key(
+        "standard_proficiency_policy",
+        class_value,
+        policy,
+    )
+
+
+def standard_proficiency_policy_relative_directory(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return one standards-proficiency policy's bounded relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return (
+        f"classes/{class_value}/modules/meridian/standards_proficiency/"
+        f"policies/{standard_proficiency_policy_path_key(class_value, policy)}"
+    )
+
+
 def standard_proficiency_policy_directory(
     workspace_root: str | Path,
     class_id: str,
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return standard_proficiency_policies_directory(
-        workspace_root,
-        class_id,
-    ) / policy
+    return (
+        standard_proficiency_policies_directory(
+            workspace_root,
+            class_id,
+        )
+        / standard_proficiency_policy_path_key(class_id, policy)
+    )
 
 
 def standard_proficiency_policy_revisions_directory(
@@ -333,8 +366,8 @@ def standard_proficiency_policy_revision_relative_path(
     policy = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
     return (
-        f"classes/{class_value}/modules/meridian/standards_proficiency/"
-        f"policies/{policy}/revisions/{revision}.json"
+        f"{standard_proficiency_policy_relative_directory(class_value, policy)}/"
+        f"revisions/{revision}.json"
     )
 
 
@@ -571,9 +604,14 @@ def list_standard_proficiency_policy_ids(
             raise StandardProficiencyStorageIntegrityError(
                 "Calculation-policy collection contains an unexpected entry."
             )
-        policy_id = _identifier(entry.name, "policy_id")
         _validate_policy_directory(entry)
-        result.append(policy_id)
+        result.append(
+            _standard_proficiency_policy_id_from_directory(
+                root,
+                class_value,
+                entry,
+            )
+        )
     return tuple(sorted(result))
 
 
@@ -1794,6 +1832,43 @@ def _list_history_revisions(
                 ) from error
         previous = current
     return revisions
+
+
+def _standard_proficiency_policy_id_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> str:
+    """Recover and verify a policy ID from authoritative revision 1."""
+
+    revision_path = relation / "revisions" / "1.json"
+    try:
+        content, _ = _read_revision_pair(
+            root,
+            revision_path,
+            DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_POLICY_BYTES,
+        )
+        policy = standard_proficiency_calculation_policy_from_json_bytes(content)
+    except (
+        StandardProficiencyStorageError,
+        StandardProficiencySerializationError,
+        StandardProficiencyValidationError,
+    ) as error:
+        raise StandardProficiencyStorageIntegrityError(
+            "Calculation-policy directory lacks a valid authoritative revision 1."
+        ) from error
+    if policy.class_id != class_id or policy.policy_revision != 1:
+        raise StandardProficiencyStorageIntegrityError(
+            "Calculation-policy revision 1 identity does not match collection scope."
+        )
+    if relation.name != standard_proficiency_policy_path_key(
+        class_id,
+        policy.policy_id,
+    ):
+        raise StandardProficiencyStorageIntegrityError(
+            "Calculation-policy directory key does not match authoritative identity."
+        )
+    return policy.policy_id
 
 
 def _validate_policy_directory(path: Path) -> None:

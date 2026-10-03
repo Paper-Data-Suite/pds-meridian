@@ -357,16 +357,49 @@ def academic_period_proficiency_policies_directory(
     ) / "policies"
 
 
+def academic_period_proficiency_policy_path_key(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return the bounded key for one Academic Period proficiency policy."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key(
+        "academic_period_proficiency_policy",
+        class_value,
+        policy,
+    )
+
+
+def academic_period_proficiency_policy_relative_directory(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return one Academic Period proficiency policy's bounded relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return (
+        f"classes/{class_value}/modules/meridian/academic_period_proficiency/"
+        f"policies/"
+        f"{academic_period_proficiency_policy_path_key(class_value, policy)}"
+    )
+
+
 def academic_period_proficiency_policy_directory(
     workspace_root: str | Path,
     class_id: str,
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return academic_period_proficiency_policies_directory(
-        workspace_root,
-        class_id,
-    ) / policy
+    return (
+        academic_period_proficiency_policies_directory(
+            workspace_root,
+            class_id,
+        )
+        / academic_period_proficiency_policy_path_key(class_id, policy)
+    )
 
 
 def academic_period_proficiency_policy_revisions_directory(
@@ -415,10 +448,11 @@ def academic_period_proficiency_policy_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     policy = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
-    return (
-        f"classes/{class_value}/modules/meridian/academic_period_proficiency/"
-        f"policies/{policy}/revisions/{revision}.json"
+    policy_root = academic_period_proficiency_policy_relative_directory(
+        class_value,
+        policy,
     )
+    return f"{policy_root}/revisions/{revision}.json"
 
 
 def write_academic_period_proficiency_policy_revision(
@@ -655,9 +689,14 @@ def list_academic_period_proficiency_policy_ids(
                 "Academic Period proficiency policy collection contains an "
                 "unexpected entry."
             )
-        policy_id = _identifier(entry.name, "policy_id")
         _validate_policy_directory(entry)
-        result.append(policy_id)
+        result.append(
+            _academic_period_proficiency_policy_id_from_directory(
+                root,
+                class_value,
+                entry,
+            )
+        )
     return tuple(sorted(result))
 
 
@@ -2213,6 +2252,48 @@ def _list_history_revisions(
                 ) from error
         previous = current
     return revisions
+
+
+def _academic_period_proficiency_policy_id_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> str:
+    """Recover and verify a policy ID from authoritative revision 1."""
+
+    revision_path = relation / "revisions" / "1.json"
+    try:
+        content, _ = _read_revision_pair(
+            root,
+            revision_path,
+            DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_POLICY_BYTES,
+        )
+        policy = academic_period_proficiency_aggregation_policy_from_json_bytes(
+            content
+        )
+    except (
+        AcademicPeriodProficiencyStorageError,
+        AcademicPeriodProficiencySerializationError,
+        AcademicPeriodProficiencyValidationError,
+    ) as error:
+        raise AcademicPeriodProficiencyStorageIntegrityError(
+            "Academic Period proficiency policy directory lacks a valid "
+            "authoritative revision 1."
+        ) from error
+    if policy.class_id != class_id or policy.policy_revision != 1:
+        raise AcademicPeriodProficiencyStorageIntegrityError(
+            "Academic Period proficiency policy revision 1 identity does not "
+            "match collection scope."
+        )
+    if relation.name != academic_period_proficiency_policy_path_key(
+        class_id,
+        policy.policy_id,
+    ):
+        raise AcademicPeriodProficiencyStorageIntegrityError(
+            "Academic Period proficiency policy directory key does not match "
+            "authoritative identity."
+        )
+    return policy.policy_id
 
 
 def _validate_policy_directory(path: Path) -> None:
