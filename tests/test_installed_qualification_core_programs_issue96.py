@@ -77,6 +77,8 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
         "teacher-workflows",
         "attention-seed",
         "attention",
+        "issue59-operations-seed",
+        "issue59-operations",
     ]
     assert all(run.command[0] == "prepared-python" for run in prepared.runs)
 
@@ -89,6 +91,8 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
         teacher,
         attention_seed,
         attention,
+        issue59_seed,
+        issue59_operations,
     ) = prepared.runs
     independent = {
         storage_paths.cwd,
@@ -100,8 +104,12 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
     assert teacher_seed.cwd == teacher.cwd
     assert attention_seed.cwd == attention.cwd
     assert teacher.cwd != attention.cwd
+    assert issue59_seed.cwd == issue59_operations.cwd
+    assert issue59_operations.cwd != teacher.cwd
+    assert issue59_operations.cwd != attention.cwd
     assert teacher.cwd not in independent
     assert attention.cwd not in independent
+    assert issue59_operations.cwd not in independent
 
     assert storage_paths.command[1].endswith(
         "smoke_program_storage_paths_issue102.py"
@@ -114,10 +122,18 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
         "smoke_program_grouping_signal_preview_review.py"
     )
     assert attention.command[1].endswith("smoke_program_attention.py")
+    assert issue59_seed.command[1].endswith(
+        "smoke_program_grouping_signal_preview_review.py"
+    )
+    assert issue59_operations.command[1].endswith(
+        "smoke_program_issue59_operations.py"
+    )
     assert attention_seed.env == {
         "PDS_MERIDIAN_SMOKE_SOURCE_ROOT": str(SOURCE_ROOT),
     }
     assert attention.env == attention_seed.env
+    assert issue59_seed.env == attention_seed.env
+    assert issue59_operations.env == attention_seed.env
 
 
 def test_issue96_core_program_batch_rejects_wrong_matrix(tmp_path: Path) -> None:
