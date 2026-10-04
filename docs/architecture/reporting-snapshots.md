@@ -220,12 +220,17 @@ class
 + exact calendar_revision
 ```
 
-The current selector is stored separately:
+The current selector is stored separately with one bounded key over the
+complete semantic scope:
 
 ```text
-classes/<class_id>/modules/meridian/reporting_snapshot_selections/
-  <definition_id>/<school_year>/<period_id>/calendar_<revision>/current.json
+classes/<class_id>/modules/meridian/rs/<scope_key>/current.json
 ```
+
+`scope_key` is deterministically derived from `class_id`, `definition_id`, the
+exact Academic Period school year/period ID, and `calendar_revision`. Full
+semantic identity remains in the selector record; raw variable identifiers do
+not become Meridian-owned path components.
 
 `ReportingSnapshotCurrentSelection` binds the exact selected
 `ReportingSnapshotReference`, exact selected definition reference, teacher actor,

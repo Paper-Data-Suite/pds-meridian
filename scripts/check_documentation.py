@@ -51,6 +51,7 @@ EXPECTED = (
     Path("docs/architecture/grade-report-attention-summaries.md"),
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
+    Path("docs/architecture/canonical-storage-path-budgets.md"),
     Path(
         "docs/architecture/"
         "grade-item-membership-and-academic-period-assignment.md"
@@ -482,6 +483,16 @@ REQUIRED_TEXT = {
             "without Concord — implemented"
         ),
         "#46 final v0.2.0 audit — implemented; release preparation qualified",
+    ),
+    Path("docs/architecture/canonical-storage-path-budgets.md"): (
+        "logical identifier != filesystem component",
+        "Core-owned workspace identity != Meridian-owned storage key",
+        "67 characters",
+        "79 characters",
+        "LongPathsEnabled",
+        "Core 0.6.4",
+        "pds-core>=0.6.3,<0.7",
+        "no migration",
     ),
     Path("docs/architecture/grade-items-and-canonical-storage.md"): (
         "stable grade_item_id",

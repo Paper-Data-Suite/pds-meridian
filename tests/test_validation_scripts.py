@@ -231,7 +231,7 @@ def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> 
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
 
     assert (
-        "pds-core/releases/download/v0.6.3/pds_core-0.6.3-py3-none-any.whl"
+        "pds-core/releases/download/v0.6.4/pds_core-0.6.4-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_core_wheel.py "$env:PDS_CORE_WHEEL"' in workflow
     assert "python scripts/validate_repository.py" in workflow

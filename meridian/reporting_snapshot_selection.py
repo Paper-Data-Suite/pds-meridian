@@ -42,6 +42,7 @@ from meridian.reporting_snapshot_storage import (
     StoredReportingSnapshot,
     load_reporting_snapshot,
 )
+from meridian.storage_path_keys import storage_path_key
 
 REPORTING_SNAPSHOT_SELECTION_SCHEMA_VERSION: Final[str] = "1"
 REPORTING_SNAPSHOT_SELECTION_RECORD_TYPE: Final[str] = (
@@ -572,7 +573,29 @@ def reporting_snapshot_selections_directory(
         workspace_root,
         _identifier(class_id, "class_id"),
         "meridian",
-    ) / "reporting_snapshot_selections"
+    ) / "rs"
+
+
+def reporting_snapshot_selection_scope_key(
+    class_id: str,
+    definition_id: str,
+    target_period: AcademicPeriodRef,
+    calendar_revision: int,
+) -> str:
+    class_value = _identifier(class_id, "class_id")
+    definition_value = _identifier(definition_id, "definition_id")
+    period = _period(target_period)
+    school_year = _identifier(period.school_year, "school_year")
+    period_id = _identifier(period.period_id, "period_id")
+    calendar = _positive_int(calendar_revision, "calendar_revision")
+    return storage_path_key(
+        "reporting_snapshot_selection",
+        class_value,
+        definition_value,
+        school_year,
+        period_id,
+        str(calendar),
+    )
 
 
 def reporting_snapshot_selection_scope_directory(
@@ -582,13 +605,14 @@ def reporting_snapshot_selection_scope_directory(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
 ) -> Path:
-    period = _period(target_period)
-    return (
-        reporting_snapshot_selections_directory(workspace_root, class_id)
-        / _identifier(definition_id, "definition_id")
-        / _identifier(period.school_year, "school_year")
-        / _identifier(period.period_id, "period_id")
-        / f"calendar_{_positive_int(calendar_revision, 'calendar_revision')}"
+    return reporting_snapshot_selections_directory(
+        workspace_root,
+        class_id,
+    ) / reporting_snapshot_selection_scope_key(
+        class_id,
+        definition_id,
+        target_period,
+        calendar_revision,
     )
 
 
@@ -615,15 +639,15 @@ def reporting_snapshot_selection_relative_path(
     calendar_revision: int,
 ) -> str:
     class_value = _identifier(class_id, "class_id")
-    definition_value = _identifier(definition_id, "definition_id")
-    period = _period(target_period)
-    school_year = _identifier(period.school_year, "school_year")
-    period_id = _identifier(period.period_id, "period_id")
-    calendar = _positive_int(calendar_revision, "calendar_revision")
+    scope_key = reporting_snapshot_selection_scope_key(
+        class_value,
+        definition_id,
+        target_period,
+        calendar_revision,
+    )
     return (
-        f"classes/{class_value}/modules/meridian/reporting_snapshot_selections/"
-        f"{definition_value}/{school_year}/{period_id}/calendar_{calendar}/"
-        "current.json"
+        f"classes/{class_value}/modules/meridian/rs/"
+        f"{scope_key}/current.json"
     )
 
 

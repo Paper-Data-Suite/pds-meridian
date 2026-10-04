@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Issue #102 establishes Meridian's pre-deployment bounded canonical storage-path contract. Semantic identifiers remain authoritative in structured records while Meridian-owned filesystem components use deterministic fixed-size keys. The candidate wheel is qualified in the existing prepared Core-only matrix against exact Core 0.6.4, including deep-workspace long-identity persistence/reload, fresh-process determinism, path-budget checks, and read-only verification that Windows `LongPathsEnabled` is not changed. The compatible runtime dependency remains `pds-core>=0.6.3,<0.7`; no Meridian legacy migration layer is introduced.
+
 - Issue #58 Grade/report attention summaries extend the read-only Core v1
   operations provider into v0.3 without creating a parallel Grade/report
   authority layer. New privacy-minimal categories cover selected standards

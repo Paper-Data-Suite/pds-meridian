@@ -34,7 +34,7 @@ def _write_wheel(path: Path, distribution: str, version: str) -> None:
 def _wheels(tmp_path: Path) -> InstalledWheelSet:
     specs = (
         ("meridian", "pds_meridian-0.3.0-py3-none-any.whl", "pds-meridian", "0.3.0"),
-        ("core", "pds_core-0.6.3-py3-none-any.whl", "pds-core", "0.6.3"),
+        ("core", "pds_core-0.6.4-py3-none-any.whl", "pds-core", "0.6.4"),
         ("scoreform", "scoreform-0.11.0-py3-none-any.whl", "scoreform", "0.11.0"),
         ("quillan", "quillan-0.10.3-py3-none-any.whl", "quillan", "0.10.3"),
         ("concord", "pds_concord-0.3.0-py3-none-any.whl", "pds-concord", "0.3.0"),
@@ -79,7 +79,7 @@ def test_issue96_matrix_expected_distributions_come_from_supplied_wheels(
     )
 
     assert tuple((item.distribution, item.version) for item in identities) == (
-        ("pds-core", "0.6.3"),
+        ("pds-core", "0.6.4"),
         ("scoreform", "0.11.0"),
         ("quillan", "0.10.3"),
         ("pds-meridian", "0.3.0"),
@@ -115,7 +115,7 @@ def test_issue96_origin_probe_checks_distribution_versions_and_absence(
 
     assert len(commands) == 1
     code = commands[0][-1]
-    assert "('pds-core', '0.6.3')" in code
+    assert "('pds-core', '0.6.4')" in code
     assert "('scoreform', '0.11.0')" in code
     assert "('quillan', '0.10.3')" in code
     assert "('pds-meridian', '0.3.0')" in code

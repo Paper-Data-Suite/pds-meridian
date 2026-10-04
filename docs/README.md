@@ -113,6 +113,8 @@ Snapshots without exposing Grade/evidence detail to Core or inventing export
 readiness. See
 [Grade and report attention summaries](architecture/grade-report-attention-summaries.md).
 
+Issue #102 establishes the pre-deployment bounded canonical storage contract and moves current exact development/installed qualification to released Core 0.6.4 while retaining the compatible `pds-core>=0.6.3,<0.7` runtime floor. See [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md).
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -165,6 +167,7 @@ readiness. See
 48. [Reporting exports](architecture/reporting-exports.md)
 49. [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md)
 50. [Grade and report attention summaries](architecture/grade-report-attention-summaries.md)
+51. [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md)
 
 
 ## Development foundation

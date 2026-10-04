@@ -499,3 +499,9 @@ Issue #99 adds profile calculation and fresh-process reload inside the existing
 `scoreform-quillan` prepared environment. It creates no seventh dependency
 matrix and preserves the historical pre-#96 24-setup inventory and the
 post-#96 six-environment target.
+
+## Issue #102 Core 0.6.4 storage-path qualification
+
+Issue #102 reuses the existing prepared `core` matrix rather than creating a seventh installed environment. The active exact Core qualification artifact is now `pds-core` **`0.6.4`**. This is an installed-qualification baseline change, not a runtime-floor change; `pds-core>=0.6.3,<0.7` remains the declared compatible dependency.
+
+The Core matrix now also runs `storage-paths-issue102`, which exercises the candidate Meridian wheel outside the source checkout against a controlled deep workspace and deliberately long Grade Item, work, student, policy, scale/profile, ReportingDefinition, ReportingSnapshot, and Export Profile identities. It verifies bounded Meridian-owned components, reload/current selection integrity, fresh-process key determinism, producer-package absence, and unchanged Windows `LongPathsEnabled` state.

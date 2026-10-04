@@ -69,6 +69,7 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
     run_core_program_smokes(prepared)  # type: ignore[arg-type]
 
     assert [run.name for run in prepared.runs] == [
+        "storage-paths-issue102",
         "grouping-signal-generation",
         "grouping-signal-preview-review",
         "grouping-signal-export",
@@ -79,16 +80,32 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
     ]
     assert all(run.command[0] == "prepared-python" for run in prepared.runs)
 
-    generation, preview, exported, teacher_seed, teacher, attention_seed, attention = (
-        prepared.runs
-    )
-    assert len({generation.cwd, preview.cwd, exported.cwd}) == 3
+    (
+        storage_paths,
+        generation,
+        preview,
+        exported,
+        teacher_seed,
+        teacher,
+        attention_seed,
+        attention,
+    ) = prepared.runs
+    independent = {
+        storage_paths.cwd,
+        generation.cwd,
+        preview.cwd,
+        exported.cwd,
+    }
+    assert len(independent) == 4
     assert teacher_seed.cwd == teacher.cwd
     assert attention_seed.cwd == attention.cwd
     assert teacher.cwd != attention.cwd
-    assert teacher.cwd not in {generation.cwd, preview.cwd, exported.cwd}
-    assert attention.cwd not in {generation.cwd, preview.cwd, exported.cwd}
+    assert teacher.cwd not in independent
+    assert attention.cwd not in independent
 
+    assert storage_paths.command[1].endswith(
+        "smoke_program_storage_paths_issue102.py"
+    )
     assert teacher_seed.command[1].endswith(
         "smoke_program_grouping_signal_export.py"
     )
