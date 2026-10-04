@@ -7,6 +7,7 @@ from pds_core.module_operations import (
     ModuleAttentionReport,
     ModuleOperationsProfile,
     ModuleOperationsRequest,
+    ModuleReadinessReport,
     validate_module_operations_profile,
 )
 
@@ -24,8 +25,19 @@ def evaluate_meridian_attention(
     return _evaluate(request)
 
 
+def evaluate_meridian_readiness(
+    request: ModuleOperationsRequest,
+    /,
+) -> ModuleReadinessReport:
+    """Lazily evaluate Meridian-owned readiness for one neutral Core request."""
+
+    from meridian.readiness_provider import evaluate_meridian_readiness as _evaluate
+
+    return _evaluate(request)
+
+
 def get_module_operations_profile() -> ModuleOperationsProfile:
-    """Return Meridian's validated Core v1 attention-only operations profile."""
+    """Return Meridian's validated Core v1 operations profile."""
 
     return validate_module_operations_profile(
         ModuleOperationsProfile(
@@ -33,10 +45,15 @@ def get_module_operations_profile() -> ModuleOperationsProfile:
             supported_core_operations_contract_versions=frozenset(
                 {MODULE_OPERATIONS_CONTRACT_VERSION}
             ),
-            readiness_provider=None,
+            readiness_provider=evaluate_meridian_readiness,
             attention_provider=evaluate_meridian_attention,
         )
     )
 
 
-__all__ = ["evaluate_meridian_attention", "get_module_operations_profile"]
+__all__ = [
+    "MERIDIAN_MODULE_ID",
+    "evaluate_meridian_attention",
+    "evaluate_meridian_readiness",
+    "get_module_operations_profile",
+]

@@ -136,7 +136,7 @@ def test_core_projection_rejects_class_context_leak(tmp_path: Path) -> None:
         )
 
 
-def test_operations_profile_is_core_v1_attention_only_and_validates(
+def test_operations_profile_is_core_v1_attention_and_readiness_and_validates(
     tmp_path: Path,
 ) -> None:
     profile = get_module_operations_profile()
@@ -146,14 +146,16 @@ def test_operations_profile_is_core_v1_attention_only_and_validates(
         {MODULE_OPERATIONS_CONTRACT_VERSION}
     )
     assert profile.attention_provider is not None
-    assert profile.readiness_provider is None
+    assert profile.readiness_provider is not None
     assert validate_module_operations_profile(profile) is profile
 
     readiness = invoke_module_readiness(
         profile,
         ModuleOperationsRequest(workspace_root=tmp_path.resolve()),
     )
-    assert readiness.code == "module_operations.capability_absent"
+    assert readiness.code == "module_operations.evaluated"
+    assert readiness.report is not None
+    assert readiness.report.ready is True
 
 
 def test_installed_provider_is_fail_closed_without_workspace() -> None:
