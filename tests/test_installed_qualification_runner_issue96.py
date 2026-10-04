@@ -66,7 +66,7 @@ def _wheels(tmp_path: Path) -> InstalledWheelSet:
     paths = []
     for filename in (
         "pds_meridian-0.3.0-py3-none-any.whl",
-        "pds_core-0.6.3-py3-none-any.whl",
+        "pds_core-0.6.4-py3-none-any.whl",
         "scoreform-0.11.0-py3-none-any.whl",
         "quillan-0.10.3-py3-none-any.whl",
         "pds_concord-0.3.0-py3-none-any.whl",

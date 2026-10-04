@@ -185,6 +185,33 @@ def test_write_is_immutable_and_does_not_select(tmp_path, monkeypatch) -> None:
     ) is None
 
 
+def test_long_student_id_keeps_result_family_path_bounded(
+    tmp_path,
+) -> None:
+    root = _workspace(tmp_path)
+    long_student_id = "student_" + ("s" * 5000)
+    family = storage.standards_grade_result_family_directory(
+        root,
+        CLASS_ID,
+        long_student_id,
+        PERIOD,
+        1,
+    )
+    subject_key = storage.standards_grade_subject_key(
+        CLASS_ID,
+        long_student_id,
+        PERIOD,
+        1,
+    )
+
+    assert len(subject_key) == 64
+    assert family.name == subject_key
+    assert family.parent.name == "subjects"
+    assert long_student_id not in family.as_posix()
+    assert PERIOD.school_year not in family.as_posix()
+    assert PERIOD.period_id not in family.as_posix()
+
+
 def test_exact_write_retry_is_existing_but_changed_bytes_conflict(
     tmp_path, monkeypatch
 ) -> None:

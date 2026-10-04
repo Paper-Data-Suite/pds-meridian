@@ -89,7 +89,11 @@ def candidates() -> tuple[AttemptCandidate, ...]:
 
 
 def policy(
-    *, revision: int = 1, minimum: int = 0, maximum: int | None = 1
+    *,
+    revision: int = 1,
+    minimum: int = 0,
+    maximum: int | None = 1,
+    policy_id: str = "teacher_explicit_attempts",
 ) -> AttemptSelectionPolicy:
     return AttemptSelectionPolicy(
         schema_version="1",
@@ -97,7 +101,7 @@ def policy(
         class_id=CLASS_ID,
         grade_item_id=GRADE_ITEM_ID,
         work=WORK,
-        policy_id="teacher_explicit_attempts",
+        policy_id=policy_id,
         policy_revision=revision,
         supersedes_revision=None if revision == 1 else revision - 1,
         selection_basis="explicit",
@@ -164,16 +168,32 @@ def derivation(
     )
 
 
-def test_policy_path_is_nested_under_membership_relation(tmp_path: Path) -> None:
+def test_policy_path_is_flat_and_class_local(tmp_path: Path) -> None:
     workspace = root(tmp_path)
     path = storage.attempt_selection_policy_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "teacher_explicit_attempts", 1
     )
-    assert path.as_posix().endswith(
-        "/classes/synthetic_class_2026/modules/meridian/grade_items/"
-        "unit1_assessment/memberships/scoreform/test_1/attempt_selection/"
-        "policies/teacher_explicit_attempts/revisions/1.json"
+    policy_key = storage.attempt_selection_policy_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "teacher_explicit_attempts",
     )
+    assert path == (
+        storage.attempt_selection_storage_directory(workspace, CLASS_ID)
+        / "p"
+        / policy_key
+        / "1.json"
+    )
+    assert storage.attempt_selection_policy_revision_relative_path(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        "teacher_explicit_attempts",
+        1,
+    ) == path.relative_to(workspace).as_posix()
+    assert len(path.relative_to(workspace).as_posix()) <= 131
+    assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 138
 
 
 def test_subject_path_uses_deterministic_hash(tmp_path: Path) -> None:
@@ -182,8 +202,42 @@ def test_subject_path_uses_deterministic_hash(tmp_path: Path) -> None:
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1", 1
     )
     key = attempt_subject_key(CLASS_ID, GRADE_ITEM_ID, WORK, "student_1")
-    assert f"/students/{key}/revisions/1.json" in path.as_posix()
-    assert "student_1" not in path.parent.parent.name
+    assert f"/attempts/s/{key}/1.json" in path.as_posix()
+    assert "student_1" not in path.parent.name
+    assert len(path.relative_to(workspace).as_posix()) <= 128
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    allow_policy_root(monkeypatch)
+    workspace = root(tmp_path)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = storage.write_attempt_selection_policy_revision(
+        workspace,
+        policy(policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == storage.attempt_selection_policy_path_key(
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert len(stored.relative_path) <= 131
+    assert storage.load_attempt_selection_policy_revision(
+        workspace,
+        CLASS_ID,
+        GRADE_ITEM_ID,
+        WORK,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
 
 
 def test_policy_write_is_immutable_and_does_not_auto_select(
@@ -482,7 +536,7 @@ def test_lock_conflict_is_fail_closed(
     relation = storage.attempt_selection_policy_directory(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
     )
-    (relation / "revisions").mkdir(parents=True)
+    relation.mkdir(parents=True)
     (relation / ".write.lock").write_bytes(b"busy\n")
     with pytest.raises(storage.AttemptSelectionStorageLockError):
         storage.write_attempt_selection_policy_revision(workspace, policy())

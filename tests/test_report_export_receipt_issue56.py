@@ -28,6 +28,7 @@ from meridian.report_export_receipt import (
     load_export_receipt,
     report_export_receipt_digest_path,
     report_export_receipt_path,
+    report_export_receipt_path_key,
     report_export_receipt_relative_path,
     write_export_receipt,
 )
@@ -274,6 +275,59 @@ def test_receipt_storage_create_load_exact_replay_and_list(tmp_path: Path) -> No
     )
 
 
+def test_long_export_id_uses_bounded_receipt_path_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    long_export_id = "export_" + ("e" * 5000)
+    receipt = _receipt(export_id=long_export_id)
+
+    stored = write_export_receipt(root, receipt).stored
+    receipt_key = report_export_receipt_path_key(
+        CLASS_ID,
+        long_export_id,
+    )
+
+    assert len(receipt_key) == 67
+    assert stored.path.name == f"{receipt_key}.json"
+    assert long_export_id not in stored.relative_path
+    assert load_export_receipt(
+        root,
+        CLASS_ID,
+        long_export_id,
+    ).receipt.export_id == long_export_id
+    assert list_export_receipt_ids(root, CLASS_ID) == (
+        long_export_id,
+    )
+
+
+def test_receipt_listing_rejects_bounded_key_identity_mismatch(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    receipt = _receipt()
+    stored = write_export_receipt(root, receipt).stored
+    digest_path = report_export_receipt_digest_path(
+        root,
+        CLASS_ID,
+        receipt.export_id,
+    )
+    wrong_key = report_export_receipt_path_key(
+        CLASS_ID,
+        "different_export",
+    )
+    wrong_path = stored.path.with_name(f"{wrong_key}.json")
+    wrong_digest = digest_path.with_name(f"{wrong_key}.json.sha256")
+    stored.path.rename(wrong_path)
+    digest_path.rename(wrong_digest)
+
+    with pytest.raises(
+        ReportExportReceiptIntegrityError,
+        match="does not match authoritative identity",
+    ):
+        list_export_receipt_ids(root, CLASS_ID)
+
+
 def test_receipt_storage_conflicts_on_same_identity_different_content(
     tmp_path: Path,
 ) -> None:
@@ -327,6 +381,10 @@ def test_receipt_storage_paths_are_class_local_and_contained(tmp_path: Path) -> 
     root = _workspace(tmp_path)
     path = report_export_receipt_path(root, CLASS_ID, "export_001")
 
+    receipt_key = report_export_receipt_path_key(
+        CLASS_ID,
+        "export_001",
+    )
     assert path == (
         root
         / "classes"
@@ -334,7 +392,7 @@ def test_receipt_storage_paths_are_class_local_and_contained(tmp_path: Path) -> 
         / "modules"
         / "meridian"
         / "reporting_exports"
-        / "export_001.json"
+        / f"{receipt_key}.json"
     )
     with pytest.raises(ReportExportReceiptValidationError):
         report_export_receipt_path(root, CLASS_ID, "../escape")

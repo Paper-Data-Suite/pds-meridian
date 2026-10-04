@@ -49,6 +49,7 @@ from meridian.grade_policy_storage import (
     load_grade_policy_revision,
     validate_grade_policy_dependencies,
 )
+from meridian.storage_path_keys import storage_path_key
 
 GRADE_POLICY_ACTIVATION_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 GRADE_POLICY_ACTIVATION_CURRENT_RECORD_TYPE: Final[str] = (
@@ -340,12 +341,39 @@ def grade_policy_activations_directory(
 ) -> Path:
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "grade_policy_activations"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "ga"
     _require_containment(root, path)
     return path
+
+
+def grade_policy_activation_period_key(
+    class_id: str,
+    target_period: AcademicPeriodRef,
+) -> str:
+    """Return the bounded key for one class-local Academic Period activation."""
+
+    class_value = _identifier(class_id, "class_id")
+    period = _period_ref(target_period)
+    return storage_path_key(
+        "grade_policy_activation_period",
+        class_value,
+        period.school_year,
+        period.period_id,
+    )
+
+
+def grade_policy_activation_relative_directory(
+    class_id: str,
+    target_period: AcademicPeriodRef,
+) -> str:
+    """Return one activation family's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    period = _period_ref(target_period)
+    return (
+        f"classes/{class_value}/modules/meridian/ga/"
+        f"{grade_policy_activation_period_key(class_value, period)}"
+    )
 
 
 def grade_policy_activation_directory(
@@ -356,8 +384,7 @@ def grade_policy_activation_directory(
     period = _period_ref(target_period)
     return (
         grade_policy_activations_directory(workspace_root, class_id)
-        / period.school_year
-        / period.period_id
+        / grade_policy_activation_period_key(class_id, period)
     )
 
 
@@ -368,7 +395,7 @@ def grade_policy_activation_revisions_directory(
 ) -> Path:
     return grade_policy_activation_directory(
         workspace_root, class_id, target_period
-    ) / "revisions"
+    )
 
 
 def grade_policy_activation_revision_path(
@@ -420,10 +447,11 @@ def grade_policy_activation_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(target_period)
     revision = _positive_int(activation_revision, "activation_revision")
-    return (
-        f"classes/{class_value}/modules/meridian/grade_policy_activations/"
-        f"{period.school_year}/{period.period_id}/revisions/{revision}.json"
+    activation_root = grade_policy_activation_relative_directory(
+        class_value,
+        period,
     )
+    return f"{activation_root}/{revision}.json"
 
 
 def validate_grade_policy_activation_dependencies(
@@ -501,8 +529,7 @@ def write_grade_policy_activation_revision(
     relation = grade_policy_activation_directory(
         root, candidate.class_id, candidate.target_period
     )
-    revisions_dir = relation / "revisions"
-    _ensure_directory_chain(root, revisions_dir)
+    _ensure_directory_chain(root, relation)
     lock = relation / ".write.lock"
     _acquire_lock(lock)
     try:
@@ -665,19 +692,17 @@ def list_grade_policy_activation_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_activation_directory(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
-    _validate_existing_directory_chain(root, revisions_dir)
     json_revisions: set[int] = set()
     digest_revisions: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise GradePolicyActivationStorageReadError(
             "Could not enumerate activation revision storage."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise GradePolicyActivationStorageIntegrityError(
                 "Activation revision storage contains a nonregular entry."
@@ -1059,7 +1084,6 @@ def _validate_activation_directory(relation: Path) -> None:
         raise GradePolicyActivationStorageIntegrityError(
             "Activation canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1067,23 +1091,22 @@ def _validate_activation_directory(relation: Path) -> None:
             "Could not inspect activation canonical root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise GradePolicyActivationStorageIntegrityError(
+                    "Activation pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise GradePolicyActivationStorageIntegrityError(
                 "Activation canonical root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise GradePolicyActivationStorageIntegrityError(
-                    "Activation revisions entry must be a real directory."
-                )
-        elif entry.name == "current.json":
-            if entry.is_symlink() or not entry.is_file():
-                raise GradePolicyActivationStorageIntegrityError(
-                    "Activation current pointer must be a regular file."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise GradePolicyActivationStorageIntegrityError(
-                "Activation lock entry must be a regular file."
+                "Activation revision entry must be a regular file."
             )
 
 

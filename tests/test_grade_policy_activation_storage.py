@@ -42,6 +42,7 @@ from meridian.grade_policy_activation_storage import (
     get_current_grade_policy_activation_revision,
     grade_policy_activation_current_path,
     grade_policy_activation_directory,
+    grade_policy_activation_period_key,
     grade_policy_activation_revision_digest_path,
     grade_policy_activation_revision_path,
     grade_policy_activation_revision_relative_path,
@@ -241,10 +242,12 @@ def test_write_uses_period_scoped_canonical_path_and_does_not_select(
         root, activation(stored_policy.reference)
     )
     assert result.disposition == "created"
+    period_key = grade_policy_activation_period_key(CLASS_ID, PERIOD1)
     assert result.stored.relative_path == (
         "classes/synthetic_class_2026/modules/meridian/"
-        "grade_policy_activations/2026-2027/mp1/revisions/1.json"
+        f"ga/{period_key}/1.json"
     )
+    assert len(f"{result.stored.relative_path}.sha256") <= 130
     assert get_current_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1
     ) is None
@@ -588,11 +591,33 @@ def test_relative_path_is_platform_neutral(tmp_path: Path) -> None:
     path = grade_policy_activation_revision_relative_path(
         CLASS_ID, PERIOD1, 3
     )
+    period_key = grade_policy_activation_period_key(CLASS_ID, PERIOD1)
     assert path == (
         "classes/synthetic_class_2026/modules/meridian/"
-        "grade_policy_activations/2026-2027/mp1/revisions/3.json"
+        f"ga/{period_key}/3.json"
     )
     assert "\\" not in path
+
+
+def test_long_period_id_uses_bounded_activation_key(tmp_path: Path) -> None:
+    root = make_workspace(tmp_path)
+    long_period = AcademicPeriodRef(
+        PERIOD1.school_year,
+        "period_" + ("p" * 5000),
+    )
+    period_key = grade_policy_activation_period_key(CLASS_ID, long_period)
+    relation = grade_policy_activation_directory(
+        root,
+        CLASS_ID,
+        long_period,
+    )
+
+    assert len(period_key) == 67
+    assert relation.name == period_key
+    assert long_period.period_id not in relation.as_posix()
+    assert long_period.school_year not in relation.relative_to(
+        root / "classes" / CLASS_ID / "modules" / "meridian"
+    ).as_posix()
 
 
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlink unsupported")

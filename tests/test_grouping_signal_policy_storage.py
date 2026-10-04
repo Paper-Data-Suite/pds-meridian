@@ -143,13 +143,17 @@ def allow_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_canonical_policy_path_is_meridian_owned_and_class_local(
     tmp_path: Path,
 ) -> None:
+    policy_key = storage.grouping_signal_policy_path_key(
+        CLASS_ID,
+        "reading_planning_signal",
+    )
     assert storage.grouping_signal_policy_revision_relative_path(
         CLASS_ID,
         "reading_planning_signal",
         1,
     ) == (
         "classes/synthetic_class_2026/modules/meridian/"
-        "grouping_signal_policies/reading_planning_signal/revisions/1.json"
+        f"grouping_signal_policies/{policy_key}/revisions/1.json"
     )
     path = storage.grouping_signal_policy_revision_path(
         tmp_path,
@@ -159,6 +163,37 @@ def test_canonical_policy_path_is_meridian_owned_and_class_local(
     )
     assert "grouping_signals" not in path.parts
     assert "grouping_signal_policies" in path.parts
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    allow_dependencies(monkeypatch)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = storage.write_grouping_signal_policy_revision(
+        tmp_path,
+        policy(policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == storage.grouping_signal_policy_path_key(
+        CLASS_ID,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert storage.load_grouping_signal_policy_revision(
+        tmp_path,
+        CLASS_ID,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
+    assert storage.list_grouping_signal_policy_ids(
+        tmp_path,
+        CLASS_ID,
+    ) == (long_policy_id,)
 
 
 def test_write_is_immutable_digest_bound_and_does_not_auto_select(

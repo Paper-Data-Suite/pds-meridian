@@ -61,6 +61,7 @@ from meridian.proficiency_mapping_storage import (
     StoredProficiencyScale,
     load_proficiency_scale_revision,
 )
+from meridian.storage_path_keys import storage_path_key
 
 GROUPING_SIGNAL_POLICY_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 GROUPING_SIGNAL_POLICY_CURRENT_RECORD_TYPE: Final[str] = (
@@ -263,13 +264,45 @@ def grouping_signal_policies_directory(
     return path
 
 
+def grouping_signal_policy_path_key(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return the bounded key for one grouping-signal policy."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key(
+        "grouping_signal_policy",
+        class_value,
+        policy,
+    )
+
+
+def grouping_signal_policy_relative_directory(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return one grouping-signal policy's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return (
+        f"classes/{class_value}/modules/meridian/grouping_signal_policies/"
+        f"{grouping_signal_policy_path_key(class_value, policy)}"
+    )
+
+
 def grouping_signal_policy_directory(
     workspace_root: str | Path,
     class_id: str,
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return grouping_signal_policies_directory(workspace_root, class_id) / policy
+    return (
+        grouping_signal_policies_directory(workspace_root, class_id)
+        / grouping_signal_policy_path_key(class_id, policy)
+    )
 
 
 def grouping_signal_policy_revisions_directory(
@@ -319,8 +352,8 @@ def grouping_signal_policy_revision_relative_path(
     policy = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
     return (
-        f"classes/{class_value}/modules/meridian/grouping_signal_policies/"
-        f"{policy}/revisions/{revision}.json"
+        f"{grouping_signal_policy_relative_directory(class_value, policy)}/"
+        f"revisions/{revision}.json"
     )
 
 
@@ -646,9 +679,14 @@ def list_grouping_signal_policy_ids(
             raise GroupingSignalPolicyStorageIntegrityError(
                 "Grouping-signal policy collection contains an unexpected entry."
             )
-        policy_id = _identifier(entry.name, "policy_id")
         _validate_policy_directory(entry)
-        result.append(policy_id)
+        result.append(
+            _grouping_signal_policy_id_from_directory(
+                root,
+                class_value,
+                entry,
+            )
+        )
     return tuple(sorted(result))
 
 
@@ -856,6 +894,46 @@ def _load_policy_pointer(
         "policy_revision": pointer_revision,
         "policy_sha256": pointer_digest,
     }
+
+
+def _grouping_signal_policy_id_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> str:
+    """Recover and verify a policy ID from authoritative revision 1."""
+
+    revision_path = relation / "revisions" / "1.json"
+    try:
+        content, _ = _read_revision_pair(
+            root,
+            revision_path,
+            DEFAULT_MAXIMUM_GROUPING_SIGNAL_POLICY_BYTES,
+        )
+        policy = grouping_signal_derivation_policy_from_json_bytes(content)
+    except (
+        GroupingSignalPolicyStorageError,
+        GroupingSignalPolicySerializationError,
+        GroupingSignalPolicyValidationError,
+    ) as error:
+        raise GroupingSignalPolicyStorageIntegrityError(
+            "Grouping-signal policy directory lacks a valid authoritative "
+            "revision 1."
+        ) from error
+    if policy.class_id != class_id or policy.policy_revision != 1:
+        raise GroupingSignalPolicyStorageIntegrityError(
+            "Grouping-signal policy revision 1 identity does not match "
+            "collection scope."
+        )
+    if relation.name != grouping_signal_policy_path_key(
+        class_id,
+        policy.policy_id,
+    ):
+        raise GroupingSignalPolicyStorageIntegrityError(
+            "Grouping-signal policy directory key does not match authoritative "
+            "identity."
+        )
+    return policy.policy_id
 
 
 def _validate_policy_directory(path: Path) -> None:

@@ -37,6 +37,7 @@ from meridian.reporting_snapshot_selection import (
     reporting_snapshot_selection_current_path,
     reporting_snapshot_selection_from_json_bytes,
     reporting_snapshot_selection_relative_path,
+    reporting_snapshot_selection_scope_key,
     reporting_snapshot_selection_sha256,
     reporting_snapshot_selection_to_json_bytes,
     select_reporting_snapshot,
@@ -58,12 +59,16 @@ def _workspace(tmp_path: Path) -> Path:
     return root
 
 
-def _definition(revision: int = 1) -> ReportingDefinitionRevision:
+def _definition(
+    revision: int = 1,
+    *,
+    definition_id: str = "quarter_grade_report",
+) -> ReportingDefinitionRevision:
     return ReportingDefinitionRevision(
         schema_version=REPORTING_DEFINITION_SCHEMA_VERSION,
         record_type=REPORTING_DEFINITION_RECORD_TYPE,
         class_id=CLASS_ID,
-        definition_id="quarter_grade_report",
+        definition_id=definition_id,
         definition_revision=revision,
         supersedes_revision=None if revision == 1 else revision - 1,
         report_kind="grade_report",
@@ -263,14 +268,89 @@ def test_selection_path_is_privacy_safe_and_scope_local(tmp_path: Path) -> None:
     root, _, snapshot_a, _ = _setup_snapshots(tmp_path)
     result = _select(root, snapshot_a, None, 10)
 
+    scope_key = reporting_snapshot_selection_scope_key(
+        CLASS_ID, "quarter_grade_report", PERIOD, 1
+    )
     assert result.selection.relative_path == (
-        "classes/english_12/modules/meridian/reporting_snapshot_selections/"
-        "quarter_grade_report/2026-2027/q1/calendar_1/current.json"
+        "classes/english_12/modules/meridian/rs/"
+        f"{scope_key}/current.json"
     )
     assert "student_001" not in result.selection.relative_path
     assert result.selection.relative_path == reporting_snapshot_selection_relative_path(
         CLASS_ID, "quarter_grade_report", PERIOD, 1
     )
+
+
+def test_long_definition_id_uses_bounded_selection_scope_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    root = _workspace(tmp_path)
+    long_definition_id = "definition_" + ("d" * 5000)
+    definition = write_reporting_definition_revision(
+        root,
+        _definition(definition_id=long_definition_id),
+    ).stored
+    snapshot = write_reporting_snapshot(
+        root,
+        _snapshot(
+            definition.reference,
+            snapshot_id="long_definition_snapshot",
+            created_at=NOW,
+        ),
+    ).stored
+
+    result = select_reporting_snapshot(
+        root,
+        snapshot.reference,
+        actor=ReportingActor("teacher", "teacher_local"),
+        rationale="Select long-definition snapshot.",
+        decided_at=NOW + timedelta(minutes=1),
+        expected_current=None,
+    )
+
+    scope_key = reporting_snapshot_selection_scope_key(
+        CLASS_ID,
+        long_definition_id,
+        PERIOD,
+        1,
+    )
+    assert result.selection.path.parent.parent.name == "rs"
+    assert result.selection.path.parent.name == scope_key
+    assert len(scope_key) == 67
+    assert long_definition_id not in result.selection.relative_path
+
+    loaded = load_current_reporting_snapshot(
+        root,
+        CLASS_ID,
+        long_definition_id,
+        PERIOD,
+        1,
+    )
+    assert loaded is not None
+    assert loaded.reference == snapshot.reference
+
+
+def test_selection_scope_key_binds_period_and_calendar_revision() -> None:
+    base = reporting_snapshot_selection_scope_key(
+        CLASS_ID,
+        "quarter_grade_report",
+        PERIOD,
+        1,
+    )
+    other_period = reporting_snapshot_selection_scope_key(
+        CLASS_ID,
+        "quarter_grade_report",
+        AcademicPeriodRef("2026-2027", "q2"),
+        1,
+    )
+    other_calendar = reporting_snapshot_selection_scope_key(
+        CLASS_ID,
+        "quarter_grade_report",
+        PERIOD,
+        2,
+    )
+
+    assert len({base, other_period, other_calendar}) == 3
 
 
 def test_newer_snapshot_and_relationship_do_not_imply_selection(

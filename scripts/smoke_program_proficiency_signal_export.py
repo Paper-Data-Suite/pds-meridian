@@ -335,7 +335,7 @@ def _assert_no_concord() -> None:
 
 def _verify_installed_composition() -> None:
     expected = {
-        "pds-core": "0.6.3",
+        "pds-core": "0.6.4",
         "scoreform": "0.11.0",
         "quillan": "0.10.3",
     }

@@ -50,6 +50,7 @@ from meridian.reporting_snapshot import (
     reporting_snapshot_reference_from_dict,
     reporting_snapshot_reference_to_dict,
 )
+from meridian.storage_path_keys import storage_path_key
 
 REPORT_EXPORT_RECEIPT_SCHEMA_VERSION: Final[str] = "1"
 REPORT_EXPORT_RECEIPT_RECORD_TYPE: Final[str] = "meridian_report_export_receipt"
@@ -66,9 +67,11 @@ ReportExportReceiptWriteDisposition: TypeAlias = Literal["created", "existing"]
 _DESTINATION_KINDS: Final[frozenset[str]] = frozenset({"file", "copyable_text"})
 _ACTOR_KINDS: Final[frozenset[str]] = frozenset({"teacher"})
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
-_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(r"^([A-Za-z0-9_-]+)\.json$")
+_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(
+    r"^(mk_[0-9a-f]{64})\.json$"
+)
 _RECEIPT_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([A-Za-z0-9_-]+)\.json\.sha256$"
+    r"^(mk_[0-9a-f]{64})\.json\.sha256$"
 )
 
 _ACTOR_KEYS: Final[frozenset[str]] = frozenset({"kind", "actor_id"})
@@ -429,7 +432,11 @@ class StoredExportReceipt:
             raise ReportExportReceiptValidationError(
                 "relative_path is not the canonical receipt location."
             )
-        if self.path.name != f"{receipt.export_id}.json":
+        receipt_key = report_export_receipt_path_key(
+            receipt.class_id,
+            receipt.export_id,
+        )
+        if self.path.name != f"{receipt_key}.json":
             raise ReportExportReceiptValidationError(
                 "receipt path filename does not match export identity."
             )
@@ -754,15 +761,31 @@ def report_export_receipts_directory(
     return path
 
 
+def report_export_receipt_path_key(
+    class_id: str,
+    export_id: str,
+) -> str:
+    """Return the bounded key for one immutable report-export receipt."""
+
+    class_value = _identifier(class_id, "class_id")
+    export_value = _identifier(export_id, "export_id")
+    return storage_path_key(
+        "report_export_receipt",
+        class_value,
+        export_value,
+    )
+
+
 def report_export_receipt_path(
     workspace_root: str | Path,
     class_id: str,
     export_id: str,
 ) -> Path:
+    receipt_key = report_export_receipt_path_key(class_id, export_id)
     return report_export_receipts_directory(
         workspace_root,
         class_id,
-    ) / f"{_identifier(export_id, 'export_id')}.json"
+    ) / f"{receipt_key}.json"
 
 
 def report_export_receipt_digest_path(
@@ -779,9 +802,13 @@ def report_export_receipt_digest_path(
 def report_export_receipt_relative_path(class_id: str, export_id: str) -> str:
     class_value = _identifier(class_id, "class_id")
     export_value = _identifier(export_id, "export_id")
+    receipt_key = report_export_receipt_path_key(
+        class_value,
+        export_value,
+    )
     return (
         f"classes/{class_value}/modules/meridian/reporting_exports/"
-        f"{export_value}.json"
+        f"{receipt_key}.json"
     )
 
 
@@ -902,8 +929,8 @@ def list_export_receipt_ids(
         return ()
     _validate_existing_directory_chain(root, collection)
     _validate_receipts_directory(collection)
-    json_ids: set[str] = set()
-    digest_ids: set[str] = set()
+    json_keys: set[str] = set()
+    digest_keys: set[str] = set()
     try:
         entries = tuple(collection.iterdir())
     except OSError as error:
@@ -920,23 +947,71 @@ def list_export_receipt_ids(
             )
         json_match = _RECEIPT_JSON.fullmatch(entry.name)
         if json_match is not None:
-            json_ids.add(_identifier(json_match.group(1), "export_id"))
+            json_keys.add(json_match.group(1))
             continue
         digest_match = _RECEIPT_DIGEST.fullmatch(entry.name)
         if digest_match is not None:
-            digest_ids.add(_identifier(digest_match.group(1), "export_id"))
+            digest_keys.add(digest_match.group(1))
             continue
         raise ReportExportReceiptIntegrityError(
             f"Unexpected ExportReceipt collection entry: {entry.name}."
         )
-    if json_ids != digest_ids:
+    if json_keys != digest_keys:
         raise ReportExportReceiptIntegrityError(
             "ExportReceipt JSON/digest pairs are incomplete."
         )
-    ordered = tuple(sorted(json_ids))
+    export_ids = {
+        _report_export_id_from_path_key(
+            root,
+            class_value,
+            key,
+        )
+        for key in json_keys
+    }
+    if len(export_ids) != len(json_keys):
+        raise ReportExportReceiptIntegrityError(
+            "ExportReceipt collection contains duplicate logical identity."
+        )
+    ordered = tuple(sorted(export_ids))
     for export_id in ordered:
         load_export_receipt(root, class_value, export_id)
     return ordered
+
+
+def _report_export_id_from_path_key(
+    root: Path,
+    class_id: str,
+    key: str,
+) -> str:
+    """Recover and verify an export ID from one bounded receipt pair."""
+
+    collection = report_export_receipts_directory(root, class_id)
+    path = collection / f"{key}.json"
+    digest_path = collection / f"{key}.json.sha256"
+    content, digest = _read_pair(
+        path,
+        digest_path,
+        DEFAULT_MAXIMUM_REPORT_EXPORT_RECEIPT_BYTES,
+    )
+    try:
+        receipt = export_receipt_from_json_bytes(content)
+    except ReportExportReceiptError as error:
+        raise ReportExportReceiptIntegrityError(
+            "ExportReceipt collection contains invalid canonical content."
+        ) from error
+    if receipt.class_id != class_id:
+        raise ReportExportReceiptIntegrityError(
+            "ExportReceipt collection entry has the wrong class identity."
+        )
+    if key != report_export_receipt_path_key(class_id, receipt.export_id):
+        raise ReportExportReceiptIntegrityError(
+            "ExportReceipt file key does not match authoritative identity."
+        )
+    if export_receipt_sha256(receipt) != digest:
+        raise ReportExportReceiptIntegrityError(
+            "ExportReceipt sidecar digest does not match canonical receipt."
+        )
+    return receipt.export_id
 
 
 def _require_existing_core_class(root: Path, class_id: str) -> None:

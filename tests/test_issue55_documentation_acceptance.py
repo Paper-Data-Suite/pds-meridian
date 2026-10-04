@@ -44,7 +44,9 @@ def test_issue55_architecture_documents_privacy_and_storage_topology() -> None:
     for token in (
         "reporting_definitions/",
         "reporting_snapshots/",
-        "reporting_snapshot_selections/",
+        "modules/meridian/rs/<scope_key>/current.json",
+        "raw variable identifiers do",
+        "not become Meridian-owned path components",
         "Raw student",
         "Opaque provenance reference keys remain opaque",
         "protected source evidence is not copied",

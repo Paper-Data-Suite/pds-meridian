@@ -36,6 +36,9 @@ PREVIEW_REVIEW_PROGRAM = (
 EXPORT_PROGRAM = SCRIPT_ROOT / "smoke_program_grouping_signal_export.py"
 TEACHER_WORKFLOWS_PROGRAM = SCRIPT_ROOT / "smoke_program_teacher_workflows.py"
 ATTENTION_PROGRAM = SCRIPT_ROOT / "smoke_program_attention.py"
+STORAGE_PATHS_PROGRAM = (
+    SCRIPT_ROOT / "smoke_program_storage_paths_issue102.py"
+)
 
 
 
@@ -95,6 +98,10 @@ def run_core_program_smokes(prepared: PreparedInstalledEnvironment) -> None:
             "Program-backed Core smoke batch requires the core dependency matrix."
         )
 
+    prepared.run_smoke(
+        "storage-paths-issue102",
+        [str(prepared.python), str(STORAGE_PATHS_PROGRAM)],
+    )
     prepared.run_smoke(
         "grouping-signal-generation",
         [str(prepared.python), str(GENERATION_PROGRAM)],

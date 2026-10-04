@@ -40,6 +40,11 @@ from meridian.standards_proficiency import (
     validate_standard_proficiency_calculation_policy_transition,
     validate_standard_proficiency_result_transition,
 )
+from meridian.storage_path_keys import (
+    StoragePathKeyError,
+    storage_path_key,
+    validate_storage_path_key,
+)
 
 STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 STANDARD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE: Final[str] = (
@@ -252,14 +257,11 @@ def standards_proficiency_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    "Return the class-local standards-proficiency storage root."
+    "Return the short class-local standards-proficiency storage root."
 
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "standards_proficiency"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "sp"
     _require_containment(root, path)
     return path
 
@@ -271,7 +273,36 @@ def standard_proficiency_policies_directory(
     return standards_proficiency_directory(
         workspace_root,
         class_id,
-    ) / "policies"
+    ) / "p"
+
+
+def standard_proficiency_policy_path_key(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return the bounded key for one standards-proficiency policy."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key(
+        "standard_proficiency_policy",
+        class_value,
+        policy,
+    )
+
+
+def standard_proficiency_policy_relative_directory(
+    class_id: str,
+    policy_id: str,
+) -> str:
+    """Return one standards-proficiency policy's bounded relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return (
+        f"classes/{class_value}/modules/meridian/sp/p/"
+        f"{standard_proficiency_policy_path_key(class_value, policy)}"
+    )
 
 
 def standard_proficiency_policy_directory(
@@ -280,10 +311,13 @@ def standard_proficiency_policy_directory(
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return standard_proficiency_policies_directory(
-        workspace_root,
-        class_id,
-    ) / policy
+    return (
+        standard_proficiency_policies_directory(
+            workspace_root,
+            class_id,
+        )
+        / standard_proficiency_policy_path_key(class_id, policy)
+    )
 
 
 def standard_proficiency_policy_revisions_directory(
@@ -295,7 +329,7 @@ def standard_proficiency_policy_revisions_directory(
         workspace_root,
         class_id,
         policy_id,
-    ) / "revisions"
+    )
 
 
 def standard_proficiency_policy_revision_path(
@@ -333,8 +367,8 @@ def standard_proficiency_policy_revision_relative_path(
     policy = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
     return (
-        f"classes/{class_value}/modules/meridian/standards_proficiency/"
-        f"policies/{policy}/revisions/{revision}.json"
+        f"{standard_proficiency_policy_relative_directory(class_value, policy)}/"
+        f"{revision}.json"
     )
 
 
@@ -571,9 +605,14 @@ def list_standard_proficiency_policy_ids(
             raise StandardProficiencyStorageIntegrityError(
                 "Calculation-policy collection contains an unexpected entry."
             )
-        policy_id = _identifier(entry.name, "policy_id")
         _validate_policy_directory(entry)
-        result.append(policy_id)
+        result.append(
+            _standard_proficiency_policy_id_from_directory(
+                root,
+                class_value,
+                entry,
+            )
+        )
     return tuple(sorted(result))
 
 
@@ -696,12 +735,12 @@ def standard_proficiency_results_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    "Return the class-local result collection root."
+    "Return the short class-local result collection root."
 
     return standards_proficiency_directory(
         workspace_root,
         class_id,
-    ) / "results"
+    ) / "r"
 
 
 def standard_proficiency_standard_key(standard_id: str) -> str:
@@ -711,6 +750,24 @@ def standard_proficiency_standard_key(standard_id: str) -> str:
     return hashlib.sha256(
         _canonical_json_bytes({"standard_id": standard})
     ).hexdigest()
+
+
+def standard_proficiency_result_subject_key(
+    class_id: str,
+    grade_item_id: str,
+    student_id: str,
+) -> str:
+    "Return the bounded key for one Grade Item/student result subject."
+
+    class_value = _identifier(class_id, "class_id")
+    grade_item = _identifier(grade_item_id, "grade_item_id")
+    student = _identifier(student_id, "student_id")
+    return storage_path_key(
+        "standard_proficiency_result_subject",
+        class_value,
+        grade_item,
+        student,
+    )
 
 
 def standard_proficiency_result_family_directory(
@@ -726,15 +783,17 @@ def standard_proficiency_result_family_directory(
     class_value = _identifier(class_id, "class_id")
     grade_item = _identifier(grade_item_id, "grade_item_id")
     student = _identifier(student_id, "student_id")
-    standard_key = standard_proficiency_standard_key(standard_id)
+    standard = _standard_id(standard_id)
+    family_key = storage_path_key(
+        "standard_proficiency_result",
+        class_value,
+        grade_item,
+        student,
+        standard,
+    )
     path = (
         standard_proficiency_results_directory(root, class_value)
-        / "grade_items"
-        / grade_item
-        / "students"
-        / student
-        / "standards"
-        / standard_key
+        / family_key
     )
     _require_containment(root, path)
     return path
@@ -753,7 +812,7 @@ def standard_proficiency_result_revisions_directory(
         grade_item_id,
         student_id,
         standard_id,
-    ) / "revisions"
+    )
 
 
 def standard_proficiency_result_revision_path(
@@ -800,12 +859,18 @@ def standard_proficiency_result_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     grade_item = _identifier(grade_item_id, "grade_item_id")
     student = _identifier(student_id, "student_id")
-    standard_key = standard_proficiency_standard_key(standard_id)
+    standard = _standard_id(standard_id)
+    family_key = storage_path_key(
+        "standard_proficiency_result",
+        class_value,
+        grade_item,
+        student,
+        standard,
+    )
     revision = _positive_int(result_revision, "result_revision")
     return (
-        f"classes/{class_value}/modules/meridian/standards_proficiency/"
-        f"results/grade_items/{grade_item}/students/{student}/standards/"
-        f"{standard_key}/revisions/{revision}.json"
+        f"classes/{class_value}/modules/meridian/sp/r/"
+        f"{family_key}/{revision}.json"
     )
 
 
@@ -836,8 +901,7 @@ def write_standard_proficiency_result_revision(
         snapshot.student_id,
         snapshot.standard_id,
     )
-    revisions = family / "revisions"
-    _ensure_directory_chain(root, revisions)
+    _ensure_directory_chain(root, family)
     _validate_result_ancestor_shape(
         root,
         snapshot.class_id,
@@ -850,6 +914,9 @@ def write_standard_proficiency_result_revision(
     try:
         _validate_result_family_directory(
             family,
+            snapshot.class_id,
+            snapshot.grade_item_id,
+            snapshot.student_id,
             snapshot.standard_id,
         )
         _check_write_size(
@@ -987,7 +1054,13 @@ def load_standard_proficiency_result_revision(
         grade_item,
         student,
     )
-    _validate_result_family_directory(family, standard)
+    _validate_result_family_directory(
+        family,
+        class_value,
+        grade_item,
+        student,
+        standard,
+    )
     path = standard_proficiency_result_revision_path(
         root,
         class_value,
@@ -1026,11 +1099,17 @@ def load_standard_proficiency_result_revision(
             "match its canonical path."
         )
 
-    expected_key = standard_proficiency_standard_key(snapshot.standard_id)
+    expected_key = storage_path_key(
+        "standard_proficiency_result",
+        snapshot.class_id,
+        snapshot.grade_item_id,
+        snapshot.student_id,
+        snapshot.standard_id,
+    )
     if family.name != expected_key:
         raise StandardProficiencyStorageIntegrityError(
-            "Persisted standard identity does not match its hashed "
-            "canonical path."
+            "Persisted standards-proficiency result identity does not match "
+            "its bounded canonical path."
         )
 
     return StoredStandardProficiencyResult(
@@ -1077,7 +1156,13 @@ def list_standard_proficiency_result_revisions(
         grade_item,
         student,
     )
-    _validate_result_family_directory(family, standard)
+    _validate_result_family_directory(
+        family,
+        class_value,
+        grade_item,
+        student,
+        standard,
+    )
     return _list_history_revisions(
         root,
         family,
@@ -1352,7 +1437,13 @@ def _load_result_pointer(
         grade_item,
         student,
     )
-    _validate_result_family_directory(family, standard)
+    _validate_result_family_directory(
+        family,
+        class_value,
+        grade_item,
+        student,
+        standard,
+    )
     path = family / "current.json"
     if not path.exists():
         if missing_ok:
@@ -1432,115 +1523,42 @@ def _validate_result_ancestor_shape(
     grade_item_id: str,
     student_id: str,
 ) -> None:
-    results = standard_proficiency_results_directory(root, class_id)
+    class_value = _identifier(class_id, "class_id")
+    _identifier(grade_item_id, "grade_item_id")
+    _identifier(student_id, "student_id")
+    results = standard_proficiency_results_directory(root, class_value)
     if not results.exists():
         return
     _validate_existing_directory_chain(root, results)
-
-    _require_only_named_directory(
+    _require_storage_key_directory_collection(
         results,
-        "grade_items",
-        "standards-proficiency result root",
+        "standards-proficiency result collection",
     )
-    grade_items = results / "grade_items"
-    if not grade_items.exists():
-        return
-    _require_real_directory(grade_items, "result Grade Item collection")
-    _require_identifier_directory_collection(
-        grade_items,
-        "grade_item_id",
-        "result Grade Item collection",
-    )
-
-    grade_item = grade_items / grade_item_id
-    if not grade_item.exists():
-        return
-    _require_real_directory(grade_item, "result Grade Item scope")
-    _require_only_named_directory(
-        grade_item,
-        "students",
-        "result Grade Item scope",
-    )
-
-    students = grade_item / "students"
-    if not students.exists():
-        return
-    _require_real_directory(students, "result student collection")
-    _require_identifier_directory_collection(
-        students,
-        "student_id",
-        "result student collection",
-    )
-
-    student = students / student_id
-    if not student.exists():
-        return
-    _require_real_directory(student, "result student scope")
-    _require_only_named_directory(
-        student,
-        "standards",
-        "result student scope",
-    )
-
-    standards = student / "standards"
-    if not standards.exists():
-        return
-    _require_real_directory(standards, "result standards collection")
-    try:
-        entries = tuple(standards.iterdir())
-    except OSError as error:
-        raise StandardProficiencyStorageReadError(
-            "Could not inspect standards-proficiency result families."
-        ) from error
-    for entry in entries:
-        if (
-            _SHA256.fullmatch(entry.name) is None
-            or entry.is_symlink()
-            or not entry.is_dir()
-        ):
-            raise StandardProficiencyStorageIntegrityError(
-                "Standards-proficiency standards collection contains an "
-                "unsafe or unexpected entry."
-            )
 
 
 def _validate_result_family_directory(
     family: Path,
+    class_id: str,
+    grade_item_id: str,
+    student_id: str,
     standard_id: str,
 ) -> None:
     if not family.exists():
         return
     _require_real_directory(family, "standards-proficiency result family")
-    if family.name != standard_proficiency_standard_key(standard_id):
+    expected_key = storage_path_key(
+        "standard_proficiency_result",
+        _identifier(class_id, "class_id"),
+        _identifier(grade_item_id, "grade_item_id"),
+        _identifier(student_id, "student_id"),
+        _standard_id(standard_id),
+    )
+    if family.name != expected_key:
         raise StandardProficiencyStorageIntegrityError(
             "Standards-proficiency result-family key does not match "
-            "standard identity."
+            "its complete logical identity."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
-    try:
-        entries = tuple(family.iterdir())
-    except OSError as error:
-        raise StandardProficiencyStorageReadError(
-            "Could not inspect standards-proficiency result family."
-        ) from error
-    for entry in entries:
-        if entry.name not in allowed:
-            raise StandardProficiencyStorageIntegrityError(
-                "Standards-proficiency result family contains an "
-                "unexpected entry."
-            )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise StandardProficiencyStorageIntegrityError(
-                    "Standards-proficiency result revisions entry must "
-                    "be a real directory."
-                )
-            _validate_revision_directory_shape(entry)
-        elif entry.is_symlink() or not entry.is_file():
-            raise StandardProficiencyStorageIntegrityError(
-                "Standards-proficiency result pointer/lock entry must "
-                "be a regular file."
-            )
+    _validate_revision_directory_shape(family)
 
 
 def _require_real_directory(path: Path, label: str) -> None:
@@ -1567,6 +1585,29 @@ def _require_identifier_directory_collection(
                 f"{label} contains an unexpected entry."
             )
         _identifier(entry.name, field_name)
+
+
+def _require_storage_key_directory_collection(
+    parent: Path,
+    label: str,
+) -> None:
+    try:
+        entries = tuple(parent.iterdir())
+    except OSError as error:
+        raise StandardProficiencyStorageReadError(
+            f"Could not inspect {label}."
+        ) from error
+    for entry in entries:
+        if entry.is_symlink() or not entry.is_dir():
+            raise StandardProficiencyStorageIntegrityError(
+                f"{label} contains an unexpected entry."
+            )
+        try:
+            validate_storage_path_key(entry.name)
+        except StoragePathKeyError as error:
+            raise StandardProficiencyStorageIntegrityError(
+                f"{label} contains an invalid bounded storage key."
+            ) from error
 
 
 def _require_only_named_directory(
@@ -1740,23 +1781,24 @@ def _list_history_revisions(
     loader: Callable[[int], _HistoryT],
     transition: Callable[[_HistoryT, _HistoryT], _HistoryT],
 ) -> tuple[int, ...]:
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
+    if not relation.exists():
         return ()
-    _validate_existing_directory_chain(root, revisions_dir)
+    _validate_existing_directory_chain(root, relation)
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise StandardProficiencyStorageReadError(
-            "Could not inspect immutable calculation-policy history."
+            "Could not inspect immutable standards-proficiency history."
         ) from error
 
     json_numbers: set[int] = set()
     digest_numbers: set[int] = set()
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise StandardProficiencyStorageIntegrityError(
-                "Calculation-policy history contains an unsafe entry."
+                "Standards-proficiency history contains an unsafe entry."
             )
         json_match = _REVISION_JSON.fullmatch(entry.name)
         digest_match = _REVISION_DIGEST.fullmatch(entry.name)
@@ -1796,6 +1838,43 @@ def _list_history_revisions(
     return revisions
 
 
+def _standard_proficiency_policy_id_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> str:
+    """Recover and verify a policy ID from authoritative revision 1."""
+
+    revision_path = relation / "1.json"
+    try:
+        content, _ = _read_revision_pair(
+            root,
+            revision_path,
+            DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_POLICY_BYTES,
+        )
+        policy = standard_proficiency_calculation_policy_from_json_bytes(content)
+    except (
+        StandardProficiencyStorageError,
+        StandardProficiencySerializationError,
+        StandardProficiencyValidationError,
+    ) as error:
+        raise StandardProficiencyStorageIntegrityError(
+            "Calculation-policy directory lacks a valid authoritative revision 1."
+        ) from error
+    if policy.class_id != class_id or policy.policy_revision != 1:
+        raise StandardProficiencyStorageIntegrityError(
+            "Calculation-policy revision 1 identity does not match collection scope."
+        )
+    if relation.name != standard_proficiency_policy_path_key(
+        class_id,
+        policy.policy_id,
+    ):
+        raise StandardProficiencyStorageIntegrityError(
+            "Calculation-policy directory key does not match authoritative identity."
+        )
+    return policy.policy_id
+
+
 def _validate_policy_directory(path: Path) -> None:
     if not path.exists():
         return
@@ -1803,32 +1882,7 @@ def _validate_policy_directory(path: Path) -> None:
         raise StandardProficiencyStorageIntegrityError(
             "Calculation-policy canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
-    try:
-        entries = tuple(path.iterdir())
-    except OSError as error:
-        raise StandardProficiencyStorageReadError(
-            "Could not inspect calculation-policy canonical root."
-        ) from error
-
-    for entry in entries:
-        if entry.name not in allowed:
-            raise StandardProficiencyStorageIntegrityError(
-                "Calculation-policy canonical root contains an "
-                "unexpected entry."
-            )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise StandardProficiencyStorageIntegrityError(
-                    "Calculation-policy revisions entry must be a real "
-                    "directory."
-                )
-            _validate_revision_directory_shape(entry)
-        elif entry.is_symlink() or not entry.is_file():
-            raise StandardProficiencyStorageIntegrityError(
-                "Calculation-policy pointer/lock entry must be a regular "
-                "file."
-            )
+    _validate_revision_directory_shape(path)
 
 
 def _validate_revision_directory_shape(path: Path) -> None:
@@ -1843,9 +1897,15 @@ def _validate_revision_directory_shape(path: Path) -> None:
     json_numbers: set[int] = set()
     digest_numbers: set[int] = set()
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise StandardProficiencyStorageIntegrityError(
+                    "Standards-proficiency history metadata must be a regular file."
+                )
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise StandardProficiencyStorageIntegrityError(
-                "Immutable calculation-policy revision directory contains "
+                "Immutable standards-proficiency revision history contains "
                 "an unsafe entry."
             )
         json_match = _REVISION_JSON.fullmatch(entry.name)

@@ -32,6 +32,11 @@ from meridian.proficiency_mapping import (
     validate_proficiency_scale,
     validate_proficiency_scale_transition,
 )
+from meridian.storage_path_keys import (
+    StoragePathKeyError,
+    storage_path_key,
+    validate_storage_path_key,
+)
 
 PROFICIENCY_SCALE_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 PROFICIENCY_SCALE_CURRENT_RECORD_TYPE: Final[str] = (
@@ -210,12 +215,32 @@ def proficiency_scales_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    """Return the class-local Meridian proficiency-scale collection."""
+    """Return the short class-local proficiency-scale collection."""
+
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = class_module_dir(root, class_value, "meridian") / "proficiency_scales"
+    path = class_module_dir(root, class_value, "meridian") / "prof" / "s"
     _require_containment(root, path)
     return path
+
+
+def proficiency_scale_path_key(class_id: str, scale_id: str) -> str:
+    """Return the bounded filesystem key for one proficiency scale."""
+
+    class_value = _identifier(class_id, "class_id")
+    scale = _identifier(scale_id, "scale_id")
+    return storage_path_key("proficiency_scale", class_value, scale)
+
+
+def proficiency_scale_relative_directory(class_id: str, scale_id: str) -> str:
+    """Return one proficiency scale's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    scale = _identifier(scale_id, "scale_id")
+    return (
+        f"classes/{class_value}/modules/meridian/prof/s/"
+        f"{proficiency_scale_path_key(class_value, scale)}"
+    )
 
 
 def proficiency_scale_directory(
@@ -224,7 +249,10 @@ def proficiency_scale_directory(
     scale_id: str,
 ) -> Path:
     scale = _identifier(scale_id, "scale_id")
-    return proficiency_scales_directory(workspace_root, class_id) / scale
+    return (
+        proficiency_scales_directory(workspace_root, class_id)
+        / proficiency_scale_path_key(class_id, scale)
+    )
 
 
 def proficiency_scale_revisions_directory(
@@ -232,7 +260,7 @@ def proficiency_scale_revisions_directory(
     class_id: str,
     scale_id: str,
 ) -> Path:
-    return proficiency_scale_directory(workspace_root, class_id, scale_id) / "revisions"
+    return proficiency_scale_directory(workspace_root, class_id, scale_id)
 
 
 def proficiency_scale_revision_path(
@@ -262,9 +290,52 @@ def mapping_profiles_directory(
     class_id: str,
     scale_id: str,
 ) -> Path:
-    return proficiency_scale_directory(
-        workspace_root, class_id, scale_id
-    ) / "mapping_profiles"
+    """Return the class-local mapping-profile collection.
+
+    ``scale_id`` remains part of each profile's composite path key, but no
+    scale key is repeated in the physical ancestry.
+    """
+
+    class_value = _identifier(class_id, "class_id")
+    _identifier(scale_id, "scale_id")
+    root = _root(workspace_root)
+    path = class_module_dir(root, class_value, "meridian") / "prof" / "p"
+    _require_containment(root, path)
+    return path
+
+
+def mapping_profile_path_key(
+    class_id: str,
+    scale_id: str,
+    profile_id: str,
+) -> str:
+    """Return the bounded filesystem key for one native-value mapping profile."""
+
+    class_value = _identifier(class_id, "class_id")
+    scale = _identifier(scale_id, "scale_id")
+    profile = _identifier(profile_id, "profile_id")
+    return storage_path_key(
+        "mapping_profile",
+        class_value,
+        scale,
+        profile,
+    )
+
+
+def mapping_profile_relative_directory(
+    class_id: str,
+    scale_id: str,
+    profile_id: str,
+) -> str:
+    """Return one mapping profile's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    scale = _identifier(scale_id, "scale_id")
+    profile = _identifier(profile_id, "profile_id")
+    return (
+        f"classes/{class_value}/modules/meridian/prof/p/"
+        f"{mapping_profile_path_key(class_value, scale, profile)}"
+    )
 
 
 def mapping_profile_directory(
@@ -274,9 +345,10 @@ def mapping_profile_directory(
     profile_id: str,
 ) -> Path:
     profile = _identifier(profile_id, "profile_id")
-    return mapping_profiles_directory(
-        workspace_root, class_id, scale_id
-    ) / profile
+    return (
+        mapping_profiles_directory(workspace_root, class_id, scale_id)
+        / mapping_profile_path_key(class_id, scale_id, profile)
+    )
 
 
 def mapping_profile_revisions_directory(
@@ -287,7 +359,7 @@ def mapping_profile_revisions_directory(
 ) -> Path:
     return mapping_profile_directory(
         workspace_root, class_id, scale_id, profile_id
-    ) / "revisions"
+    )
 
 
 def mapping_profile_revision_path(
@@ -323,8 +395,8 @@ def proficiency_scale_revision_relative_path(
     scale = _identifier(scale_id, "scale_id")
     revision = _positive_int(scale_revision, "scale_revision")
     return (
-        f"classes/{class_value}/modules/meridian/proficiency_scales/"
-        f"{scale}/revisions/{revision}.json"
+        f"{proficiency_scale_relative_directory(class_value, scale)}/"
+        f"{revision}.json"
     )
 
 
@@ -339,8 +411,8 @@ def mapping_profile_revision_relative_path(
     profile = _identifier(profile_id, "profile_id")
     revision = _positive_int(profile_revision, "profile_revision")
     return (
-        f"classes/{class_value}/modules/meridian/proficiency_scales/{scale}/"
-        f"mapping_profiles/{profile}/revisions/{revision}.json"
+        f"{mapping_profile_relative_directory(class_value, scale, profile)}/"
+        f"{revision}.json"
     )
 
 
@@ -501,9 +573,10 @@ def list_proficiency_scale_ids(
             raise ProficiencyMappingStorageIntegrityError(
                 "Proficiency-scale collection contains an unexpected entry."
             )
-        scale_id = _identifier(entry.name, "scale_id")
         _validate_scale_directory(entry)
-        result.append(scale_id)
+        result.append(
+            _scale_id_from_directory(root, class_value, entry)
+        )
     return tuple(sorted(result))
 
 
@@ -778,9 +851,20 @@ def list_mapping_profile_ids(
             raise ProficiencyMappingStorageIntegrityError(
                 "Mapping-profile collection contains an unexpected entry."
             )
-        profile_id = _identifier(entry.name, "profile_id")
+        try:
+            validate_storage_path_key(entry.name)
+        except StoragePathKeyError as error:
+            raise ProficiencyMappingStorageIntegrityError(
+                "Mapping-profile collection contains an invalid bounded key."
+            ) from error
         _validate_profile_directory(entry)
-        result.append(profile_id)
+        profile_scale, profile_id = _profile_identity_from_directory(
+            root,
+            class_value,
+            entry,
+        )
+        if profile_scale == scale:
+            result.append(profile_id)
     return tuple(sorted(result))
 
 
@@ -1069,12 +1153,11 @@ def _list_history_revisions(
     loader: Callable[[int], _HistoryT],
     transition: Callable[[_HistoryT, _HistoryT], _HistoryT],
 ) -> tuple[int, ...]:
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
+    if not relation.exists():
         return ()
-    _validate_existing_directory_chain(root, revisions_dir)
+    _validate_existing_directory_chain(root, relation)
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise ProficiencyMappingStorageReadError(
             "Could not inspect immutable revision history."
@@ -1082,6 +1165,8 @@ def _list_history_revisions(
     json_numbers: set[int] = set()
     digest_numbers: set[int] = set()
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise ProficiencyMappingStorageIntegrityError(
                 "Revision history contains an unsafe entry."
@@ -1128,7 +1213,6 @@ def _validate_scale_directory(path: Path) -> None:
         raise ProficiencyMappingStorageIntegrityError(
             "Proficiency-scale canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock", "mapping_profiles"}
     try:
         entries = tuple(path.iterdir())
     except OSError as error:
@@ -1136,36 +1220,95 @@ def _validate_scale_directory(path: Path) -> None:
             "Could not inspect proficiency-scale canonical root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise ProficiencyMappingStorageIntegrityError(
+                    "Proficiency-scale pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise ProficiencyMappingStorageIntegrityError(
                 "Proficiency-scale canonical root contains an unexpected entry."
             )
-        if entry.name in {"revisions", "mapping_profiles"}:
-            if entry.is_symlink() or not entry.is_dir():
-                raise ProficiencyMappingStorageIntegrityError(
-                    "Proficiency-scale collection entry must be a real directory."
-                )
-            if entry.name == "revisions":
-                _validate_revision_directory_shape(entry)
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise ProficiencyMappingStorageIntegrityError(
-                "Proficiency-scale pointer/lock entry must be a regular file."
+                "Proficiency-scale revision entry must be a regular file."
             )
-    profiles = path / "mapping_profiles"
-    if profiles.exists():
-        try:
-            profile_entries = tuple(profiles.iterdir())
-        except OSError as error:
-            raise ProficiencyMappingStorageReadError(
-                "Could not inspect mapping-profile collection."
-            ) from error
-        for entry in profile_entries:
-            if entry.is_symlink() or not entry.is_dir():
-                raise ProficiencyMappingStorageIntegrityError(
-                    "Mapping-profile collection contains an unsafe entry."
-                )
-            _identifier(entry.name, "profile_id")
-            _validate_profile_directory(entry)
+
+
+def _scale_id_from_directory(
+    root: Path,
+    class_id: str,
+    scale_dir: Path,
+) -> str:
+    """Recover and verify a logical scale ID from authoritative revision 1."""
+
+    revision_path = scale_dir / "1.json"
+    try:
+        content, _ = _read_revision_pair(
+            root,
+            revision_path,
+            DEFAULT_MAXIMUM_PROFICIENCY_SCALE_BYTES,
+        )
+        model = proficiency_scale_from_json_bytes(content)
+    except (
+        ProficiencyMappingStorageError,
+        ProficiencyMappingSerializationError,
+        ProficiencyMappingValidationError,
+    ) as error:
+        raise ProficiencyMappingStorageIntegrityError(
+            "Proficiency-scale directory lacks a valid authoritative revision 1."
+        ) from error
+    if model.class_id != class_id or model.scale_revision != 1:
+        raise ProficiencyMappingStorageIntegrityError(
+            "Proficiency-scale revision 1 identity does not match collection scope."
+        )
+    if scale_dir.name != proficiency_scale_path_key(class_id, model.scale_id):
+        raise ProficiencyMappingStorageIntegrityError(
+            "Proficiency-scale directory key does not match authoritative identity."
+        )
+    return model.scale_id
+
+
+def _profile_identity_from_directory(
+    root: Path,
+    class_id: str,
+    profile_dir: Path,
+) -> tuple[str, str]:
+    """Recover and verify scale/profile identity from authoritative revision 1."""
+
+    revision_path = profile_dir / "1.json"
+    try:
+        content, _ = _read_revision_pair(
+            root,
+            revision_path,
+            DEFAULT_MAXIMUM_MAPPING_PROFILE_BYTES,
+        )
+        model = native_value_mapping_profile_from_json_bytes(content)
+    except (
+        ProficiencyMappingStorageError,
+        ProficiencyMappingSerializationError,
+        ProficiencyMappingValidationError,
+    ) as error:
+        raise ProficiencyMappingStorageIntegrityError(
+            "Mapping-profile directory lacks a valid authoritative revision 1."
+        ) from error
+    if model.class_id != class_id or model.profile_revision != 1:
+        raise ProficiencyMappingStorageIntegrityError(
+            "Mapping-profile revision 1 identity does not match collection scope."
+        )
+    if profile_dir.name != mapping_profile_path_key(
+        class_id,
+        model.scale_id,
+        model.profile_id,
+    ):
+        raise ProficiencyMappingStorageIntegrityError(
+            "Mapping-profile directory key does not match authoritative identity."
+        )
+    return model.scale_id, model.profile_id
 
 
 def _validate_profile_directory(path: Path) -> None:
@@ -1175,7 +1318,6 @@ def _validate_profile_directory(path: Path) -> None:
         raise ProficiencyMappingStorageIntegrityError(
             "Mapping-profile canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(path.iterdir())
     except OSError as error:
@@ -1183,19 +1325,22 @@ def _validate_profile_directory(path: Path) -> None:
             "Could not inspect mapping-profile canonical root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise ProficiencyMappingStorageIntegrityError(
+                    "Mapping-profile pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise ProficiencyMappingStorageIntegrityError(
                 "Mapping-profile canonical root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise ProficiencyMappingStorageIntegrityError(
-                    "Mapping-profile revisions entry must be a real directory."
-                )
-            _validate_revision_directory_shape(entry)
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise ProficiencyMappingStorageIntegrityError(
-                "Mapping-profile pointer/lock entry must be a regular file."
+                "Mapping-profile revision entry must be a regular file."
             )
 
 

@@ -135,8 +135,8 @@ def _tree_state(root: Path) -> tuple[tuple[str, str], ...]:
 
 def _assert_installed_boundary() -> None:
     _require(
-        metadata.version("pds-core") == "0.6.3",
-        "Issue #58 installed smoke requires exact Core 0.6.3.",
+        metadata.version("pds-core") == "0.6.4",
+        "Issue #58 installed smoke requires exact Core 0.6.4.",
     )
     _require(
         metadata.version("pds-meridian") == "0.2.0",

@@ -41,6 +41,7 @@ from meridian.grade_policy_storage import (
     get_current_grade_policy_revision,
     grade_policy_current_path,
     grade_policy_directory,
+    grade_policy_path_key,
     grade_policy_revision_digest_path,
     grade_policy_revision_path,
     grade_policy_revision_relative_path,
@@ -258,8 +259,8 @@ def test_write_uses_canonical_path_and_does_not_select(tmp_path: Path) -> None:
     )
     assert result.disposition == "created"
     assert result.stored.relative_path == (
-        "classes/synthetic_class_2026/modules/meridian/grade_policies/"
-        "course_grade_policy/revisions/1.json"
+        "classes/synthetic_class_2026/modules/meridian/gp/"
+        f"{grade_policy_path_key(CLASS_ID, POLICY_ID)}/1.json"
     )
     assert result.stored.path == grade_policy_revision_path(
         root,
@@ -274,6 +275,39 @@ def test_write_uses_canonical_path_and_does_not_select(tmp_path: Path) -> None:
         1,
     ).is_file()
     assert get_current_grade_policy_revision(root, CLASS_ID, POLICY_ID) is None
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    root = make_workspace(tmp_path)
+    references = write_conventional_dependencies(root)
+    configuration = conventional_configuration(*references)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = write_grade_policy_revision(
+        root,
+        policy(configuration, policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == grade_policy_path_key(
+        CLASS_ID,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert len(f"{stored.relative_path}.sha256") <= 130
+    assert load_grade_policy_revision(
+        root,
+        CLASS_ID,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
+    assert list_grade_policy_ids(
+        root,
+        CLASS_ID,
+    ) == (long_policy_id,)
 
 
 def test_write_requires_existing_core_class(tmp_path: Path) -> None:
@@ -568,8 +602,8 @@ def test_bounded_read_rejects_oversize(tmp_path: Path) -> None:
 def test_relative_path_is_platform_neutral() -> None:
     value = grade_policy_revision_relative_path(CLASS_ID, POLICY_ID, 3)
     assert value == (
-        "classes/synthetic_class_2026/modules/meridian/grade_policies/"
-        "course_grade_policy/revisions/3.json"
+        "classes/synthetic_class_2026/modules/meridian/gp/"
+        f"{grade_policy_path_key(CLASS_ID, POLICY_ID)}/3.json"
     )
     assert "\\" not in value
 

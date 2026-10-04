@@ -38,11 +38,13 @@ from meridian.academic_period_proficiency_storage import (
     AcademicPeriodProficiencyStorageConflictError,
     AcademicPeriodProficiencyStorageIntegrityError,
     academic_period_proficiency_policy_current_path,
+    academic_period_proficiency_policy_path_key,
     academic_period_proficiency_policy_revision_relative_path,
     academic_period_proficiency_result_current_path,
     academic_period_proficiency_result_family_directory,
     academic_period_proficiency_result_revision_path,
     academic_period_proficiency_result_revision_relative_path,
+    academic_period_proficiency_result_subject_key,
     academic_period_proficiency_standard_key,
     get_current_academic_period_proficiency_policy_revision,
     get_current_academic_period_proficiency_result_revision,
@@ -166,14 +168,51 @@ def persisted_scale(workspace: Path) -> ProficiencyScale:
 
 
 def test_policy_relative_path_is_class_local_and_scale_independent() -> None:
+    policy_key = academic_period_proficiency_policy_path_key(
+        CLASS_ID,
+        "course_policy",
+    )
     assert academic_period_proficiency_policy_revision_relative_path(
         CLASS_ID,
         "course_policy",
         1,
     ) == (
         "classes/synthetic_class_2026/modules/meridian/"
-        "academic_period_proficiency/policies/course_policy/revisions/1.json"
+        f"ap/p/{policy_key}/1.json"
     )
+
+
+def test_long_policy_id_uses_bounded_key_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    workspace = root(tmp_path)
+    target = persisted_scale(workspace)
+    long_policy_id = "policy_" + ("p" * 5000)
+
+    stored = write_academic_period_proficiency_policy_revision(
+        workspace,
+        policy(target, policy_id=long_policy_id),
+    ).stored
+    relation = stored.path.parent
+
+    assert len(relation.name) == 67
+    assert relation.name == academic_period_proficiency_policy_path_key(
+        CLASS_ID,
+        long_policy_id,
+    )
+    assert long_policy_id not in stored.relative_path
+    assert len(stored.relative_path) <= 125
+    assert len(f"{stored.relative_path}.sha256") <= 132
+    assert load_academic_period_proficiency_policy_revision(
+        workspace,
+        CLASS_ID,
+        long_policy_id,
+        1,
+    ).policy.policy_id == long_policy_id
+    assert list_academic_period_proficiency_policy_ids(
+        workspace,
+        CLASS_ID,
+    ) == (long_policy_id,)
 
 
 def test_policy_requires_exact_persisted_target_scale(
@@ -437,7 +476,7 @@ def test_unexpected_policy_entry_fails_closed(tmp_path: Path) -> None:
         policy(target),
     ).stored
 
-    (stored.path.parent.parent / "latest.json").write_text(
+    (stored.path.parent / "latest.json").write_text(
         "{}",
         encoding="utf-8",
     )
@@ -486,6 +525,7 @@ def period_result_snapshot(
     *,
     revision: int = 1,
     period_id: str = PERIOD_ID,
+    student_id: str = STUDENT_ID,
     standard_id: str = STANDARD_ID,
 ) -> AcademicPeriodProficiencyResultSnapshot:
     target_scale = scale()
@@ -498,7 +538,7 @@ def period_result_snapshot(
         record_type=ACADEMIC_PERIOD_PROFICIENCY_INPUTS_RECORD_TYPE,
         class_id=CLASS_ID,
         target_period=target,
-        student_id=STUDENT_ID,
+        student_id=student_id,
         standard_id=standard_id,
         target_scale=proficiency_scale_reference(target_scale),
         period_membership_scope="direct",
@@ -544,23 +584,90 @@ def seed_result_revision(
     return path
 
 
-def test_result_family_path_uses_durable_period_and_hashed_standard() -> None:
+def test_result_family_path_uses_bounded_subject_and_hashed_standard() -> None:
+    subject_key = academic_period_proficiency_result_subject_key(
+        CLASS_ID,
+        SCHOOL_YEAR,
+        PERIOD_ID,
+        STUDENT_ID,
+    )
     standard_key = academic_period_proficiency_standard_key(STANDARD_ID)
+    assert len(subject_key) == 67
     assert len(standard_key) == 64
+    assert subject_key == academic_period_proficiency_result_subject_key(
+        CLASS_ID,
+        SCHOOL_YEAR,
+        PERIOD_ID,
+        STUDENT_ID,
+    )
     assert standard_key == academic_period_proficiency_standard_key(STANDARD_ID)
-    assert academic_period_proficiency_result_revision_relative_path(
+    relative = academic_period_proficiency_result_revision_relative_path(
         CLASS_ID,
         SCHOOL_YEAR,
         PERIOD_ID,
         STUDENT_ID,
         STANDARD_ID,
         1,
-    ) == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        "academic_period_proficiency/results/school_years/2026-2027/"
-        "periods/mp1/students/student_1/standards/"
-        f"{standard_key}/revisions/1.json"
     )
+    family = academic_period_proficiency_result_family_directory(
+        Path("."),
+        CLASS_ID,
+        SCHOOL_YEAR,
+        PERIOD_ID,
+        STUDENT_ID,
+        STANDARD_ID,
+    )
+    assert relative == (
+        "classes/synthetic_class_2026/modules/meridian/"
+        f"ap/r/{family.name}/1.json"
+    )
+    assert len(family.name) == 67
+    assert len(relative) <= 125
+    assert len(f"{relative}.sha256") <= 132
+
+
+def test_long_student_id_uses_bounded_subject_key_and_round_trips(
+    tmp_path: Path,
+) -> None:
+    workspace = root(tmp_path)
+    long_student_id = "student_" + ("s" * 5000)
+    snapshot = period_result_snapshot(student_id=long_student_id)
+    path = seed_result_revision(workspace, snapshot)
+
+    subject_key = academic_period_proficiency_result_subject_key(
+        CLASS_ID,
+        SCHOOL_YEAR,
+        PERIOD_ID,
+        long_student_id,
+    )
+    family = academic_period_proficiency_result_family_directory(
+        workspace,
+        CLASS_ID,
+        SCHOOL_YEAR,
+        PERIOD_ID,
+        long_student_id,
+        STANDARD_ID,
+    )
+
+    assert len(subject_key) == 67
+    assert len(family.name) == 67
+    assert family.parent.name == "r"
+    assert family.parent.parent.name == "ap"
+    assert long_student_id not in path.as_posix()
+    relative = path.relative_to(workspace).as_posix()
+    assert len(relative) <= 125
+    assert len(f"{relative}.sha256") <= 132
+    loaded = load_academic_period_proficiency_result_revision(
+        workspace,
+        CLASS_ID,
+        SCHOOL_YEAR,
+        PERIOD_ID,
+        long_student_id,
+        STANDARD_ID,
+        1,
+    )
+    assert loaded.snapshot.student_id == long_student_id
+    assert loaded.relative_path == path.relative_to(workspace).as_posix()
 
 
 def test_result_revision_load_verifies_exact_bytes_and_reference(

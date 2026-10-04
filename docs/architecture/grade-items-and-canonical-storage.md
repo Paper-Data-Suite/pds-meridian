@@ -384,3 +384,7 @@ publication ingestion != Grade Item creation
 Grade Item creation != membership
 membership != evidence eligibility
 ```
+
+## Issue #102 bounded filesystem serialization
+
+Issue #102 changes only canonical filesystem serialization: the full `grade_item_id` remains authoritative in the Grade Item record, while the Meridian-owned directory component is a deterministic bounded path key. The same pre-deployment contract now applies Meridian-wide. See [Canonical storage path budgets](canonical-storage-path-budgets.md).

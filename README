@@ -102,6 +102,10 @@ and never claim external acceptance. Active v0.3 optional Quillan compatibility
 is now v0.10.3. See
 [Reporting exports](docs/architecture/reporting-exports.md).
 
+## Issue #102 bounded canonical storage paths
+
+Current v0.3 development now serializes Meridian-owned variable filesystem identity through deterministic bounded keys while preserving full logical identity in authoritative records. Exact development/installed qualification uses released Core v0.6.4; the compatible runtime floor remains `pds-core>=0.6.3,<0.7`. Because this correction occurs before first teacher deployment, there is no legacy Meridian path migration layer. See [Canonical storage path budgets](docs/architecture/canonical-storage-path-budgets.md).
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into
@@ -164,7 +168,7 @@ The current package provides:
 - authorization-gated inspection/explanation of persisted evidence snapshots;
 - privacy-safe stable `ingestion.*`, `contracts.*`, `adapters.*`, and `cache.*`
   outcomes;
-- exact verification of the official Core v0.6.3 wheel;
+- exact verification of the official Core v0.6.4 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
 - explicit, lazy adapters for exact ScoreForm v0.11.0, Quillan v0.10.0, and

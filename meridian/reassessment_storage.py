@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal, TypeAlias, TypeVar, cast
 
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
+from pds_core.routes import class_module_dir
 from pds_core.routing_models import (
     ModuleWorkRef,
     RoutingModelError,
@@ -43,6 +44,11 @@ from meridian.reassessment import (
     validate_reassessment_decision_transition,
     validate_reassessment_policy,
     validate_reassessment_policy_transition,
+)
+from meridian.storage_path_keys import (
+    StoragePathKeyError,
+    storage_path_key,
+    validate_storage_path_key,
 )
 
 if TYPE_CHECKING:
@@ -310,12 +316,20 @@ def reassessment_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return attempt_selection_directory(
-        _root(workspace_root),
-        _identifier(class_id, "class_id"),
-        _identifier(grade_item_id, "grade_item_id"),
-        _work(work),
-    ) / "reassessment"
+    """Return the class-local bounded reassessment storage root."""
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise ReassessmentStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    _ = item
+    path = class_module_dir(root, class_value, "meridian") / "reassess"
+    _require_containment(root, path)
+    return path
 
 
 def reassessment_policies_directory(
@@ -326,7 +340,33 @@ def reassessment_policies_directory(
 ) -> Path:
     return (
         reassessment_directory(workspace_root, class_id, grade_item_id, work)
-        / "policies"
+        / "p"
+    )
+
+
+def reassessment_policy_path_key(
+    class_id: str,
+    grade_item_id: str,
+    work: ModuleWorkRef,
+    policy_id: str,
+) -> str:
+    """Return the bounded key for one reassessment policy family."""
+
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise ReassessmentStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key(
+        "reassessment_policy",
+        class_value,
+        item,
+        validated_work.module_id,
+        validated_work.work_id,
+        policy,
     )
 
 
@@ -337,9 +377,20 @@ def reassessment_policy_directory(
     work: ModuleWorkRef,
     policy_id: str,
 ) -> Path:
-    return reassessment_policies_directory(
-        workspace_root, class_id, grade_item_id, work
-    ) / _identifier(policy_id, "policy_id")
+    return (
+        reassessment_policies_directory(
+            workspace_root,
+            class_id,
+            grade_item_id,
+            work,
+        )
+        / reassessment_policy_path_key(
+            class_id,
+            grade_item_id,
+            work,
+            policy_id,
+        )
+    )
 
 
 def reassessment_policy_revision_path(
@@ -352,7 +403,7 @@ def reassessment_policy_revision_path(
 ) -> Path:
     return reassessment_policy_directory(
         workspace_root, class_id, grade_item_id, work, policy_id
-    ) / "revisions" / f"{_positive_int(policy_revision, 'policy_revision')}.json"
+    ) / f"{_positive_int(policy_revision, 'policy_revision')}.json"
 
 
 def reassessment_policy_current_path(
@@ -375,7 +426,7 @@ def reassessment_students_directory(
 ) -> Path:
     return (
         reassessment_directory(workspace_root, class_id, grade_item_id, work)
-        / "students"
+        / "s"
     )
 
 
@@ -407,7 +458,7 @@ def reassessment_decision_revision_path(
 ) -> Path:
     return reassessment_subject_directory(
         workspace_root, class_id, grade_item_id, work, student_id
-    ) / "revisions" / f"{_positive_int(decision_revision, 'decision_revision')}.json"
+    ) / f"{_positive_int(decision_revision, 'decision_revision')}.json"
 
 
 def reassessment_decision_current_path(
@@ -429,10 +480,25 @@ def reassessment_policy_revision_relative_path(
     policy_id: str,
     policy_revision: int,
 ) -> str:
-    path = reassessment_policy_revision_path(
-        Path("."), class_id, grade_item_id, work, policy_id, policy_revision
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise ReassessmentStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    policy = _identifier(policy_id, "policy_id")
+    policy_key = reassessment_policy_path_key(
+        class_value,
+        item,
+        validated_work,
+        policy,
     )
-    return path.as_posix().removeprefix("./")
+    revision = _positive_int(policy_revision, "policy_revision")
+    return (
+        f"classes/{class_value}/modules/meridian/reassess/p/"
+        f"{policy_key}/{revision}.json"
+    )
 
 
 def reassessment_decision_revision_relative_path(
@@ -442,10 +508,25 @@ def reassessment_decision_revision_relative_path(
     student_id: str,
     decision_revision: int,
 ) -> str:
-    path = reassessment_decision_revision_path(
-        Path("."), class_id, grade_item_id, work, student_id, decision_revision
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    validated_work = _work(work)
+    if validated_work.class_id != class_value:
+        raise ReassessmentStorageValidationError(
+            "work.class_id must match class_id."
+        )
+    student = _identifier(student_id, "student_id")
+    revision = _positive_int(decision_revision, "decision_revision")
+    subject_key = reassessment_subject_key(
+        class_value,
+        item,
+        validated_work,
+        student,
     )
-    return path.as_posix().removeprefix("./")
+    return (
+        f"classes/{class_value}/modules/meridian/reassess/s/"
+        f"{subject_key}/{revision}.json"
+    )
 
 
 def write_reassessment_policy_revision(
@@ -487,7 +568,7 @@ def write_reassessment_policy_revision(
                 "Reassessment policy revision already exists with different content."
             )
         return ReassessmentPolicyWriteResult("existing", stored)
-    relation = target.parent.parent
+    relation = target.parent
     _ensure_directory_chain(root, target.parent)
     _validate_reassessment_collections(
         root, candidate.class_id, candidate.grade_item_id, candidate.work
@@ -759,7 +840,7 @@ def write_reassessment_decision_revision(
     _validate_decision_dependencies(
         root, candidate, authorized_snapshot, require_current_policy=True
     )
-    relation = target.parent.parent
+    relation = target.parent
     _ensure_directory_chain(root, target.parent)
     _validate_reassessment_collections(
         root, candidate.class_id, candidate.grade_item_id, candidate.work
@@ -1484,7 +1565,7 @@ def _validate_reassessment_collections(
         raise ReassessmentStorageReadError(
             "Could not inspect reassessment collection root."
         ) from error
-    allowed = {"policies", "students"}
+    allowed = {"p", "s"}
     for entry in entries:
         if entry.name not in allowed:
             raise ReassessmentStorageIntegrityError(
@@ -1494,7 +1575,7 @@ def _validate_reassessment_collections(
             raise ReassessmentStorageIntegrityError(
                 "Reassessment collection children must be real directories."
             )
-    policies = base / "policies"
+    policies = base / "p"
     if policies.exists():
         for entry in _directory_entries(policies, "reassessment policy collection"):
             if entry.is_symlink() or not entry.is_dir():
@@ -1502,12 +1583,14 @@ def _validate_reassessment_collections(
                     "Reassessment policy collection contains a non-directory entry."
                 )
             try:
-                validate_identifier(entry.name, "persisted policy_id")
-            except IdentifierValidationError as error:
+                validate_storage_path_key(entry.name)
+            except StoragePathKeyError as error:
                 raise ReassessmentStorageIntegrityError(
-                    "Reassessment policy collection contains an invalid policy ID."
+                    "Reassessment policy collection contains an invalid bounded "
+                    "storage key."
                 ) from error
-    students = base / "students"
+            _validate_history_root(entry)
+    students = base / "s"
     if students.exists():
         for entry in _directory_entries(students, "reassessment student collection"):
             if entry.is_symlink() or not entry.is_dir():
@@ -1518,6 +1601,7 @@ def _validate_reassessment_collections(
                 raise ReassessmentStorageIntegrityError(
                     "Reassessment student collection contains an invalid subject key."
                 )
+            _validate_history_root(entry)
 
 
 def _directory_entries(path: Path, label: str) -> tuple[Path, ...]:
@@ -1537,12 +1621,11 @@ def _list_history_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_history_root(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
     jsons: set[int] = set()
     digests: set[int] = set()
-    for entry in _directory_entries(revisions_dir, "reassessment revisions directory"):
+    for entry in _directory_entries(relation, "reassessment history directory"):
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink() or not entry.is_file():
             raise ReassessmentStorageIntegrityError(
                 "Reassessment revisions contain a nonregular entry."
@@ -1590,20 +1673,23 @@ def _validate_history_root(relation: Path) -> None:
         raise ReassessmentStorageReadError(
             "Could not inspect reassessment history root."
         ) from error
-    allowed = {"revisions", "current.json", ".write.lock"}
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise ReassessmentStorageIntegrityError(
+                    "Reassessment history metadata must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise ReassessmentStorageIntegrityError(
                 "Reassessment history root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise ReassessmentStorageIntegrityError(
-                    "Reassessment revisions path must be a real directory."
-                )
-        elif entry.exists() and (entry.is_symlink() or not entry.is_file()):
+        if entry.is_symlink() or not entry.is_file():
             raise ReassessmentStorageIntegrityError(
-                "Reassessment history metadata must be a regular file."
+                "Reassessment revision entry must be a regular file."
             )
 
 

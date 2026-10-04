@@ -40,6 +40,7 @@ from meridian.grouping_signal_review_storage import (
     GroupingSignalReviewStorageError,
     load_grouping_signal_review_revision,
 )
+from meridian.storage_path_keys import storage_path_key
 
 DEFAULT_MAXIMUM_GROUPING_SIGNAL_EXPORT_RECEIPT_BYTES: Final[int] = (
     MAXIMUM_GROUPING_SIGNAL_EXPORT_RECEIPT_BYTES
@@ -52,6 +53,12 @@ GroupingSignalExportReceiptWriteDisposition: TypeAlias = Literal[
 ]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
+_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(
+    r"^(mk_[0-9a-f]{64})\.json$"
+)
+_RECEIPT_DIGEST: Final[re.Pattern[str]] = re.compile(
+    r"^(mk_[0-9a-f]{64})\.json\.sha256$"
+)
 
 
 class GroupingSignalExportReceiptStorageError(RuntimeError):
@@ -152,7 +159,11 @@ class StoredGroupingSignalExportReceipt:
             raise GroupingSignalExportReceiptStorageValidationError(
                 "relative_path is not the canonical receipt location."
             )
-        if self.path.name != f"{self.receipt.signal_set_id}.json":
+        receipt_key = grouping_signal_export_receipt_path_key(
+            self.receipt.class_id,
+            self.receipt.signal_set_id,
+        )
+        if self.path.name != f"{receipt_key}.json":
             raise GroupingSignalExportReceiptStorageValidationError(
                 "receipt path filename does not match signal identity."
             )
@@ -187,16 +198,34 @@ def grouping_signal_export_receipts_directory(
     return path
 
 
+def grouping_signal_export_receipt_path_key(
+    class_id: str,
+    signal_set_id: str,
+) -> str:
+    """Return the bounded key for one exported Core grouping-signal identity."""
+
+    class_value = _identifier(class_id, "class_id")
+    signal = _identifier(signal_set_id, "signal_set_id")
+    return storage_path_key(
+        "grouping_signal_export_receipt",
+        class_value,
+        signal,
+    )
+
+
 def grouping_signal_export_receipt_path(
     workspace_root: str | Path,
     class_id: str,
     signal_set_id: str,
 ) -> Path:
-    signal = _identifier(signal_set_id, "signal_set_id")
+    receipt_key = grouping_signal_export_receipt_path_key(
+        class_id,
+        signal_set_id,
+    )
     return grouping_signal_export_receipts_directory(
         workspace_root,
         class_id,
-    ) / f"{signal}.json"
+    ) / f"{receipt_key}.json"
 
 
 def grouping_signal_export_receipt_relative_path(
@@ -205,9 +234,13 @@ def grouping_signal_export_receipt_relative_path(
 ) -> str:
     class_value = _identifier(class_id, "class_id")
     signal = _identifier(signal_set_id, "signal_set_id")
+    receipt_key = grouping_signal_export_receipt_path_key(
+        class_value,
+        signal,
+    )
     return (
         f"classes/{class_value}/modules/meridian/grouping_signal_exports/"
-        f"{signal}.json"
+        f"{receipt_key}.json"
     )
 
 
@@ -508,8 +541,8 @@ def _validate_collection(collection: Path, *, allow_lock: bool) -> None:
         raise GroupingSignalExportReceiptStorageIntegrityError(
             "Export receipt collection must be a real directory."
         )
-    json_ids: set[str] = set()
-    digest_ids: set[str] = set()
+    json_keys: set[str] = set()
+    digest_keys: set[str] = set()
     for entry in _directory_entries(collection):
         if entry.name == ".write.lock" and allow_lock:
             if entry.is_symlink() or not entry.is_file():
@@ -521,17 +554,18 @@ def _validate_collection(collection: Path, *, allow_lock: bool) -> None:
             raise GroupingSignalExportReceiptStorageIntegrityError(
                 "Export receipt collection contains an unsafe entry."
             )
-        if entry.name.endswith(".json.sha256"):
-            identifier = entry.name[: -len(".json.sha256")]
-            digest_ids.add(_identifier(identifier, "signal_set_id"))
-        elif entry.name.endswith(".json"):
-            identifier = entry.name[: -len(".json")]
-            json_ids.add(_identifier(identifier, "signal_set_id"))
-        else:
-            raise GroupingSignalExportReceiptStorageIntegrityError(
-                "Export receipt collection contains an unexpected visible entry."
-            )
-    if json_ids != digest_ids:
+        json_match = _RECEIPT_JSON.fullmatch(entry.name)
+        if json_match is not None:
+            json_keys.add(json_match.group(1))
+            continue
+        digest_match = _RECEIPT_DIGEST.fullmatch(entry.name)
+        if digest_match is not None:
+            digest_keys.add(digest_match.group(1))
+            continue
+        raise GroupingSignalExportReceiptStorageIntegrityError(
+            "Export receipt collection contains an unexpected visible entry."
+        )
+    if json_keys != digest_keys:
         raise GroupingSignalExportReceiptStorageIntegrityError(
             "Export receipt JSON/SHA-256 sidecars must form complete pairs."
         )

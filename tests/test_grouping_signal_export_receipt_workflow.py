@@ -21,6 +21,9 @@ from meridian.grouping_signal_export_receipt_workflow import (
 from meridian.grouping_signal_export_storage import (
     GroupingSignalExportReceiptStorageNotFoundError,
     GroupingSignalExportReceiptStorageWriteError,
+    grouping_signal_export_receipt_path,
+    grouping_signal_export_receipt_path_key,
+    grouping_signal_export_receipt_relative_path,
     load_grouping_signal_export_receipt,
 )
 from meridian.grouping_signal_export_workflow import (
@@ -70,6 +73,18 @@ def test_export_creates_minimal_exact_receipt_after_core_write(
         receipt.core_signal_digest
         == result.core.write_result.stored.digest
     )
+    receipt_key = grouping_signal_export_receipt_path_key(
+        CLASS_ID,
+        receipt.signal_set_id,
+    )
+    assert result.receipt.stored.path.name == f"{receipt_key}.json"
+    assert result.receipt.stored.relative_path == (
+        grouping_signal_export_receipt_relative_path(
+            CLASS_ID,
+            receipt.signal_set_id,
+        )
+    )
+    assert receipt.signal_set_id not in result.receipt.stored.relative_path
 
     payload = grouping_signal_export_receipt_to_dict(receipt)
     assert set(payload) == {
@@ -97,6 +112,32 @@ def test_export_creates_minimal_exact_receipt_after_core_write(
         "percentage",
     ):
         assert forbidden not in serialized
+
+
+def test_long_signal_set_id_keeps_meridian_receipt_path_bounded(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "workspace"
+    root.mkdir()
+    long_signal_set_id = "signal_" + ("s" * 5000)
+    receipt_key = grouping_signal_export_receipt_path_key(
+        CLASS_ID,
+        long_signal_set_id,
+    )
+    path = grouping_signal_export_receipt_path(
+        root,
+        CLASS_ID,
+        long_signal_set_id,
+    )
+    relative = grouping_signal_export_receipt_relative_path(
+        CLASS_ID,
+        long_signal_set_id,
+    )
+
+    assert len(receipt_key) == 67
+    assert path.name == f"{receipt_key}.json"
+    assert long_signal_set_id not in path.as_posix()
+    assert long_signal_set_id not in relative
 
 
 def test_exact_retry_reconciles_core_and_receipt_as_existing(

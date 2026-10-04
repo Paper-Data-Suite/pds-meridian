@@ -43,6 +43,7 @@ from meridian.proficiency_mapping_storage import (
     StoredProficiencyScale,
     load_proficiency_scale_revision,
 )
+from meridian.storage_path_keys import storage_path_key
 
 GRADE_POLICY_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 GRADE_POLICY_CURRENT_RECORD_TYPE: Final[str] = "meridian_grade_policy_current"
@@ -302,9 +303,28 @@ def grade_policies_directory(
     """Return the class-local canonical Grade-policy collection."""
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = class_module_dir(root, class_value, "meridian") / "grade_policies"
+    path = class_module_dir(root, class_value, "meridian") / "gp"
     _require_containment(root, path)
     return path
+
+
+def grade_policy_path_key(class_id: str, policy_id: str) -> str:
+    """Return the bounded filesystem key for one Grade-policy family."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return storage_path_key("grade_policy", class_value, policy)
+
+
+def grade_policy_relative_directory(class_id: str, policy_id: str) -> str:
+    """Return one Grade-policy family's bounded workspace-relative root."""
+
+    class_value = _identifier(class_id, "class_id")
+    policy = _identifier(policy_id, "policy_id")
+    return (
+        f"classes/{class_value}/modules/meridian/gp/"
+        f"{grade_policy_path_key(class_value, policy)}"
+    )
 
 
 def grade_policy_directory(
@@ -314,7 +334,10 @@ def grade_policy_directory(
 ) -> Path:
     """Return one logical Grade-policy family's canonical root."""
     policy = _identifier(policy_id, "policy_id")
-    return grade_policies_directory(workspace_root, class_id) / policy
+    return (
+        grade_policies_directory(workspace_root, class_id)
+        / grade_policy_path_key(class_id, policy)
+    )
 
 
 def grade_policy_revisions_directory(
@@ -327,7 +350,7 @@ def grade_policy_revisions_directory(
         workspace_root,
         class_id,
         policy_id,
-    ) / "revisions"
+    )
 
 
 def grade_policy_revision_path(
@@ -388,8 +411,8 @@ def grade_policy_revision_relative_path(
     policy = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
     return (
-        f"classes/{class_value}/modules/meridian/grade_policies/"
-        f"{policy}/revisions/{revision}.json"
+        f"{grade_policy_relative_directory(class_value, policy)}/"
+        f"{revision}.json"
     )
 
 
@@ -687,20 +710,17 @@ def list_grade_policy_revisions(
         return ()
     _validate_existing_directory_chain(root, relation)
     _validate_policy_directory(relation)
-    revisions_dir = relation / "revisions"
-    if not revisions_dir.exists():
-        return ()
-    _validate_existing_directory_chain(root, revisions_dir)
-
     json_revisions: set[int] = set()
     digest_revisions: set[int] = set()
     try:
-        entries = tuple(revisions_dir.iterdir())
+        entries = tuple(relation.iterdir())
     except OSError as error:
         raise GradePolicyStorageReadError(
             "Could not enumerate Grade-policy revision storage."
         ) from error
     for entry in entries:
+        if entry.name in {"current.json", ".write.lock"}:
+            continue
         if entry.is_symlink():
             raise GradePolicyStorageIntegrityError(
                 "Grade-policy revision storage contains a symlink."
@@ -773,8 +793,12 @@ def list_grade_policy_ids(
             raise GradePolicyStorageIntegrityError(
                 "Grade-policy collection contains an unexpected non-directory entry."
             )
-        policy_id = _identifier(entry.name, "policy_id")
         _validate_policy_directory(entry)
+        policy_id = _grade_policy_id_from_directory(
+            root,
+            class_value,
+            entry,
+        )
         revisions = list_grade_policy_revisions(
             root,
             class_value,
@@ -1146,12 +1170,52 @@ def _require_existing_core_class(root: Path, class_id: str) -> None:
     _validate_existing_directory_chain(root, path)
 
 
+def _grade_policy_id_from_directory(
+    root: Path,
+    class_id: str,
+    relation: Path,
+) -> str:
+    """Recover and verify one logical policy ID from authoritative revision 1."""
+
+    revision_path = relation / "1.json"
+    digest_path = Path(str(revision_path) + ".sha256")
+    content = _read_bounded_regular_file(
+        revision_path,
+        DEFAULT_MAXIMUM_GRADE_POLICY_BYTES,
+        missing_message="Grade-policy revision 1 does not exist.",
+    )
+    digest_bytes = _read_bounded_regular_file(
+        digest_path,
+        DEFAULT_MAXIMUM_GRADE_POLICY_DIGEST_BYTES,
+        missing_message="Grade-policy revision 1 digest does not exist.",
+    )
+    expected_digest = _parse_digest_sidecar(digest_bytes)
+    if hashlib.sha256(content).hexdigest() != expected_digest:
+        raise GradePolicyStorageIntegrityError(
+            "Grade-policy revision 1 digest does not match exact JSON bytes."
+        )
+    try:
+        policy = grade_policy_revision_from_json_bytes(content)
+    except (GradePolicySerializationError, GradePolicyValidationError) as error:
+        raise GradePolicyStorageIntegrityError(
+            f"Grade-policy revision 1 is invalid or noncanonical: {error}"
+        ) from error
+    if policy.class_id != class_id or policy.policy_revision != 1:
+        raise GradePolicyStorageIntegrityError(
+            "Grade-policy revision 1 identity does not match collection scope."
+        )
+    if relation.name != grade_policy_path_key(class_id, policy.policy_id):
+        raise GradePolicyStorageIntegrityError(
+            "Grade-policy directory key does not match authoritative identity."
+        )
+    return policy.policy_id
+
+
 def _validate_policy_directory(relation: Path) -> None:
     if relation.is_symlink() or not relation.is_dir():
         raise GradePolicyStorageIntegrityError(
             "Grade-policy canonical root is unsafe or not a directory."
         )
-    allowed = {"revisions", "current.json", ".write.lock"}
     try:
         entries = tuple(relation.iterdir())
     except OSError as error:
@@ -1159,23 +1223,22 @@ def _validate_policy_directory(relation: Path) -> None:
             "Could not inspect Grade-policy canonical root."
         ) from error
     for entry in entries:
-        if entry.name not in allowed:
+        if entry.name in {"current.json", ".write.lock"}:
+            if entry.is_symlink() or not entry.is_file():
+                raise GradePolicyStorageIntegrityError(
+                    "Grade-policy pointer/lock entry must be a regular file."
+                )
+            continue
+        if (
+            _REVISION_JSON.fullmatch(entry.name) is None
+            and _REVISION_DIGEST.fullmatch(entry.name) is None
+        ):
             raise GradePolicyStorageIntegrityError(
                 "Grade-policy canonical root contains an unexpected entry."
             )
-        if entry.name == "revisions":
-            if entry.is_symlink() or not entry.is_dir():
-                raise GradePolicyStorageIntegrityError(
-                    "Grade-policy revisions entry must be a real directory."
-                )
-        elif entry.name == "current.json":
-            if entry.is_symlink() or not entry.is_file():
-                raise GradePolicyStorageIntegrityError(
-                    "Grade-policy current pointer must be a regular file."
-                )
-        elif entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink() or not entry.is_file():
             raise GradePolicyStorageIntegrityError(
-                "Grade-policy lock entry must be a regular file."
+                "Grade-policy revision entry must be a regular file."
             )
 
 

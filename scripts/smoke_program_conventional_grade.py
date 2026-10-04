@@ -216,7 +216,7 @@ def _assert_absent_producers() -> None:
 
 
 def _verify_installed_composition() -> None:
-    _require(metadata.version("pds-core") == "0.6.3", "Core version mismatch.")
+    _require(metadata.version("pds-core") == "0.6.4", "Core version mismatch.")
     _require(metadata.version("scoreform") == "0.11.0", "ScoreForm version mismatch.")
     _require(
         meridian.__version__ == metadata.version("pds-meridian"),
