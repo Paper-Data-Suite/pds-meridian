@@ -38,7 +38,7 @@ def test_issue43_installed_smoke_is_release_guarded() -> None:
         "inspect_core_provider_entry_points",
         "diagnose_core_providers",
         "invoke_module_operations",
-        "module_operations.capability_absent",
+        "ModuleReadinessReport",
         "module_operations.evaluation_unavailable",
         "meridian_planning_review_selection_pending",
         "before != after_provider",

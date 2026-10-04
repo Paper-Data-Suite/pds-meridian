@@ -90,8 +90,13 @@ explicit predecessor current-use selection. It then verifies
 provider and installed `meridian attention` CLI. It also verifies all four new
 category/count-unit/destination/action contracts, native schema version 2,
 privacy-minimal projection, successful-empty exact-class behavior, partial and
-unavailable distinctions, deterministic CLI output, readiness remaining absent,
-producer/suite-package absence, and zero inspection writes.
+unavailable distinctions, deterministic CLI output, attention behavior
+independent of the Issue #59 readiness capability, producer/suite-package
+absence, and zero inspection writes.
+
+The current Issue #58 smoke invokes Core's attention capability directly. Issue
+#59 separately qualifies Meridian readiness, so this historical attention
+acceptance does not constrain whether readiness is present.
 
 Source-level issue #58 tests remain responsible for the other canonical
 derivation semantics: standards Grade staleness, standards-safe snapshot

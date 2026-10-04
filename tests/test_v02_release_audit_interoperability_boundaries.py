@@ -106,11 +106,11 @@ def test_teacher_workflow_catalog_preserves_explicit_v02_authority_boundaries() 
     )
 
 
-def test_module_operations_profile_is_attention_only() -> None:
+def test_module_operations_profile_preserves_attention_and_adds_readiness() -> None:
     profile = get_module_operations_profile()
 
     assert profile.module_id == "meridian"
-    assert profile.readiness_provider is None
+    assert profile.readiness_provider is not None
     assert profile.attention_provider is not None
 
 

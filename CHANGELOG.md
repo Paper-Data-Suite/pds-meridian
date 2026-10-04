@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Issue #59 integrates Meridian with Paper Data Suite operations while preserving module ownership. Meridian now exposes structural read-only readiness alongside the existing privacy-minimal attention provider through one Core v1 operations profile, stabilizes inert owner-action identifiers, and qualifies the public `meridian = meridian.cli:main` launcher boundary. Whole-workspace backup remains Suite-owned opaque byte custody: representative canonical Grade/report/export state reloads after a byte-for-byte workspace copy, while external export payloads remain noncanonical. Final installed qualification uses exact Core 0.6.4 in the prepared Core-only matrix with producer and Suite packages absent; the compatible runtime dependency remains `pds-core>=0.6.3,<0.7` and Meridian adds no Suite runtime dependency or module-specific backup protocol.
+
 - Issue #102 establishes Meridian's pre-deployment bounded canonical storage-path contract. Semantic identifiers remain authoritative in structured records while Meridian-owned filesystem components use deterministic fixed-size keys. The candidate wheel is qualified in the existing prepared Core-only matrix against exact Core 0.6.4, including deep-workspace long-identity persistence/reload, fresh-process determinism, path-budget checks, and read-only verification that Windows `LongPathsEnabled` is not changed. The compatible runtime dependency remains `pds-core>=0.6.3,<0.7`; no Meridian legacy migration layer is introduced.
 
 - Issue #58 Grade/report attention summaries extend the read-only Core v1

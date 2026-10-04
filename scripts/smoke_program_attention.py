@@ -16,6 +16,7 @@ from pds_core.module_operations import (
     ModuleAttentionReport,
     ModuleOperationsProfile,
     ModuleOperationsRequest,
+    ModuleReadinessReport,
     invoke_module_operations,
 )
 from pds_core.provider_diagnostics import (
@@ -161,8 +162,8 @@ def _installed_profile() -> ModuleOperationsProfile:
         )
     if profile.attention_provider is None:
         raise RuntimeError("Installed operations profile lacks attention.")
-    if profile.readiness_provider is not None:
-        raise RuntimeError("Issue #43 must not invent Meridian readiness.")
+    if profile.readiness_provider is None:
+        raise RuntimeError("Installed operations profile lacks readiness.")
     return profile
 
 
@@ -241,8 +242,14 @@ def _invoke_attention(
     request: ModuleOperationsRequest,
 ) -> ModuleAttentionReport:
     readiness, attention = invoke_module_operations(profile, request)
-    if readiness.code != "module_operations.capability_absent":
-        raise RuntimeError("Meridian readiness must remain absent in #43.")
+    if (
+        readiness.code != "module_operations.evaluated"
+        or readiness.result_validation != "passed"
+        or not isinstance(readiness.report, ModuleReadinessReport)
+    ):
+        raise RuntimeError(
+            "Installed readiness did not validate alongside #43 attention."
+        )
     if attention.code != "module_operations.evaluated":
         raise RuntimeError(
             "Core did not classify Meridian attention as evaluated."

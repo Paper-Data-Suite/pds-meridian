@@ -36,6 +36,9 @@ PREVIEW_REVIEW_PROGRAM = (
 EXPORT_PROGRAM = SCRIPT_ROOT / "smoke_program_grouping_signal_export.py"
 TEACHER_WORKFLOWS_PROGRAM = SCRIPT_ROOT / "smoke_program_teacher_workflows.py"
 ATTENTION_PROGRAM = SCRIPT_ROOT / "smoke_program_attention.py"
+ISSUE59_OPERATIONS_PROGRAM = (
+    SCRIPT_ROOT / "smoke_program_issue59_operations.py"
+)
 STORAGE_PATHS_PROGRAM = (
     SCRIPT_ROOT / "smoke_program_storage_paths_issue102.py"
 )
@@ -141,6 +144,20 @@ def run_core_program_smokes(prepared: PreparedInstalledEnvironment) -> None:
         "attention",
         [str(prepared.python), str(ATTENTION_PROGRAM)],
         cwd=attention_workspace,
+        env=attention_environment,
+    )
+
+    issue59_workspace = prepared.fresh_working_directory("issue59-operations")
+    prepared.run_smoke(
+        "issue59-operations-seed",
+        [str(prepared.python), str(PREVIEW_REVIEW_PROGRAM)],
+        cwd=issue59_workspace,
+        env=attention_environment,
+    )
+    prepared.run_smoke(
+        "issue59-operations",
+        [str(prepared.python), str(ISSUE59_OPERATIONS_PROGRAM)],
+        cwd=issue59_workspace,
         env=attention_environment,
     )
 

@@ -13,6 +13,11 @@ from typing import Final, Literal, TypeAlias, cast
 
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
 
+from meridian.owner_actions import (
+    MERIDIAN_OWNER_DESTINATION_IDS,
+    MeridianOwnerDestinationId,
+    owner_action_for_destination,
+)
 from meridian.teacher_workflows import (
     TEACHER_WORKFLOW_TASK_IDS,
     TeacherWorkflowTaskId,
@@ -56,31 +61,11 @@ MeridianAttentionCountUnit: TypeAlias = Literal[
     "planning_review_scopes",
 ]
 
-MeridianAttentionDestinationId: TypeAlias = Literal[
-    "new-evidence",
-    "grade-items",
-    "attempt-decisions",
-    "exclusions",
-    "standards-review",
-    "calculation-preview",
-    "preview-grades",
-    "snapshots",
-    "create-planning-signal",
-]
+MeridianAttentionDestinationId: TypeAlias = MeridianOwnerDestinationId
 
 MERIDIAN_ATTENTION_DESTINATION_IDS: Final[
     tuple[MeridianAttentionDestinationId, ...]
-] = (
-    "new-evidence",
-    "grade-items",
-    "attempt-decisions",
-    "exclusions",
-    "standards-review",
-    "calculation-preview",
-    "preview-grades",
-    "snapshots",
-    "create-planning-signal",
-)
+] = MERIDIAN_OWNER_DESTINATION_IDS
 
 _LEGACY_TEACHER_WORKFLOW_TASK_IDS: Final[frozenset[str]] = frozenset(
     TEACHER_WORKFLOW_TASK_IDS
@@ -109,6 +94,11 @@ class MeridianAttentionDefinition:
             )
         _bounded_text(self.label, "label", maximum=160)
         _bounded_identifier(self.action_id, "action_id", maximum=64)
+        expected_action = owner_action_for_destination(self.destination_id)
+        if self.action_id != expected_action.action_id:
+            raise MeridianAttentionValidationError(
+                "attention action_id must match the canonical owner-action catalog."
+            )
         if (
             isinstance(self.category_order, bool)
             or not isinstance(self.category_order, int)
@@ -211,24 +201,12 @@ def _validated_identifier(value: object, field: str) -> str:
     return _bounded_identifier(value, field, maximum=160)
 
 
-_ACTION_BY_DESTINATION: Final[dict[MeridianAttentionDestinationId, str]] = {
-    "new-evidence": "open_new_evidence",
-    "grade-items": "open_grade_items",
-    "attempt-decisions": "open_attempt_decisions",
-    "exclusions": "open_exclusions",
-    "standards-review": "open_standards_review",
-    "calculation-preview": "open_calculation_preview",
-    "preview-grades": "open_preview_grades",
-    "snapshots": "open_snapshots",
-    "create-planning-signal": "open_create_planning_signal",
-}
-
 _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
     MeridianAttentionDefinition(
         code="meridian_evidence_review_pending",
         label="Evidence review needs teacher attention",
         destination_id="new-evidence",
-        action_id=_ACTION_BY_DESTINATION["new-evidence"],
+        action_id=owner_action_for_destination("new-evidence").action_id,
         count_unit="work_review_scopes",
         category_order=0,
     ),
@@ -236,7 +214,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_membership_review_pending",
         label="Grade Item membership needs teacher review",
         destination_id="grade-items",
-        action_id=_ACTION_BY_DESTINATION["grade-items"],
+        action_id=owner_action_for_destination("grade-items").action_id,
         count_unit="membership_review_scopes",
         category_order=0,
     ),
@@ -244,7 +222,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_attempt_decision_pending",
         label="Applicable attempt decisions are pending",
         destination_id="attempt-decisions",
-        action_id=_ACTION_BY_DESTINATION["attempt-decisions"],
+        action_id=owner_action_for_destination("attempt-decisions").action_id,
         count_unit="attempt_decision_scopes",
         category_order=0,
     ),
@@ -252,7 +230,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_contract_unsupported",
         label="Unsupported evidence contracts need teacher review",
         destination_id="exclusions",
-        action_id=_ACTION_BY_DESTINATION["exclusions"],
+        action_id=owner_action_for_destination("exclusions").action_id,
         count_unit="evidence_review_scopes",
         category_order=0,
     ),
@@ -260,7 +238,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_source_withdrawn",
         label="Withdrawn evidence sources need teacher review",
         destination_id="exclusions",
-        action_id=_ACTION_BY_DESTINATION["exclusions"],
+        action_id=owner_action_for_destination("exclusions").action_id,
         count_unit="source_review_scopes",
         category_order=1,
     ),
@@ -268,7 +246,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_source_superseded",
         label="Superseded evidence sources need teacher review",
         destination_id="exclusions",
-        action_id=_ACTION_BY_DESTINATION["exclusions"],
+        action_id=owner_action_for_destination("exclusions").action_id,
         count_unit="source_review_scopes",
         category_order=2,
     ),
@@ -276,7 +254,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_native_value_unmapped",
         label="Applicable native values need mapping review",
         destination_id="standards-review",
-        action_id=_ACTION_BY_DESTINATION["standards-review"],
+        action_id=owner_action_for_destination("standards-review").action_id,
         count_unit="mapping_inputs",
         category_order=0,
     ),
@@ -284,7 +262,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_grade_item_calculation_stale",
         label="Grade Item proficiency calculations are stale",
         destination_id="calculation-preview",
-        action_id=_ACTION_BY_DESTINATION["calculation-preview"],
+        action_id=owner_action_for_destination("calculation-preview").action_id,
         count_unit="grade_item_proficiency_targets",
         category_order=0,
     ),
@@ -292,7 +270,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_academic_period_calculation_stale",
         label="Academic Period proficiency calculations are stale",
         destination_id="calculation-preview",
-        action_id=_ACTION_BY_DESTINATION["calculation-preview"],
+        action_id=owner_action_for_destination("calculation-preview").action_id,
         count_unit="academic_period_proficiency_targets",
         category_order=1,
     ),
@@ -300,7 +278,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_grade_result_stale",
         label="Selected Grade results need fresh preview review",
         destination_id="preview-grades",
-        action_id=_ACTION_BY_DESTINATION["preview-grades"],
+        action_id=owner_action_for_destination("preview-grades").action_id,
         count_unit="grade_result_targets",
         category_order=0,
     ),
@@ -308,7 +286,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_reporting_publication_changed",
         label="Reporting publication changes need snapshot review",
         destination_id="snapshots",
-        action_id=_ACTION_BY_DESTINATION["snapshots"],
+        action_id=owner_action_for_destination("snapshots").action_id,
         count_unit="reporting_snapshot_scopes",
         category_order=0,
     ),
@@ -316,7 +294,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_reporting_snapshot_refresh_needed",
         label="Current ReportingSnapshots need refresh review",
         destination_id="snapshots",
-        action_id=_ACTION_BY_DESTINATION["snapshots"],
+        action_id=owner_action_for_destination("snapshots").action_id,
         count_unit="reporting_snapshot_scopes",
         category_order=1,
     ),
@@ -324,7 +302,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_reporting_snapshot_selection_pending",
         label="ReportingSnapshot replacements await explicit selection",
         destination_id="snapshots",
-        action_id=_ACTION_BY_DESTINATION["snapshots"],
+        action_id=owner_action_for_destination("snapshots").action_id,
         count_unit="reporting_snapshot_scopes",
         category_order=2,
     ),
@@ -332,7 +310,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_planning_review_pending",
         label="Planning previews are awaiting teacher review",
         destination_id="create-planning-signal",
-        action_id=_ACTION_BY_DESTINATION["create-planning-signal"],
+        action_id=owner_action_for_destination("create-planning-signal").action_id,
         count_unit="planning_review_scopes",
         category_order=0,
     ),
@@ -340,7 +318,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_planning_review_selection_pending",
         label="Accepted planning reviews await explicit selection",
         destination_id="create-planning-signal",
-        action_id=_ACTION_BY_DESTINATION["create-planning-signal"],
+        action_id=owner_action_for_destination("create-planning-signal").action_id,
         count_unit="planning_review_scopes",
         category_order=1,
     ),
@@ -348,7 +326,7 @@ _ATTENTION_DEFINITIONS: Final[tuple[MeridianAttentionDefinition, ...]] = (
         code="meridian_planning_review_stale",
         label="Selected planning reviews need fresh review",
         destination_id="create-planning-signal",
-        action_id=_ACTION_BY_DESTINATION["create-planning-signal"],
+        action_id=owner_action_for_destination("create-planning-signal").action_id,
         count_unit="planning_review_scopes",
         category_order=2,
     ),
