@@ -20,7 +20,7 @@ from pds_core.module_operations import (
     ModuleAttentionReport,
     ModuleOperationsProfile,
     ModuleOperationsRequest,
-    invoke_module_operations,
+    invoke_module_attention,
 )
 from pds_core.provider_diagnostics import (
     diagnose_core_providers,
@@ -430,9 +430,7 @@ def _invoke(
     profile: ModuleOperationsProfile,
     request: ModuleOperationsRequest,
 ) -> ModuleAttentionReport:
-    readiness, attention = invoke_module_operations(profile, request)
-    if readiness.code != "module_operations.capability_absent":
-        raise RuntimeError("Meridian readiness must remain absent under Issue #58.")
+    attention = invoke_module_attention(profile, request)
     if not isinstance(attention.report, ModuleAttentionReport):
         raise RuntimeError("Core did not return a ModuleAttentionReport.")
     return attention.report
@@ -495,7 +493,7 @@ def _assert_empty_and_unavailable(
         "Real empty class did not return successful-empty attention.",
     )
 
-    _, missing = invoke_module_operations(
+    missing = invoke_module_attention(
         profile,
         ModuleOperationsRequest(
             workspace_root=workspace,

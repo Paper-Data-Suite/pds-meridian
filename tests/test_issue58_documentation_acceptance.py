@@ -5,6 +5,7 @@ DOC = Path("docs/architecture/grade-report-attention-summaries.md")
 
 def test_issue58_architecture_document_records_attention_boundaries() -> None:
     text = DOC.read_text(encoding="utf-8")
+    normalized = " ".join(text.split())
 
     for token in (
         "meridian_grade_result_stale",
@@ -20,11 +21,13 @@ def test_issue58_architecture_document_records_attention_boundaries() -> None:
         "Successful empty evaluation remains distinct from unavailable evaluation.",
         "pds-core 0.6.3",
         "ScoreForm, Quillan, and Concord remain absent",
+        "attention behavior independent of the Issue #59 readiness capability",
+        "Issue #59 separately qualifies Meridian readiness",
         "Issue #59",
         "Paper Data Suite issues #20, #22, and #23",
         "Issue #58 Grade/report attention summaries — implemented and qualified.",
     ):
-        assert token in text
+        assert token in normalized
 
 
 def test_issue58_active_docs_and_changelog_link_the_contract() -> None:

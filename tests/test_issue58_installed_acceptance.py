@@ -21,6 +21,7 @@ def test_issue58_installed_smoke_is_core_only_and_real_state_backed() -> None:
         "meridian_reporting_snapshot_selection_pending",
         "SIBLING_DISTRIBUTIONS",
         "meridian_attention_partial",
+        "invoke_module_attention",
         "Issue #58 installed Grade/report attention acceptance passed.",
     ):
         assert token in wrapper or token in program
@@ -28,6 +29,7 @@ def test_issue58_installed_smoke_is_core_only_and_real_state_backed() -> None:
     assert "scoreform_wheel" not in wrapper
     assert "quillan_wheel" not in wrapper
     assert "concord_wheel" not in wrapper
+    assert "Meridian readiness must remain absent under Issue #58." not in program
 
 
 def test_issue58_runner_uses_core_matrix_without_new_environment() -> None:
