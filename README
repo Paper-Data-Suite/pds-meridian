@@ -106,6 +106,18 @@ is now v0.10.3. See
 
 Current v0.3 development now serializes Meridian-owned variable filesystem identity through deterministic bounded keys while preserving full logical identity in authoritative records. Exact development/installed qualification uses released Core v0.6.4; the compatible runtime floor remains `pds-core>=0.6.3,<0.7`. Because this correction occurs before first teacher deployment, there is no legacy Meridian path migration layer. See [Canonical storage path budgets](docs/architecture/canonical-storage-path-budgets.md).
 
+## Issue #59 Suite operations integration
+
+Current v0.3 development exposes Meridian structural readiness alongside the
+existing attention provider through one Core v1 operations profile. Stable owner
+actions remain inert Meridian routing identity; Suite owns cross-module
+doctor/dashboard presentation and public-launcher orchestration. Canonical
+Meridian state remains workspace-contained for Suite's opaque whole-workspace
+backup, while external report payloads remain noncanonical. Meridian keeps
+`pds-core>=0.6.3,<0.7` as its only unconditional runtime dependency and adds no
+Suite dependency. See
+[Suite operations integration](docs/architecture/suite-operations-integration.md).
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into

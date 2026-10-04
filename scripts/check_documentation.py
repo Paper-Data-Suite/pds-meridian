@@ -52,6 +52,7 @@ EXPECTED = (
     Path("docs/architecture/evidence-eligibility-decisions.md"),
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path("docs/architecture/canonical-storage-path-budgets.md"),
+    Path("docs/architecture/suite-operations-integration.md"),
     Path(
         "docs/architecture/"
         "grade-item-membership-and-academic-period-assignment.md"

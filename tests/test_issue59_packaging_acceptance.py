@@ -17,6 +17,9 @@ def test_readiness_runtime_and_slice_tests_are_release_guarded() -> None:
     assert "tests/test_issue59_readiness_provider.py" in sdist_checker
     assert "tests/test_issue59_owner_actions.py" in sdist_checker
     assert "tests/test_issue59_backup_boundary.py" in sdist_checker
+    assert "tests/test_issue59_installed_acceptance.py" in sdist_checker
+    assert "tests/test_issue59_documentation_acceptance.py" in sdist_checker
+    assert "docs/architecture/suite-operations-integration.md" in sdist_checker
     assert "tests/test_issue59_packaging_acceptance.py" in sdist_checker
 
 

@@ -113,6 +113,15 @@ Snapshots without exposing Grade/evidence detail to Core or inventing export
 readiness. See
 [Grade and report attention summaries](architecture/grade-report-attention-summaries.md).
 
+Issue #59 integrates Meridian with Paper Data Suite operations through Core's
+v1 module-operations contract while preserving ownership boundaries. Meridian
+provides structural read-only readiness plus its existing privacy-minimal
+attention provider, stable inert owner-action IDs, and the public `meridian`
+launcher boundary. Suite remains responsible for cross-module doctor/dashboard
+presentation, launcher orchestration, and opaque whole-workspace backup custody.
+See
+[Suite operations integration](architecture/suite-operations-integration.md).
+
 Issue #102 establishes the pre-deployment bounded canonical storage contract and moves current exact development/installed qualification to released Core 0.6.4 while retaining the compatible `pds-core>=0.6.3,<0.7` runtime floor. See [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md).
 
 ## Recommended reading order
@@ -168,6 +177,7 @@ Issue #102 establishes the pre-deployment bounded canonical storage contract and
 49. [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md)
 50. [Grade and report attention summaries](architecture/grade-report-attention-summaries.md)
 51. [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md)
+52. [Suite operations integration](architecture/suite-operations-integration.md)
 
 
 ## Development foundation
