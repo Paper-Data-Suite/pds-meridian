@@ -2007,7 +2007,11 @@ def _validate_history_root(relation: Path) -> None:
         ) from error
     for entry in entries:
         if entry.name in {"current.json", ".write.lock"}:
-            if entry.is_symlink() or not entry.is_file():
+            if entry.is_symlink():
+                raise AttemptSelectionStorageIntegrityError(
+                    "Pointer/lock entry must not be a symlink."
+                )
+            if not entry.is_file():
                 raise AttemptSelectionStorageIntegrityError(
                     "Pointer/lock entry must be regular file."
                 )
@@ -2019,7 +2023,11 @@ def _validate_history_root(relation: Path) -> None:
             raise AttemptSelectionStorageIntegrityError(
                 "Attempt-selection history root has unexpected entry."
             )
-        if entry.is_symlink() or not entry.is_file():
+        if entry.is_symlink():
+            raise AttemptSelectionStorageIntegrityError(
+                "Revision entry must not be a symlink."
+            )
+        if not entry.is_file():
             raise AttemptSelectionStorageIntegrityError(
                 "Revision entry must be a regular file."
             )
