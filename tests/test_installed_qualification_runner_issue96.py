@@ -149,6 +149,11 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     )
     monkeypatch.setattr(
         runner,
+        "run_issue60_cross_policy_prepared_smoke",
+        record("issue60-cross-policy"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_grade_report_preview_prepared_smoke",
         record("grade-report-preview"),
     )
@@ -193,6 +198,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "hybrid-grade",
         "concord",
         "all-adapters",
+        "issue60-cross-policy",
         "grade-report-preview",
         "reporting-snapshot",
         "report-exports",
@@ -213,6 +219,10 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         (DependencyMatrixId.SCOREFORM_QUILLAN, "hybrid-grade"),
         (DependencyMatrixId.CONCORD, "concord-adapter"),
         (DependencyMatrixId.ALL_ADAPTERS, "all-adapters-composition"),
+        (
+            DependencyMatrixId.ALL_ADAPTERS,
+            "issue60-cross-policy-adversarial",
+        ),
         (DependencyMatrixId.ALL_ADAPTERS, "grade-report-preview"),
         (DependencyMatrixId.ALL_ADAPTERS, "reporting-snapshot"),
         (DependencyMatrixId.ALL_ADAPTERS, "report-exports"),
@@ -298,6 +308,11 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
     )
     monkeypatch.setattr(
         runner,
+        "run_issue60_cross_policy_prepared_smoke",
+        capture("issue60-cross-policy"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_grade_report_preview_prepared_smoke",
         capture("grade-report-preview"),
     )
@@ -331,6 +346,7 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         "hybrid-grade": Path("python-scoreform-quillan"),
         "concord": Path("python-concord"),
         "all-adapters": Path("python-all-adapters"),
+        "issue60-cross-policy": Path("python-all-adapters"),
         "grade-report-preview": Path("python-all-adapters"),
         "reporting-snapshot": Path("python-all-adapters"),
         "report-exports": Path("python-all-adapters"),
