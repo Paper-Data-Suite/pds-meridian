@@ -88,7 +88,13 @@ def test_issue61_installed_smokes_bind_latest_direct_reader_versions() -> None:
     assert "0.10.3" not in combined
 
 
-def test_issue61_does_not_promote_meridian_before_substantive_audit() -> None:
+def test_issue61_promotion_requires_completed_substantive_audit() -> None:
     version_file = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
-    assert '__version__: Final[str] = "0.2.0"' in version_file
-    assert '__version__: Final[str] = "0.3.0"' not in version_file
+    audit = (
+        REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
+    ).read_text(encoding="utf-8")
+
+    assert '__version__: Final[str] = "0.3.0"' in version_file
+    assert "Substantive blocker count: **0**" in audit
+    assert "Release-preparation authorization: **AUTHORIZED**" in audit
+    assert "Version promotion to `0.3.0`: **COMPLETED**" in audit

@@ -34,27 +34,26 @@ def test_issue61_substantive_audit_closes_at_zero_blockers() -> None:
     audit = AUDIT.read_text(encoding="utf-8")
 
     assert (
-        "Status: **SUBSTANTIVE AUDIT COMPLETE — RELEASE PREPARATION AUTHORIZED**"
+        "Status: **RELEASE CANDIDATE PREPARED — QUALIFICATION PENDING**"
         in audit
     )
     assert "Substantive blocker count: **0**" in audit
     assert "Substantive audit status: **CONFORMS**" in audit
     assert "Release-preparation authorization: **AUTHORIZED**" in audit
     assert (
-        "Version promotion to `0.3.0`: **AUTHORIZED FOR RELEASE PREPARATION**"
+        "Version promotion to `0.3.0`: **COMPLETED**"
         in audit
     )
     assert "Tag/publication authorization: **PENDING**" in audit
     assert "Fresh-download verification: **PENDING**" in audit
 
 
-def test_issue61_preparation_authorization_does_not_promote_version_yet() -> None:
+def test_issue61_release_preparation_promotes_candidate_version() -> None:
     version = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.2.0"' in version
-    assert '__version__: Final[str] = "0.3.0"' not in version
-    assert check_package.EXPECTED_VERSION == "0.2.0"
-    assert check_sdist.EXPECTED_VERSION == "0.2.0"
+    assert '__version__: Final[str] = "0.3.0"' in version
+    assert check_package.EXPECTED_VERSION == "0.3.0"
+    assert check_sdist.EXPECTED_VERSION == "0.3.0"
 
 
 def test_issue61_candidate_validator_owns_full_artifact_gate() -> None:

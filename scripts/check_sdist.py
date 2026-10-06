@@ -9,10 +9,10 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.2.0"
+EXPECTED_VERSION = "0.3.0"
 EXPECTED_SUMMARY = (
-    "Teacher-controlled evidence, proficiency, and planning exports "
-    "for Paper Data Suite"
+    "Teacher-controlled evidence, proficiency, Grades, reporting, and "
+    "planning for Paper Data Suite"
 )
 EXPECTED_SDIST_FILENAME = f"pds_meridian-{EXPECTED_VERSION}.tar.gz"
 EXPECTED_ROOT = f"pds_meridian-{EXPECTED_VERSION}"
@@ -27,6 +27,7 @@ REQUIRED_MEMBERS = frozenset(
         "pyproject.toml",
         "docs/README.md",
         "docs/development/v0.2.0-release-notes.md",
+        "docs/development/v0.3.0-release-notes.md",
         "docs/development/installed-qualification-matrix.md",
         "docs/architecture/attempt-selection-policy-and-decisions.md",
         "docs/architecture/evidence-eligibility-decisions.md",
@@ -558,6 +559,7 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_v02_release_audit_interoperability_boundaries.py",
         "tests/test_v02_release_audit_explanations_attention.py",
         "tests/test_v02_release_preparation.py",
+        "tests/test_v03_release_preparation.py",
         "tests/test_teacher_workflows.py",
         "tests/test_standards_review_workflow.py",
         "tests/test_standards_association_authoring_workflow.py",

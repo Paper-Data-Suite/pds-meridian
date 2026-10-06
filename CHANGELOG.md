@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+No unreleased changes.
+
+## 0.3.0 — 2026-10-06
+
+- Issue #61 final v0.3.0 release audit completes skeptical calculation/state, selection/authority, override, historical explanation, ReportingSnapshot current-use, export/source-mutation, privacy/source-custody, arithmetic/rounding, storage/operations, interoperability, and release-contract review with zero open substantive blockers. Release preparation promotes Meridian to 0.3.0 against exact Core 0.6.4, ScoreForm 0.12.0, Quillan 0.10.5, and Concord 0.3.0 while tag/publication remains gated on the authoritative candidate validator and final artifact recording.
+
 - Issue #60 adds the final v0.3 cross-policy adversarial and installed acceptance layer without creating new policy authority. Source-level coverage preserves empty/incomplete/nonnumeric state, explicit attempt/reassessment authority, exact proficiency-scale identity, Concord nonstudent evidence, Grade-result and override selection, final-only Decimal rounding, profile-constrained and hybrid behavior, publication lifecycle, ReportingSnapshot selection/history, and #59 readiness/attention separation. Exact-wheel acceptance reuses the existing six prepared matrices, runs the broad scenario in `all-adapters`, and fresh-process reloads representative conventional, weighted standards, profile-constrained standards, hybrid, override, snapshot, and Concord cache state against Core 0.6.4, ScoreForm 0.11.0, Quillan 0.10.3, Concord 0.3.0, and the candidate Meridian 0.2.0 wheel. No seventh matrix, producer runtime dependency, Suite runtime dependency, or production runtime module is added.
 
 - Issue #59 integrates Meridian with Paper Data Suite operations while preserving module ownership. Meridian now exposes structural read-only readiness alongside the existing privacy-minimal attention provider through one Core v1 operations profile, stabilizes inert owner-action identifiers, and qualifies the public `meridian = meridian.cli:main` launcher boundary. Whole-workspace backup remains Suite-owned opaque byte custody: representative canonical Grade/report/export state reloads after a byte-for-byte workspace copy, while external export payloads remain noncanonical. Final installed qualification uses exact Core 0.6.4 in the prepared Core-only matrix with producer and Suite packages absent; the compatible runtime dependency remains `pds-core>=0.6.3,<0.7` and Meridian adds no Suite runtime dependency or module-specific backup protocol.

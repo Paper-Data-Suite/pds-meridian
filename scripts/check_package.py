@@ -13,10 +13,10 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.2.0"
+EXPECTED_VERSION = "0.3.0"
 EXPECTED_SUMMARY = (
-    "Teacher-controlled evidence, proficiency, and planning exports "
-    "for Paper Data Suite"
+    "Teacher-controlled evidence, proficiency, Grades, reporting, and "
+    "planning for Paper Data Suite"
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.12.0; extra == 'scoreform'")

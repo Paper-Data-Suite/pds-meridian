@@ -1,27 +1,34 @@
 # PDS Meridian
 
-Meridian v0.2.0 is the current released baseline and remains installable for the teacher-controlled
-academic interpretation, standards-proficiency, explanation, attention, and
-planning-signal workflow built on the released v0.1.1 publication-ingestion
-foundation.
+Meridian v0.3.0 is the promoted release candidate for the complete
+teacher-controlled evidence, standards-proficiency, Grade, explanation,
+reporting, attention, and planning surface. The candidate is installable
+while final qualification, tag/publication, and fresh-download verification
+remain pending.
 
-The verified v0.2.0 boundary consumes exact released Core v0.6.3 state and exact
-optional ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0 Academic Result
-reader contracts. Issues #27-#46 implement, qualify, audit, publish, and verify
-that release.
+Current candidate qualification uses exact released Core v0.6.4, ScoreForm
+v0.12.0, Quillan v0.10.5, and Concord v0.3.0. Core remains Meridian's only
+unconditional runtime dependency; producer readers remain exact optional
+dependencies.
 
-The released v0.2.0 capability set includes the seven #41 task-oriented teacher workflows
-and the five #42 explanation/trace targets preserved by the existing runtime.
+v0.3 adds conventional, standards-based, profile-constrained, and hybrid Grades;
+immutable teacher Grade overrides; deterministic Grade/report explanations;
+ReportingSnapshots; explicit local report exports and receipts; Grade/report
+attention; Suite readiness integration; and bounded canonical storage paths.
 
-The released v0.2.0 runtime does not yet calculate conventional Grades,
-standards-based Grades, or hybrid Grades and does not implement
-teacher Grade/proficiency overrides. ADR 0005 defines the architecture now
-being implemented incrementally in v0.3 development.
+Meridian v0.2.0 remains the previous stable release until the v0.3 candidate
+passes final qualification, merge, tag/publication, and fresh-download
+verification. Historical v0.2 statements below remain release facts rather than
+current v0.3 authority.
 
-Current development begins v0.3 under accepted ADR 0005 / issue #48. It keeps
-Grade policy, advisory Grade previews, immutable teacher overrides,
-Meridian-owned immutable ReportingSnapshots, explicit local exports, producer/
-Core authority, and official school-system authority separate.
+The verified v0.2.0 release baseline was Core v0.6.3 with ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0. Those versions remain historical release facts; they are not current v0.3 candidate authority.
+
+The released v0.2.0 capability set included the seven #41 task-oriented teacher workflows and the five #42 explanation/trace targets preserved by the v0.3 runtime.
+
+Meridian v0.3.0 implements accepted ADR 0005 / issue #48 while keeping Grade
+policy, advisory Grade previews, immutable teacher overrides, Meridian-owned
+immutable ReportingSnapshots, explicit local exports, producer/Core authority,
+and official school-system authority separate.
 
 Issue #49 now implements versioned Grade-policy models, canonical policy
 storage, exact dependency validation, explicit family-current selection, and a
@@ -120,7 +127,7 @@ Suite dependency. See
 
 ## Issue #60 cross-policy adversarial acceptance
 
-Current v0.3 development now has permanent adversarial acceptance across conventional, weighted standards, profile-constrained standards, hybrid, teacher override, ReportingSnapshot, producer lifecycle, and Suite-operations boundaries. Empty/unknown/incomplete state remains distinct from zero, write remains distinct from selection, group evidence remains nonstudent, and rounding remains final-only Decimal policy. Installed acceptance uses the existing six prepared matrices and runs the broad fresh-process scenario in `all-adapters` against exact Core 0.6.4, ScoreForm 0.11.0, Quillan 0.10.3, and Concord 0.3.0. See [Cross-policy adversarial acceptance](docs/architecture/cross-policy-adversarial-acceptance.md).
+Current v0.3 development now has permanent adversarial acceptance across conventional, weighted standards, profile-constrained standards, hybrid, teacher override, ReportingSnapshot, producer lifecycle, and Suite-operations boundaries. Empty/unknown/incomplete state remains distinct from zero, write remains distinct from selection, group evidence remains nonstudent, and rounding remains final-only Decimal policy. Installed acceptance uses the existing six prepared matrices and runs the broad fresh-process scenario in `all-adapters` against exact Core 0.6.4, ScoreForm 0.12.0, Quillan 0.10.5, and Concord 0.3.0. See [Cross-policy adversarial acceptance](docs/architecture/cross-policy-adversarial-acceptance.md).
 
 ## Purpose
 
@@ -187,7 +194,7 @@ The current package provides:
 - exact verification of the official Core v0.6.4 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
-- explicit, lazy adapters for exact ScoreForm v0.11.0, Quillan v0.10.0, and
+- explicit, lazy adapters for exact ScoreForm v0.12.0, Quillan v0.10.5, and
   Concord v0.3.0 academic results.
 - immutable standards-evidence association decisions with explicit SHA-bound
   current selection and Core durable-standard resolution; and
@@ -521,7 +528,7 @@ or generic fallback.
 Reader availability is checked lazily through distribution metadata only during
 explicit invocation. The selected adapter must return an `EvidenceInventory`
 whose Core provenance and `ProjectionIdentity` agree exactly with the request and
-descriptor. Optional ScoreForm v0.11.0, Quillan v0.10.3, and Concord v0.3.0 adapters are
+descriptor. Optional ScoreForm v0.12.0, Quillan v0.10.5, and Concord v0.3.0 adapters are
 available through explicit composition; there is no adapter entry-point group or
 unconditional producer runtime dependency.
 
@@ -570,18 +577,18 @@ manifest, race, error, and privacy boundary.
 
 ## Requirements
 
-Current unreleased Meridian development requires:
+Meridian v0.3.0 requires:
 
 ```text
 Python >=3.11
 pds-core>=0.6.3,<0.7
 ```
 
-Current development and CI qualification use the exact completed Core v0.6.3,
-ScoreForm v0.11.0, Quillan v0.10.3, and Concord v0.3.0 releases. The released
-Meridian v0.1.1 history remains Core v0.6.0 and Quillan v0.9.0; the active #33
-floor/qualification update does not rewrite that release fact. Core is
-distributed through GitHub Release artifacts rather than PyPI.
+Current candidate and CI qualification use exact released Core v0.6.4,
+ScoreForm v0.12.0, Quillan v0.10.5, and Concord v0.3.0 artifacts. Historical
+Meridian v0.1.1 qualification remains Core v0.6.0 and Quillan v0.9.0;
+v0.2 dependency statements likewise remain release facts and are not rewritten.
+Core is distributed through GitHub Release artifacts rather than PyPI.
 
 ## Development installation
 
@@ -589,8 +596,11 @@ Install the official Core wheel, then install Meridian in editable development
 mode:
 
 ```powershell
-python -m pip install .\pds_core-0.6.3-py3-none-any.whl
-python -m pip install -e ".[dev,scoreform,quillan,concord]"
+python -m pip install .\pds_core-0.6.4-py3-none-any.whl
+python -m pip install .\scoreform-0.12.0-py3-none-any.whl
+python -m pip install .\quillan-0.10.5-py3-none-any.whl
+python -m pip install .\pds_concord-0.3.0-py3-none-any.whl
+python -m pip install -e ".[dev]" --no-deps
 python -m pip check
 meridian --version
 meridian --help
@@ -599,8 +609,8 @@ meridian --help
 The current official Core qualification artifact is:
 
 ```text
-pds_core-0.6.3-py3-none-any.whl
-SHA-256: 98d7596ce0eed26e4d56a17bbbbd644db3014259b56a45783a173fe8237af5e5
+pds_core-0.6.4-py3-none-any.whl
+SHA-256: 48cea9317f2967bdc0f2d4c14349a56677c7c3f8211f0f33978ccb1a1c75859b
 ```
 
 Do not substitute a sibling Core checkout or locally rebuilt wheel when running
@@ -648,9 +658,9 @@ From an activated repository virtual environment, run:
 
 ```powershell
 .\run_tests.ps1 `
-  -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
-  -ScoreFormWheel C:\path\to\scoreform-0.11.0-py3-none-any.whl `
-  -QuillanWheel C:\path\to\quillan-0.10.3-py3-none-any.whl `
+  -CoreWheel C:\path\to\pds_core-0.6.4-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.12.0-py3-none-any.whl `
+  -QuillanWheel C:\path\to\quillan-0.10.5-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl
 ```
 

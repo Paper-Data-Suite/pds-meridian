@@ -2,24 +2,24 @@
 
 ## Status
 
-Meridian v0.2.0 is the installable release candidate for the complete v0.2
-teacher-controlled evidence-policy, standards-proficiency, explanation,
-attention, and planning-export surface. The released v0.1.1 package remains the
-historical publication-ingestion foundation.
+Meridian v0.3.0 is the promoted release candidate for the complete
+teacher-controlled evidence-policy, standards-proficiency, Grade, explanation,
+reporting, attention, and planning surface. The released v0.1.1 and v0.2.0
+packages remain historical release foundations.
 
-The v0.2 package retains read-only publication/evidence diagnostics and exact
-optional producer adapters while adding explicit Grade Item, eligibility,
-attempt/reassessment, Standards, proficiency, and contextual planning workflows.
-It still does not calculate conventional Grades, apply overrides, or generate
-issued reports.
+The v0.3 package retains publication/evidence and proficiency authority while
+adding conventional, standards-based, profile-constrained, and hybrid Grades,
+teacher Grade overrides, deterministic Grade/report explanations,
+ReportingSnapshots, explicit local exports/receipts, Grade/report attention,
+Suite readiness integration, and bounded canonical storage paths.
 
 ## Requirements
 
 - Python 3.11 or later
 - the authenticated `pds-core` v0.6 line
-- the exact Core v0.6.3 wheel for current development and qualification checks
-- the exact authenticated ScoreForm v0.11.0 wheel for current adapter validation
-- the exact authenticated Quillan v0.10.0 wheel for adapter validation
+- the exact Core v0.6.4 wheel for candidate qualification
+- the exact authenticated ScoreForm v0.12.0 wheel for adapter validation
+- the exact authenticated Quillan v0.10.5 wheel for adapter validation
 - the exact authenticated Concord v0.3.0 wheel for adapter validation
 
 The runtime dependency is:
@@ -30,15 +30,15 @@ pds-core>=0.6.3,<0.7
 
 ## Development installation
 
-Core v0.6.3 is distributed through its GitHub Release artifacts rather than
-PyPI. Install the verified wheel before installing Meridian:
+Core v0.6.4 is distributed through its GitHub Release artifacts rather than
+PyPI. Install the exact qualified wheels before installing Meridian:
 
 ```powershell
-python -m pip install .\pds_core-0.6.3-py3-none-any.whl
-python -m pip install .\scoreform-0.11.0-py3-none-any.whl
-python -m pip install .\quillan-0.10.0-py3-none-any.whl
+python -m pip install .\pds_core-0.6.4-py3-none-any.whl
+python -m pip install .\scoreform-0.12.0-py3-none-any.whl
+python -m pip install .\quillan-0.10.5-py3-none-any.whl
 python -m pip install .\pds_concord-0.3.0-py3-none-any.whl
-python -m pip install -e ".[dev,scoreform,quillan,concord]"
+python -m pip install -e ".[dev]" --no-deps
 python -m pip check
 meridian --version
 meridian --help
@@ -52,9 +52,9 @@ From an activated repository virtual environment:
 
 ```powershell
 .\run_tests.ps1 `
-  -CoreWheel C:\path\to\pds_core-0.6.3-py3-none-any.whl `
-  -ScoreFormWheel C:\path\to\scoreform-0.11.0-py3-none-any.whl `
-  -QuillanWheel C:\path\to\quillan-0.10.0-py3-none-any.whl `
+  -CoreWheel C:\path\to\pds_core-0.6.4-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.12.0-py3-none-any.whl `
+  -QuillanWheel C:\path\to\quillan-0.10.5-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl
 ```
 
