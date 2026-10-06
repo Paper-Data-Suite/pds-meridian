@@ -158,9 +158,12 @@ policy item weight supplies the zero contribution.
 
 ## Arithmetic
 
-All Grade arithmetic uses `Decimal`. Intermediate item percentages, category
-fractions, category contributions, weighted-item contributions, and numerator /
-denominator accumulations are not rounded.
+All Grade arithmetic uses `Decimal`. The calculator establishes its own
+deterministic local Decimal precision from the exact calculation inputs, so a
+caller's ambient Decimal context cannot alter the same persisted Grade basis.
+Intermediate item percentages, category fractions, category contributions,
+weighted-item contributions, and numerator / denominator accumulations are not
+policy-rounded.
 
 ### Total points
 

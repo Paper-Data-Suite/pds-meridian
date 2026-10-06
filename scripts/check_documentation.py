@@ -152,6 +152,9 @@ REQUIRED_TEXT = {
         "Protected projection-cache access remains authorization-first.",
         "Reporting v1 remains teacher-only.",
         "do not embed producer-private payload bytes",
+        "Arithmetic, denominator, and rounding audit — CONFORMS AFTER CORRECTION",
+        "conventional ambient Decimal precision leak",
+        "Status: **CONFORMS AFTER CORRECTION**",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

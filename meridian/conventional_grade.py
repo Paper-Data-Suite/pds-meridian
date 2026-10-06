@@ -24,6 +24,7 @@ from decimal import (
     ROUND_HALF_UP,
     ROUND_UP,
     Decimal,
+    localcontext,
 )
 from typing import Final, Literal, TypeAlias, TypeVar, cast
 
@@ -256,7 +257,12 @@ class ConventionalGradeItemInput:
 
         if self.status != "points" or self.earned is None or self.possible is None:
             return None
-        return self.earned / self.possible * Decimal("100")
+        with localcontext() as context:
+            context.prec = _decimal_operation_precision(
+                self.earned,
+                self.possible,
+            )
+            return self.earned / self.possible * Decimal("100")
 
 
 @dataclass(frozen=True, slots=True)
@@ -977,6 +983,16 @@ def calculate_conventional_grade(
         raise ConventionalGradeValidationError(
             "inputs must be ConventionalGradeCalculationInput."
         )
+    with localcontext() as context:
+        context.prec = _calculation_precision(inputs)
+        return _calculate_conventional_grade_in_context(inputs)
+
+
+def _calculate_conventional_grade_in_context(
+    inputs: ConventionalGradeCalculationInput,
+) -> ConventionalGradeCalculationOutcome:
+    """Calculate with the deterministic Decimal context established above."""
+
     fingerprint = conventional_grade_calculation_fingerprint(inputs)
     item_results = tuple(
         _resolve_item_result(item, inputs.state_treatment)
@@ -1360,6 +1376,42 @@ def _weighted_category_results(
             )
         )
     return tuple(results)
+
+
+def _calculation_precision(inputs: ConventionalGradeCalculationInput) -> int:
+    values: list[Decimal] = [inputs.rounding.quantum]
+    for participation in inputs.configuration.items:
+        if participation.weight is not None:
+            values.append(participation.weight)
+        if participation.possible_points is not None:
+            values.append(participation.possible_points)
+    for category in inputs.configuration.categories:
+        values.append(category.weight)
+    for item in inputs.items:
+        if item.earned is not None:
+            values.append(item.earned)
+        if item.possible is not None:
+            values.append(item.possible)
+    return _decimal_operation_precision(*values)
+
+
+def _decimal_operation_precision(*values: Decimal) -> int:
+    digits = [_decimal_precision(value) for value in values]
+    return max(28, max(digits, default=1) * 2 + 16)
+
+
+def _decimal_precision(value: Decimal) -> int:
+    finite = _finite_decimal(value, "Decimal value")
+    normalized = finite.normalize()
+    exponent = normalized.as_tuple().exponent
+    if not isinstance(exponent, int):
+        raise ConventionalGradeValidationError(
+            "finite Decimal unexpectedly has a non-integer exponent."
+        )
+    return max(
+        1,
+        len(normalized.as_tuple().digits) + abs(exponent),
+    )
 
 
 def _round_final_grade(value: Decimal, policy: GradeRoundingPolicy) -> Decimal:
