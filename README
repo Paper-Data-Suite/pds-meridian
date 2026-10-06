@@ -106,7 +106,7 @@ copyable-payload commit, final preview currentness revalidation, and immutable
 ExportReceipts. Exports preserve frozen Decimal Grade meaning, never coerce
 missing state to zero, never write directly to an SIS/LMS/district gradebook,
 and never claim external acceptance. Active v0.3 optional Quillan compatibility
-is now v0.10.3. See
+is now v0.10.5. See
 [Reporting exports](docs/architecture/reporting-exports.md).
 
 ## Issue #102 bounded canonical storage paths

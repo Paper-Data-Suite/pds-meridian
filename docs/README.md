@@ -100,13 +100,13 @@ class-local Export Profiles, explicit profile selection, bounded roster-backed
 observations, deterministic CSV/TSV previews, final exact-source revalidation,
 non-overwriting file/copyable output, and immutable ExportReceipts. Local export
 remains distinct from official school-system write or acceptance. Active v0.3
-Quillan compatibility is `quillan==0.10.3`. See
+Quillan compatibility is `quillan==0.10.5`. See
 [Reporting exports](architecture/reporting-exports.md).
 
 Issue #57 implements the teacher-facing Meridian main menu over the completed
 #41 and #49-#56 capability set. Bare `meridian` and `meridian menu` enter the
 eight-task application; direct named commands remain noninteractive. Final
-compatibility qualification uses exact `quillan==0.10.3`. See
+compatibility qualification uses exact `quillan==0.10.5`. See
 [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the

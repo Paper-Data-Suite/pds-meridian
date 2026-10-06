@@ -56,6 +56,21 @@ def test_issue61_release_preparation_promotes_candidate_version() -> None:
     assert check_sdist.EXPECTED_VERSION == "0.3.0"
 
 
+def test_issue61_candidate_validator_attempt_one_is_recorded() -> None:
+    audit = AUDIT.read_text(encoding="utf-8")
+
+    for required in (
+        "Authoritative promoted-candidate validator attempt 1",
+        "2460262abd64b46ca45d90824f75ca15e1bf6b6d",
+        "3163 passed",
+        "22 skipped",
+        "2 failed",
+        "Classification: **NON-BLOCKING RELEASE CORRECTION**",
+        "Candidate qualification: **PENDING**",
+    ):
+        assert required in audit
+
+
 def test_issue61_candidate_validator_owns_full_artifact_gate() -> None:
     validator = (REPO_ROOT / "scripts/validate_repository.py").read_text(
         encoding="utf-8"
