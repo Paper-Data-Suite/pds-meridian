@@ -26,10 +26,10 @@ classifiers = [
 
 [project.optional-dependencies]
 scoreform = [
-    "scoreform==0.11.0",
+    "scoreform==0.12.0",
 ]
 quillan = [
-    "quillan==0.10.3",
+    "quillan==0.10.5",
 ]
 concord = [
     "pds-concord==0.3.0",

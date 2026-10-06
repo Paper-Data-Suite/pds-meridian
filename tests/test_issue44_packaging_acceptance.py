@@ -49,6 +49,6 @@ def test_issue44_producer_dependencies_remain_optional() -> None:
     assert "scoreform" not in dependencies
     assert "quillan" not in dependencies
     assert "pds-concord" not in dependencies
-    assert '"scoreform==0.11.0"' in optional
-    assert '"quillan==0.10.3"' in optional
+    assert '"scoreform==0.12.0"' in optional
+    assert '"quillan==0.10.5"' in optional
     assert '"pds-concord==0.3.0"' in optional

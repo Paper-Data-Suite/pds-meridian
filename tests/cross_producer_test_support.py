@@ -29,8 +29,8 @@ SECONDARY_STUDENT_ID = "student_synthetic_002"
 SHARED_STANDARD_ID = "standard_ela_1"
 
 EXACT_READER_VERSIONS = {
-    "scoreform": "0.11.0",
-    "quillan": "0.10.3",
+    "scoreform": "0.12.0",
+    "quillan": "0.10.5",
     "pds-concord": "0.3.0",
 }
 

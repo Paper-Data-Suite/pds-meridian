@@ -16,8 +16,8 @@ def test_issue52_installed_smoke_is_exact_and_fresh_process() -> None:
 
     for token in (
         'metadata.version("pds-core") == "0.6.4"',
-        'metadata.version("scoreform") == "0.11.0"',
-        'metadata.version("quillan") == "0.10.3"',
+        'metadata.version("scoreform") == "0.12.0"',
+        'metadata.version("quillan") == "0.10.5"',
         'metadata.version("pds-concord")',
         'importlib.util.find_spec("concord") is None',
         'import smoke_program_conventional_grade as conventional',
