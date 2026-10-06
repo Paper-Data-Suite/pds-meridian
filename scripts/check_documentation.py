@@ -145,6 +145,9 @@ REQUIRED_TEXT = {
         "ReportingSnapshot current-use audit — CONFORMS",
         "Predecessor metadata does not move current use.",
         "Current-use selection does not create Grade authority.",
+        "Export and source-mutation audit — CONFORMS",
+        "Teacher approval is a byte-boundary.",
+        "local export provenance, not evidence that a gradebook",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

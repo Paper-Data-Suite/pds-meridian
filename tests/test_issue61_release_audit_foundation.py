@@ -46,6 +46,9 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "ReportingSnapshot current-use audit — CONFORMS",
         "Predecessor metadata does not move current use.",
         "Current-use selection does not create Grade authority.",
+        "Export and source-mutation audit — CONFORMS",
+        "Teacher approval is a byte-boundary.",
+        "local export provenance, not evidence that a gradebook",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:
