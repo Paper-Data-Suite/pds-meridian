@@ -343,6 +343,7 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_issue61_arithmetic_rounding_audit.py",
         "tests/test_issue61_storage_operations_audit.py",
         "tests/test_issue61_interoperability_coexistence_audit.py",
+        "tests/test_issue61_release_contract_gate.py",
         "tests/test_issue59_backup_boundary.py",
         "tests/test_issue59_documentation_acceptance.py",
         "tests/test_issue59_packaging_acceptance.py",

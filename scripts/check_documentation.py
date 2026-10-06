@@ -118,8 +118,8 @@ REQUIRED_TEXT = {
         "Final release SHA and final artifact hashes therefore remain pending.",
     ),
     Path("docs/development/v0.3.0-release-audit.md"): (
-        "Status: **IN PROGRESS — PRE-PROMOTION**",
-        "Substantive blocker count: **PENDING**",
+        "Status: **SUBSTANTIVE AUDIT COMPLETE — RELEASE PREPARATION AUTHORIZED**",
+        "Substantive blocker count: **0**",
         "87a44e6d31feeceead0bfa7bc1a87306cf5278da",
         "full authoritative latest-release validator: **CONFORMS — attempt 2**",
         "Authoritative validator attempt 1 — NON-BLOCKING RELEASE CORRECTION",
@@ -161,6 +161,10 @@ REQUIRED_TEXT = {
         "Interoperability and ecosystem-coexistence audit — CONFORMS",
         "This spot check does not satisfy the required final inventory repetition gate",
         "Portia and Clavis still have no stable release.",
+        "Substantive audit status: **CONFORMS**",
+        "Final inventory pass: **CONFORMS — 2026-10-06**",
+        "Status: **CONFORMS FOR RELEASE PREPARATION**",
+        "Release-preparation authorization: **AUTHORIZED**",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

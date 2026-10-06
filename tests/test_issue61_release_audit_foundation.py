@@ -10,7 +10,7 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
     audit = (REPO_ROOT / AUDIT).read_text(encoding="utf-8")
 
     expected = (
-        "Status: **IN PROGRESS — PRE-PROMOTION**",
+        "Status: **SUBSTANTIVE AUDIT COMPLETE — RELEASE PREPARATION AUTHORIZED**",
         "5671883e41977f60ae235e3584a51cbdf5768734",
         "87a44e6d31feeceead0bfa7bc1a87306cf5278da",
         "`pds-core` | direct runtime / six-matrix baseline | `v0.6.4`",
@@ -21,7 +21,7 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "`pds-paper-data-suite` | ecosystem coexistence only | `v0.1.0`",
         "`pds-portia` | no released-artifact qualification | no stable release",
         "`pds-clavis` | no Meridian release dependency | no stable release",
-        "Substantive blocker count: **PENDING**",
+        "Substantive blocker count: **0**",
         "The full authoritative latest-release validator: **CONFORMS — attempt 2**",
         "Authoritative validator attempt 1 — NON-BLOCKING RELEASE CORRECTION",
         "3065 passed",
@@ -62,7 +62,11 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Interoperability and ecosystem-coexistence audit — CONFORMS",
         "This spot check does not satisfy the required final inventory repetition gate",
         "Portia and Clavis still have no stable release.",
-        "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
+        "Substantive audit status: **CONFORMS**",
+        "Final inventory pass: **CONFORMS — 2026-10-06**",
+        "Status: **CONFORMS FOR RELEASE PREPARATION**",
+        "Version promotion to `0.3.0`: **AUTHORIZED FOR RELEASE PREPARATION**",
+        "Release-preparation authorization: **AUTHORIZED**",
     )
     for item in expected:
         assert item in audit
@@ -85,7 +89,7 @@ def test_issue61_documentation_checker_requires_release_audit() -> None:
     )
 
     assert 'Path("docs/development/v0.3.0-release-audit.md")' in checker
-    assert "Substantive blocker count: **PENDING**" in checker
+    assert "Substantive blocker count: **0**" in checker
     assert (
         "full authoritative latest-release validator: **CONFORMS — attempt 2**"
         in checker
