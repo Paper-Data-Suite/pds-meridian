@@ -139,6 +139,9 @@ REQUIRED_TEXT = {
         "Override authority and source binding audit — CONFORMS",
         "does not float to a later result revision",
         "Withdrawal is itself exact authority, not deletion.",
+        "Historical explanation and provenance audit — CONFORMS",
+        "selection=\"revision\"",
+        "does not substitute the current activation or policy revision.",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

@@ -40,6 +40,9 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Override authority and source binding audit — CONFORMS",
         "does not float to a later result revision",
         "Withdrawal is itself exact authority, not deletion.",
+        "Historical explanation and provenance audit — CONFORMS",
+        "selection=\"revision\"",
+        "does not substitute the current activation or policy revision.",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:
