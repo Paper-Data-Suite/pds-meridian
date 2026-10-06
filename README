@@ -118,6 +118,10 @@ backup, while external report payloads remain noncanonical. Meridian keeps
 Suite dependency. See
 [Suite operations integration](docs/architecture/suite-operations-integration.md).
 
+## Issue #60 cross-policy adversarial acceptance
+
+Current v0.3 development now has permanent adversarial acceptance across conventional, weighted standards, profile-constrained standards, hybrid, teacher override, ReportingSnapshot, producer lifecycle, and Suite-operations boundaries. Empty/unknown/incomplete state remains distinct from zero, write remains distinct from selection, group evidence remains nonstudent, and rounding remains final-only Decimal policy. Installed acceptance uses the existing six prepared matrices and runs the broad fresh-process scenario in `all-adapters` against exact Core 0.6.4, ScoreForm 0.11.0, Quillan 0.10.3, and Concord 0.3.0. See [Cross-policy adversarial acceptance](docs/architecture/cross-policy-adversarial-acceptance.md).
+
 ## Purpose
 
 Meridian will transform authorized producer-owned academic evidence into
