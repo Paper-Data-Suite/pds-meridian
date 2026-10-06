@@ -158,6 +158,9 @@ REQUIRED_TEXT = {
         "Storage-path and operational safety audit — CONFORMS",
         "Core module operations remain read-only.",
         "Installed dependency isolation remains exactly the six established matrices",
+        "Interoperability and ecosystem-coexistence audit — CONFORMS",
+        "This spot check does not satisfy the required final inventory repetition gate",
+        "Portia and Clavis still have no stable release.",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

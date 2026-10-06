@@ -59,6 +59,9 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Storage-path and operational safety audit — CONFORMS",
         "Core module operations remain read-only.",
         "Installed dependency isolation remains exactly the six established matrices",
+        "Interoperability and ecosystem-coexistence audit — CONFORMS",
+        "This spot check does not satisfy the required final inventory repetition gate",
+        "Portia and Clavis still have no stable release.",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:
