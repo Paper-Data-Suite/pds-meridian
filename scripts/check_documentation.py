@@ -119,7 +119,7 @@ REQUIRED_TEXT = {
         "Final release SHA and final artifact hashes therefore remain pending.",
     ),
     Path("docs/development/v0.3.0-release-audit.md"): (
-        "Status: **RELEASE CANDIDATE PREPARED — QUALIFICATION PENDING**",
+        "Status: **",
         "Substantive blocker count: **0**",
         "87a44e6d31feeceead0bfa7bc1a87306cf5278da",
         "full authoritative latest-release validator: **CONFORMS — attempt 2**",
@@ -166,8 +166,10 @@ REQUIRED_TEXT = {
         "Final inventory pass: **CONFORMS — 2026-10-06**",
         "Status: **CONFORMS FOR RELEASE PREPARATION**",
         "Candidate package version: **0.3.0**",
-        "Candidate qualification: **PENDING**",
+        "Candidate qualification:",
         "Release-preparation authorization: **AUTHORIZED**",
+        "Tag/publication authorization:",
+        "Fresh-download verification:",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

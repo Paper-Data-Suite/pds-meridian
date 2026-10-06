@@ -66,12 +66,16 @@ def test_v03_release_framing_names_current_candidate_and_exact_siblings() -> Non
     assert "pds_meridian-0.3.0.tar.gz" in notes
 
 
-def test_v03_promotion_does_not_authorize_tag_or_publication() -> None:
+def test_v03_candidate_state_does_not_authorize_tag_or_publication() -> None:
     audit = (
         ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
 
     assert "Candidate package version: **0.3.0**" in audit
-    assert "Candidate qualification: **PENDING**" in audit
+    candidate_states = (
+        "Candidate qualification: **PENDING**",
+        "Candidate qualification: **CONFORMS**",
+    )
+    assert sum(state in audit for state in candidate_states) == 1
     assert "Tag/publication authorization: **PENDING**" in audit
     assert "Fresh-download verification: **PENDING**" in audit

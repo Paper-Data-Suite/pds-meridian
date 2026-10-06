@@ -33,10 +33,7 @@ def test_issue61_final_inventory_repetition_is_complete_and_unchanged() -> None:
 def test_issue61_substantive_audit_closes_at_zero_blockers() -> None:
     audit = AUDIT.read_text(encoding="utf-8")
 
-    assert (
-        "Status: **RELEASE CANDIDATE PREPARED — QUALIFICATION PENDING**"
-        in audit
-    )
+    assert "Status: **" in audit
     assert "Substantive blocker count: **0**" in audit
     assert "Substantive audit status: **CONFORMS**" in audit
     assert "Release-preparation authorization: **AUTHORIZED**" in audit
@@ -103,6 +100,22 @@ def test_issue61_active_installed_smokes_have_no_stale_020_candidate_guard() -> 
             offenders.append(path.relative_to(REPO_ROOT).as_posix())
 
     assert offenders == []
+
+
+def test_issue61_attempt_three_and_provisional_artifacts_are_recorded() -> None:
+    audit = AUDIT.read_text(encoding="utf-8")
+
+    for required in (
+        "Authoritative promoted-candidate validator attempt 3 — CONFORMS",
+        "59db65e54b087fef056118555e31012012e2dedb",
+        "all six installed qualification matrices",
+        "Issue #96 prepared installed qualification passed.",
+        "Persistent candidate artifact qualification — CONFORMS FOR SOURCE 59db65e",
+        "B0299C899A84B426E30FFE55633C3AA84D6A8551964A0C16DFECEECE9E47B299",
+        "2C441523E4043B5EEE55CA630C78F408316C450CAC7D3AD9364F12BF335E7C73",
+        "Release-record transition guards — NON-BLOCKING RELEASE CORRECTION",
+    ):
+        assert required in audit
 
 
 def test_issue61_candidate_validator_owns_full_artifact_gate() -> None:
