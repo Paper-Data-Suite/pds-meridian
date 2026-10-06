@@ -71,6 +71,40 @@ def test_issue61_candidate_validator_attempt_one_is_recorded() -> None:
         assert required in audit
 
 
+def test_issue61_candidate_validator_attempt_two_is_recorded() -> None:
+    audit = AUDIT.read_text(encoding="utf-8")
+
+    for required in (
+        "Authoritative promoted-candidate validator attempt 2",
+        "ea58f9cfebe879bfbdf7b84cc1900ce8085ec256",
+        "Twine reported both artifacts `PASSED`",
+        "six-matrix installed qualification runner",
+        "grouping-signal contract smoke",
+        "Classification: **NON-BLOCKING RELEASE CORRECTION**",
+        "Candidate qualification remains **PENDING**",
+    ):
+        assert required in audit
+
+
+def test_issue61_active_installed_smokes_have_no_stale_020_candidate_guard() -> None:
+    scripts = [
+        REPO_ROOT / "scripts/smoke_test_grouping_signal_contract_wheel.py",
+        *sorted((REPO_ROOT / "scripts").glob("smoke_program_*.py")),
+    ]
+    stale_patterns = (
+        'version("pds-meridian") == "0.2.0"',
+        'version("pds-meridian") != "0.2.0"',
+    )
+
+    offenders = []
+    for path in scripts:
+        source = path.read_text(encoding="utf-8")
+        if any(pattern in source for pattern in stale_patterns):
+            offenders.append(path.relative_to(REPO_ROOT).as_posix())
+
+    assert offenders == []
+
+
 def test_issue61_candidate_validator_owns_full_artifact_gate() -> None:
     validator = (REPO_ROOT / "scripts/validate_repository.py").read_text(
         encoding="utf-8"
