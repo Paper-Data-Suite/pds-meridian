@@ -142,6 +142,9 @@ REQUIRED_TEXT = {
         "Historical explanation and provenance audit — CONFORMS",
         "selection=\"revision\"",
         "does not substitute the current activation or policy revision.",
+        "ReportingSnapshot current-use audit — CONFORMS",
+        "Predecessor metadata does not move current use.",
+        "Current-use selection does not create Grade authority.",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

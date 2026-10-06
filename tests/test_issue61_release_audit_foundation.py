@@ -43,6 +43,9 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Historical explanation and provenance audit — CONFORMS",
         "selection=\"revision\"",
         "does not substitute the current activation or policy revision.",
+        "ReportingSnapshot current-use audit — CONFORMS",
+        "Predecessor metadata does not move current use.",
+        "Current-use selection does not create Grade authority.",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:
