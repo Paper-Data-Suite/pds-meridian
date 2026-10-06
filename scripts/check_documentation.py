@@ -133,6 +133,9 @@ REQUIRED_TEXT = {
         "Issue #96 prepared installed qualification passed.",
         "Calculation-state and silent-zero audit — CONFORMS",
         "Zero is therefore a policy consequence, not a fallback",
+        "Selection and authority audit — CONFORMS",
+        "selection_basis=\"explicit\"",
+        "relationship_basis=\"explicit\"",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (
