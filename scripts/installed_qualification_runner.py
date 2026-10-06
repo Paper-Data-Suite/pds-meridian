@@ -20,6 +20,9 @@ from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_fo
 from scripts.smoke_test_conventional_grade_wheel import (
     run_prepared_smoke as run_conventional_grade_prepared_smoke,
 )
+from scripts.smoke_test_cross_policy_adversarial_wheel import (
+    run_prepared_smoke as run_issue60_cross_policy_prepared_smoke,
+)
 from scripts.smoke_test_grade_report_attention_wheel import (
     run_prepared_smoke as run_grade_report_attention_prepared_smoke,
 )
@@ -236,6 +239,20 @@ def run_migrated_matrices(
             "all-adapters-composition",
             lambda: run_all_adapters_prepared_smoke(
                 prepared.python,
+                outside,
+            ),
+        )
+
+        root, outside = _working_layout(
+            prepared,
+            "issue60-cross-policy-adversarial",
+        )
+        _run_acceptance(
+            prepared,
+            "issue60-cross-policy-adversarial",
+            lambda: run_issue60_cross_policy_prepared_smoke(
+                prepared.python,
+                root,
                 outside,
             ),
         )

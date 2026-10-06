@@ -124,6 +124,8 @@ See
 
 Issue #102 establishes the pre-deployment bounded canonical storage contract and moves current exact development/installed qualification to released Core 0.6.4 while retaining the compatible `pds-core>=0.6.3,<0.7` runtime floor. See [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md).
 
+Issue #60 adds final cross-policy adversarial and installed acceptance for the v0.3 Grade/report authority chain. It preserves policy and lifecycle distinctions under difficult combined states and reuses the existing six prepared installed matrices; the broad installed scenario runs in `all-adapters` and reloads in a fresh process. See [Cross-policy adversarial acceptance](architecture/cross-policy-adversarial-acceptance.md).
+
 ## Recommended reading order
 
 1. [Root README](../README)
@@ -178,6 +180,7 @@ Issue #102 establishes the pre-deployment bounded canonical storage contract and
 50. [Grade and report attention summaries](architecture/grade-report-attention-summaries.md)
 51. [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md)
 52. [Suite operations integration](architecture/suite-operations-integration.md)
+53. [Cross-policy adversarial acceptance](architecture/cross-policy-adversarial-acceptance.md)
 
 
 ## Development foundation

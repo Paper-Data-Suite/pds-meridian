@@ -72,6 +72,7 @@ Core and the exact candidate Meridian wheel are required in every matrix.
 - ReportingSnapshot
 - report exports
 - teacher menu
+- Issue #60 cross-policy adversarial acceptance
 
 ## Isolation contract
 
@@ -505,3 +506,11 @@ post-#96 six-environment target.
 Issue #102 reuses the existing prepared `core` matrix rather than creating a seventh installed environment. The active exact Core qualification artifact is now `pds-core` **`0.6.4`**. This is an installed-qualification baseline change, not a runtime-floor change; `pds-core>=0.6.3,<0.7` remains the declared compatible dependency.
 
 The Core matrix now also runs `storage-paths-issue102`, which exercises the candidate Meridian wheel outside the source checkout against a controlled deep workspace and deliberately long Grade Item, work, student, policy, scale/profile, ReportingDefinition, ReportingSnapshot, and Export Profile identities. It verifies bounded Meridian-owned components, reload/current selection integrity, fresh-process key determinism, producer-package absence, and unchanged Windows `LongPathsEnabled` state.
+
+## Issue #60 cross-policy adversarial acceptance
+
+Issue #60 adds one broad installed smoke to the existing `all-adapters` prepared environment. It creates no seventh dependency matrix and does not change the six-environment setup target.
+
+The smoke composes exact Core 0.6.4, ScoreForm 0.11.0, Quillan 0.10.3, Concord 0.3.0, and the candidate Meridian 0.2.0 wheel. It persists representative conventional, weighted standards, profile-constrained standards, and hybrid Grades; exercises override withdrawal; freezes a ReportingSnapshot; and verifies Concord group/nonstudent behavior. A fresh process reopens the canonical state and reproduces exact selected-result, override, snapshot, and authorized-cache behavior.
+
+The prepared harness still owns one `pip check` per matrix and package fingerprint immutability after every smoke. Issue #60 therefore adds acceptance depth, not dependency-topology or environment-setup duplication.
