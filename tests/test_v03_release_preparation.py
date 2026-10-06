@@ -70,12 +70,13 @@ def test_v03_candidate_state_does_not_authorize_tag_or_publication() -> None:
     audit = (
         ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
+    release_authorization = audit.split("## Release authorization", maxsplit=1)[1]
 
     assert "Candidate package version: **0.3.0**" in audit
     candidate_states = (
         "Candidate qualification: **PENDING**",
         "Candidate qualification: **CONFORMS**",
     )
-    assert sum(state in audit for state in candidate_states) == 1
-    assert "Tag/publication authorization: **PENDING**" in audit
-    assert "Fresh-download verification: **PENDING**" in audit
+    assert sum(state in release_authorization for state in candidate_states) == 1
+    assert "Tag/publication authorization: **PENDING**" in release_authorization
+    assert "Fresh-download verification: **PENDING**" in release_authorization
