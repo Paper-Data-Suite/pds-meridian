@@ -32,6 +32,8 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "3069 passed",
         "22 skipped",
         "Issue #96 prepared installed qualification passed.",
+        "Calculation-state and silent-zero audit — CONFORMS",
+        "Zero is therefore a policy consequence, not a fallback",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:

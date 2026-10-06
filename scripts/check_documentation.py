@@ -131,6 +131,9 @@ REQUIRED_TEXT = {
         "3069 passed",
         "22 skipped",
         "Issue #96 prepared installed qualification passed.",
+        "Calculation-state and silent-zero audit — CONFORMS",
+        "Zero is therefore a policy consequence, not a fallback",
+        "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (
         "pds-meridian v0.2.0 release notes",
