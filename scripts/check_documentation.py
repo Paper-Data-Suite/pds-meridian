@@ -155,6 +155,9 @@ REQUIRED_TEXT = {
         "Arithmetic, denominator, and rounding audit — CONFORMS AFTER CORRECTION",
         "conventional ambient Decimal precision leak",
         "Status: **CONFORMS AFTER CORRECTION**",
+        "Storage-path and operational safety audit — CONFORMS",
+        "Core module operations remain read-only.",
+        "Installed dependency isolation remains exactly the six established matrices",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (

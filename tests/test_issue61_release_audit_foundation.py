@@ -56,6 +56,9 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Arithmetic, denominator, and rounding audit — CONFORMS AFTER CORRECTION",
         "conventional ambient Decimal precision leak",
         "Status: **CONFORMS AFTER CORRECTION**",
+        "Storage-path and operational safety audit — CONFORMS",
+        "Core module operations remain read-only.",
+        "Installed dependency isolation remains exactly the six established matrices",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:
