@@ -49,6 +49,10 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Export and source-mutation audit — CONFORMS",
         "Teacher approval is a byte-boundary.",
         "local export provenance, not evidence that a gradebook",
+        "Privacy and source-custody audit — CONFORMS",
+        "Protected projection-cache access remains authorization-first.",
+        "Reporting v1 remains teacher-only.",
+        "do not embed producer-private payload bytes",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:

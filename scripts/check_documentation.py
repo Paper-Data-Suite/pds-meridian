@@ -148,6 +148,10 @@ REQUIRED_TEXT = {
         "Export and source-mutation audit — CONFORMS",
         "Teacher approval is a byte-boundary.",
         "local export provenance, not evidence that a gradebook",
+        "Privacy and source-custody audit — CONFORMS",
+        "Protected projection-cache access remains authorization-first.",
+        "Reporting v1 remains teacher-only.",
+        "do not embed producer-private payload bytes",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (
