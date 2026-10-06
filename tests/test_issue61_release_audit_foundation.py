@@ -23,6 +23,10 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "`pds-clavis` | no Meridian release dependency | no stable release",
         "Substantive blocker count: **PENDING**",
         "The full authoritative latest-release validator: **PENDING**",
+        "Authoritative validator attempt 1 — NON-BLOCKING RELEASE CORRECTION",
+        "3065 passed",
+        "22 skipped",
+        "4 failed",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:

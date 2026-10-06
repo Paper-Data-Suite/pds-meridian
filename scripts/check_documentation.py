@@ -122,6 +122,10 @@ REQUIRED_TEXT = {
         "Substantive blocker count: **PENDING**",
         "87a44e6d31feeceead0bfa7bc1a87306cf5278da",
         "full authoritative latest-release validator: **PENDING**",
+        "Authoritative validator attempt 1 — NON-BLOCKING RELEASE CORRECTION",
+        "3065 passed",
+        "22 skipped",
+        "4 failed",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (
         "pds-meridian v0.2.0 release notes",
