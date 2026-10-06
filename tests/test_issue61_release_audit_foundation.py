@@ -22,11 +22,16 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "`pds-portia` | no released-artifact qualification | no stable release",
         "`pds-clavis` | no Meridian release dependency | no stable release",
         "Substantive blocker count: **PENDING**",
-        "The full authoritative latest-release validator: **PENDING**",
+        "The full authoritative latest-release validator: **CONFORMS — attempt 2**",
         "Authoritative validator attempt 1 — NON-BLOCKING RELEASE CORRECTION",
         "3065 passed",
         "22 skipped",
         "4 failed",
+        "Authoritative validator attempt 2 — CONFORMS",
+        "6823e3554093df49ef10b1fa95e7de14c245e931",
+        "3069 passed",
+        "22 skipped",
+        "Issue #96 prepared installed qualification passed.",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:
@@ -51,7 +56,10 @@ def test_issue61_documentation_checker_requires_release_audit() -> None:
 
     assert 'Path("docs/development/v0.3.0-release-audit.md")' in checker
     assert "Substantive blocker count: **PENDING**" in checker
-    assert "full authoritative latest-release validator: **PENDING**" in checker
+    assert (
+        "full authoritative latest-release validator: **CONFORMS — attempt 2**"
+        in checker
+    )
 
 
 def test_issue61_release_audit_does_not_promote_package_version() -> None:
