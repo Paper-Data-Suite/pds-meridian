@@ -37,6 +37,9 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Selection and authority audit — CONFORMS",
         "selection_basis=\"explicit\"",
         "relationship_basis=\"explicit\"",
+        "Override authority and source binding audit — CONFORMS",
+        "does not float to a later result revision",
+        "Withdrawal is itself exact authority, not deletion.",
         "Version promotion to `0.3.0`: **NOT AUTHORIZED**",
     )
     for item in expected:

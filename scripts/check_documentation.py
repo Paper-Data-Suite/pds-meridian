@@ -136,6 +136,9 @@ REQUIRED_TEXT = {
         "Selection and authority audit — CONFORMS",
         "selection_basis=\"explicit\"",
         "relationship_basis=\"explicit\"",
+        "Override authority and source binding audit — CONFORMS",
+        "does not float to a later result revision",
+        "Withdrawal is itself exact authority, not deletion.",
         "BLOCKER: 0",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (
