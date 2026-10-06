@@ -17,6 +17,7 @@ EXPECTED = (
     Path("docs/development/synthetic-data.md"),
     Path("docs/development/v0.1.1-release-audit.md"),
     Path("docs/development/v0.2.0-release-audit.md"),
+    Path("docs/development/v0.3.0-release-audit.md"),
     Path("docs/development/v0.2.0-release-notes.md"),
     Path("docs/development/installed-qualification-matrix.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
@@ -115,6 +116,12 @@ REQUIRED_TEXT = {
         "Release-preparation authorization — AUTHORIZED",
         "Substantive blocker count: **0**",
         "Final release SHA and final artifact hashes therefore remain pending.",
+    ),
+    Path("docs/development/v0.3.0-release-audit.md"): (
+        "Status: **IN PROGRESS — PRE-PROMOTION**",
+        "Substantive blocker count: **PENDING**",
+        "87a44e6d31feeceead0bfa7bc1a87306cf5278da",
+        "full authoritative latest-release validator: **PENDING**",
     ),
     Path("docs/development/v0.2.0-release-notes.md"): (
         "pds-meridian v0.2.0 release notes",

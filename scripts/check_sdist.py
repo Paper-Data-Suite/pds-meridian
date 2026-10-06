@@ -576,6 +576,7 @@ REQUIRED_MEMBERS = frozenset(
 FORBIDDEN_EXACT_MEMBERS = frozenset(
     {
         "docs/development/v0.2.0-release-audit.md",
+        "docs/development/v0.3.0-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (
