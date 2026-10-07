@@ -146,6 +146,49 @@ If two otherwise-ready publications would have the same class label, work
 title, and producer label, both are blocked as presentation-ambiguous rather
 than forcing the teacher to distinguish them by Publication ID.
 
+## Class-first guided inbox menu
+
+Slice 4 makes the normal `Review New Evidence` task open the teacher evidence
+inbox rather than the Issue #57 identifier-driven evidence submenu.
+
+The first screen is class-scoped rather than a workspace-wide evidence dump:
+
+```text
+1. english_12_pd2
+   2 evidence sets · 2 ready
+
+2. english_10_pd4
+   1 evidence set · 0 ready · 1 needs attention
+```
+
+Choosing a class updates only the process-local class scope and opens a second
+screen containing evidence for that class:
+
+```text
+Class: english_12_pd2
+
+1. Memory Snapshot
+   ScoreForm · Ready to review
+
+2. Locke Personal Identity
+   Quillan · Ready to review
+```
+
+`B` from the evidence screen returns to class selection. `B` from class
+selection returns to Meridian's main menu. `M` and `Q` retain their standard
+navigation semantics.
+
+Selecting a ready evidence source carries its exact `ModuleWorkRef` and
+Publication ID into the process-local teacher session without displaying or
+prompting for the Publication ID. No protected student evidence is opened in
+Slice 4. Selecting a blocked evidence source explains the blocker in
+teacher-facing language and does not replace any already-selected work or
+publication in the same class.
+
+The Issue #57 evidence controllers remain in the package as transitional legacy
+infrastructure for later #110 replacement slices, but the normal top-level
+teacher route no longer enters that raw-ID submenu.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Issue #110 Slice 4 routes the normal `Review New Evidence` teacher task to a
+  class-first compatibility-aware evidence inbox. Teachers choose a
+  teacher-created class ID before seeing evidence for that class. Ready
+  selections carry exact work and Publication identity into process-local
+  session context without displaying or prompting for Publication IDs; blocked
+  evidence receives teacher-facing explanations and does not replace an
+  existing same-class work selection. Protected student evidence is not opened
+  yet. The Issue #57 identifier-driven evidence controllers remain only as
+  transitional legacy infrastructure for later replacement.
+
 - Issue #110 Slice 3 adds the read-only teacher evidence inbox projection over
   bounded current Core `academic_result_set` discovery and existing Meridian
   publication-support diagnostics. Teacher-created `class_id` is accepted as

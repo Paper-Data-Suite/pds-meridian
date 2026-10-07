@@ -25,16 +25,16 @@ def test_default_composition_routes_all_eight_real_controllers(
     def clear_fn() -> None:
         return None
     diagnostics = cast(DiagnosticsDependencies, object())
-    evidence_deps = object()
+    inbox_deps = object()
     freeze_deps = object()
     factory_observations: list[tuple[str, object]] = []
 
     monkeypatch.setattr(
         menu_module,
-        "default_evidence_menu_dependencies",
+        "default_teacher_evidence_inbox_menu_dependencies",
         lambda *, diagnostics=None: (
-            factory_observations.append(("evidence", diagnostics))
-            or evidence_deps
+            factory_observations.append(("inbox", diagnostics))
+            or inbox_deps
         ),
     )
     monkeypatch.setattr(
@@ -57,14 +57,15 @@ def test_default_composition_routes_all_eight_real_controllers(
                 )
             )
             if name == "review-new-evidence":
-                assert kwargs["dependencies"] is evidence_deps
+                assert kwargs["dependencies"] is inbox_deps
+                assert kwargs["session_context"] is dependencies.session_context
             if name == "snapshots":
                 assert kwargs["freeze_dependencies"] is freeze_deps
 
         return run
 
     routes = {
-        "run_new_evidence_menu": "review-new-evidence",
+        "run_teacher_evidence_inbox_menu": "review-new-evidence",
         "run_grade_items_menu": "manage-grade-items",
         "run_proficiency_menu": "review-proficiency",
         "run_grade_preview_menu": "preview-grades",
@@ -92,6 +93,6 @@ def test_default_composition_routes_all_eight_real_controllers(
     assert all(item[2] is output for item in calls)
     assert all(item[3] is clear_fn for item in calls)
     assert factory_observations == [
-        ("evidence", diagnostics),
+        ("inbox", diagnostics),
         ("freeze", diagnostics),
     ]

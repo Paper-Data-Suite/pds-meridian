@@ -14,10 +14,6 @@ from pds_core.menu_navigation import (
 )
 
 from meridian.diagnostics import DiagnosticsDependencies
-from meridian.menu_evidence import (
-    default_evidence_menu_dependencies,
-    run_new_evidence_menu,
-)
 from meridian.menu_explain import run_explain_menu
 from meridian.menu_export import run_export_menu
 from meridian.menu_grade_items import run_grade_items_menu
@@ -30,6 +26,10 @@ from meridian.menu_proficiency import (
 from meridian.menu_snapshots import (
     default_snapshot_freeze_dependencies,
     run_snapshots_menu,
+)
+from meridian.menu_teacher_evidence import (
+    default_teacher_evidence_inbox_menu_dependencies,
+    run_teacher_evidence_inbox_menu,
 )
 from meridian.menu_ui import (
     ClearFunction,
@@ -126,7 +126,7 @@ def default_teacher_menu_dependencies(
 
     stream = sys.stdout if output is None else output
     session = TeacherSessionContext() if session_context is None else session_context
-    evidence_dependencies = default_evidence_menu_dependencies(
+    inbox_dependencies = default_teacher_evidence_inbox_menu_dependencies(
         diagnostics=diagnostics,
     )
     freeze_dependencies = default_snapshot_freeze_dependencies(
@@ -137,8 +137,9 @@ def default_teacher_menu_dependencies(
     )
 
     return TeacherMenuDependencies(
-        review_new_evidence=lambda: run_new_evidence_menu(
-            dependencies=evidence_dependencies,
+        review_new_evidence=lambda: run_teacher_evidence_inbox_menu(
+            dependencies=inbox_dependencies,
+            session_context=session,
             input_fn=input_fn,
             output=stream,
             clear_fn=clear_fn,

@@ -119,9 +119,13 @@ context whose dependent selections clear on scope changes and whose complete
 state is discarded on terminal exit. Slice 3 adds a read-only current Academic
 Result inbox projection that uses the teacher-created `class_id` as practical
 class presentation, uses canonical work titles, and keeps unsupported or stale
-publications visible as blocked candidates. Infrastructure identifiers remain
-hidden from the guided workflow. Direct CLI remains exact and noninteractive,
-and the Meridian v0.3.1 exact producer-reader gates remain unchanged. See
+publications visible as blocked candidates. Slice 4 wires that inbox into the
+normal `Review New Evidence` route with class-first navigation: choose a
+teacher-created class ID, then choose evidence only from that class. Ready
+selections are carried into process-local session context and blocked selections
+receive teacher-facing explanations. Infrastructure identifiers remain hidden
+from the guided workflow. Direct CLI remains exact and noninteractive, and the
+Meridian v0.3.1 exact producer-reader gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the
