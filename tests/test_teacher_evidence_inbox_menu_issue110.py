@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import StringIO
 from pathlib import Path
+from types import SimpleNamespace
 from typing import cast
 
 import pytest
@@ -9,6 +10,10 @@ from pds_core.menu_navigation import QuitPDS, ReturnToMainMenu
 from pds_core.routing_models import ModuleWorkRef
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.guided_projection import (
+    GuidedProjectionAuthorizationUnavailableError,
+    GuidedProjectionResult,
+)
 from meridian.menu_teacher_evidence import (
     TeacherEvidenceInboxMenuDependencies,
     run_teacher_evidence_inbox_menu,
@@ -76,14 +81,41 @@ def _inbox(
     return TeacherEvidenceInbox(groups=groups)
 
 
+def _prepared_result() -> GuidedProjectionResult:
+    authorized = cast(
+        object,
+        SimpleNamespace(
+            stored=SimpleNamespace(
+                snapshot=SimpleNamespace(
+                    inventory=SimpleNamespace(items=("one", "two")),
+                )
+            )
+        ),
+    )
+    return GuidedProjectionResult(
+        purpose_id="review_evidence",
+        requested_student_ids=(),
+        cache_disposition="created",
+        authorized=authorized,  # type: ignore[arg-type]
+    )
+
+
 def _dependencies(
     inbox: TeacherEvidenceInbox,
+    *,
+    projection_preparer=None,
 ) -> TeacherEvidenceInboxMenuDependencies:
     diagnostics = cast(DiagnosticsDependencies, object())
+    prepare = (
+        projection_preparer
+        if projection_preparer is not None
+        else lambda _root, _work, _publication_id: _prepared_result()
+    )
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=lambda: Path("workspace"),
         diagnostics=diagnostics,
         inbox_loader=lambda _root, _diagnostics: inbox,
+        projection_preparer=prepare,
     )
 
 
@@ -199,8 +231,9 @@ def test_ready_evidence_selection_carries_hidden_identity_into_session() -> None
     assert session.active_student_id is None
 
     rendered = output.getvalue()
-    assert "Evidence Selected" in rendered
-    assert "No protected student evidence was opened." in rendered
+    assert "Evidence Ready" in rendered
+    assert "Evidence rows available: 2" in rendered
+    assert "Authorized evidence is prepared for review." in rendered
     assert selected.publication_id not in rendered
     assert "Selected for this session" in rendered
 
@@ -234,6 +267,36 @@ def test_blocked_evidence_explains_reason_without_replacing_work_selection() -> 
     assert "Reader not compatible" in rendered
     assert "installed reader is not compatible" in rendered
     assert blocked.publication_id not in rendered
+
+
+def test_projection_auth_unavailable_is_teacher_facing_and_fail_closed() -> None:
+    inbox = _two_class_inbox()
+    selected = inbox.groups[0].items[0]
+    session = TeacherSessionContext()
+    output = StringIO()
+
+    def unavailable(_root, _work, _publication_id):
+        raise GuidedProjectionAuthorizationUnavailableError("not configured")
+
+    run_teacher_evidence_inbox_menu(
+        dependencies=_dependencies(
+            inbox,
+            projection_preparer=unavailable,
+        ),
+        session_context=session,
+        input_fn=ScriptedInput("1", "1", "", "b", "b"),
+        output=output,
+        clear_fn=lambda: None,
+    )
+
+    assert session.active_class_id == "english_12_pd2"
+    assert session.active_work is None
+    assert session.active_publication_id is None
+
+    rendered = output.getvalue()
+    assert "Evidence access is not configured" in rendered
+    assert "No protected evidence was opened." in rendered
+    assert selected.publication_id not in rendered
 
 
 def test_guided_route_never_prompts_for_infrastructure_identity() -> None:

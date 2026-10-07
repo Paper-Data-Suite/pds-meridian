@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #110 Slice 5 adds guided authorized projection preparation for a selected
+  class/work publication. The route supplies stable internal purpose
+  `review_evidence` and whole-assignment student scope, then reuses existing
+  publication preparation, adapter invocation, deterministic cache persistence,
+  and authorized cache-load/current-use assessment. Publication IDs and cache
+  keys remain internal. No permissive authorizer is added: missing or denied
+  deployment authorization blocks safely without installing work/publication
+  selection into teacher session context.
+
 - Issue #110 Slice 4 routes the normal `Review New Evidence` teacher task to a
   class-first compatibility-aware evidence inbox. Teachers choose a
   teacher-created class ID before seeing evidence for that class. Ready

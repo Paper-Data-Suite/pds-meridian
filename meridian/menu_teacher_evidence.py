@@ -9,12 +9,23 @@ from pathlib import Path
 from typing import TextIO, TypeAlias
 
 from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
+from pds_core.routing_models import ModuleWorkRef
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
 from meridian.diagnostics import (
     DiagnosticsDependencies,
     DiagnosticsError,
     default_diagnostics_dependencies,
+)
+from meridian.guided_projection import (
+    GuidedProjectionAuthorizationDeniedError,
+    GuidedProjectionAuthorizationUnavailableError,
+    GuidedProjectionCurrentUseBlockedError,
+    GuidedProjectionError,
+    GuidedProjectionResult,
+    GuidedProjectionSelectionStaleError,
+    default_guided_projection_dependencies,
+    prepare_guided_evidence_projection,
 )
 from meridian.ingestion import PublicationIngestionError
 from meridian.menu_ui import (
@@ -41,6 +52,10 @@ TeacherEvidenceInboxLoader: TypeAlias = Callable[
     [Path, DiagnosticsDependencies],
     TeacherEvidenceInbox,
 ]
+GuidedProjectionPreparer: TypeAlias = Callable[
+    [Path, ModuleWorkRef, str],
+    GuidedProjectionResult,
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,6 +65,7 @@ class TeacherEvidenceInboxMenuDependencies:
     workspace_resolver: WorkspaceResolver
     diagnostics: DiagnosticsDependencies
     inbox_loader: TeacherEvidenceInboxLoader
+    projection_preparer: GuidedProjectionPreparer
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -60,16 +76,33 @@ def default_teacher_evidence_inbox_menu_dependencies(
 
     active = diagnostics or default_diagnostics_dependencies()
 
+    projection_dependencies = default_guided_projection_dependencies(
+        diagnostics=active
+    )
+
     def load(
         root: Path,
         active_diagnostics: DiagnosticsDependencies,
     ) -> TeacherEvidenceInbox:
         return load_teacher_evidence_inbox(root, active_diagnostics)
 
+    def prepare(
+        root: Path,
+        work: ModuleWorkRef,
+        publication_id: str,
+    ) -> GuidedProjectionResult:
+        return prepare_guided_evidence_projection(
+            root,
+            work,
+            publication_id,
+            dependencies=projection_dependencies,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
         inbox_loader=load,
+        projection_preparer=prepare,
     )
 
 
@@ -213,31 +246,81 @@ def _show_blocked_item(
     pause_for_user(input_fn)
 
 
-def _show_ready_selection(
+def _show_prepared_selection(
     *,
     item: TeacherEvidenceInboxItem,
+    prepared: GuidedProjectionResult,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
 ) -> None:
     clear_fn()
-    print_menu_header(output, "Evidence Selected")
+    print_menu_header(output, "Evidence Ready")
+    write_lines(
+        output,
+        f"Class: {item.class_label}",
+        f"Assignment: {item.work_title}",
+        f"Source: {item.producer_label}",
+        f"Evidence rows available: {prepared.evidence_count}",
+        "",
+        "Authorized evidence is prepared for review.",
+        "Meridian resolved the publication and projection internally.",
+    )
+    pause_for_user(input_fn)
+
+
+def _show_projection_failure(
+    *,
+    item: TeacherEvidenceInboxItem,
+    error: GuidedProjectionError,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    if isinstance(error, GuidedProjectionAuthorizationUnavailableError):
+        lines = (
+            "Evidence access is not configured for this Meridian process.",
+            "No protected evidence was opened.",
+        )
+    elif isinstance(error, GuidedProjectionAuthorizationDeniedError):
+        lines = (
+            "Access to this evidence was denied by the configured policy.",
+            "No protected evidence was opened.",
+        )
+    elif isinstance(error, GuidedProjectionSelectionStaleError):
+        lines = (
+            "This evidence selection is no longer current.",
+            "Return to the list and choose the current evidence source.",
+        )
+    elif isinstance(error, GuidedProjectionCurrentUseBlockedError):
+        lines = (
+            "The prepared evidence is no longer valid for current review.",
+            "Return to the list and refresh before continuing.",
+        )
+    else:
+        lines = (
+            "This evidence could not be prepared safely.",
+            "No evidence workflow state was changed.",
+        )
+
+    clear_fn()
+    print_menu_header(output, "Evidence Not Ready")
     write_lines(
         output,
         f"Class: {item.class_label}",
         f"Assignment: {item.work_title}",
         f"Source: {item.producer_label}",
         "",
-        "This evidence source is selected for the current Meridian session.",
-        "No protected student evidence was opened.",
-        "The next guided stage will prepare this selection for review.",
+        *lines,
     )
     pause_for_user(input_fn)
 
 
 def _run_class_evidence_menu(
     *,
+    root: Path,
     group: TeacherEvidenceClassGroup,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
     session_context: TeacherSessionContext,
     input_fn: InputFunction,
     output: TextIO,
@@ -264,10 +347,27 @@ def _run_class_evidence_menu(
                     )
                     continue
 
+                try:
+                    prepared = dependencies.projection_preparer(
+                        root,
+                        item.work,
+                        item.publication_id,
+                    )
+                except GuidedProjectionError as error:
+                    _show_projection_failure(
+                        item=item,
+                        error=error,
+                        input_fn=input_fn,
+                        output=output,
+                        clear_fn=clear_fn,
+                    )
+                    continue
+
                 session_context.select_work(item.work)
                 session_context.select_publication(item.publication_id)
-                _show_ready_selection(
+                _show_prepared_selection(
                     item=item,
+                    prepared=prepared,
                     input_fn=input_fn,
                     output=output,
                     clear_fn=clear_fn,
@@ -338,7 +438,9 @@ def run_teacher_evidence_inbox_menu(
                 group = inbox.groups[selected_index - 1]
                 session_context.select_class(group.class_id)
                 _run_class_evidence_menu(
+                    root=root,
                     group=group,
+                    dependencies=dependencies,
                     session_context=session_context,
                     input_fn=input_fn,
                     output=stream,

@@ -189,6 +189,42 @@ The Issue #57 evidence controllers remain in the package as transitional legacy
 infrastructure for later #110 replacement slices, but the normal top-level
 teacher route no longer enters that raw-ID submenu.
 
+## Guided projection preparation
+
+Slice 5 adds one orchestration service over the existing publication-ingestion,
+adapter, and projection-cache boundaries. The teacher-guided route owns the
+stable review purpose `review_evidence` and uses whole-assignment scope
+(`requested_student_ids=()`) for initial evidence preparation.
+
+For one selected work/publication, Meridian internally:
+
+```text
+rediscover exact current work candidate
+-> prepare_publication_invocation(...)
+-> AdapterRegistry.invoke(...)
+-> cache_projected_inventory(...)
+-> load_authorized_projection_snapshot(...)
+-> require reusable current-use assessment
+```
+
+The guided layer does not parse manifests, derive cache keys, or implement a
+private projector. Manifest integrity, adapter selection, reader qualification,
+canonical-state rechecks, repeated authorization, deterministic cache identity,
+and authorized cache loading remain owned by the existing services.
+
+The returned `GuidedProjectionResult` intentionally exposes the authorized
+context and teacher-useful evidence count but no cache-key field.
+
+The ordinary teacher route never asks for Publication ID, cache key,
+authorization-purpose ID, or student-ID scope. Selection supplies publication
+identity internally; the guided contract supplies the purpose; whole-assignment
+review supplies the empty requested-student tuple.
+
+Authorization remains deployment-owned. Meridian does not add a permissive
+default authorizer. If the process has no configured authorizer, or policy
+denies access, the teacher receives a bounded blocker and the selected
+work/publication is not installed into session context.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

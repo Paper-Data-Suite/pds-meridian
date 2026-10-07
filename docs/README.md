@@ -123,9 +123,14 @@ publications visible as blocked candidates. Slice 4 wires that inbox into the
 normal `Review New Evidence` route with class-first navigation: choose a
 teacher-created class ID, then choose evidence only from that class. Ready
 selections are carried into process-local session context and blocked selections
-receive teacher-facing explanations. Infrastructure identifiers remain hidden
-from the guided workflow. Direct CLI remains exact and noninteractive, and the
-Meridian v0.3.1 exact producer-reader gates remain unchanged. See
+receive teacher-facing explanations. Slice 5 adds guided authorized projection
+preparation using the stable internal `review_evidence` purpose and
+whole-assignment scope. Existing ingestion, adapter, manifest-verification, and
+projection-cache services remain authoritative; the menu neither asks for nor
+derives a cache key. Missing or denied deployment authorization fails closed.
+Infrastructure identifiers remain hidden from the guided workflow. Direct CLI
+remains exact and noninteractive, and the Meridian v0.3.1 exact producer-reader
+gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the
