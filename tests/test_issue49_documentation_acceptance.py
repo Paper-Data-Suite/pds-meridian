@@ -74,9 +74,11 @@ def test_family_current_and_period_activation_have_distinct_models() -> None:
     assert StoredGradePolicyRevision.__name__ == "StoredGradePolicyRevision"
 
 
-def test_issue49_does_not_claim_grade_calculation_runtime() -> None:
+def test_issue49_preserves_issue_local_non_calculation_boundary() -> None:
     readme = (ROOT / "README").read_text(encoding="utf-8")
     architecture = ARCHITECTURE.read_text(encoding="utf-8")
-    assert "does not yet calculate conventional Grades" in readme
+
+    assert "v0.3 adds conventional, standards-based" in readme
+    assert "This issue stops before Grade calculation." in architecture
     assert "Issue #49 deliberately does not implement:" in architecture
     assert "- conventional Grade calculation;" in architecture

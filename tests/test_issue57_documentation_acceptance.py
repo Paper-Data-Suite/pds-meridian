@@ -25,8 +25,8 @@ def test_issue57_active_docs_describe_bare_menu_and_current_quillan() -> None:
     docs = Path("docs/README.md").read_text(encoding="utf-8")
     assert "`meridian` launches the teacher-facing application" in readme
     assert "`meridian menu`" in readme
-    assert "Quillan v0.10.3" in readme
+    assert "Quillan v0.10.5" in readme
     assert "teacher-main-menu.md" in readme
     assert "Issue #57" in docs
     assert "teacher-main-menu.md" in docs
-    assert "quillan==0.10.3" in docs
+    assert "quillan==0.10.5" in docs

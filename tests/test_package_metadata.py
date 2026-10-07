@@ -9,10 +9,10 @@ def test_distribution_metadata() -> None:
     distribution = importlib.metadata.distribution("pds-meridian")
     metadata = distribution.metadata
     assert metadata["Name"] == "pds-meridian"
-    assert metadata["Version"] == "0.2.0"
+    assert metadata["Version"] == "0.3.0"
     assert metadata["Summary"] == (
-        "Teacher-controlled evidence, proficiency, and planning exports "
-        "for Paper Data Suite"
+        "Teacher-controlled evidence, proficiency, Grades, reporting, and "
+        "planning for Paper Data Suite"
     )
     assert metadata["Requires-Python"] == ">=3.11"
     assert metadata["Description-Content-Type"] == "text/markdown"
@@ -28,9 +28,9 @@ def test_distribution_metadata() -> None:
         for item in runtime
     )
     scoreform = [item for item in requirements if item.name == "scoreform"]
-    assert scoreform == [Requirement("scoreform==0.11.0; extra == 'scoreform'")]
+    assert scoreform == [Requirement("scoreform==0.12.0; extra == 'scoreform'")]
     quillan = [item for item in requirements if item.name == "quillan"]
-    assert quillan == [Requirement("quillan==0.10.3; extra == 'quillan'")]
+    assert quillan == [Requirement("quillan==0.10.5; extra == 'quillan'")]
     concord = [item for item in requirements if item.name == "pds-concord"]
     assert concord == [
         Requirement("pds-concord==0.3.0; extra == 'concord'")

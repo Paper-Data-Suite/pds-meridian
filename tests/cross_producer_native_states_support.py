@@ -147,5 +147,5 @@ def project_quillan_with_rating(rating_value: int) -> EvidenceInventory:
     )
     return AdapterRegistry((QuillanAcademicResultAdapter(),)).invoke(
         request,
-        lambda _: "0.10.3",
+        lambda _: "0.10.5",
     )

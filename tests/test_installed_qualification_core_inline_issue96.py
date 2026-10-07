@@ -99,6 +99,15 @@ def test_issue96_inline_core_smokes_use_fresh_roots_and_prepared_python(
     ]
 
 
+def test_issue96_grouping_contract_smoke_tracks_promoted_candidate_version() -> None:
+    source = Path(
+        "scripts/smoke_test_grouping_signal_contract_wheel.py"
+    ).read_text(encoding="utf-8")
+
+    assert 'version("pds-meridian") == "0.3.0"' in source
+    assert 'version("pds-meridian") == "0.2.0"' not in source
+
+
 def test_issue96_inline_core_smokes_reject_wrong_matrix(tmp_path: Path) -> None:
     prepared = FakePreparedEnvironment(
         tmp_path,

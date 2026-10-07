@@ -2,25 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import meridian
-from scripts import check_package, check_sdist, verify_concord_wheel
+from scripts import check_sdist, verify_concord_wheel
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_SUMMARY = (
-    "Teacher-controlled evidence, proficiency, and planning exports "
-    "for Paper Data Suite"
-)
+def test_v02_release_material_remains_historical() -> None:
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    notes = (
+        ROOT / "docs/development/v0.2.0-release-notes.md"
+    ).read_text(encoding="utf-8")
 
-
-def test_v02_release_version_and_package_summary_are_frozen() -> None:
-    assert meridian.__version__ == "0.2.0"
-    assert check_package.EXPECTED_VERSION == "0.2.0"
-    assert check_sdist.EXPECTED_VERSION == "0.2.0"
-    assert check_package.EXPECTED_SUMMARY == EXPECTED_SUMMARY
-    assert check_sdist.EXPECTED_SUMMARY == EXPECTED_SUMMARY
-
-    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    assert f'description = "{EXPECTED_SUMMARY}"' in pyproject
+    assert "## 0.2.0 — 2026-09-07" in changelog
+    assert "# pds-meridian v0.2.0 release notes" in notes
+    assert "pds_meridian-0.2.0-py3-none-any.whl" in notes
 
 
 def test_concord_release_diagnostics_name_exact_v030() -> None:
@@ -75,7 +68,7 @@ def test_release_status_documents_v02_boundary() -> None:
 
     assert "#46 final v0.2.0 audit — implemented" in readme
     assert "#46 final v0.2.0 audit — implemented" in docs_readme
-    assert "latest `0.2.x` release" in security
+    assert "The `0.2.x` and `0.1.1` lines are historical" in security
     assert "pds_concord-0.3.0-py3-none-any.whl" in foundation
     assert "pds_concord-0.2.0-py3-none-any.whl" not in foundation
     assert "## 0.2.0 — 2026-09-07" in changelog

@@ -49,11 +49,11 @@ def test_core_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         verify_core_wheel(path)
 
 
-def test_scoreform_verifier_targets_exact_011_release() -> None:
-    assert EXPECTED_SCOREFORM_VERSION == "0.11.0"
-    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == "scoreform-0.11.0-py3-none-any.whl"
+def test_scoreform_verifier_targets_exact_012_release() -> None:
+    assert EXPECTED_SCOREFORM_VERSION == "0.12.0"
+    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == "scoreform-0.12.0-py3-none-any.whl"
     assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
-        "8248c6a1cc8254b5f9df46440131d524f80da8662a0dc7864fdc982e501b4c44"
+        "84ad10ada72a99bebd5455d8c18a0725f9406f8279e57156f3e424efa5678d20"
     )
 
 
@@ -72,11 +72,11 @@ def test_scoreform_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         verify_scoreform_wheel(path)
 
 
-def test_quillan_verifier_targets_exact_0103_release() -> None:
-    assert EXPECTED_QUILLAN_VERSION == "0.10.3"
-    assert EXPECTED_QUILLAN_WHEEL_FILENAME == "quillan-0.10.3-py3-none-any.whl"
+def test_quillan_verifier_targets_exact_0105_release() -> None:
+    assert EXPECTED_QUILLAN_VERSION == "0.10.5"
+    assert EXPECTED_QUILLAN_WHEEL_FILENAME == "quillan-0.10.5-py3-none-any.whl"
     assert EXPECTED_QUILLAN_WHEEL_SHA256 == (
-        "eb8f527d2dd43c3961374ac6a3f34a732827ce0bd3260943667160f8d2bf3e3b"
+        "031e5a5455c222da6b9a7d8f72e7823dd4c61acde7d90ddce94b49d9bcbe123f"
     )
 
 
@@ -128,7 +128,7 @@ def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:
 def test_ci_wires_exact_scoreform_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-scoreform/releases/download/v0.11.0/scoreform-0.11.0-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.12.0/scoreform-0.12.0-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"' in workflow
     assert '--scoreform-wheel "$env:SCOREFORM_WHEEL"' in workflow
@@ -137,7 +137,7 @@ def test_ci_wires_exact_scoreform_release_artifact() -> None:
 def test_ci_wires_exact_quillan_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-quillan/releases/download/v0.10.3/quillan-0.10.3-py3-none-any.whl"
+        "pds-quillan/releases/download/v0.10.5/quillan-0.10.5-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"' in workflow
     assert '--quillan-wheel "$env:QUILLAN_WHEEL"' in workflow
@@ -159,7 +159,8 @@ def test_base_wheel_smoke_quits_interactive_teacher_menu_entrypoints() -> None:
     assert '([str(meridian)], "q\\n")' in smoke
     assert '([str(python), "-m", "meridian"], "q\\n")' in smoke
     assert "_run(command, outside, input_text=input_text)" in smoke
-    assert smoke.count("assert m.version('quillan') == '0.10.3'; ") == 2
+    assert smoke.count("assert m.version('quillan') == '0.10.5'; ") == 2
+    assert "assert m.version('quillan') == '0.10.3'; " not in smoke
     assert "assert m.version('quillan') == '0.10.2'; " not in smoke
     assert "assert m.version('quillan') == '0.10.1'; " not in smoke
 

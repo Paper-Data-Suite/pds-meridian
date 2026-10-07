@@ -1,25 +1,29 @@
 # Meridian documentation
 
-Meridian v0.2.0 is the current released baseline and remains installable for the complete v0.2
-teacher-controlled evidence-policy, standards-proficiency, explanation,
-attention, and planning-export architecture.
+Meridian v0.3.0 is the promoted release candidate for the complete
+teacher-controlled evidence-policy, standards-proficiency, Grade, explanation,
+reporting, attention, and planning architecture.
 
-The released v0.1.1 foundation established publication ingestion, typed native
-evidence, exact consumer-side adapters, canonical Core verification, immutable
-projection caching, and read-only diagnostics. The verified v0.2.0 release
-retains that history while qualifying exact Core v0.6.3 plus optional ScoreForm
-v0.11.0, Quillan v0.10.0, and Concord v0.3.0 readers.
+Current candidate qualification uses exact released Core v0.6.4 plus optional
+ScoreForm v0.12.0, Quillan v0.10.5, and Concord v0.3.0 readers. Core remains the
+only unconditional runtime dependency.
 
-Issues #27 through #46 implement, qualify, audit, publish, and verify the complete
-v0.2 chain. For historical continuity, the pre-release v0.2 handoff record remains:
+The released v0.1.1 and v0.2.0 documentation remains historical release
+authority. In particular, the earlier handoff record remains:
 
 ```text
 #46 final v0.2.0 audit — implemented; release preparation qualified
 ```
 
-That line records the earlier handoff state; the current v0.3 status below is authoritative.
+The verified v0.2.0 optional producer boundary used exact
+`scoreform==0.11.0`, `quillan==0.10.0`, and `pds-concord==0.3.0`. Those pins
+remain historical v0.2 release facts rather than current v0.3 candidate
+authority.
 
-Current development begins v0.3 under issue #48 with accepted
+Issue #61 is the current v0.3 release authority; tag/publication remains pending
+until the promoted candidate passes final qualification.
+
+Meridian v0.3.0 implements issue #48's accepted
 architecture for Grade policy, advisory Grade previews, immutable teacher
 overrides, Meridian-owned immutable ReportingSnapshots, and explicit local
 exports.
@@ -96,13 +100,13 @@ class-local Export Profiles, explicit profile selection, bounded roster-backed
 observations, deterministic CSV/TSV previews, final exact-source revalidation,
 non-overwriting file/copyable output, and immutable ExportReceipts. Local export
 remains distinct from official school-system write or acceptance. Active v0.3
-Quillan compatibility is `quillan==0.10.3`. See
+Quillan compatibility is `quillan==0.10.5`. See
 [Reporting exports](architecture/reporting-exports.md).
 
 Issue #57 implements the teacher-facing Meridian main menu over the completed
 #41 and #49-#56 capability set. Bare `meridian` and `meridian menu` enter the
 eight-task application; direct named commands remain noninteractive. Final
-compatibility qualification uses exact `quillan==0.10.3`. See
+compatibility qualification uses exact `quillan==0.10.5`. See
 [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the
@@ -181,6 +185,8 @@ Issue #60 adds final cross-policy adversarial and installed acceptance for the v
 51. [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md)
 52. [Suite operations integration](architecture/suite-operations-integration.md)
 53. [Cross-policy adversarial acceptance](architecture/cross-policy-adversarial-acceptance.md)
+54. [v0.3.0 release notes](development/v0.3.0-release-notes.md)
+55. [v0.3.0 release audit](development/v0.3.0-release-audit.md)
 
 
 ## Development foundation
@@ -189,10 +195,10 @@ The package foundation provides:
 
 - Python `>=3.11` support;
 - `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
-- exact optional `scoreform==0.11.0` adapter support;
-- exact optional `quillan==0.10.3` adapter support;
+- exact optional `scoreform==0.12.0` adapter support;
+- exact optional `quillan==0.10.5` adapter support;
 - exact optional `pds-concord==0.3.0` adapter support;
-- exact authentication of the official Core v0.6.3 wheel in baseline CI;
+- exact authentication of the official Core v0.6.4 wheel in candidate CI;
 - the installed teacher-facing `meridian` / `meridian menu` application, with named direct commands remaining noninteractive;
 - seven independently invocable issue #41 task-oriented teacher workflows;
 - five independently invocable issue #42 read-only explanation/trace targets;

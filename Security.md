@@ -1,19 +1,22 @@
 # Security Policy
 
 PDS Meridian processes academic evidence and teacher-authored interpretation
-state that may contain sensitive educational information. The v0.2 release
+state that may contain sensitive educational information. The v0.3 release
 line includes publication/evidence diagnostics, authorization-gated protected
-evidence inspection, teacher-controlled proficiency calculation, explanation
-traces, planning-signal review/export, and privacy-minimal attention summaries.
+evidence inspection, teacher-controlled proficiency and Grade calculation,
+explanation traces, ReportingSnapshots, explicit local report exports,
+planning-signal review/export, and privacy-minimal attention summaries.
 
-Meridian v0.2 does not calculate conventional Grades, issue reports, or provide
-institutional authentication or authorization policy.
+Meridian v0.3 does not provide institutional authentication or authorization
+policy and does not write Grades/reports directly to an SIS, LMS, or district
+gradebook.
 
 ## Supported versions
 
-Security fixes for the v0.2 line target the latest `0.2.x` release.
+Security fixes for the v0.3 line target the latest `0.3.x` release.
 
-The `0.1.1` line is historical and is not the active maintenance target.
+The `0.2.x` and `0.1.1` lines are historical and are not the active maintenance
+target.
 This policy does not establish a service-level commitment.
 
 ## Reporting a vulnerability

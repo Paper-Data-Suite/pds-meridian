@@ -13,14 +13,14 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.2.0"
+EXPECTED_VERSION = "0.3.0"
 EXPECTED_SUMMARY = (
-    "Teacher-controlled evidence, proficiency, and planning exports "
-    "for Paper Data Suite"
+    "Teacher-controlled evidence, proficiency, Grades, reporting, and "
+    "planning for Paper Data Suite"
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
-EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.11.0; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.3; extra == 'quillan'")
+EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.12.0; extra == 'scoreform'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.5; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
     "paper_data_suite.module_operations"
@@ -168,11 +168,11 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _scoreform_requirements(metadata) != [EXPECTED_SCOREFORM_EXTRA]:
         raise PackageValidationError(
-            "The scoreform extra must pin exactly scoreform==0.11.0."
+            "The scoreform extra must pin exactly scoreform==0.12.0."
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.10.3."
+            "The quillan extra must pin exactly quillan==0.10.5."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
