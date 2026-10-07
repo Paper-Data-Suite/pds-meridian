@@ -41,8 +41,8 @@ def test_issue61_substantive_audit_closes_at_zero_blockers() -> None:
         "Version promotion to `0.3.0`: **COMPLETED**"
         in audit
     )
-    assert "Tag/publication authorization: **PENDING**" in audit
-    assert "Fresh-download verification: **PENDING**" in audit
+    assert "Tag/publication authorization: **AUTHORIZED — COMPLETED**" in audit
+    assert "Fresh-download verification: **CONFORMS**" in audit
 
 
 def test_issue61_release_preparation_promotes_candidate_version() -> None:

@@ -66,7 +66,7 @@ def test_v03_release_framing_names_current_candidate_and_exact_siblings() -> Non
     assert "pds_meridian-0.3.0.tar.gz" in notes
 
 
-def test_v03_candidate_state_does_not_authorize_tag_or_publication() -> None:
+def test_v03_release_state_records_completed_publication() -> None:
     audit = (
         ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
@@ -78,5 +78,13 @@ def test_v03_candidate_state_does_not_authorize_tag_or_publication() -> None:
         "Candidate qualification: **CONFORMS**",
     )
     assert sum(state in release_authorization for state in candidate_states) == 1
-    assert "Tag/publication authorization: **PENDING**" in release_authorization
-    assert "Fresh-download verification: **PENDING**" in release_authorization
+    assert (
+        "Tag/publication authorization: **AUTHORIZED — COMPLETED**"
+        in release_authorization
+    )
+    assert "Fresh-download verification: **CONFORMS**" in release_authorization
+    assert "134b56209b031bc3a294551836ee96d1f97c291d" in release_authorization
+    assert (
+        "https://github.com/Paper-Data-Suite/pds-meridian/releases/tag/v0.3.0"
+        in release_authorization
+    )
