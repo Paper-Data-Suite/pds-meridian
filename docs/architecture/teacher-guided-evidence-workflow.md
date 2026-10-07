@@ -109,6 +109,43 @@ It may not derive the academic decision itself. It must not silently choose the
 latest attempt, highest score, first Grade Item, first Standard, eligibility
 disposition, or proficiency result.
 
+## Teacher evidence inbox read model
+
+Slice 3 adds a read-only `TeacherEvidenceInbox` projection over the existing
+Core publication discovery and Meridian support diagnostics. The default inbox
+query is finite, current-state-only, and limited to `academic_result_set`
+publications.
+
+The inbox retains exact hidden publication/work identity while presenting:
+
+```text
+teacher-created class_id
+canonical Academic Work Registration title
+producer label
+teacher-facing readiness / blocker status
+```
+
+For Issue #110, `class_id` is treated as practical teacher-facing class identity.
+It is chosen at class creation and is acceptable for normal selection even when
+its formatting is compact, such as `english_12_pd2`. Improving class display
+labels is a later presentation refinement, not a prerequisite for a usable
+grading workflow.
+
+This exception does not extend to infrastructure identity such as Publication
+IDs, cache keys, hashes, policy IDs, revision handles, or student IDs. Those
+remain hidden from the ordinary guided workflow.
+
+The projection does not open manifests, create projection caches, authorize
+evidence, persist read/unread state, or write an inbox database.
+
+The canonical referenced Academic Work Registration supplies the assignment
+title. If canonical state is unavailable, Meridian does not expose `work_id` as
+the assignment name.
+
+If two otherwise-ready publications would have the same class label, work
+title, and producer label, both are blocked as presentation-ambiguous rather
+than forcing the teacher to distinguish them by Publication ID.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

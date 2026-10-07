@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Issue #110 Slice 3 adds the read-only teacher evidence inbox projection over
+  bounded current Core `academic_result_set` discovery and existing Meridian
+  publication-support diagnostics. Teacher-created `class_id` is accepted as
+  practical class presentation while canonical Academic Work Registration titles
+  identify assignments. Stale candidates, unavailable or unsupported readers,
+  and indistinguishable current publications stay visible but blocked.
+  Publication IDs, cache keys, hashes, revision handles, student IDs, and other
+  infrastructure identity remain outside the ordinary guided workflow. No
+  manifest, projection, authorization, read/unread, or academic state is created.
+
 - Issue #110 Slice 2 adds bounded process-local teacher session context for exact
   active class, work, publication, Grade Item, and student identity. Normal child
   return and Main Menu unwind preserve valid context; changing class/work/

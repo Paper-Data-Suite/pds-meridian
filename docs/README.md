@@ -116,9 +116,12 @@ Standard, and Grade Item choices while preserving exact canonical identity
 internally. Slice 1 quarantines the existing Issue #57 raw-ID prompts as
 transitional legacy debt. Slice 2 adds bounded process-local teacher session
 context whose dependent selections clear on scope changes and whose complete
-state is discarded on terminal exit. Direct CLI remains exact and
-noninteractive, and the Meridian v0.3.1 exact producer-reader gates remain
-unchanged. See
+state is discarded on terminal exit. Slice 3 adds a read-only current Academic
+Result inbox projection that uses the teacher-created `class_id` as practical
+class presentation, uses canonical work titles, and keeps unsupported or stale
+publications visible as blocked candidates. Infrastructure identifiers remain
+hidden from the guided workflow. Direct CLI remains exact and noninteractive,
+and the Meridian v0.3.1 exact producer-reader gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the
