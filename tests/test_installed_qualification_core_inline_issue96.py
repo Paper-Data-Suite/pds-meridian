@@ -104,7 +104,7 @@ def test_issue96_grouping_contract_smoke_tracks_promoted_candidate_version() -> 
         "scripts/smoke_test_grouping_signal_contract_wheel.py"
     ).read_text(encoding="utf-8")
 
-    assert 'version("pds-meridian") == "0.3.0"' in source
+    assert 'version("pds-meridian") == "0.3.1"' in source
     assert 'version("pds-meridian") == "0.2.0"' not in source
 
 

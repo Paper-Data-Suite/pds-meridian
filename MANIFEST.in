@@ -4,5 +4,6 @@ include run_tests.ps1
 recursive-include docs *.md
 exclude docs/development/v0.2.0-release-audit.md
 exclude docs/development/v0.3.0-release-audit.md
+exclude docs/development/v0.3.1-release-audit.md
 recursive-include scripts *.py
 recursive-include tests *.py *.json

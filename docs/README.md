@@ -1,15 +1,15 @@
 # Meridian documentation
 
-Meridian v0.3.0 is the promoted release candidate for the complete
+Meridian v0.3.1 is the prepared compatibility candidate for the released v0.3
 teacher-controlled evidence-policy, standards-proficiency, Grade, explanation,
 reporting, attention, and planning architecture.
 
 Current candidate qualification uses exact released Core v0.6.4 plus optional
-ScoreForm v0.12.0, Quillan v0.10.5, and Concord v0.3.0 readers. Core remains the
+ScoreForm v0.12.1, Quillan v0.10.5, and Concord v0.3.0 readers. Core remains the
 only unconditional runtime dependency.
 
-The released v0.1.1 and v0.2.0 documentation remains historical release
-authority. In particular, the earlier handoff record remains:
+The released v0.3.0, v0.2.0, and v0.1.1 documentation remains historical
+release authority. In particular, the earlier handoff record remains:
 
 ```text
 #46 final v0.2.0 audit — implemented; release preparation qualified
@@ -20,8 +20,9 @@ The verified v0.2.0 optional producer boundary used exact
 remain historical v0.2 release facts rather than current v0.3 candidate
 authority.
 
-Issue #61 is the current v0.3 release authority; tag/publication remains pending
-until the promoted candidate passes final qualification.
+Issue #61 and its v0.3.0 records remain historical release authority. Issue
+#107 prepares the bounded v0.3.1 ScoreForm compatibility patch; tag/publication
+remains pending owner authorization.
 
 Meridian v0.3.0 implements issue #48's accepted
 architecture for Grade policy, advisory Grade previews, immutable teacher
@@ -187,6 +188,8 @@ Issue #60 adds final cross-policy adversarial and installed acceptance for the v
 53. [Cross-policy adversarial acceptance](architecture/cross-policy-adversarial-acceptance.md)
 54. [v0.3.0 release notes](development/v0.3.0-release-notes.md)
 55. [v0.3.0 release audit](development/v0.3.0-release-audit.md)
+56. [v0.3.1 release notes](development/v0.3.1-release-notes.md)
+57. [v0.3.1 compatibility release preparation](development/v0.3.1-release-audit.md)
 
 
 ## Development foundation
@@ -195,7 +198,7 @@ The package foundation provides:
 
 - Python `>=3.11` support;
 - `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
-- exact optional `scoreform==0.12.0` adapter support;
+- exact optional `scoreform==0.12.1` adapter support;
 - exact optional `quillan==0.10.5` adapter support;
 - exact optional `pds-concord==0.3.0` adapter support;
 - exact authentication of the official Core v0.6.4 wheel in candidate CI;

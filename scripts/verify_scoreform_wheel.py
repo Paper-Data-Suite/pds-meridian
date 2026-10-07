@@ -1,4 +1,4 @@
-"""Authenticate the exact released ScoreForm v0.12.0 wheel and installation."""
+"""Authenticate the exact released ScoreForm v0.12.1 wheel and installation."""
 
 from __future__ import annotations
 
@@ -13,10 +13,17 @@ from pathlib import Path, PurePosixPath
 
 SCOREFORM_DISTRIBUTION_NAME = "scoreform"
 SCOREFORM_IMPORT_NAME = "scoreform"
-EXPECTED_SCOREFORM_VERSION = "0.12.0"
-EXPECTED_SCOREFORM_WHEEL_FILENAME = "scoreform-0.12.0-py3-none-any.whl"
+EXPECTED_SCOREFORM_VERSION = "0.12.1"
+EXPECTED_SCOREFORM_RELEASE_TAG = "v0.12.1"
+EXPECTED_SCOREFORM_RELEASE_COMMIT = (
+    "8c3decf64040fd1da839b6f59f19c9ed344ce579"
+)
+EXPECTED_SCOREFORM_RELEASE_TREE = (
+    "bcc6270319b6234f000d348452072ab8943a2558"
+)
+EXPECTED_SCOREFORM_WHEEL_FILENAME = "scoreform-0.12.1-py3-none-any.whl"
 EXPECTED_SCOREFORM_WHEEL_SHA256 = (
-    "84ad10ada72a99bebd5455d8c18a0725f9406f8279e57156f3e424efa5678d20"
+    "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
 )
 EXPECTED_READER_MEMBER = "scoreform/academic_result_reader.py"
 
@@ -83,7 +90,7 @@ def verify_scoreform_wheel(path: str | Path) -> None:
         )
     if metadata["Version"] != EXPECTED_SCOREFORM_VERSION:
         raise ScoreFormVerificationError(
-            "ScoreForm wheel version is not exactly 0.12.0."
+            "ScoreForm wheel version is not exactly 0.12.1."
         )
     if EXPECTED_READER_MEMBER not in names:
         raise ScoreFormVerificationError(
@@ -100,7 +107,7 @@ def verify_installed_scoreform() -> None:
         ) from error
     if version != EXPECTED_SCOREFORM_VERSION:
         raise ScoreFormVerificationError(
-            f"Installed scoreform must be exactly 0.12.0; found {version}."
+            f"Installed scoreform must be exactly 0.12.1; found {version}."
         )
     import scoreform
     from scoreform import academic_result_reader

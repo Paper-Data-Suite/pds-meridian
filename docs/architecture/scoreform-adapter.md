@@ -1,15 +1,17 @@
 # ScoreForm adapter
 
-Released Meridian v0.1.1 qualified ScoreForm v0.10.0. Beginning with issue
-#34, current unreleased v0.2 development qualifies ScoreForm v0.11.0.
-ScoreForm v0.11.0 preserves the public Academic Work, publication-manifest,
-record-set, capability, and public-reader contracts used by this adapter, so
-the projection semantics below are unchanged. This current qualification
-update does not rewrite the released v0.1.1 baseline.
+Released Meridian v0.3.0 qualified ScoreForm v0.12.0. Issue #107 prepares
+Meridian v0.3.1 by qualifying the exact released ScoreForm v0.12.1 reader.
+ScoreForm v0.12.1 corrects validation of punctuation-bearing durable Standards
+Profile and Standard identities while retaining the public Academic Work,
+publication-manifest, record-set, capability, and v1 reader contracts used by
+this adapter. Released Meridian v0.1.1 qualified ScoreForm v0.10.0, and the
+v0.2 line qualified ScoreForm v0.11.0. Those historical release records and
+v0.3.0 release evidence remain unchanged.
 
 ## Compatibility and installation
 
-`meridian.scoreform_adapter` currently supports only completed `scoreform==0.11.0`,
+`meridian.scoreform_adapter` supports exactly `scoreform==0.12.1`,
 publication kind `academic_result_set`, Academic Work contract
 `scoreform_academic_work_v1`, manifest contract
 `scoreform_academic_result_manifest_v1`, record set `academic_results`, no
@@ -19,14 +21,14 @@ source record, and exactly `points`, `question_evidence`, and
 Install the authenticated GitHub Release wheels before Meridian:
 
 ```powershell
-python -m pip install .\pds_core-0.6.3-py3-none-any.whl
-python -m pip install .\scoreform-0.11.0-py3-none-any.whl
+python -m pip install .\pds_core-0.6.4-py3-none-any.whl
+python -m pip install .\scoreform-0.12.1-py3-none-any.whl
 python -m pip install ".[scoreform]"
 python -m pip check
 ```
 
 The active development base dependency is `pds-core>=0.6.3,<0.7`. The optional
-extra pins `scoreform==0.11.0`; 0.10.0, 0.11.1, and every other version fail with
+extra pins `scoreform==0.12.1`; 0.12.0, 0.12.2, and every other version fail with
 `adapters.reader_version_unsupported`. Absence fails with
 `adapters.reader_unavailable`. Installing ScoreForm does not enable anything:
 
@@ -65,8 +67,11 @@ independent boolean `question_correctness`:
   `NativeStateValue("ambiguous")`.
 
 Attempt targets are `attempt_N`. Question targets are `question_Q`, parented to
-the attempt, and retain ordered `standard_ids` as alignments only. No standards
-rating is created. Eligibility is always unevaluated.
+the attempt, and retain ordered `standard_ids` exactly as producer-native
+alignments. The assignment's exact `standards_profile_id` is retained as a
+producer-native `standards_profile` provenance reference. Meridian does not
+slug, transliterate, relabel, resolve, or substitute either identity. No
+standards rating is created. Eligibility is always unevaluated.
 
 Every attempt survives independently. The adapter applies no official,
 current, latest, highest, best, replacement, selected, preferred, or
@@ -76,7 +81,7 @@ Grade, portfolio eligibility, or report state.
 ## Identity and provenance
 
 Each item has projection `scoreform.academic_result`, projection contract `1`,
-reader distribution `scoreform`, and reader version `0.11.0`, plus the exact
+reader distribution `scoreform`, and reader version `0.12.1`, plus the exact
 Publication Record, referenced registration, and matching withdrawal.
 
 Item IDs are `scoreform_` plus 64 lowercase SHA-256 hex characters. The digest

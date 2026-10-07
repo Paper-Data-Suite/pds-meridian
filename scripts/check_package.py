@@ -13,13 +13,13 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.3.0"
+EXPECTED_VERSION = "0.3.1"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
-EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.12.0; extra == 'scoreform'")
+EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.12.1; extra == 'scoreform'")
 EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.5; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
@@ -168,7 +168,7 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _scoreform_requirements(metadata) != [EXPECTED_SCOREFORM_EXTRA]:
         raise PackageValidationError(
-            "The scoreform extra must pin exactly scoreform==0.12.0."
+            "The scoreform extra must pin exactly scoreform==0.12.1."
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(

@@ -2,9 +2,9 @@
 
 ## Status
 
-Meridian v0.3.0 is the promoted release candidate for the complete
+Meridian v0.3.1 is the prepared compatibility candidate for the released v0.3
 teacher-controlled evidence-policy, standards-proficiency, Grade, explanation,
-reporting, attention, and planning surface. The released v0.1.1 and v0.2.0
+reporting, attention, and planning surface. Released v0.3.0, v0.2.0, and v0.1.1
 packages remain historical release foundations.
 
 The v0.3 package retains publication/evidence and proficiency authority while
@@ -18,7 +18,7 @@ Suite readiness integration, and bounded canonical storage paths.
 - Python 3.11 or later
 - the authenticated `pds-core` v0.6 line
 - the exact Core v0.6.4 wheel for candidate qualification
-- the exact authenticated ScoreForm v0.12.0 wheel for adapter validation
+- the exact authenticated ScoreForm v0.12.1 wheel for adapter validation
 - the exact authenticated Quillan v0.10.5 wheel for adapter validation
 - the exact authenticated Concord v0.3.0 wheel for adapter validation
 
@@ -35,7 +35,7 @@ PyPI. Install the exact qualified wheels before installing Meridian:
 
 ```powershell
 python -m pip install .\pds_core-0.6.4-py3-none-any.whl
-python -m pip install .\scoreform-0.12.0-py3-none-any.whl
+python -m pip install .\scoreform-0.12.1-py3-none-any.whl
 python -m pip install .\quillan-0.10.5-py3-none-any.whl
 python -m pip install .\pds_concord-0.3.0-py3-none-any.whl
 python -m pip install -e ".[dev]" --no-deps
@@ -53,7 +53,7 @@ From an activated repository virtual environment:
 ```powershell
 .\run_tests.ps1 `
   -CoreWheel C:\path\to\pds_core-0.6.4-py3-none-any.whl `
-  -ScoreFormWheel C:\path\to\scoreform-0.12.0-py3-none-any.whl `
+  -ScoreFormWheel C:\path\to\scoreform-0.12.1-py3-none-any.whl `
   -QuillanWheel C:\path\to\quillan-0.10.5-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl
 ```

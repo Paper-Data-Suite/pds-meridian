@@ -114,7 +114,7 @@ def _installed_origin(module_name: str) -> None:
 
 def _verify_installed_composition() -> None:
     _require(metadata.version("pds-core") == "0.6.4", "Core version mismatch.")
-    _require(metadata.version("scoreform") == "0.12.0", "ScoreForm version mismatch.")
+    _require(metadata.version("scoreform") == "0.12.1", "ScoreForm version mismatch.")
     _require(metadata.version("quillan") == "0.10.5", "Quillan version mismatch.")
     _require(
         meridian.__version__ == metadata.version("pds-meridian"),

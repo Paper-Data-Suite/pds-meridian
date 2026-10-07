@@ -45,12 +45,14 @@ def test_issue61_substantive_audit_closes_at_zero_blockers() -> None:
     assert "Fresh-download verification: **CONFORMS**" in audit
 
 
-def test_issue61_release_preparation_promotes_candidate_version() -> None:
+def test_current_patch_version_advances_without_rewriting_issue61_audit() -> None:
     version = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
+    audit = AUDIT.read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.3.0"' in version
-    assert check_package.EXPECTED_VERSION == "0.3.0"
-    assert check_sdist.EXPECTED_VERSION == "0.3.0"
+    assert '__version__: Final[str] = "0.3.1"' in version
+    assert check_package.EXPECTED_VERSION == "0.3.1"
+    assert check_sdist.EXPECTED_VERSION == "0.3.1"
+    assert "Candidate package version: **0.3.0**" in audit
 
 
 def test_issue61_candidate_validator_attempt_one_is_recorded() -> None:

@@ -98,7 +98,7 @@ def _verify_installed() -> None:
     issue54._verify_installed_composition()
     expected = {
         "pds-core": "0.6.4",
-        "scoreform": "0.12.0",
+        "scoreform": "0.12.1",
         "quillan": "0.10.5",
         "pds-concord": "0.3.0",
     }

@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.3.0"
+EXPECTED_VERSION = "0.3.1"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -28,6 +28,7 @@ REQUIRED_MEMBERS = frozenset(
         "docs/README.md",
         "docs/development/v0.2.0-release-notes.md",
         "docs/development/v0.3.0-release-notes.md",
+        "docs/development/v0.3.1-release-notes.md",
         "docs/development/installed-qualification-matrix.md",
         "docs/architecture/attempt-selection-policy-and-decisions.md",
         "docs/architecture/evidence-eligibility-decisions.md",
@@ -225,6 +226,7 @@ REQUIRED_MEMBERS = frozenset(
         "scripts/smoke_program_explanation_traces.py",
         "scripts/smoke_test_teacher_workflows_wheel.py",
         "scripts/smoke_test_teacher_menu_wheel.py",
+        "scripts/smoke_program_scoreform_standards_identity.py",
         "scripts/smoke_program_teacher_workflows.py",
         "scripts/smoke_test_attention_wheel.py",
         "scripts/smoke_program_attention.py",
@@ -590,6 +592,7 @@ FORBIDDEN_EXACT_MEMBERS = frozenset(
     {
         "docs/development/v0.2.0-release-audit.md",
         "docs/development/v0.3.0-release-audit.md",
+        "docs/development/v0.3.1-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (

@@ -12,10 +12,10 @@ EXPECTED_SUMMARY = (
 )
 
 
-def test_v03_candidate_version_and_package_summary_are_promoted() -> None:
-    assert meridian.__version__ == "0.3.0"
-    assert check_package.EXPECTED_VERSION == "0.3.0"
-    assert check_sdist.EXPECTED_VERSION == "0.3.0"
+def test_v03_line_patch_version_and_package_summary_are_promoted() -> None:
+    assert meridian.__version__ == "0.3.1"
+    assert check_package.EXPECTED_VERSION == "0.3.1"
+    assert check_sdist.EXPECTED_VERSION == "0.3.1"
     assert check_package.EXPECTED_SUMMARY == EXPECTED_SUMMARY
     assert check_sdist.EXPECTED_SUMMARY == EXPECTED_SUMMARY
 
@@ -34,7 +34,7 @@ def test_v03_release_notes_are_packaged_and_audit_stays_repository_only() -> Non
     assert f"exclude {audit}" in manifest
 
 
-def test_v03_release_framing_names_current_candidate_and_exact_siblings() -> None:
+def test_v03_release_framing_preserves_history_and_names_current_siblings() -> None:
     readme = (ROOT / "README").read_text(encoding="utf-8")
     docs_readme = (ROOT / "docs/README.md").read_text(encoding="utf-8")
     foundation = (
@@ -48,13 +48,13 @@ def test_v03_release_framing_names_current_candidate_and_exact_siblings() -> Non
 
     for document in (readme, docs_readme, foundation):
         assert "Core v0.6.4" in document
-        assert "ScoreForm v0.12.0" in document
+        assert "ScoreForm v0.12.1" in document
         assert "Quillan v0.10.5" in document
         assert "Concord v0.3.0" in document
 
-    assert "Meridian v0.3.0 is the promoted release candidate" in readme
-    assert "Meridian v0.3.0 is the promoted release candidate" in docs_readme
-    assert "Meridian v0.3.0 is the promoted release candidate" in foundation
+    assert "Meridian v0.3.1 is the prepared compatibility candidate" in readme
+    assert "Meridian v0.3.1 is the prepared compatibility candidate" in docs_readme
+    assert "Meridian v0.3.1 is the prepared compatibility candidate" in foundation
     assert (
         "Security fixes for the v0.3 line target the latest `0.3.x` release."
         in security

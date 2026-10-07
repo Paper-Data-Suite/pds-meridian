@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-No unreleased changes.
+- Issue #107 prepares Meridian v0.3.1 by advancing the exact optional ScoreForm
+  reader qualification from 0.12.0 to 0.12.1. The authenticated 0.12.1 public
+  reader accepts punctuation-bearing durable Standards Profile and Standard
+  identities through the existing v1 manifest and adapter boundary without
+  rewriting them, mutating source evidence, selecting attempts, or inferring
+  proficiency, mastery, currentness, official evidence, or Grade authority.
+  Installed acceptance remains within the existing six Issue #96 matrices.
 
 ## 0.3.0 — 2026-10-06
 

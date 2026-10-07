@@ -9,6 +9,10 @@ import tempfile
 import venv
 from pathlib import Path
 
+SCOREFORM_STANDARDS_IDENTITY_PROGRAM = (
+    Path(__file__).with_name("smoke_program_scoreform_standards_identity.py")
+)
+
 
 def _isolated_environment() -> dict[str, str]:
     """Return a subprocess environment that cannot inherit source-tree hooks."""
@@ -230,7 +234,7 @@ def run_scoreform_adapter_prepared_smoke(python: Path, outside: Path) -> None:
                 "registry=AdapterRegistry((ScoreFormAcademicResultAdapter(),)); "
                 "assert registry.bindings[0].descriptor.adapter_id == "
                 "'scoreform.academic_result'; "
-                "assert m.version('scoreform') == '0.12.0'; "
+                "assert m.version('scoreform') == '0.12.1'; "
                 "assert callable(read_academic_result_manifest); "
                 "import meridian, pathlib, pds_core, scoreform, sys; "
                 "root=pathlib.Path(sys.prefix).resolve(); "
@@ -242,6 +246,10 @@ def run_scoreform_adapter_prepared_smoke(python: Path, outside: Path) -> None:
                 ".is_relative_to(root)"
             ),
         ],
+        outside,
+    )
+    _run(
+        [str(python), str(SCOREFORM_STANDARDS_IDENTITY_PROGRAM.resolve())],
         outside,
     )
     _assert_empty(outside)
@@ -431,7 +439,7 @@ def run_all_adapters_prepared_smoke(python: Path, outside: Path) -> None:
                 "'concord.academic_result'}; "
                 "assert len(registry.bindings) == 3; "
                 "assert m.version('pds-core') == '0.6.4'; "
-                "assert m.version('scoreform') == '0.12.0'; "
+                "assert m.version('scoreform') == '0.12.1'; "
                 "assert m.version('quillan') == '0.10.5'; "
                 "assert m.version('pds-concord') == '0.3.0'; "
                 "assert callable(read_scoreform); "
