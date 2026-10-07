@@ -56,18 +56,26 @@ def test_v031_release_records_preserve_v030_history() -> None:
         assert "0.12.1" not in historical
 
 
-def test_v031_release_only_actions_remain_owner_gated() -> None:
+def test_v031_release_state_records_completed_publication() -> None:
     audit = _read("docs/development/v0.3.1-release-audit.md")
 
     for required in (
-        "RELEASE NOT AUTHORIZED",
-        "exact post-merge `main` qualification",
-        "freezing the exact `main` source commit",
-        "creation and push of tag `v0.3.1`",
-        "GitHub Release publication",
-        "independent fresh-download",
+        "Status: **RELEASED - FRESH-DOWNLOAD VERIFIED**",
+        "Tag/publication authorization: **AUTHORIZED - COMPLETED**",
+        "Fresh-download verification: **CONFORMS**",
+        "33272a27574350817c03e215a9615da8c2011ea4",
+        "2ee43b5838c86c4a61ab691dcc55ff5742b0b4c8",
+        "9238a70a71a6ca41330ac3c33fc445b8028bf5bed501975daebe9ff771290a69",
+        "c7272f6884faf02f9afc9c6c35938e02f42a3ed8ca927fb70c7afe6b0848c116",
+        "https://github.com/Paper-Data-Suite/pds-meridian/releases/tag/v0.3.1",
+        "2026-10-07T09:43:12Z",
+        "Physical acceptance for this software-only compatibility patch is",
+        "`not_applicable`",
     ):
         assert required in audit
+
+    assert "RELEASE NOT AUTHORIZED" not in audit
+    assert "PENDING RELEASE PUBLICATION" not in audit
 
 
 def test_v031_installed_programs_require_the_candidate_version() -> None:
