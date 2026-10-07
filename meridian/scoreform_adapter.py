@@ -1,4 +1,4 @@
-"""Exact ScoreForm v0.12.0 academic-result evidence projection."""
+"""Exact ScoreForm v0.12.1 academic-result evidence projection."""
 
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ __all__ = [
 SCOREFORM_ADAPTER_ID: Final = "scoreform.academic_result"
 SCOREFORM_PROJECTION_CONTRACT_VERSION: Final = "1"
 SCOREFORM_READER_DISTRIBUTION: Final = "scoreform"
-SCOREFORM_READER_VERSION: Final = "0.12.0"
+SCOREFORM_READER_VERSION: Final = "0.12.1"
 _SCOREFORM_RECORD_SET_ID: Final = "academic_results"
 _SCOREFORM_CAPABILITIES: Final[frozenset[PublicationCapability]] = frozenset(
     {"points", "question_evidence", "multiple_attempts"}
@@ -141,6 +141,14 @@ def _native_provenance(
     question_number: int | None,
 ) -> NativeProvenance:
     references = [NativeReference(kind="attempt", sequence=attempt.attempt_number)]
+    standards_profile_id = manifest.assignment.standards_profile_id
+    if standards_profile_id is not None:
+        references.append(
+            NativeReference(
+                kind="standards_profile",
+                identifier=standards_profile_id,
+            )
+        )
     if question_number is not None:
         references.append(NativeReference(kind="question", sequence=question_number))
 

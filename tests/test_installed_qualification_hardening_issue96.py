@@ -33,7 +33,7 @@ def _write_wheel(path: Path, distribution: str, version: str) -> None:
 
 def _wheels(tmp_path: Path) -> InstalledWheelSet:
     specs = (
-        ("meridian", "pds_meridian-0.3.0-py3-none-any.whl", "pds-meridian", "0.3.0"),
+        ("meridian", "pds_meridian-0.3.1-py3-none-any.whl", "pds-meridian", "0.3.1"),
         ("core", "pds_core-0.6.4-py3-none-any.whl", "pds-core", "0.6.4"),
         ("scoreform", "scoreform-0.11.0-py3-none-any.whl", "scoreform", "0.11.0"),
         ("quillan", "quillan-0.10.3-py3-none-any.whl", "quillan", "0.10.3"),
@@ -82,7 +82,7 @@ def test_issue96_matrix_expected_distributions_come_from_supplied_wheels(
         ("pds-core", "0.6.4"),
         ("scoreform", "0.11.0"),
         ("quillan", "0.10.3"),
-        ("pds-meridian", "0.3.0"),
+        ("pds-meridian", "0.3.1"),
     )
 
 
@@ -118,7 +118,7 @@ def test_issue96_origin_probe_checks_distribution_versions_and_absence(
     assert "('pds-core', '0.6.4')" in code
     assert "('scoreform', '0.11.0')" in code
     assert "('quillan', '0.10.3')" in code
-    assert "('pds-meridian', '0.3.0')" in code
+    assert "('pds-meridian', '0.3.1')" in code
     assert "absent_distributions=('pds-concord',)" in code
     assert "metadata.version(distribution) == version" in code
     assert "metadata.PackageNotFoundError" in code

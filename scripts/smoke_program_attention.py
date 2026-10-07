@@ -72,9 +72,9 @@ def _tree_state(root: Path) -> tuple[tuple[str, str], ...]:
 def _assert_isolated_install() -> None:
     if metadata.version("pds-core") != "0.6.4":
         raise RuntimeError("Installed #43 smoke requires exact pds-core 0.6.4.")
-    if metadata.version("pds-meridian") != "0.3.0":
+    if metadata.version("pds-meridian") != "0.3.1":
         raise RuntimeError(
-            "Installed #43 smoke requires the candidate Meridian 0.3.0 wheel."
+            "Installed #43 smoke requires the candidate Meridian 0.3.1 wheel."
         )
 
     for module_name in SIBLING_MODULES:

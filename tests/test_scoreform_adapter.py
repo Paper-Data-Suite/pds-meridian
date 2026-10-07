@@ -50,7 +50,7 @@ def test_descriptor_is_the_exact_released_contract() -> None:
     assert SCOREFORM_ADAPTER_ID == "scoreform.academic_result"
     assert SCOREFORM_PROJECTION_CONTRACT_VERSION == "1"
     assert SCOREFORM_READER_DISTRIBUTION == "scoreform"
-    assert SCOREFORM_READER_VERSION == "0.12.0"
+    assert SCOREFORM_READER_VERSION == "0.12.1"
     assert descriptor.adapter_id == SCOREFORM_ADAPTER_ID
     assert descriptor.adapter_interface_version == MERIDIAN_ADAPTER_INTERFACE_VERSION
     assert descriptor.projection_contract_version == "1"
@@ -60,7 +60,7 @@ def test_descriptor_is_the_exact_released_contract() -> None:
     assert descriptor.supported_capabilities == frozenset(
         {"points", "question_evidence", "multiple_attempts"}
     )
-    assert descriptor.supported_producer_reader_versions == frozenset({"0.12.0"})
+    assert descriptor.supported_producer_reader_versions == frozenset({"0.12.1"})
 
 
 def test_import_descriptor_registry_and_selection_are_lazy() -> None:
@@ -83,7 +83,7 @@ assert set(sys.modules) >= before
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize("version", ["0.10.0", "0.11.1"])
+@pytest.mark.parametrize("version", ["0.10.0", "0.12.0", "0.12.2"])
 def test_unsupported_reader_versions_fail_before_projection(version: str) -> None:
     registry = AdapterRegistry((ScoreFormAcademicResultAdapter(),))
     with pytest.raises(ProducerReaderVersionUnsupportedError):
@@ -153,8 +153,8 @@ def test_wrong_exact_contract_keys_are_not_selected() -> None:
 def test_projection_preserves_every_student_attempt_response_and_order() -> None:
     request = projection_request(withdrawal=True)
     registry = AdapterRegistry((ScoreFormAcademicResultAdapter(),))
-    first = registry.invoke(request, lambda _: "0.12.0")
-    second = registry.invoke(request, lambda _: "0.12.0")
+    first = registry.invoke(request, lambda _: "0.12.1")
+    second = registry.invoke(request, lambda _: "0.12.1")
     assert first == second
     assert len(first.items) == 24
     assert len({item.item_id for item in first.items}) == 24
@@ -218,7 +218,7 @@ def test_projection_preserves_every_student_attempt_response_and_order() -> None
 
 def test_projection_preserves_ordered_alignment_and_native_provenance() -> None:
     inventory = AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
-        projection_request(), lambda _: "0.12.0"
+        projection_request(), lambda _: "0.12.1"
     )
     question = next(
         item
@@ -246,6 +246,7 @@ def test_projection_preserves_ordered_alignment_and_native_provenance() -> None:
     assert pds.artifacts[2].digest == "3" * 64
     assert [reference.kind for reference in pds.references] == [
         "attempt",
+        "standards_profile",
         "issuance",
         "generation",
         "artifact",
@@ -256,17 +257,79 @@ def test_projection_preserves_ordered_alignment_and_native_provenance() -> None:
         "source_page",
     ]
     manual = inventory.items[8].provenance.native
-    assert [reference.kind for reference in manual.references] == ["attempt"]
+    assert [reference.kind for reference in manual.references] == [
+        "attempt",
+        "standards_profile",
+    ]
     assert all(artifact.kind != "retained_source" for artifact in manual.artifacts)
     review = inventory.items[16].provenance.native
     assert [reference.kind for reference in review.references] == [
         "attempt",
+        "standards_profile",
         "review_failure",
     ]
     question_refs = inventory.items[2].provenance.native.references
     assert question_refs[0].sequence == 1
-    assert question_refs[1].kind == "question"
-    assert question_refs[1].sequence == 1
+    assert question_refs[1].kind == "standards_profile"
+    assert question_refs[1].identifier == "synthetic_profile"
+    assert question_refs[2].kind == "question"
+    assert question_refs[2].sequence == 1
+
+
+def test_projection_preserves_punctuation_bearing_standards_identities() -> None:
+    profile_id = "english12.njsls.2023"
+    standard_ids = (
+        "njsls-ela.TS.11-12.4",
+        "njsls-ela.NW.11-12.3.D",
+        "njsls-ela:RL.TS.11-12.4",
+        "njsls-ela:W.NW.11-12.3.D",
+    )
+    source = scoreform_manifest_bytes(
+        primary_standard_id=standard_ids[0],
+        additional_primary_standard_ids=standard_ids[1:],
+        standards_profile_id=profile_id,
+    )
+    source_before = bytes(source)
+    request = AdapterProjectionRequest(
+        scoreform_publication(source),
+        scoreform_registration(),
+        None,
+        source,
+    )
+
+    from scoreform.academic_result_reader import read_academic_result_manifest
+
+    parsed = read_academic_result_manifest(source)
+    inventory = AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
+        request,
+        lambda _: "0.12.1",
+    )
+
+    assert parsed.contract_version == "scoreform_academic_result_manifest_v1"
+    assert parsed.assignment.standards_profile_id == profile_id
+    assert parsed.assignment.questions[0].standard_ids[:-1] == standard_ids
+    assert request.manifest_bytes == source_before
+    projected = tuple(
+        item
+        for item in inventory.items
+        if item.target.target_id == "question_1"
+    )
+    assert projected
+    assert all(item.target.standard_ids[:-1] == standard_ids for item in projected)
+    assert all(
+        any(
+            reference.kind == "standards_profile"
+            and reference.identifier == profile_id
+            for reference in item.provenance.native.references
+        )
+        for item in inventory.items
+    )
+    assert all(item.eligibility.status == "unevaluated" for item in inventory.items)
+    assert not any(
+        token in item.result_kind
+        for item in inventory.items
+        for token in ("proficiency", "mastery", "grade", "official", "current")
+    )
 
 
 @pytest.mark.parametrize(
@@ -301,7 +364,7 @@ def test_cross_contract_mismatches_fail_privately(change: str) -> None:
     )
     with pytest.raises(AdapterProjectionError) as raised:
         AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
-            request, lambda _: "0.12.0"
+            request, lambda _: "0.12.1"
         )
     text = str(raised.value)
     assert "student_synthetic" not in text
@@ -319,7 +382,7 @@ def test_noncanonical_manifest_and_reader_import_failure_are_wrapped(
     )
     registry = AdapterRegistry((ScoreFormAcademicResultAdapter(),))
     with pytest.raises(AdapterProjectionError) as raised:
-        registry.invoke(malformed_request, lambda _: "0.12.0")
+        registry.invoke(malformed_request, lambda _: "0.12.1")
     assert raised.value.__cause__ is not None
     assert malformed.decode() not in str(raised.value)
 

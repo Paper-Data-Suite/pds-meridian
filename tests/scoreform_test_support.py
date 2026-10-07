@@ -1,4 +1,4 @@
-"""Privacy-safe ScoreForm v0.10.0 test publication builders."""
+"""Privacy-safe ScoreForm v0.12.1 test publication builders."""
 
 from __future__ import annotations
 
@@ -30,6 +30,8 @@ def scoreform_manifest_bytes(
     primary_student_id: str = "student_synthetic_001",
     secondary_student_id: str = "student_synthetic_002",
     primary_standard_id: str = "standard_reading_1",
+    additional_primary_standard_ids: tuple[str, ...] = (),
+    standards_profile_id: str = "synthetic_profile",
 ) -> bytes:
     """Build exact canonical bytes with the released producer model serializer."""
     from scoreform.academic_result_manifest import (
@@ -52,7 +54,15 @@ def scoreform_manifest_bytes(
     )
 
     questions = (
-        Question(1, 1, (primary_standard_id, "standard_close_reading")),
+        Question(
+            1,
+            1,
+            (
+                primary_standard_id,
+                *additional_primary_standard_ids,
+                "standard_close_reading",
+            ),
+        ),
         Question(2, 1, ("standard_reading_2",)),
         Question(3, 1, ()),
     )
@@ -124,7 +134,7 @@ def scoreform_manifest_bytes(
             "standard_15q_abcd_v1",
             ("A", "B", "C", "D"),
             3,
-            "synthetic_profile",
+            standards_profile_id,
             questions,
         ),
         (

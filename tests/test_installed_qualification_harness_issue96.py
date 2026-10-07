@@ -32,7 +32,7 @@ def _write_wheel(path: Path, distribution: str, version: str) -> None:
 
 def _wheels(tmp_path: Path) -> InstalledWheelSet:
     specs = (
-        ("meridian", "pds_meridian-0.3.0-py3-none-any.whl", "pds-meridian", "0.3.0"),
+        ("meridian", "pds_meridian-0.3.1-py3-none-any.whl", "pds-meridian", "0.3.1"),
         ("core", "pds_core-0.6.4-py3-none-any.whl", "pds-core", "0.6.4"),
         ("scoreform", "scoreform-0.11.0-py3-none-any.whl", "scoreform", "0.11.0"),
         ("quillan", "quillan-0.10.3-py3-none-any.whl", "quillan", "0.10.3"),
@@ -142,7 +142,7 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
             return subprocess.CompletedProcess(
                 command,
                 0,
-                stdout="pds-core==0.6.4\npds-meridian==0.3.0\n"
+                stdout="pds-core==0.6.4\npds-meridian==0.3.1\n"
                 "quillan==0.10.3\nscoreform==0.11.0\n",
                 stderr="",
             )
@@ -155,7 +155,7 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
         assert len(created) == 1
         assert prepared.package_fingerprint == (
             "pds-core==0.6.4",
-            "pds-meridian==0.3.0",
+            "pds-meridian==0.3.1",
             "quillan==0.10.3",
             "scoreform==0.11.0",
         )
@@ -192,7 +192,7 @@ def test_issue96_prepare_installs_and_checks_matrix_once(
         assert "('pds-core', '0.6.4')" in origin_code
         assert "('scoreform', '0.11.0')" in origin_code
         assert "('quillan', '0.10.3')" in origin_code
-        assert "('pds-meridian', '0.3.0')" in origin_code
+        assert "('pds-meridian', '0.3.1')" in origin_code
         assert "absent_distributions=('pds-concord',)" in origin_code
 
     assert not any(tmp_path.glob("pds-meridian-scoreform-quillan-*"))
@@ -221,7 +221,7 @@ def test_issue96_prepared_matrix_cannot_be_prepared_twice(
             return subprocess.CompletedProcess(
                 command,
                 0,
-                stdout="pds-core==0.6.4\npds-meridian==0.3.0\n",
+                stdout="pds-core==0.6.4\npds-meridian==0.3.1\n",
                 stderr="",
             )
         return subprocess.CompletedProcess(command, 0, stdout="", stderr="")

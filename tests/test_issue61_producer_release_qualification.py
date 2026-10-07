@@ -20,12 +20,12 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_issue61_exact_latest_direct_producer_artifacts_are_pinned() -> None:
-    assert EXPECTED_SCOREFORM_VERSION == "0.12.0"
+    assert EXPECTED_SCOREFORM_VERSION == "0.12.1"
     assert EXPECTED_SCOREFORM_WHEEL_FILENAME == (
-        "scoreform-0.12.0-py3-none-any.whl"
+        "scoreform-0.12.1-py3-none-any.whl"
     )
     assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
-        "84ad10ada72a99bebd5455d8c18a0725f9406f8279e57156f3e424efa5678d20"
+        "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
     )
 
     assert EXPECTED_QUILLAN_VERSION == "0.10.5"
@@ -41,11 +41,11 @@ def test_issue61_package_extras_and_adapter_boundaries_move_together() -> None:
     )
     optional = pyproject["project"]["optional-dependencies"]
 
-    assert optional["scoreform"] == ["scoreform==0.12.0"]
+    assert optional["scoreform"] == ["scoreform==0.12.1"]
     assert optional["quillan"] == ["quillan==0.10.5"]
     assert optional["concord"] == ["pds-concord==0.3.0"]
 
-    assert SCOREFORM_READER_VERSION == "0.12.0"
+    assert SCOREFORM_READER_VERSION == "0.12.1"
     assert QUILLAN_READER_VERSION == "0.10.5"
 
 
@@ -53,8 +53,8 @@ def test_issue61_ci_uses_the_same_authenticated_release_artifacts() -> None:
     workflow = (REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert (
-        "pds-scoreform/releases/download/v0.12.0/"
-        "scoreform-0.12.0-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.12.1/"
+        "scoreform-0.12.1-py3-none-any.whl"
     ) in workflow
     assert (
         "pds-quillan/releases/download/v0.10.5/"
@@ -82,7 +82,7 @@ def test_issue61_installed_smokes_bind_latest_direct_reader_versions() -> None:
         for relative in current_version_files
     )
 
-    assert "0.12.0" in combined
+    assert "0.12.1" in combined
     assert "0.10.5" in combined
     assert "0.11.0" not in combined
     assert "0.10.3" not in combined
@@ -94,7 +94,7 @@ def test_issue61_promotion_requires_completed_substantive_audit() -> None:
         REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.3.0"' in version_file
+    assert '__version__: Final[str] = "0.3.1"' in version_file
     assert "Substantive blocker count: **0**" in audit
     assert "Release-preparation authorization: **AUTHORIZED**" in audit
     assert "Version promotion to `0.3.0`: **COMPLETED**" in audit

@@ -98,6 +98,6 @@ def test_issue61_documentation_checker_requires_release_audit() -> None:
 
 
 def test_issue61_release_audit_tracks_promoted_candidate_version() -> None:
-    version_file = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
+    audit = (REPO_ROOT / AUDIT).read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.3.0"' in version_file
+    assert "Candidate package version: **0.3.0**" in audit

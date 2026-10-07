@@ -76,7 +76,7 @@ def test_issue60_installed_program_pins_authenticated_sibling_versions() -> None
 
     for token in (
         '"pds-core": "0.6.4"',
-        '"scoreform": "0.12.0"',
+        '"scoreform": "0.12.1"',
         '"quillan": "0.10.5"',
         '"pds-concord": "0.3.0"',
     ):

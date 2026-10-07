@@ -49,11 +49,11 @@ def test_core_verifier_rejects_wrong_bytes(tmp_path: Path) -> None:
         verify_core_wheel(path)
 
 
-def test_scoreform_verifier_targets_exact_012_release() -> None:
-    assert EXPECTED_SCOREFORM_VERSION == "0.12.0"
-    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == "scoreform-0.12.0-py3-none-any.whl"
+def test_scoreform_verifier_targets_exact_0121_release() -> None:
+    assert EXPECTED_SCOREFORM_VERSION == "0.12.1"
+    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == "scoreform-0.12.1-py3-none-any.whl"
     assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
-        "84ad10ada72a99bebd5455d8c18a0725f9406f8279e57156f3e424efa5678d20"
+        "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
     )
 
 
@@ -128,7 +128,7 @@ def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:
 def test_ci_wires_exact_scoreform_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-scoreform/releases/download/v0.12.0/scoreform-0.12.0-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.12.1/scoreform-0.12.1-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"' in workflow
     assert '--scoreform-wheel "$env:SCOREFORM_WHEEL"' in workflow
