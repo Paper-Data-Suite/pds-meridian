@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #110 Slice 1 freezes the teacher-guided evidence interaction contract:
+  routine guided workflows ask teachers for recognizable academic decisions
+  rather than Publication IDs, projection cache keys, student IDs, Grade Item
+  IDs, policy/scale identities, or revision handles. Existing Issue #57 raw-ID
+  prompts are explicitly quarantined as transitional legacy debt so later
+  slices can remove them without spreading the pattern. Direct CLI remains
+  exact/noninteractive, no runtime behavior changes yet, and ScoreForm 0.12.1,
+  Quillan 0.10.5, and Concord 0.3.0 reader qualification remains unchanged.
+
 - Issue #107 prepares Meridian v0.3.1 by advancing the exact optional ScoreForm
   reader qualification from 0.12.0 to 0.12.1. The authenticated 0.12.1 public
   reader accepts punctuation-bearing durable Standards Profile and Standard

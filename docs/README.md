@@ -110,6 +110,14 @@ eight-task application; direct named commands remain noninteractive. Final
 compatibility qualification uses exact `quillan==0.10.5`. See
 [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md).
 
+Issue #110 establishes the teacher-guided evidence-workflow contract that will
+replace routine identifier entry with recognizable class, work, roster student,
+Standard, and Grade Item choices while preserving exact canonical identity
+internally. Slice 1 quarantines the existing Issue #57 raw-ID prompts as
+transitional legacy debt; direct CLI remains exact and noninteractive, and the
+Meridian v0.3.1 exact producer-reader gates remain unchanged. See
+[Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
+
 Issue #58 extends the existing issue #43 read-only attention provider into the
 v0.3 Grade/report surfaces. Exact selected standards Grade staleness, selected
 ReportingSnapshot publication changes, safely provable snapshot refresh needs,
