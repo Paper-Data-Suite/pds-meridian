@@ -114,8 +114,11 @@ Issue #110 establishes the teacher-guided evidence-workflow contract that will
 replace routine identifier entry with recognizable class, work, roster student,
 Standard, and Grade Item choices while preserving exact canonical identity
 internally. Slice 1 quarantines the existing Issue #57 raw-ID prompts as
-transitional legacy debt; direct CLI remains exact and noninteractive, and the
-Meridian v0.3.1 exact producer-reader gates remain unchanged. See
+transitional legacy debt. Slice 2 adds bounded process-local teacher session
+context whose dependent selections clear on scope changes and whose complete
+state is discarded on terminal exit. Direct CLI remains exact and
+noninteractive, and the Meridian v0.3.1 exact producer-reader gates remain
+unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the

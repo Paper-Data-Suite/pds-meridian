@@ -74,10 +74,30 @@ the teacher off to these identifier-driven controls.
 
 ## Session context is convenience, not authority
 
-Later slices may retain bounded process-local context for active class, work,
-publication, Grade Item, and student. This prevents repeated selection; it is
-not durable academic authority. Consequential actions still reload and
-revalidate canonical state.
+Slice 2 adds one bounded process-local `TeacherSessionContext` owned by the
+top-level Meridian teacher application. It may carry exact active class, work,
+publication, Grade Item, and student identity so later guided workflows do not
+force repeated selection.
+
+The context is deliberately not a storage model:
+
+```text
+normal child return -> preserve valid context
+M. Main Menu        -> preserve valid context
+scope switch        -> clear dependent context
+Q / EOF / Ctrl+C    -> discard the entire context
+```
+
+Selecting a different class clears work/publication/Grade Item/student state.
+Selecting a different work clears publication/Grade Item/student state.
+Selecting a different publication clears Grade Item/student state. Reselecting
+the same exact scope does not destroy still-valid child context.
+
+The session object never validates academic currentness and never guesses
+missing parent scope. Later guided workflows must reload canonical state before
+consequential actions and explicitly clear stale context when that revalidation
+fails. Process-local context remains navigation convenience, not durable
+academic authority.
 
 ## Recommended next steps are mechanical
 

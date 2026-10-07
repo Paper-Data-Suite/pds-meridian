@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Issue #110 Slice 2 adds bounded process-local teacher session context for exact
+  active class, work, publication, Grade Item, and student identity. Normal child
+  return and Main Menu unwind preserve valid context; changing class/work/
+  publication clears dependent context rather than guessing; terminal quit,
+  EOF, and Ctrl+C discard the context. No session state is persisted and no
+  academic currentness, authorization, selection, proficiency, or Grade
+  authority moves into the menu layer.
+
 - Issue #110 Slice 1 freezes the teacher-guided evidence interaction contract:
   routine guided workflows ask teachers for recognizable academic decisions
   rather than Publication IDs, projection cache keys, student IDs, Grade Item

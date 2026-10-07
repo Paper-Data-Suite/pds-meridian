@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final, Literal, TextIO, TypeAlias
 
 from pds_core.menu_navigation import (
@@ -41,6 +41,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_session import TeacherSessionContext
 
 TeacherMenuTaskId: TypeAlias = Literal[
     "review-new-evidence",
@@ -88,6 +89,9 @@ class TeacherMenuDependencies:
     snapshots: MenuTaskHandler
     export: MenuTaskHandler
     explain: MenuTaskHandler
+    session_context: TeacherSessionContext = field(
+        default_factory=TeacherSessionContext
+    )
 
     def handler_for(self, task_id: TeacherMenuTaskId) -> MenuTaskHandler:
         """Resolve one stable symbolic task to its injected application route."""
@@ -113,6 +117,7 @@ class TeacherMenuDependencies:
 def default_teacher_menu_dependencies(
     *,
     diagnostics: DiagnosticsDependencies | None = None,
+    session_context: TeacherSessionContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -120,6 +125,7 @@ def default_teacher_menu_dependencies(
     """Compose the eight real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
+    session = TeacherSessionContext() if session_context is None else session_context
     evidence_dependencies = default_evidence_menu_dependencies(
         diagnostics=diagnostics,
     )
@@ -174,6 +180,7 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
+        session_context=session,
     )
 
 
@@ -263,5 +270,6 @@ def run_menu(
         except ReturnToMainMenu:
             continue
         except (QuitPDS, EOFError, KeyboardInterrupt):
+            active.session_context.clear()
             clear_fn()
             return 0
