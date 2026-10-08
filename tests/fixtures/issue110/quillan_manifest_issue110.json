@@ -1,0 +1,159 @@
+{
+  "assignment": {
+    "assignment_id": "guided_memoir_1",
+    "basic_requirements": {
+      "paragraphs_max": null,
+      "paragraphs_min": 1,
+      "required_elements": [
+        "claim",
+        "textual evidence"
+      ],
+      "word_count_max": 1000,
+      "word_count_min": 100
+    },
+    "focus_standard_ids": [
+      "njsls-ela:RL.TS.11-12.4"
+    ],
+    "minimum_requirement_policy": {
+      "allow_return_without_full_review": true
+    },
+    "rating_scale": {
+      "levels": [
+        {
+          "description": "Developing evidence.",
+          "label": "Developing",
+          "value": 2
+        },
+        {
+          "description": "Meeting evidence.",
+          "label": "Meeting",
+          "value": 3
+        },
+        {
+          "description": "Exceeding evidence.",
+          "label": "Exceeding",
+          "value": 4
+        }
+      ],
+      "scale_id": "quillan_guided_v1"
+    },
+    "review_unit": {
+      "plural_label": "Paragraphs",
+      "singular_label": "Paragraph",
+      "type": "paragraph"
+    },
+    "standards_profile_id": "english12_2026_njsls_ela",
+    "student_prompt": "Explain how structure shapes the memoir.",
+    "title": "Installed Quillan Memoir Analysis",
+    "writing_type": "literary_analysis"
+  },
+  "contract_version": "quillan_academic_result_manifest_v1",
+  "generated_at": "2026-10-07T16:00:00Z",
+  "producer_module_id": "quillan",
+  "record_set": {
+    "record_set_id": "academic_results",
+    "revision": 1
+  },
+  "record_type": "quillan_academic_result_manifest",
+  "source_snapshot": {
+    "contract_version": "2",
+    "relative_path": "assignment.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "students": [
+    {
+      "review": {
+        "assignment_id": "guided_memoir_1",
+        "class_id": "english_12_pd2",
+        "feedback": {
+          "include_overall_standard_ratings": true,
+          "include_review_unit_observations": true,
+          "standard_feedback": [
+            {
+              "comments": [],
+              "include_overall_rating": true,
+              "include_overall_rationale": false,
+              "included_observation_ids": [
+                "observation_0001"
+              ],
+              "standard_id": "njsls-ela:RL.TS.11-12.4"
+            }
+          ]
+        },
+        "minimum_requirement_outcome": {
+          "returned_without_full_review": false,
+          "status": "met",
+          "teacher_note": {
+            "disposition": "withheld",
+            "text": null
+          },
+          "updated_at": "2026-10-07T15:00:00Z"
+        },
+        "overall_standard_ratings": [
+          {
+            "include_in_feedback": true,
+            "rating": 3,
+            "rationale": {
+              "disposition": "withheld",
+              "text": null
+            },
+            "standard_id": "njsls-ela:RL.TS.11-12.4",
+            "updated_at": "2026-10-07T15:20:00Z"
+          }
+        ],
+        "review_state": "ratings_complete",
+        "review_units": [
+          {
+            "label": "Paragraph 1",
+            "sequence": 1,
+            "standard_observations": [
+              {
+                "applicable": true,
+                "evidence_present": true,
+                "include_in_feedback": true,
+                "observation_id": "observation_0001",
+                "rating": 3,
+                "rationale": {
+                  "disposition": "included",
+                  "text": "The structural shift is identified."
+                },
+                "standard_id": "njsls-ela:RL.TS.11-12.4",
+                "updated_at": "2026-10-07T15:10:00Z"
+              }
+            ],
+            "unit_id": "paragraph_1",
+            "unit_type": "paragraph"
+          }
+        ],
+        "student_id": "student_alpha"
+      },
+      "source_snapshot": {
+        "review": {
+          "contract_version": "2",
+          "relative_path": "submissions/student_alpha/review.json",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "submission": {
+          "contract_version": "1",
+          "relative_path": "submissions/student_alpha/submission.json",
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      },
+      "student_id": "student_alpha",
+      "submission": {
+        "assignment_id": "guided_memoir_1",
+        "class_id": "english_12_pd2",
+        "digital_provenance": null,
+        "entry_method": "plain_paper_manual",
+        "expected_pages": null,
+        "student_id": "student_alpha",
+        "submission_state": "reviewed"
+      }
+    }
+  ],
+  "work": {
+    "class_id": "english_12_pd2",
+    "module_id": "quillan",
+    "work_id": "guided_memoir_1"
+  }
+}

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #110 Slice 13 adds installed end-to-end qualification for the guided
+  evidence route. Exact ScoreForm 0.12.1 and Quillan 0.10.5 run separately in
+  their existing prepared producer matrices with Core 0.6.4 and the candidate
+  Meridian wheel. The smoke builds canonical Core publication/roster state,
+  canonicalizes manifests through the installed producer codecs, rebuilds the
+  derived catalog, and drives class/assignment/student/evidence review without
+  routine infrastructure-ID prompts. Concord 0.3.0 remains qualified by the
+  existing Concord/all-adapters matrices; no seventh environment is added.
+
 - Issue #110 Slice 12 hardens guided navigation, empty states, and recovery.
   Evidence detail now recomputes a mechanical `C. Continue` recommendation after
   child workflows return. `R. Refresh evidence list` reloads the derived inbox

@@ -524,6 +524,25 @@ details` is read-only and may expose exact diagnostic identity only after the
 teacher explicitly requests it. Opening technical details does not refresh,
 reproject, authorize, write, or select anything.
 
+## Installed end-to-end acceptance
+
+Slice 13 qualifies the completed guided route with exact released producer
+wheels. ScoreForm runs in the prepared `scoreform` matrix at exactly 0.12.1 and
+Quillan runs in the prepared `quillan` matrix at exactly 0.10.5. Both use Core
+0.6.4 and the candidate Meridian wheel from installed locations outside the
+source checkout. Concord 0.3.0 remains covered by the existing Concord and
+all-adapters matrices.
+
+Each new smoke creates canonical Core roster/work/publication state, uses the
+installed producer package to validate and canonicalize its manifest, rebuilds
+the derived publication catalog, and drives class → assignment → student →
+evidence → Evidence Detail through the ordinary guided menu. It asserts that
+the selected publication identity and routine infrastructure IDs are not
+rendered or prompted.
+
+No seventh installed environment, permissive production authorizer, or new
+academic workflow semantics are introduced.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

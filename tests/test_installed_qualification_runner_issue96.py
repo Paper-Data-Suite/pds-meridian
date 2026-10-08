@@ -124,6 +124,11 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     )
     monkeypatch.setattr(
         runner,
+        "run_issue110_guided_evidence_prepared_smoke",
+        record("issue110-guided"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_proficiency_signal_export_prepared_smoke",
         record("proficiency-signal-export"),
     )
@@ -190,9 +195,11 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "core-programs",
         "grade-report-attention",
         "scoreform",
+        "issue110-guided",
         "conventional-grade",
         "teacher-grade-override",
         "quillan",
+        "issue110-guided",
         "proficiency-signal-export",
         "standards-grade",
         "hybrid-grade",
@@ -208,9 +215,17 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         (DependencyMatrixId.CORE, "wheel-foundation"),
         (DependencyMatrixId.CORE, "grade-report-attention"),
         (DependencyMatrixId.SCOREFORM, "scoreform-adapter"),
+        (
+            DependencyMatrixId.SCOREFORM,
+            "issue110-guided-evidence-scoreform",
+        ),
         (DependencyMatrixId.SCOREFORM, "conventional-grade"),
         (DependencyMatrixId.SCOREFORM, "teacher-grade-override"),
         (DependencyMatrixId.QUILLAN, "quillan-adapter"),
+        (
+            DependencyMatrixId.QUILLAN,
+            "issue110-guided-evidence-quillan",
+        ),
         (
             DependencyMatrixId.SCOREFORM_QUILLAN,
             "proficiency-signal-export",
@@ -283,6 +298,11 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
     )
     monkeypatch.setattr(
         runner,
+        "run_issue110_guided_evidence_prepared_smoke",
+        capture("issue110-guided"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_proficiency_signal_export_prepared_smoke",
         capture("proficiency-signal-export"),
     )
@@ -341,6 +361,7 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         "conventional-grade": Path("python-scoreform"),
         "teacher-grade-override": Path("python-scoreform"),
         "quillan": Path("python-quillan"),
+        "issue110-guided": Path("python-quillan"),
         "proficiency-signal-export": Path("python-scoreform-quillan"),
         "standards-grade": Path("python-scoreform-quillan"),
         "hybrid-grade": Path("python-scoreform-quillan"),
@@ -366,6 +387,11 @@ def test_issue96_central_runner_wraps_matrix_smoke_command_failures(
     monkeypatch.setattr(Path, "mkdir", lambda self: None)
     monkeypatch.setattr(runner, "run_core_inline_smokes", lambda prepared: None)
     monkeypatch.setattr(runner, "run_core_program_smokes", lambda prepared: None)
+    monkeypatch.setattr(
+        runner,
+        "run_issue110_guided_evidence_prepared_smoke",
+        lambda *_args: None,
+    )
 
     def fail_core(*args: object) -> None:
         del args

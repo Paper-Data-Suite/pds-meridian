@@ -159,7 +159,10 @@ adds mechanical `C. Continue`, explicit evidence-list refresh, bounded derived
 catalog recovery, session reconciliation after refresh, read-only technical
 details, and teacher-readable empty/failure states while preserving Core
 `B / M / Q` navigation. Direct CLI remains exact and noninteractive, and the
-Meridian v0.3.1 exact producer-reader gates remain unchanged. See
+Meridian v0.3.1 exact producer-reader gates remain unchanged. Slice 13 adds
+installed ScoreForm 0.12.1 and Quillan 0.10.5 guided teacher journeys in their
+existing isolated qualification matrices; Core remains exactly 0.6.4 for
+installed qualification and Concord remains exactly 0.3.0. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the

@@ -29,6 +29,9 @@ from scripts.smoke_test_grade_report_attention_wheel import (
 from scripts.smoke_test_grade_report_preview_wheel import (
     run_prepared_smoke as run_grade_report_preview_prepared_smoke,
 )
+from scripts.smoke_test_guided_evidence_issue110 import (
+    run_prepared_smoke as run_issue110_guided_evidence_prepared_smoke,
+)
 from scripts.smoke_test_hybrid_grade_wheel import (
     run_prepared_smoke as run_hybrid_grade_prepared_smoke,
 )
@@ -136,6 +139,21 @@ def run_migrated_matrices(
             ),
         )
 
+        root, outside = _working_layout(
+            prepared,
+            "issue110-guided-evidence-scoreform",
+        )
+        _run_acceptance(
+            prepared,
+            "issue110-guided-evidence-scoreform",
+            lambda: run_issue110_guided_evidence_prepared_smoke(
+                prepared.python,
+                outside,
+                root / "workspace",
+                "scoreform",
+            ),
+        )
+
         _, outside = _working_layout(prepared, "conventional-grade")
         _run_acceptance(
             prepared,
@@ -168,6 +186,21 @@ def run_migrated_matrices(
             lambda: run_quillan_adapter_prepared_smoke(
                 prepared.python,
                 outside,
+            ),
+        )
+
+        root, outside = _working_layout(
+            prepared,
+            "issue110-guided-evidence-quillan",
+        )
+        _run_acceptance(
+            prepared,
+            "issue110-guided-evidence-quillan",
+            lambda: run_issue110_guided_evidence_prepared_smoke(
+                prepared.python,
+                outside,
+                root / "workspace",
+                "quillan",
             ),
         )
 
