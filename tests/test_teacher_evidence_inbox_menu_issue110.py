@@ -156,6 +156,7 @@ def _dependencies(
         inbox_loader=lambda _root, _diagnostics: inbox,
         projection_preparer=prepare,
         review_loader=load_review,
+        eligibility_handler=lambda *_args: None,
     )
 
 
@@ -399,6 +400,53 @@ def test_student_and_evidence_choices_use_labels_not_hidden_ids() -> None:
     assert "item_hidden_1" not in rendered
     assert "Student ID" not in rendered
     assert "Evidence item ID" not in rendered
+
+
+def test_evidence_detail_can_open_guided_eligibility_without_ids() -> None:
+    calls: list[tuple[object, ...]] = []
+
+    def handle(*args: object) -> None:
+        calls.append(args)
+
+    deps = _dependencies(_two_class_inbox())
+    deps = TeacherEvidenceInboxMenuDependencies(
+        workspace_resolver=deps.workspace_resolver,
+        diagnostics=deps.diagnostics,
+        inbox_loader=deps.inbox_loader,
+        projection_preparer=deps.projection_preparer,
+        review_loader=deps.review_loader,
+        eligibility_handler=handle,
+    )
+    output = StringIO()
+    scripted = ScriptedInput(
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+    )
+
+    run_teacher_evidence_inbox_menu(
+        dependencies=deps,
+        session_context=TeacherSessionContext(),
+        input_fn=scripted,
+        output=output,
+        clear_fn=lambda: None,
+    )
+
+    assert len(calls) == 1
+    rendered = output.getvalue()
+    assert "Recommended next step:" in rendered
+    assert "Review eligibility" in rendered
+    assert "hidden_item_1" not in rendered
+    assert "00001" not in rendered
 
 
 def test_back_from_evidence_returns_to_class_list() -> None:

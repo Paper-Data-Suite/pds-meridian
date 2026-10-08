@@ -17,6 +17,7 @@ from meridian.diagnostics import (
     DiagnosticsError,
     default_diagnostics_dependencies,
 )
+from meridian.guided_eligibility import GuidedEligibilityDependencies
 from meridian.guided_projection import (
     GuidedProjectionAuthorizationDeniedError,
     GuidedProjectionAuthorizationUnavailableError,
@@ -28,6 +29,7 @@ from meridian.guided_projection import (
     prepare_guided_evidence_projection,
 )
 from meridian.ingestion import PublicationIngestionError
+from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -69,6 +71,19 @@ TeacherEvidenceReviewLoader: TypeAlias = Callable[
     [Path, GuidedProjectionResult],
     TeacherEvidenceReview,
 ]
+EligibilityHandler: TypeAlias = Callable[
+    [
+        Path,
+        GuidedProjectionResult,
+        TeacherEvidenceReviewItem,
+        str,
+        TeacherSessionContext,
+        InputFunction,
+        TextIO,
+        ClearFunction,
+    ],
+    None,
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,6 +95,7 @@ class TeacherEvidenceInboxMenuDependencies:
     inbox_loader: TeacherEvidenceInboxLoader
     projection_preparer: GuidedProjectionPreparer
     review_loader: TeacherEvidenceReviewLoader
+    eligibility_handler: EligibilityHandler
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -118,12 +134,37 @@ def default_teacher_evidence_inbox_menu_dependencies(
     ) -> TeacherEvidenceReview:
         return project_teacher_evidence_review(root, prepared)
 
+    eligibility_dependencies = GuidedEligibilityDependencies()
+
+    def handle_eligibility(
+        root: Path,
+        prepared: GuidedProjectionResult,
+        evidence: TeacherEvidenceReviewItem,
+        subject_label: str,
+        session: TeacherSessionContext,
+        input_fn: InputFunction,
+        output: TextIO,
+        clear_fn: ClearFunction,
+    ) -> None:
+        run_guided_eligibility_menu(
+            workspace_root=root,
+            prepared=prepared,
+            evidence=evidence,
+            subject_label=subject_label,
+            session_context=session,
+            dependencies=eligibility_dependencies,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
         inbox_loader=load,
         projection_preparer=prepare,
         review_loader=load_review,
+        eligibility_handler=handle_eligibility,
     )
 
 
@@ -361,36 +402,70 @@ def _render_item_row(
 
 def _show_review_item(
     *,
+    root: Path,
+    prepared: GuidedProjectionResult,
     item: TeacherEvidenceReviewItem,
     subject_label: str,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
+    session_context: TeacherSessionContext,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
 ) -> None:
-    clear_fn()
-    print_menu_header(output, "Evidence Detail")
-    write_lines(
-        output,
-        f"Student: {subject_label}",
-        f"Evidence: {item.evidence_label}",
-        f"Result: {item.value_label}",
-        f"Type: {item.result_kind_label}",
-    )
-    if item.standard_ids:
+    while True:
+        clear_fn()
+        print_menu_header(output, "Evidence Detail")
         write_lines(
             output,
-            "Standards:",
-            *(f"  {standard}" for standard in item.standard_ids),
+            f"Student: {subject_label}",
+            f"Evidence: {item.evidence_label}",
+            f"Result: {item.value_label}",
+            f"Type: {item.result_kind_label}",
         )
-    else:
-        write_lines(output, "Standards: none declared")
-    pause_for_user(input_fn)
+        if item.standard_ids:
+            write_lines(
+                output,
+                "Standards:",
+                *(f"  {standard}" for standard in item.standard_ids),
+            )
+        else:
+            write_lines(output, "Standards: none declared")
+        write_lines(
+            output,
+            "",
+            "Recommended next step:",
+            "1. Review eligibility",
+            "",
+        )
+        print_standard_navigation(output)
+        choice = read_choice(input_fn)
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        if choice == "1":
+            dependencies.eligibility_handler(
+                root,
+                prepared,
+                item,
+                subject_label,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            continue
+        write_lines(output, "", "Please choose 1, B, M, or Q.")
+        pause_for_user(input_fn)
 
 
 def _run_evidence_rows(
     *,
+    root: Path,
+    prepared: GuidedProjectionResult,
     rows: tuple[TeacherEvidenceReviewItem, ...],
     subject_label: str,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
+    session_context: TeacherSessionContext,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
@@ -411,8 +486,12 @@ def _run_evidence_rows(
             selected = int(choice)
             if 1 <= selected <= len(rows):
                 _show_review_item(
+                    root=root,
+                    prepared=prepared,
                     item=rows[selected - 1],
                     subject_label=subject_label,
+                    dependencies=dependencies,
+                    session_context=session_context,
                     input_fn=input_fn,
                     output=output,
                     clear_fn=clear_fn,
@@ -428,7 +507,10 @@ def _run_evidence_rows(
 
 def _run_student_review(
     *,
+    root: Path,
+    prepared: GuidedProjectionResult,
     review: TeacherEvidenceReview,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
     session_context: TeacherSessionContext,
     input_fn: InputFunction,
     output: TextIO,
@@ -457,8 +539,12 @@ def _run_student_review(
                 student = review.students[selected - 1]
                 session_context.select_student(student.student_id)
                 _run_evidence_rows(
+                    root=root,
+                    prepared=prepared,
                     rows=student.items,
                     subject_label=student.display_label,
+                    dependencies=dependencies,
+                    session_context=session_context,
                     input_fn=input_fn,
                     output=output,
                     clear_fn=clear_fn,
@@ -474,7 +560,10 @@ def _run_student_review(
 
 def _run_shared_review(
     *,
+    root: Path,
+    prepared: GuidedProjectionResult,
     review: TeacherEvidenceReview,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
     session_context: TeacherSessionContext,
     input_fn: InputFunction,
     output: TextIO,
@@ -482,8 +571,12 @@ def _run_shared_review(
 ) -> None:
     session_context.clear_student()
     _run_evidence_rows(
+        root=root,
+        prepared=prepared,
         rows=review.shared_items,
         subject_label="Shared / nonstudent evidence",
+        dependencies=dependencies,
+        session_context=session_context,
         input_fn=input_fn,
         output=output,
         clear_fn=clear_fn,
@@ -492,8 +585,11 @@ def _run_shared_review(
 
 def _run_teacher_evidence_review(
     *,
+    root: Path,
+    prepared: GuidedProjectionResult,
     item: TeacherEvidenceInboxItem,
     review: TeacherEvidenceReview,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
     session_context: TeacherSessionContext,
     input_fn: InputFunction,
     output: TextIO,
@@ -512,7 +608,10 @@ def _run_teacher_evidence_review(
                 action = actions[selected - 1]
                 if action == "students":
                     _run_student_review(
+                        root=root,
+                        prepared=prepared,
                         review=review,
+                        dependencies=dependencies,
                         session_context=session_context,
                         input_fn=input_fn,
                         output=output,
@@ -520,7 +619,10 @@ def _run_teacher_evidence_review(
                     )
                 else:
                     _run_shared_review(
+                        root=root,
+                        prepared=prepared,
                         review=review,
+                        dependencies=dependencies,
                         session_context=session_context,
                         input_fn=input_fn,
                         output=output,
@@ -644,8 +746,11 @@ def _run_class_evidence_menu(
                 session_context.select_work(item.work)
                 session_context.select_publication(item.publication_id)
                 _run_teacher_evidence_review(
+                    root=root,
+                    prepared=prepared,
                     item=item,
                     review=review,
+                    dependencies=dependencies,
                     session_context=session_context,
                     input_fn=input_fn,
                     output=output,

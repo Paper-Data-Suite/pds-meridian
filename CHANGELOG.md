@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Issue #110 Slice 7 adds guided eligibility continuation from a selected
+  evidence row. Teachers select existing included Grade Items by title, choose
+  the eligibility disposition, use readable teacher attribution and policy
+  presentation, preview the immutable write, explicitly write it, then
+  explicitly select that exact newly written decision through the existing
+  CAS-protected selector. Current eligibility state is reloaded after selection.
+  No evidence item ID, Grade Item ID, actor ID, policy ID/version, or free-text
+  decision revision is requested. Missing Grade Item relationships remain
+  blocked rather than inferred or created.
+
 - Issue #110 Slice 6 adds read-only teacher-friendly evidence review over the
   authorized projection. Individualized evidence resolves through the canonical
   Core roster and displays student names instead of IDs; duplicate names use

@@ -258,6 +258,52 @@ attempt/reassessment, Standard-association, proficiency, Grade, or override
 state. Attention routing that depends on those states remains for later guided
 continuation slices.
 
+## Guided eligibility continuation
+
+Slice 7 makes an evidence detail capable of continuing into the existing
+eligibility authority without asking the teacher for evidence, Grade Item,
+actor, policy, or revision identifiers.
+
+Eligibility first discovers active Grade Items whose current membership
+explicitly includes the selected work and whose membership basis matches the
+current selected Grade Item revision. The teacher still chooses the Grade Item
+by title; Meridian never infers that academic relationship merely because only
+one candidate exists. Duplicate titles use purpose as additional presentation
+context and block if that remains ambiguous.
+
+The teacher then chooses the academic disposition explicitly:
+
+```text
+Included
+Excluded
+Pending
+Unsupported
+```
+
+Meridian does not choose the disposition. The teacher supplies a readable name
+for attribution rather than an opaque actor-ID prompt. The guided policy
+presentation currently exposes `Teacher review`, which carries the existing
+`teacher_local_eligibility` / `1` policy identity internally. Non-included
+decisions use the existing generic `eligibility.manual` reason code while any
+teacher explanation remains explicit rationale text.
+
+Consequential behavior preserves the established two-step authority boundary:
+
+```text
+preview exact eligibility write
+-> teacher explicitly writes immutable decision
+-> preview exact newly written selection
+-> teacher explicitly makes it current
+-> reload current eligibility state
+```
+
+No free-text decision revision is requested. The exact newly written revision is
+carried internally into the existing CAS-protected selection workflow.
+
+When no current included Grade Item relationship exists, eligibility stops with
+`Grade Item Relationship Needed`. It does not infer or create membership. The
+teacher-facing link/create bridge remains a later #110 slice.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

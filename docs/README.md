@@ -132,9 +132,15 @@ roster-backed teacher evidence review over the authorized inventory, presenting
 student names and readable evidence rows while carrying exact student/evidence
 identity internally. Duplicate student display labels use roster period when
 safe and otherwise block rather than falling back to IDs. Shared nonstudent
-evidence remains supported. Infrastructure identifiers remain hidden from the
-guided workflow. Direct CLI remains exact and noninteractive, and the Meridian
-v0.3.1 exact producer-reader gates remain unchanged. See
+evidence remains supported. Slice 7 adds guided eligibility continuation:
+Grade Items are selected by title, evidence identity is carried from the review
+row, teacher attribution is readable text, policy identity is represented by a
+teacher-facing title, and the exact newly written decision is selected without a
+free-text revision prompt. Existing preview/write/CAS-selection services remain
+authoritative, and current eligibility is reloaded after selection.
+Infrastructure identifiers remain hidden from the guided workflow. Direct CLI
+remains exact and noninteractive, and the Meridian v0.3.1 exact producer-reader
+gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the
