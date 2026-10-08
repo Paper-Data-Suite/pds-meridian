@@ -14,6 +14,7 @@ from meridian.guided_eligibility import (
     discover_guided_eligibility_grade_items,
 )
 from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
+from meridian.guided_proficiency import GuidedProficiencyDependencies
 from meridian.guided_projection import GuidedProjectionResult
 from meridian.guided_standards import (
     GuidedScaleChoice,
@@ -31,6 +32,7 @@ from meridian.guided_standards import (
     reload_guided_standards_projection,
 )
 from meridian.menu_teacher_grade_items import run_grade_item_bridge
+from meridian.menu_teacher_proficiency import run_guided_proficiency_menu
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -362,6 +364,7 @@ def run_guided_standard_menu(
     dependencies: GuidedStandardsDependencies,
     eligibility_dependencies: GuidedEligibilityDependencies,
     grade_item_bridge_dependencies: GuidedGradeItemBridgeDependencies | None = None,
+    proficiency_dependencies: GuidedProficiencyDependencies | None = None,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
@@ -669,6 +672,33 @@ def run_guided_standard_menu(
         "",
         "Current canonical Standard association state was reloaded.",
     )
+    if (
+        refreshed.association_disposition == "associated"
+        and proficiency_dependencies is not None
+    ):
+        write_lines(
+            output,
+            "",
+            "Recommended next step:",
+            "1. Preview proficiency",
+            "2. Finish for now",
+        )
+        if read_choice(input_fn) == "1":
+            run_guided_proficiency_menu(
+                workspace_root=workspace_root,
+                prepared=prepared,
+                evidence=evidence,
+                subject_label=subject_label,
+                grade_item_id=grade_item.grade_item_id,
+                grade_item_label=grade_item.display_label,
+                standard=standard,
+                scale=scale,
+                dependencies=proficiency_dependencies,
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+            )
+        return
     pause_for_user(input_fn)
 
 

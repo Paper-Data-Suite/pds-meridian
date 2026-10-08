@@ -435,6 +435,45 @@ Work Registration revision, and the teacher-selected Academic Period assignment.
 No Grade Item ID, registration revision, membership revision, calendar revision,
 or storage digest is entered in the ordinary bridge.
 
+## Proficiency bridge and contextual continuation
+
+Slice 11 carries the selected Grade Item, roster student, Standard, evidence,
+and exact current proficiency-scale context forward after a current
+`Associated` Standard decision. The teacher does not reconstruct class, Grade
+Item, student, or Standard identity.
+
+The bridge discovers only already-current proficiency configuration. It presents
+current calculation policies by title, strategy, and minimum observation count,
+and presents current mapping profiles by readable mapping semantics. Exact
+policy/profile IDs, revisions, and digests remain internal. If no current policy
+targets the selected scale, the teacher receives `Proficiency Policy Needed`.
+If no current mapping profile matches the exact producer/result signature and
+selected scale, the teacher receives `Evidence Mapping Needed`.
+
+The teacher explicitly chooses both configured policy and mapping. Meridian does
+not choose a proficiency policy, mapping, or result on the teacher's behalf.
+
+Slice 11 keeps the calculation basis deliberately bounded: the contextual
+preview binds only the exact evidence row the teacher just reviewed. It does not
+discover, add, or silently aggregate other evidence. The existing #33/#34
+resolver therefore remains responsible for membership, eligibility,
+attempt/reassessment, Standard-association, mapping, and calculation semantics.
+
+The consequential sequence remains explicit:
+
+```text
+choose current policy
+-> choose current exact-signature mapping
+-> build read-only proficiency preview for this evidence row
+-> optionally preview/write immutable calculated result
+-> optionally make that exact result current
+-> reload current proficiency result
+```
+
+A preview never writes. Writing never selects. The calculated level is produced
+only by the existing deterministic proficiency policy; Slice 11 adds no new
+proficiency semantics and no automatic academic judgment.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

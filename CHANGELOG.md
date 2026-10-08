@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #110 Slice 11 adds contextual proficiency continuation after a current
+  associated Standard decision. Grade Item, roster student, Standard, evidence,
+  and exact scale context are carried forward. Current calculation policies are
+  presented by title/strategy and current exact-signature mapping profiles by
+  readable mapping semantics. The teacher explicitly chooses both. The guided
+  calculation binds only the evidence row just reviewed, preserves the existing
+  read-only #34 preview, and keeps immutable result write and current selection
+  as separate confirmations.
+
 - Issue #110 Slice 10 adds the teacher-facing Grade Item bridge used when
   eligibility, attempt/reassessment, or Standard association lacks a current
   included work relationship. Teachers link to an existing active Grade Item or
