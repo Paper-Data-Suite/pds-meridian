@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Issue #110 Slice 8 adds guided attempt/reassessment continuation for
+  student-specific evidence. Teachers use Grade Item labels, explicit policy
+  titles/cardinality, and numbered attempt candidates rather than student,
+  Grade Item, policy, or revision IDs. Guided policy setup reuses the existing
+  immutable policy authoring and CAS-selection services when the chosen preset
+  is not already current. Attempt decisions preserve preview, explicit write,
+  explicit selection, and current-state reload; Meridian never auto-selects an
+  attempt.
+
 - Issue #110 Slice 7 adds guided eligibility continuation from a selected
   evidence row. Teachers select existing included Grade Items by title, choose
   the eligibility disposition, use readable teacher attribution and policy

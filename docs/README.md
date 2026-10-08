@@ -137,8 +137,13 @@ Grade Items are selected by title, evidence identity is carried from the review
 row, teacher attribution is readable text, policy identity is represented by a
 teacher-facing title, and the exact newly written decision is selected without a
 free-text revision prompt. Existing preview/write/CAS-selection services remain
-authoritative, and current eligibility is reloaded after selection.
-Infrastructure identifiers remain hidden from the guided workflow. Direct CLI
+authoritative, and current eligibility is reloaded after selection. Slice 8 adds
+guided attempt/reassessment continuation using roster student context,
+teacher-facing Grade Item labels, teacher-facing explicit-attempt policy presets,
+and numbered attempt candidates. Existing policy and decision
+preview/write/CAS-selection services remain authoritative; Meridian never
+auto-selects an attempt. Infrastructure identifiers remain hidden from the
+guided workflow. Direct CLI
 remains exact and noninteractive, and the Meridian v0.3.1 exact producer-reader
 gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).

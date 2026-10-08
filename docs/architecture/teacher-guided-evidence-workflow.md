@@ -304,6 +304,51 @@ When no current included Grade Item relationship exists, eligibility stops with
 `Grade Item Relationship Needed`. It does not infer or create membership. The
 teacher-facing link/create bridge remains a later #110 slice.
 
+## Guided attempt/reassessment continuation
+
+Slice 8 adds teacher-guided attempt/reassessment continuation for
+student-specific evidence. The route carries the roster student, active work,
+authorized projection, and Grade Item identity internally.
+
+A current Grade Item selected earlier in the teacher session is reused when it
+still matches an explicit included work relationship. If there is exactly one
+valid Grade Item and no meaningful choice, Meridian carries it forward. Multiple
+valid Grade Items are presented by teacher-facing label.
+
+Attempt policy is also teacher-facing rather than an ID prompt. The guided
+presets are explicit academic choices:
+
+```text
+Select exactly one attempt
+Select one or more attempts
+Allow no selected attempt
+```
+
+Each preset carries a stable internal policy identity and explicit cardinality.
+After the teacher chooses a preset, Meridian mechanically determines whether the
+existing policy is ready, must be created, must be revised, or has a matching
+unselected revision. Any required policy write/selection is performed only
+after teacher confirmation and through the existing immutable policy authoring
+and CAS-selection workflows.
+
+Current candidate attempts are re-derived from operative included evidence. The
+teacher chooses displayed attempt menu numbers; exact producer-native attempt
+references are carried internally. Meridian does not choose the newest, highest,
+first, or otherwise preferred attempt.
+
+The decision itself retains the established two-step authority boundary:
+
+```text
+preview exact attempt decision
+-> explicitly write immutable decision
+-> preview exact newly written selection
+-> explicitly make it current
+-> reload current attempt state
+```
+
+Student IDs, Grade Item IDs, attempt-policy IDs, and decision revisions are not
+entered in the ordinary route.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract
