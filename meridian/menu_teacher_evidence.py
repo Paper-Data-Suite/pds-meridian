@@ -19,6 +19,7 @@ from meridian.diagnostics import (
 )
 from meridian.guided_attempts import GuidedAttemptDependencies
 from meridian.guided_eligibility import GuidedEligibilityDependencies
+from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.guided_projection import (
     GuidedProjectionAuthorizationDeniedError,
     GuidedProjectionAuthorizationUnavailableError,
@@ -143,6 +144,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
         return project_teacher_evidence_review(root, prepared)
 
     eligibility_dependencies = GuidedEligibilityDependencies()
+    grade_item_bridge_dependencies = GuidedGradeItemBridgeDependencies()
 
     def handle_eligibility(
         root: Path,
@@ -161,6 +163,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
             subject_label=subject_label,
             session_context=session,
             dependencies=eligibility_dependencies,
+            grade_item_bridge_dependencies=grade_item_bridge_dependencies,
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
@@ -186,6 +189,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
             session_context=session,
             dependencies=attempt_dependencies,
             eligibility_dependencies=eligibility_dependencies,
+            grade_item_bridge_dependencies=grade_item_bridge_dependencies,
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
@@ -211,6 +215,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
             session_context=session,
             dependencies=standards_dependencies,
             eligibility_dependencies=eligibility_dependencies,
+            grade_item_bridge_dependencies=grade_item_bridge_dependencies,
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,

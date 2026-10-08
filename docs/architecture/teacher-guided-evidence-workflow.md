@@ -396,6 +396,45 @@ build current Standards Review projection
 No Standard, Grade Item, scale, evidence, student, revision, or digest identity
 is typed in the ordinary guided route.
 
+## Grade Item bridge
+
+Slice 10 replaces the `Grade Item Relationship Needed` dead end with an explicit
+teacher bridge. When eligibility, attempt/reassessment, or Standard association
+needs an included Grade Item relationship, the teacher can:
+
+```text
+link this work to an existing active Grade Item
+or
+create a new Grade Item, make it current, then link the work
+```
+
+The teacher chooses Grade Items by title, a new Grade Item's title and purpose,
+and an Academic Period by label/type/date range. Meridian derives a bounded
+internal Grade Item identity from the title and resolves the exact current
+Academic Work Registration revision and current Academic Period Calendar
+revision internally.
+
+Creating a Grade Item does not invent weighting. Weighting remains unset in this
+bridge and can be managed separately.
+
+Both authority boundaries remain explicit:
+
+```text
+new Grade Item:
+preview -> write immutable revision -> explicitly make current
+
+work membership:
+preview included relationship -> write immutable revision
+-> explicitly make relationship current -> reload and verify
+```
+
+Existing membership history is revised rather than overwritten. A current
+included relationship binds the selected Grade Item revision, current Academic
+Work Registration revision, and the teacher-selected Academic Period assignment.
+
+No Grade Item ID, registration revision, membership revision, calendar revision,
+or storage digest is entered in the ordinary bridge.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Issue #110 Slice 10 adds the teacher-facing Grade Item bridge used when
+  eligibility, attempt/reassessment, or Standard association lacks a current
+  included work relationship. Teachers link to an existing active Grade Item or
+  create a new unweighted Grade Item by title/purpose, explicitly select it,
+  choose an Academic Period by label/type/date range, then preview/write/select
+  the included membership. Exact Grade Item, Academic Work Registration,
+  membership, calendar revision, and digest identity remains internal.
+
 - Issue #110 Slice 9 adds guided evidence/Standard association for
   student-specific evidence. Producer-declared Standards are presented first
   using Core code/label/source metadata, with an explicit browse-all-active

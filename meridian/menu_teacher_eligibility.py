@@ -19,7 +19,9 @@ from meridian.guided_eligibility import (
     preview_guided_eligibility,
     preview_guided_eligibility_selection,
 )
+from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.guided_projection import GuidedProjectionResult
+from meridian.menu_teacher_grade_items import run_grade_item_bridge
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -195,6 +197,7 @@ def run_guided_eligibility_menu(
     subject_label: str,
     session_context: TeacherSessionContext,
     dependencies: GuidedEligibilityDependencies,
+    grade_item_bridge_dependencies: GuidedGradeItemBridgeDependencies | None = None,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
@@ -218,12 +221,45 @@ def run_guided_eligibility_menu(
         return
 
     if not grade_items:
-        _show_grade_item_required(
+        if grade_item_bridge_dependencies is None:
+            _show_grade_item_required(
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+            )
+            return
+        created = run_grade_item_bridge(
+            workspace_root=workspace_root,
+            work=work,
+            session_context=session_context,
+            dependencies=grade_item_bridge_dependencies,
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
-        return
+        if not created:
+            return
+        try:
+            grade_items = discover_guided_eligibility_grade_items(
+                workspace_root,
+                work,
+                dependencies=dependencies,
+            )
+        except GuidedEligibilityError as error:
+            _show_error(
+                error,
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+            )
+            return
+        if not grade_items:
+            _show_grade_item_required(
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+            )
+            return
 
     grade_item = _choose_grade_item(
         grade_items,
