@@ -8,6 +8,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO, TypeAlias
 
+from pds_core.academic_catalog import (
+    AcademicCatalogError,
+    rebuild_academic_catalog,
+)
 from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.routing_models import ModuleWorkRef
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
@@ -32,7 +36,7 @@ from meridian.guided_projection import (
     prepare_guided_evidence_projection,
 )
 from meridian.guided_standards import GuidedStandardsDependencies
-from meridian.ingestion import PublicationIngestionError
+from meridian.ingestion import CatalogDiscoveryError, PublicationIngestionError
 from meridian.menu_teacher_attempts import run_guided_attempt_menu
 from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
 from meridian.menu_teacher_standards import run_guided_standard_menu
@@ -45,6 +49,10 @@ from meridian.menu_ui import (
     print_standard_navigation,
     read_choice,
     write_lines,
+)
+from meridian.teacher_evidence_continuation import (
+    TeacherEvidenceContinuation,
+    resolve_teacher_evidence_continuation,
 )
 from meridian.teacher_evidence_inbox import (
     TeacherEvidenceClassGroup,
@@ -93,6 +101,131 @@ EligibilityHandler: TypeAlias = Callable[
 AttemptHandler: TypeAlias = EligibilityHandler
 StandardsHandler: TypeAlias = EligibilityHandler
 
+class _RefreshEvidenceInbox(Exception):
+    """Unwind nested guided screens to reload canonical discovery state."""
+
+
+ContinuationResolver: TypeAlias = Callable[
+    [
+        Path,
+        GuidedProjectionResult,
+        TeacherEvidenceReviewItem,
+        TeacherSessionContext,
+    ],
+    TeacherEvidenceContinuation,
+]
+CatalogRebuilder: TypeAlias = Callable[[Path], object]
+
+
+def _reconcile_session_with_inbox(
+    inbox: TeacherEvidenceInbox,
+    session: TeacherSessionContext,
+) -> None:
+    """Clear only publication scope disproven by refreshed inbox evidence."""
+
+    if session.active_class_id is None or session.active_work is None:
+        return
+    if session.active_publication_id is None:
+        return
+
+    group = next(
+        (
+            candidate
+            for candidate in inbox.groups
+            if candidate.class_id == session.active_class_id
+        ),
+        None,
+    )
+    if group is None:
+        return
+
+    work_items = tuple(
+        item for item in group.items if item.work == session.active_work
+    )
+    if not work_items:
+        return
+
+    if not any(
+        item.publication_id == session.active_publication_id
+        for item in work_items
+    ):
+        session.clear_publication()
+
+
+def _run_catalog_recovery(
+    *,
+    root: Path,
+    error: CatalogDiscoveryError,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> bool:
+    """Offer bounded recovery for Core's disposable publication index."""
+
+    last_error: BaseException = error
+    while True:
+        clear_fn()
+        print_menu_header(output, "Evidence List Needs Attention")
+        write_lines(
+            output,
+            "Meridian could not refresh the available-work index.",
+            "Canonical Publication Records remain authoritative.",
+            "",
+            "1. Rebuild the derived publication index",
+            "R. Retry evidence list",
+            "T. Technical details",
+        )
+        print_standard_navigation(output)
+
+        choice = read_choice(input_fn)
+        if choice.casefold() == "r":
+            return True
+        if choice.casefold() == "t":
+            clear_fn()
+            print_menu_header(output, "Technical Details")
+            code = getattr(last_error, "code", type(last_error).__name__)
+            write_lines(
+                output,
+                f"Error code: {code}",
+                f"Details: {last_error}",
+                "",
+                "This view is read-only.",
+            )
+            pause_for_user(input_fn)
+            continue
+        if choice == "1":
+            try:
+                dependencies.catalog_rebuilder(root)
+            except (AcademicCatalogError, OSError, ValueError) as rebuild_error:
+                last_error = rebuild_error
+                clear_fn()
+                print_menu_header(output, "Publication Index Recovery Failed")
+                write_lines(
+                    output,
+                    "Meridian could not rebuild the derived publication index.",
+                    "Canonical Publication Records were not changed.",
+                    "",
+                    "Use T on the recovery screen for technical details.",
+                )
+                pause_for_user(input_fn)
+                continue
+            clear_fn()
+            print_menu_header(output, "Publication Index Rebuilt")
+            write_lines(
+                output,
+                "The derived publication index was rebuilt from canonical state.",
+                "The evidence list will now be refreshed.",
+            )
+            pause_for_user(input_fn)
+            return True
+
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return False
+        write_lines(output, "", "Please choose 1, R, T, B, M, or Q.")
+        pause_for_user(input_fn)
+
 
 @dataclass(frozen=True, slots=True)
 class TeacherEvidenceInboxMenuDependencies:
@@ -106,6 +239,8 @@ class TeacherEvidenceInboxMenuDependencies:
     eligibility_handler: EligibilityHandler
     attempt_handler: AttemptHandler
     standards_handler: StandardsHandler
+    continuation_resolver: ContinuationResolver | None = None
+    catalog_rebuilder: CatalogRebuilder = rebuild_academic_catalog
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -224,6 +359,21 @@ def default_teacher_evidence_inbox_menu_dependencies(
             clear_fn=clear_fn,
         )
 
+    def resolve_continuation(
+        root: Path,
+        prepared: GuidedProjectionResult,
+        evidence: TeacherEvidenceReviewItem,
+        session: TeacherSessionContext,
+    ) -> TeacherEvidenceContinuation:
+        return resolve_teacher_evidence_continuation(
+            root,
+            prepared,
+            evidence,
+            session,
+            eligibility_dependencies=eligibility_dependencies,
+            attempt_dependencies=attempt_dependencies,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
@@ -233,6 +383,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
         eligibility_handler=handle_eligibility,
         attempt_handler=handle_attempts,
         standards_handler=handle_standards,
+        continuation_resolver=resolve_continuation,
     )
 
 
@@ -257,11 +408,20 @@ def _render_class_list(
         write_lines(
             output,
             "No current academic evidence publications were found.",
+            "Nothing needs review from the current publication index.",
             "",
+            "R. Refresh evidence list",
         )
         print_standard_navigation(output)
         return
 
+    if inbox.ready_count == 0:
+        write_lines(
+            output,
+            "No evidence is ready to review yet.",
+            "Blocked evidence remains visible with a reason.",
+            "",
+        )
     write_lines(output, "Choose a class.", "")
     for index, group in enumerate(inbox.groups, start=1):
         ready, blocked = _group_counts(group)
@@ -275,9 +435,8 @@ def _render_class_list(
         if blocked:
             summary.append(f"{blocked} needs attention")
         print(f"   {' · '.join(summary)}", file=output)
-    write_lines(output, "")
+    write_lines(output, "", "R. Refresh evidence list")
     print_standard_navigation(output)
-
 
 def _render_assignment_list(
     output: TextIO,
@@ -302,9 +461,8 @@ def _render_assignment_list(
             f"   {item.producer_label} · {item.status_label}{suffix}",
             file=output,
         )
-    write_lines(output, "")
+    write_lines(output, "", "R. Refresh evidence list")
     print_standard_navigation(output)
-
 
 def _status_explanation(item: TeacherEvidenceInboxItem) -> tuple[str, ...]:
     explanations = {
@@ -357,24 +515,103 @@ def _status_explanation(item: TeacherEvidenceInboxItem) -> tuple[str, ...]:
 
 def _show_blocked_item(
     *,
+    root: Path,
     item: TeacherEvidenceInboxItem,
+    dependencies: TeacherEvidenceInboxMenuDependencies,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
 ) -> None:
-    clear_fn()
-    print_menu_header(output, "Evidence Not Ready")
-    write_lines(
-        output,
-        f"Class: {item.class_label}",
-        f"Assignment: {item.work_title}",
-        f"Source: {item.producer_label}",
-        f"Status: {item.status_label}",
-        "",
-        *_status_explanation(item),
-    )
-    pause_for_user(input_fn)
+    recoverable = item.status_code in {
+        "refresh_needed",
+        "publication_unavailable",
+        "no_longer_current",
+    }
+    while True:
+        clear_fn()
+        print_menu_header(output, "Evidence Not Ready")
+        write_lines(
+            output,
+            f"Class: {item.class_label}",
+            f"Assignment: {item.work_title}",
+            f"Source: {item.producer_label}",
+            f"Status: {item.status_label}",
+            "",
+            *_status_explanation(item),
+            "",
+        )
+        if recoverable:
+            print("1. Rebuild the derived publication index", file=output)
+        write_lines(
+            output,
+            "R. Refresh evidence list",
+            "T. Technical details",
+        )
+        print_standard_navigation(output)
 
+        choice = read_choice(input_fn)
+        if choice.casefold() == "r":
+            raise _RefreshEvidenceInbox
+        if choice.casefold() == "t":
+            clear_fn()
+            print_menu_header(output, "Technical Details")
+            write_lines(
+                output,
+                f"Publication ID: {item.publication_id}",
+                f"Class ID: {item.work.class_id}",
+                f"Work ID: {item.work.work_id}",
+                f"Producer module: {item.work.module_id}",
+                f"Canonical state: {item.canonical_state or 'unavailable'}",
+                (
+                    "Canonical error: "
+                    f"{item.canonical_error_code or 'none'}"
+                ),
+                (
+                    "Drift fields: "
+                    f"{', '.join(item.drift_fields) or 'none'}"
+                ),
+                (
+                    "Support reasons: "
+                    f"{', '.join(item.support_reason_codes) or 'none'}"
+                ),
+                "",
+                "This view is read-only.",
+            )
+            pause_for_user(input_fn)
+            continue
+        if choice == "1" and recoverable:
+            try:
+                dependencies.catalog_rebuilder(root)
+            except (AcademicCatalogError, OSError, ValueError):
+                clear_fn()
+                print_menu_header(output, "Publication Index Recovery Failed")
+                write_lines(
+                    output,
+                    "Meridian could not rebuild the derived publication index.",
+                    "Canonical publication records were not changed by this screen.",
+                )
+                pause_for_user(input_fn)
+                continue
+            clear_fn()
+            print_menu_header(output, "Publication Index Rebuilt")
+            write_lines(
+                output,
+                "The derived publication index was rebuilt from canonical state.",
+                "The evidence list will now be refreshed.",
+            )
+            pause_for_user(input_fn)
+            raise _RefreshEvidenceInbox
+
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        upper = "1, " if recoverable else ""
+        write_lines(
+            output,
+            "",
+            f"Please choose {upper}R, T, B, M, or Q.",
+        )
+        pause_for_user(input_fn)
 
 def _show_review_failure(
     *,
@@ -481,6 +718,17 @@ def _show_review_item(
     clear_fn: ClearFunction,
 ) -> None:
     while True:
+        continuation = (
+            None
+            if dependencies.continuation_resolver is None
+            else dependencies.continuation_resolver(
+                root,
+                prepared,
+                item,
+                session_context,
+            )
+        )
+
         clear_fn()
         print_menu_header(output, "Evidence Detail")
         write_lines(
@@ -498,24 +746,79 @@ def _show_review_item(
             )
         else:
             write_lines(output, "Standards: none declared")
+
+        if continuation is not None:
+            write_lines(
+                output,
+                "",
+                "Recommended next step:",
+                f"C. {continuation.label}",
+                f"   {continuation.reason}",
+                "",
+                "Other available actions:",
+            )
+        else:
+            write_lines(output, "", "Available next steps:")
+
         actions = ["eligibility"]
-        write_lines(
-            output,
-            "",
-            "Available next steps:",
-            "1. Review eligibility",
-        )
+        print("1. Review eligibility", file=output)
         if item.student_id is not None:
             actions.append("attempts")
             print("2. Review attempts / reassessment", file=output)
             actions.append("standards")
             print("3. Review Standard association", file=output)
-        write_lines(output, "")
+        write_lines(output, "", "R. Refresh current evidence state")
         print_standard_navigation(output)
+
         choice = read_choice(input_fn)
+        if choice.casefold() == "r":
+            raise _RefreshEvidenceInbox
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
             return
+
+        if choice.casefold() == "c" and continuation is not None:
+            action = continuation.action
+            if action == "refresh":
+                raise _RefreshEvidenceInbox
+            if action == "finish":
+                return
+            if action == "eligibility":
+                dependencies.eligibility_handler(
+                    root,
+                    prepared,
+                    item,
+                    subject_label,
+                    session_context,
+                    input_fn,
+                    output,
+                    clear_fn,
+                )
+                continue
+            if action == "attempts":
+                dependencies.attempt_handler(
+                    root,
+                    prepared,
+                    item,
+                    subject_label,
+                    session_context,
+                    input_fn,
+                    output,
+                    clear_fn,
+                )
+                continue
+            dependencies.standards_handler(
+                root,
+                prepared,
+                item,
+                subject_label,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            continue
+
         if choice == "1":
             dependencies.eligibility_handler(
                 root,
@@ -556,10 +859,9 @@ def _show_review_item(
         write_lines(
             output,
             "",
-            f"Please choose 1-{upper}, B, M, or Q.",
+            f"Please choose C, 1-{upper}, R, B, M, or Q.",
         )
         pause_for_user(input_fn)
-
 
 def _run_evidence_rows(
     *,
@@ -761,12 +1063,12 @@ def _show_projection_failure(
     elif isinstance(error, GuidedProjectionSelectionStaleError):
         lines = (
             "This evidence selection is no longer current.",
-            "Return to the list and choose the current evidence source.",
+            "Refresh the evidence list before continuing.",
         )
     elif isinstance(error, GuidedProjectionCurrentUseBlockedError):
         lines = (
             "The prepared evidence is no longer valid for current review.",
-            "Return to the list and refresh before continuing.",
+            "Refresh the evidence list before continuing.",
         )
     else:
         lines = (
@@ -774,18 +1076,42 @@ def _show_projection_failure(
             "No evidence workflow state was changed.",
         )
 
-    clear_fn()
-    print_menu_header(output, "Evidence Not Ready")
-    write_lines(
-        output,
-        f"Class: {item.class_label}",
-        f"Assignment: {item.work_title}",
-        f"Source: {item.producer_label}",
-        "",
-        *lines,
-    )
-    pause_for_user(input_fn)
-
+    while True:
+        clear_fn()
+        print_menu_header(output, "Evidence Not Ready")
+        write_lines(
+            output,
+            f"Class: {item.class_label}",
+            f"Assignment: {item.work_title}",
+            f"Source: {item.producer_label}",
+            "",
+            *lines,
+            "",
+            "R. Refresh evidence list",
+            "T. Technical details",
+        )
+        print_standard_navigation(output)
+        choice = read_choice(input_fn)
+        if choice.casefold() == "r":
+            raise _RefreshEvidenceInbox
+        if choice.casefold() == "t":
+            clear_fn()
+            print_menu_header(output, "Technical Details")
+            write_lines(
+                output,
+                f"Publication ID: {item.publication_id}",
+                f"Error code: {error.code}",
+                f"Details: {error}",
+                "",
+                "This view is read-only.",
+            )
+            pause_for_user(input_fn)
+            continue
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        write_lines(output, "", "Please choose R, T, B, M, or Q.")
+        pause_for_user(input_fn)
 
 def _run_class_evidence_menu(
     *,
@@ -801,6 +1127,8 @@ def _run_class_evidence_menu(
         clear_fn()
         _render_assignment_list(output, group, session_context)
         choice = read_choice(input_fn)
+        if choice.casefold() == "r":
+            raise _RefreshEvidenceInbox
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
             return
@@ -811,7 +1139,9 @@ def _run_class_evidence_menu(
                 item = group.items[selected_index - 1]
                 if item.actionability == "blocked":
                     _show_blocked_item(
+                        root=root,
                         item=item,
+                        dependencies=dependencies,
                         input_fn=input_fn,
                         output=output,
                         clear_fn=clear_fn,
@@ -864,10 +1194,9 @@ def _run_class_evidence_menu(
         write_lines(
             output,
             "",
-            f"Please choose 1-{len(group.items)}, B, M, or Q.",
+            f"Please choose 1-{len(group.items)}, R, B, M, or Q.",
         )
         pause_for_user(input_fn)
-
 
 def run_teacher_evidence_inbox_menu(
     *,
@@ -894,27 +1223,55 @@ def run_teacher_evidence_inbox_menu(
             )
             pause_for_user(input_fn)
             return
+        except CatalogDiscoveryError as error:
+            root = dependencies.workspace_resolver()
+            if _run_catalog_recovery(
+                root=root,
+                error=error,
+                dependencies=dependencies,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            ):
+                continue
+            return
         except (
             DiagnosticsError,
             PublicationIngestionError,
             TeacherEvidenceInboxError,
             ValueError,
-        ):
+        ) as error:
             clear_fn()
             print_menu_header(stream, "Review New Evidence")
             write_lines(
                 stream,
                 "Current evidence could not be listed safely.",
                 "No evidence was opened or changed.",
-                "Use the exact CLI diagnostics only if technical "
-                "investigation is needed.",
+                "",
+                "T. Technical details",
             )
-            pause_for_user(input_fn)
+            print_standard_navigation(stream)
+            choice = read_choice(input_fn)
+            if choice.casefold() == "t":
+                clear_fn()
+                print_menu_header(stream, "Technical Details")
+                write_lines(
+                    stream,
+                    f"Error type: {type(error).__name__}",
+                    f"Details: {error}",
+                    "",
+                    "This view is read-only.",
+                )
+                pause_for_user(input_fn)
             return
+
+        _reconcile_session_with_inbox(inbox, session_context)
 
         clear_fn()
         _render_class_list(stream, inbox, session_context)
         choice = read_choice(input_fn)
+        if choice.casefold() == "r":
+            continue
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
             return
@@ -924,24 +1281,28 @@ def run_teacher_evidence_inbox_menu(
             if 1 <= selected_index <= len(inbox.groups):
                 group = inbox.groups[selected_index - 1]
                 session_context.select_class(group.class_id)
-                _run_class_evidence_menu(
-                    root=root,
-                    group=group,
-                    dependencies=dependencies,
-                    session_context=session_context,
-                    input_fn=input_fn,
-                    output=stream,
-                    clear_fn=clear_fn,
-                )
+                try:
+                    _run_class_evidence_menu(
+                        root=root,
+                        group=group,
+                        dependencies=dependencies,
+                        session_context=session_context,
+                        input_fn=input_fn,
+                        output=stream,
+                        clear_fn=clear_fn,
+                    )
+                except _RefreshEvidenceInbox:
+                    continue
                 continue
 
-        write_lines(
-            stream,
-            "",
-            f"Please choose 1-{len(inbox.groups)}, B, M, or Q.",
-        )
+        if inbox.groups:
+            message = (
+                f"Please choose 1-{len(inbox.groups)}, R, B, M, or Q."
+            )
+        else:
+            message = "Please choose R, B, M, or Q."
+        write_lines(stream, "", message)
         pause_for_user(input_fn)
-
 
 __all__ = (
     "TeacherEvidenceInboxMenuDependencies",

@@ -533,7 +533,12 @@ def run_guided_standard_menu(
     )
     teacher = read_choice(input_fn, "Teacher name for attribution: ").strip()
     if not teacher:
-        write_lines(output, "", "Standard association was not changed.")
+        write_lines(
+            output,
+            "",
+            "Teacher name is required to attribute a Standard decision.",
+            "Standard association was not changed.",
+        )
         pause_for_user(input_fn)
         return
     rationale_text = read_choice(input_fn, "Rationale (optional): ").strip()

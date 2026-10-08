@@ -449,6 +449,13 @@ def run_grade_item_bridge(
     print_menu_header(output, "Grade Item Attribution")
     teacher = read_choice(input_fn, "Teacher name for attribution: ").strip()
     if not teacher:
+        write_lines(
+            output,
+            "",
+            "Teacher name is required to attribute a Grade Item relationship.",
+            "No Grade Item relationship was changed.",
+        )
+        pause_for_user(input_fn)
         return False
 
     mode, grade_item = selected

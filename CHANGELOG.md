@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Issue #110 Slice 12 hardens guided navigation, empty states, and recovery.
+  Evidence detail now recomputes a mechanical `C. Continue` recommendation after
+  child workflows return. `R. Refresh evidence list` reloads the derived inbox
+  and conservatively clears only publication scope that the refreshed inbox
+  actually disproves; class/work absence alone is not treated as stale.
+  Missing/unreadable catalog state
+  can explicitly rebuild Core's disposable Academic Catalog; stale/drifted
+  publication rows expose the same bounded recovery. Empty/all-blocked,
+  withdrawn/superseded, authorization, reader, roster-ambiguity, and missing
+  teacher-attribution states remain teacher-readable and fail closed. Technical
+  details are explicit and read-only; Core `B / M / Q` navigation is preserved.
+
 - Issue #110 Slice 11 adds contextual proficiency continuation after a current
   associated Standard decision. Grade Item, roster student, Standard, evidence,
   and exact scale context are carried forward. Current calculation policies are

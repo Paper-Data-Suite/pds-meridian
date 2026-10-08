@@ -300,9 +300,9 @@ preview exact eligibility write
 No free-text decision revision is requested. The exact newly written revision is
 carried internally into the existing CAS-protected selection workflow.
 
-When no current included Grade Item relationship exists, eligibility stops with
-`Grade Item Relationship Needed`. It does not infer or create membership. The
-teacher-facing link/create bridge remains a later #110 slice.
+When no current included Grade Item relationship exists, eligibility enters the
+Slice 10 teacher-facing Grade Item bridge. The teacher explicitly links an
+existing Grade Item or creates one; Meridian does not infer membership.
 
 ## Guided attempt/reassessment continuation
 
@@ -473,6 +473,56 @@ choose current policy
 A preview never writes. Writing never selects. The calculated level is produced
 only by the existing deterministic proficiency policy; Slice 11 adds no new
 proficiency semantics and no automatic academic judgment.
+
+## Navigation, empty states, recovery, and continuation
+
+Slice 12 qualifies the routine guided route around state changes and failure
+recovery rather than adding academic authority.
+
+Evidence detail now recomputes a mechanical continuation projection every time
+a child workflow returns. The projection can recommend:
+
+```text
+C. Set up Grade Item and review eligibility
+C. Review eligibility
+C. Review attempts / reassessment
+C. Review Standard association
+C. Refresh current evidence state
+C. Finish for now
+```
+
+`C` means continue to the mechanically appropriate teacher-controlled stage. It
+never writes, selects, associates, calculates, or otherwise makes an academic
+decision by itself. Numbered alternate actions remain available.
+
+The evidence inbox now supports `R. Refresh evidence list`. Each refresh rebuilds
+the read model from current Core/Meridian state and reconciles process-local
+session context conservatively. The inbox is not an authoritative registry of
+every valid class or work, so absence alone does not clear class/work context.
+When the active work is present in the refreshed inbox but its previously
+selected publication is no longer current there, Meridian clears only the
+publication and its descendants. No replacement is guessed.
+
+Missing or unreadable derived catalog state receives a bounded recovery screen.
+The teacher may retry or explicitly rebuild Core's disposable Academic Catalog.
+The rebuild uses Core's canonical rebuild service and does not modify Publication
+Records, producer manifests, or academic judgments. Stale/drifted publication
+rows also offer this recovery path.
+
+Empty and blocked states remain informative:
+
+- no current publications explicitly says there is nothing currently indexed;
+- an all-blocked inbox says nothing is ready while keeping blocked work visible;
+- withdrawn/superseded/drifted work remains fail-closed;
+- authorization denial and reader unavailability remain teacher-readable;
+- ambiguous roster labels still block rather than exposing student IDs;
+- blank teacher attribution now explains that attribution is required and makes
+  no change.
+
+`B`, `M`, and `Q` continue to use Core navigation primitives. `T. Technical
+details` is read-only and may expose exact diagnostic identity only after the
+teacher explicitly requests it. Opening technical details does not refresh,
+reproject, authorize, write, or select anything.
 
 ## Publication discovery and compatibility remain separate
 

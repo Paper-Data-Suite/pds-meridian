@@ -316,7 +316,12 @@ def run_guided_eligibility_menu(
     )
     teacher = read_choice(input_fn, "Teacher name for attribution: ").strip()
     if not teacher:
-        write_lines(output, "", "Eligibility was not changed.")
+        write_lines(
+            output,
+            "",
+            "Teacher name is required to attribute an eligibility decision.",
+            "Eligibility was not changed.",
+        )
         pause_for_user(input_fn)
         return
     rationale_text = read_choice(input_fn, "Rationale (optional): ").strip()

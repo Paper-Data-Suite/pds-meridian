@@ -366,7 +366,12 @@ def run_guided_attempt_menu(
     )
     teacher = read_choice(input_fn, "Teacher name for attribution: ").strip()
     if not teacher:
-        write_lines(output, "", "Attempt decision was not changed.")
+        write_lines(
+            output,
+            "",
+            "Teacher name is required to attribute an attempt decision.",
+            "Attempt decision was not changed.",
+        )
         pause_for_user(input_fn)
         return
 

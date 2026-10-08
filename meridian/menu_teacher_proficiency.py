@@ -321,6 +321,13 @@ def run_guided_proficiency_menu(
 
     teacher = read_choice(input_fn, "Teacher name for attribution: ").strip()
     if not teacher:
+        write_lines(
+            output,
+            "",
+            "Teacher name is required to attribute a proficiency result.",
+            "No proficiency result was written.",
+        )
+        pause_for_user(input_fn)
         return
 
     try:

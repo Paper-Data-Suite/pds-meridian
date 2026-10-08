@@ -154,9 +154,12 @@ registration, membership, or calendar revision identifiers. Slice 11 carries
 the selected Grade Item/student/Standard/scale context into a guided
 proficiency preview, with current policies shown by title/strategy and current
 mapping profiles shown by mapping semantics. The teacher explicitly chooses the
-policy and mapping; preview/write/current-selection remain separate. Direct CLI
-remains exact and noninteractive, and the Meridian v0.3.1 exact producer-reader
-gates remain unchanged. See
+policy and mapping; preview/write/current-selection remain separate. Slice 12
+adds mechanical `C. Continue`, explicit evidence-list refresh, bounded derived
+catalog recovery, session reconciliation after refresh, read-only technical
+details, and teacher-readable empty/failure states while preserving Core
+`B / M / Q` navigation. Direct CLI remains exact and noninteractive, and the
+Meridian v0.3.1 exact producer-reader gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the
