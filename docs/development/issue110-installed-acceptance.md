@@ -59,16 +59,17 @@ The smoke:
 4. decodes and canonicalizes that fixture with the installed producer's own
    public manifest codec;
 5. creates a Core roster with a teacher-readable student name;
-6. registers the producer work through Core;
-7. publishes the canonical producer manifest through Core's publication service;
-8. rebuilds Core's disposable Academic Catalog;
-9. composes Meridian diagnostics with an explicit acceptance-only deployment
-   authorizer;
-10. enters `Review New Evidence`;
-11. selects class, assignment, roster student, and evidence through teacher-facing
+6. creates the producer-owned module work root through Core's canonical path helper;
+7. registers the producer work through Core;
+8. publishes the canonical producer manifest through Core's publication service;
+9. rebuilds Core's disposable Academic Catalog;
+10. composes Meridian diagnostics with an explicit acceptance-only deployment
+    authorizer;
+11. enters `Review New Evidence`;
+12. selects class, assignment, roster student, and evidence through teacher-facing
     numbered choices;
-12. reaches Evidence Detail and the mechanically derived next step; and
-13. backs out through the ordinary guided navigation.
+13. reaches Evidence Detail and the mechanically derived next step; and
+14. backs out through the ordinary guided navigation.
 
 The acceptance asserts that the ordinary rendered route does not expose the
 selected Publication ID or prompt for infrastructure identities such as cache,

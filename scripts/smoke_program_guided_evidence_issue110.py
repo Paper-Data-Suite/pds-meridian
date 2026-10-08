@@ -21,6 +21,7 @@ from pds_core.registry_services import (
     register_academic_work,
 )
 from pds_core.rosters import create_roster
+from pds_core.routes import module_work_dir
 from pds_core.routing_models import ModuleWorkRef
 
 from meridian.diagnostics import default_diagnostics_dependencies
@@ -159,6 +160,9 @@ def _setup_workspace(
     )
     write_class_roster(workspace, roster)
 
+    work_root = module_work_dir(workspace, work)
+    work_root.mkdir(parents=True, exist_ok=False)
+
     registration = register_academic_work(
         workspace,
         AcademicWorkRegistrationRequest(
@@ -174,13 +178,16 @@ def _setup_workspace(
     if registration.registration.registration_revision != 1:
         raise AssertionError("Installed acceptance expected registration revision 1.")
 
-    relative = (
-        f"classes/{work.class_id}/modules/{producer}/work/{work.work_id}/"
-        "exports/manifests/academic_results/1.json"
+    manifest_path = (
+        work_root
+        / "exports"
+        / "manifests"
+        / "academic_results"
+        / "1.json"
     )
-    manifest_path = workspace.joinpath(*relative.split("/"))
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_bytes(canonical)
+    relative = manifest_path.relative_to(workspace).as_posix()
 
     published = publish_manifest_revision(
         workspace,

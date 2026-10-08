@@ -90,6 +90,21 @@ def test_issue110_smoke_program_requires_installed_package_origins() -> None:
     assert 'version("pds-core") != "0.6.4"' in source
 
 
+def test_issue110_smoke_creates_producer_work_root_before_registration() -> None:
+    source = Path(
+        "scripts/smoke_program_guided_evidence_issue110.py"
+    ).read_text(encoding="utf-8")
+    setup = source[
+        source.index("def _setup_workspace(") :
+        source.index("def _run_teacher_journey(")
+    ]
+
+    assert "work_root = module_work_dir(workspace, work)" in setup
+    assert "work_root.mkdir(parents=True, exist_ok=False)" in setup
+    assert setup.index("work_root.mkdir(") < setup.index("register_academic_work(")
+    assert "relative = manifest_path.relative_to(workspace).as_posix()" in setup
+
+
 def test_issue110_smoke_uses_real_catalog_projection_and_guided_menu() -> None:
     source = Path(
         "scripts/smoke_program_guided_evidence_issue110.py"
