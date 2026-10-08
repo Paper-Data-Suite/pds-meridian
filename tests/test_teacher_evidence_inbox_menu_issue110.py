@@ -23,6 +23,11 @@ from meridian.teacher_evidence_inbox import (
     TeacherEvidenceInbox,
     TeacherEvidenceInboxItem,
 )
+from meridian.teacher_evidence_review import (
+    TeacherEvidenceReview,
+    TeacherEvidenceReviewItem,
+    TeacherEvidenceStudent,
+)
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -100,10 +105,39 @@ def _prepared_result() -> GuidedProjectionResult:
     )
 
 
+def _review_result() -> TeacherEvidenceReview:
+    row = TeacherEvidenceReviewItem(
+        item_id="item_hidden_1",
+        student_id="00001",
+        evidence_label="Attempt 1",
+        value_label="8 / 10",
+        result_kind_label="Submitted result",
+        standard_ids=("RL.TS.11-12.4",),
+    )
+    student = TeacherEvidenceStudent(
+        student_id="00001",
+        display_label="Jane Smith",
+        period="2",
+        items=(row,),
+    )
+    return TeacherEvidenceReview(
+        class_id="english_12_pd2",
+        work=ModuleWorkRef(
+            "scoreform",
+            "english_12_pd2",
+            "memory_snapshot",
+        ),
+        publication_id="pub_11111111111111111111111111111111",
+        students=(student,),
+        shared_items=(),
+    )
+
+
 def _dependencies(
     inbox: TeacherEvidenceInbox,
     *,
     projection_preparer=None,
+    review_loader=None,
 ) -> TeacherEvidenceInboxMenuDependencies:
     diagnostics = cast(DiagnosticsDependencies, object())
     prepare = (
@@ -111,11 +145,17 @@ def _dependencies(
         if projection_preparer is not None
         else lambda _root, _work, _publication_id: _prepared_result()
     )
+    load_review = (
+        review_loader
+        if review_loader is not None
+        else lambda _root, _prepared: _review_result()
+    )
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=lambda: Path("workspace"),
         diagnostics=diagnostics,
         inbox_loader=lambda _root, _diagnostics: inbox,
         projection_preparer=prepare,
+        review_loader=load_review,
     )
 
 
@@ -212,14 +252,14 @@ def test_selecting_class_updates_parent_session_scope() -> None:
 
 def test_ready_evidence_selection_carries_hidden_identity_into_session() -> None:
     inbox = _two_class_inbox()
-    selected = inbox.groups[0].items[1]
+    selected = inbox.groups[0].items[0]
     session = TeacherSessionContext()
     output = StringIO()
 
     run_teacher_evidence_inbox_menu(
         dependencies=_dependencies(inbox),
         session_context=session,
-        input_fn=ScriptedInput("1", "2", "", "b", "b"),
+        input_fn=ScriptedInput("1", "1", "b", "b", "b"),
         output=output,
         clear_fn=lambda: None,
     )
@@ -231,9 +271,9 @@ def test_ready_evidence_selection_carries_hidden_identity_into_session() -> None
     assert session.active_student_id is None
 
     rendered = output.getvalue()
-    assert "Evidence Ready" in rendered
-    assert "Evidence rows available: 2" in rendered
-    assert "Authorized evidence is prepared for review." in rendered
+    assert "Evidence Review" in rendered
+    assert "Students represented: 1" in rendered
+    assert "Evidence rows: 1" in rendered
     assert selected.publication_id not in rendered
     assert "Selected for this session" in rendered
 
@@ -301,7 +341,7 @@ def test_projection_auth_unavailable_is_teacher_facing_and_fail_closed() -> None
 
 def test_guided_route_never_prompts_for_infrastructure_identity() -> None:
     output = StringIO()
-    scripted = ScriptedInput("1", "1", "", "b", "b")
+    scripted = ScriptedInput("1", "1", "b", "b", "b")
 
     run_teacher_evidence_inbox_menu(
         dependencies=_dependencies(_two_class_inbox()),
@@ -323,6 +363,42 @@ def test_guided_route_never_prompts_for_infrastructure_identity() -> None:
     ):
         assert forbidden not in rendered
         assert all(forbidden not in prompt for prompt in scripted.prompts)
+
+
+def test_student_and_evidence_choices_use_labels_not_hidden_ids() -> None:
+    session = TeacherSessionContext()
+    output = StringIO()
+
+    run_teacher_evidence_inbox_menu(
+        dependencies=_dependencies(_two_class_inbox()),
+        session_context=session,
+        input_fn=ScriptedInput(
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "",
+            "b",
+            "b",
+            "b",
+            "b",
+            "b",
+        ),
+        output=output,
+        clear_fn=lambda: None,
+    )
+
+    assert session.active_student_id == "00001"
+    rendered = output.getvalue()
+    assert "Jane Smith" in rendered
+    assert "Attempt 1" in rendered
+    assert "8 / 10" in rendered
+    assert "RL.TS.11-12.4" in rendered
+    assert "00001" not in rendered
+    assert "item_hidden_1" not in rendered
+    assert "Student ID" not in rendered
+    assert "Evidence item ID" not in rendered
 
 
 def test_back_from_evidence_returns_to_class_list() -> None:

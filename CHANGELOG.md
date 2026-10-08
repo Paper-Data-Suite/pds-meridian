@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Issue #110 Slice 6 adds read-only teacher-friendly evidence review over the
+  authorized projection. Individualized evidence resolves through the canonical
+  Core roster and displays student names instead of IDs; duplicate names use
+  roster period when sufficient and otherwise fail closed. Evidence rows render
+  target/sequence, producer-native value labels, result kind, and declared
+  Standards while exact item/student identity remains internal. Shared
+  nonstudent evidence remains reviewable without fabricated student identity.
+
 - Issue #110 Slice 5 adds guided authorized projection preparation for a selected
   class/work publication. The route supplies stable internal purpose
   `review_evidence` and whole-assignment student scope, then reuses existing

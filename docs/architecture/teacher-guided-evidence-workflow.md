@@ -225,6 +225,39 @@ default authorizer. If the process has no configured authorizer, or policy
 denies access, the teacher receives a bounded blocker and the selected
 work/publication is not installed into session context.
 
+## Teacher-friendly evidence review
+
+Slice 6 projects an authorized evidence inventory into a read-only teacher view
+before any Grade Item or eligibility decision is required.
+
+The normal review hierarchy is:
+
+```text
+assignment summary
+-> roster-backed student
+-> teacher-readable evidence rows
+```
+
+Individualized evidence is joined to the canonical Core class roster. Student
+presentation uses Core's `student_display_name` helper, including
+`preferred_name` when present. If two represented students share the same
+display name, roster period is added when that safely distinguishes them. If
+name plus period is still ambiguous, review blocks rather than exposing a raw
+student ID.
+
+Evidence rows carry exact hidden `item_id` and `student_id`, but render
+recognizable context such as target kind/sequence, native point value or scale
+label, result kind, and producer-declared Standard identities. Native values are
+not converted to percentages or a Meridian scale.
+
+Nonstudent/shared producer evidence remains reviewable without fabricating a
+student identity or requiring a roster.
+
+This slice is read-only. It does not create Grade Item membership, eligibility,
+attempt/reassessment, Standard-association, proficiency, Grade, or override
+state. Attention routing that depends on those states remains for later guided
+continuation slices.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

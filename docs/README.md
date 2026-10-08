@@ -127,10 +127,14 @@ receive teacher-facing explanations. Slice 5 adds guided authorized projection
 preparation using the stable internal `review_evidence` purpose and
 whole-assignment scope. Existing ingestion, adapter, manifest-verification, and
 projection-cache services remain authoritative; the menu neither asks for nor
-derives a cache key. Missing or denied deployment authorization fails closed.
-Infrastructure identifiers remain hidden from the guided workflow. Direct CLI
-remains exact and noninteractive, and the Meridian v0.3.1 exact producer-reader
-gates remain unchanged. See
+derives a cache key. Missing or denied deployment authorization fails closed. Slice 6 adds
+roster-backed teacher evidence review over the authorized inventory, presenting
+student names and readable evidence rows while carrying exact student/evidence
+identity internally. Duplicate student display labels use roster period when
+safe and otherwise block rather than falling back to IDs. Shared nonstudent
+evidence remains supported. Infrastructure identifiers remain hidden from the
+guided workflow. Direct CLI remains exact and noninteractive, and the Meridian
+v0.3.1 exact producer-reader gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
 
 Issue #58 extends the existing issue #43 read-only attention provider into the

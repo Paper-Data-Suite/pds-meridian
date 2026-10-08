@@ -45,6 +45,15 @@ from meridian.teacher_evidence_inbox import (
     TeacherEvidenceInboxItem,
     load_teacher_evidence_inbox,
 )
+from meridian.teacher_evidence_review import (
+    TeacherEvidenceReview,
+    TeacherEvidenceReviewError,
+    TeacherEvidenceReviewItem,
+    TeacherEvidenceRosterUnavailableError,
+    TeacherEvidenceStudentAmbiguityError,
+    TeacherEvidenceStudentMissingError,
+    project_teacher_evidence_review,
+)
 from meridian.teacher_session import TeacherSessionContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
@@ -56,6 +65,10 @@ GuidedProjectionPreparer: TypeAlias = Callable[
     [Path, ModuleWorkRef, str],
     GuidedProjectionResult,
 ]
+TeacherEvidenceReviewLoader: TypeAlias = Callable[
+    [Path, GuidedProjectionResult],
+    TeacherEvidenceReview,
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +79,7 @@ class TeacherEvidenceInboxMenuDependencies:
     diagnostics: DiagnosticsDependencies
     inbox_loader: TeacherEvidenceInboxLoader
     projection_preparer: GuidedProjectionPreparer
+    review_loader: TeacherEvidenceReviewLoader
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -98,11 +112,18 @@ def default_teacher_evidence_inbox_menu_dependencies(
             dependencies=projection_dependencies,
         )
 
+    def load_review(
+        root: Path,
+        prepared: GuidedProjectionResult,
+    ) -> TeacherEvidenceReview:
+        return project_teacher_evidence_review(root, prepared)
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
         inbox_loader=load,
         projection_preparer=prepare,
+        review_loader=load_review,
     )
 
 
@@ -246,27 +267,272 @@ def _show_blocked_item(
     pause_for_user(input_fn)
 
 
-def _show_prepared_selection(
+def _show_review_failure(
     *,
     item: TeacherEvidenceInboxItem,
-    prepared: GuidedProjectionResult,
+    error: TeacherEvidenceReviewError,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
 ) -> None:
+    lines: tuple[str, ...]
+    if isinstance(error, TeacherEvidenceRosterUnavailableError):
+        lines = (
+            "The class roster could not be loaded safely.",
+            "Review the class roster before continuing.",
+        )
+    elif isinstance(error, TeacherEvidenceStudentMissingError):
+        lines = (
+            "Evidence references a student who is not in the current class roster.",
+            "Review the class roster before continuing.",
+        )
+    elif isinstance(error, TeacherEvidenceStudentAmbiguityError):
+        lines = (
+            "Two roster students cannot be safely distinguished by name",
+            "and available class context.",
+            "Review the class roster before continuing.",
+        )
+    else:
+        lines = (
+            "The authorized evidence could not be presented safely.",
+            "No evidence workflow state was changed.",
+        )
+
     clear_fn()
-    print_menu_header(output, "Evidence Ready")
+    print_menu_header(output, "Evidence Review Unavailable")
     write_lines(
         output,
         f"Class: {item.class_label}",
         f"Assignment: {item.work_title}",
         f"Source: {item.producer_label}",
-        f"Evidence rows available: {prepared.evidence_count}",
         "",
-        "Authorized evidence is prepared for review.",
-        "Meridian resolved the publication and projection internally.",
+        *lines,
     )
     pause_for_user(input_fn)
+
+
+def _render_review_summary(
+    output: TextIO,
+    item: TeacherEvidenceInboxItem,
+    review: TeacherEvidenceReview,
+) -> tuple[str, ...]:
+    print_menu_header(output, "Evidence Review")
+    write_lines(
+        output,
+        f"Class: {item.class_label}",
+        f"Assignment: {item.work_title}",
+        f"Source: {item.producer_label}",
+        "",
+        f"Students represented: {review.student_count}",
+        f"Evidence rows: {review.evidence_count}",
+        f"Shared evidence rows: {review.shared_evidence_count}",
+        "",
+    )
+    actions: list[str] = []
+    if review.students:
+        actions.append("students")
+        print(f"{len(actions)}. Review students", file=output)
+    if review.shared_items:
+        actions.append("shared")
+        print(f"{len(actions)}. Review shared evidence", file=output)
+    if not actions:
+        print("No evidence rows are available for review.", file=output)
+    write_lines(output, "")
+    print_standard_navigation(output)
+    return tuple(actions)
+
+
+def _render_item_row(
+    output: TextIO,
+    number: int,
+    item: TeacherEvidenceReviewItem,
+) -> None:
+    print(f"{number}. {item.evidence_label}", file=output)
+    print(
+        f"   {item.value_label} · {item.result_kind_label}",
+        file=output,
+    )
+    if item.standard_ids:
+        print(
+            "   Standards: " + ", ".join(item.standard_ids),
+            file=output,
+        )
+
+
+def _show_review_item(
+    *,
+    item: TeacherEvidenceReviewItem,
+    subject_label: str,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    clear_fn()
+    print_menu_header(output, "Evidence Detail")
+    write_lines(
+        output,
+        f"Student: {subject_label}",
+        f"Evidence: {item.evidence_label}",
+        f"Result: {item.value_label}",
+        f"Type: {item.result_kind_label}",
+    )
+    if item.standard_ids:
+        write_lines(
+            output,
+            "Standards:",
+            *(f"  {standard}" for standard in item.standard_ids),
+        )
+    else:
+        write_lines(output, "Standards: none declared")
+    pause_for_user(input_fn)
+
+
+def _run_evidence_rows(
+    *,
+    rows: tuple[TeacherEvidenceReviewItem, ...],
+    subject_label: str,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    while True:
+        clear_fn()
+        print_menu_header(output, "Evidence Review")
+        write_lines(output, f"Student: {subject_label}", "")
+        for index, row in enumerate(rows, start=1):
+            _render_item_row(output, index, row)
+        write_lines(output, "")
+        print_standard_navigation(output)
+        choice = read_choice(input_fn)
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        if choice.isdigit():
+            selected = int(choice)
+            if 1 <= selected <= len(rows):
+                _show_review_item(
+                    item=rows[selected - 1],
+                    subject_label=subject_label,
+                    input_fn=input_fn,
+                    output=output,
+                    clear_fn=clear_fn,
+                )
+                continue
+        write_lines(
+            output,
+            "",
+            f"Please choose 1-{len(rows)}, B, M, or Q.",
+        )
+        pause_for_user(input_fn)
+
+
+def _run_student_review(
+    *,
+    review: TeacherEvidenceReview,
+    session_context: TeacherSessionContext,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    while True:
+        clear_fn()
+        print_menu_header(output, "Students Represented")
+        for index, student in enumerate(review.students, start=1):
+            is_selected = session_context.active_student_id == student.student_id
+            suffix = " · Current student" if is_selected else ""
+            print(f"{index}. {student.display_label}{suffix}", file=output)
+            print(
+                f"   {_plural(len(student.items), 'evidence row')}",
+                file=output,
+            )
+        write_lines(output, "")
+        print_standard_navigation(output)
+        choice = read_choice(input_fn)
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        if choice.isdigit():
+            selected = int(choice)
+            if 1 <= selected <= len(review.students):
+                student = review.students[selected - 1]
+                session_context.select_student(student.student_id)
+                _run_evidence_rows(
+                    rows=student.items,
+                    subject_label=student.display_label,
+                    input_fn=input_fn,
+                    output=output,
+                    clear_fn=clear_fn,
+                )
+                continue
+        write_lines(
+            output,
+            "",
+            f"Please choose 1-{len(review.students)}, B, M, or Q.",
+        )
+        pause_for_user(input_fn)
+
+
+def _run_shared_review(
+    *,
+    review: TeacherEvidenceReview,
+    session_context: TeacherSessionContext,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    session_context.clear_student()
+    _run_evidence_rows(
+        rows=review.shared_items,
+        subject_label="Shared / nonstudent evidence",
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+    )
+
+
+def _run_teacher_evidence_review(
+    *,
+    item: TeacherEvidenceInboxItem,
+    review: TeacherEvidenceReview,
+    session_context: TeacherSessionContext,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    while True:
+        clear_fn()
+        actions = _render_review_summary(output, item, review)
+        choice = read_choice(input_fn)
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        if choice.isdigit():
+            selected = int(choice)
+            if 1 <= selected <= len(actions):
+                action = actions[selected - 1]
+                if action == "students":
+                    _run_student_review(
+                        review=review,
+                        session_context=session_context,
+                        input_fn=input_fn,
+                        output=output,
+                        clear_fn=clear_fn,
+                    )
+                else:
+                    _run_shared_review(
+                        review=review,
+                        session_context=session_context,
+                        input_fn=input_fn,
+                        output=output,
+                        clear_fn=clear_fn,
+                    )
+                continue
+        if actions:
+            message = f"Please choose 1-{len(actions)}, B, M, or Q."
+        else:
+            message = "Please choose B, M, or Q."
+        write_lines(output, "", message)
+        pause_for_user(input_fn)
 
 
 def _show_projection_failure(
@@ -363,11 +629,24 @@ def _run_class_evidence_menu(
                     )
                     continue
 
+                try:
+                    review = dependencies.review_loader(root, prepared)
+                except TeacherEvidenceReviewError as error:
+                    _show_review_failure(
+                        item=item,
+                        error=error,
+                        input_fn=input_fn,
+                        output=output,
+                        clear_fn=clear_fn,
+                    )
+                    continue
+
                 session_context.select_work(item.work)
                 session_context.select_publication(item.publication_id)
-                _show_prepared_selection(
+                _run_teacher_evidence_review(
                     item=item,
-                    prepared=prepared,
+                    review=review,
+                    session_context=session_context,
                     input_fn=input_fn,
                     output=output,
                     clear_fn=clear_fn,
