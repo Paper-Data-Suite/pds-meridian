@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final, Literal, TextIO, TypeAlias
 
 from pds_core.menu_navigation import (
@@ -14,10 +14,6 @@ from pds_core.menu_navigation import (
 )
 
 from meridian.diagnostics import DiagnosticsDependencies
-from meridian.menu_evidence import (
-    default_evidence_menu_dependencies,
-    run_new_evidence_menu,
-)
 from meridian.menu_explain import run_explain_menu
 from meridian.menu_export import run_export_menu
 from meridian.menu_grade_items import run_grade_items_menu
@@ -31,6 +27,10 @@ from meridian.menu_snapshots import (
     default_snapshot_freeze_dependencies,
     run_snapshots_menu,
 )
+from meridian.menu_teacher_evidence import (
+    default_teacher_evidence_inbox_menu_dependencies,
+    run_teacher_evidence_inbox_menu,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -41,6 +41,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_session import TeacherSessionContext
 
 TeacherMenuTaskId: TypeAlias = Literal[
     "review-new-evidence",
@@ -88,6 +89,9 @@ class TeacherMenuDependencies:
     snapshots: MenuTaskHandler
     export: MenuTaskHandler
     explain: MenuTaskHandler
+    session_context: TeacherSessionContext = field(
+        default_factory=TeacherSessionContext
+    )
 
     def handler_for(self, task_id: TeacherMenuTaskId) -> MenuTaskHandler:
         """Resolve one stable symbolic task to its injected application route."""
@@ -113,6 +117,7 @@ class TeacherMenuDependencies:
 def default_teacher_menu_dependencies(
     *,
     diagnostics: DiagnosticsDependencies | None = None,
+    session_context: TeacherSessionContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -120,7 +125,8 @@ def default_teacher_menu_dependencies(
     """Compose the eight real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
-    evidence_dependencies = default_evidence_menu_dependencies(
+    session = TeacherSessionContext() if session_context is None else session_context
+    inbox_dependencies = default_teacher_evidence_inbox_menu_dependencies(
         diagnostics=diagnostics,
     )
     freeze_dependencies = default_snapshot_freeze_dependencies(
@@ -131,8 +137,9 @@ def default_teacher_menu_dependencies(
     )
 
     return TeacherMenuDependencies(
-        review_new_evidence=lambda: run_new_evidence_menu(
-            dependencies=evidence_dependencies,
+        review_new_evidence=lambda: run_teacher_evidence_inbox_menu(
+            dependencies=inbox_dependencies,
+            session_context=session,
             input_fn=input_fn,
             output=stream,
             clear_fn=clear_fn,
@@ -174,6 +181,7 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
+        session_context=session,
     )
 
 
@@ -263,5 +271,6 @@ def run_menu(
         except ReturnToMainMenu:
             continue
         except (QuitPDS, EOFError, KeyboardInterrupt):
+            active.session_context.clear()
             clear_fn()
             return 0

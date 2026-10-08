@@ -110,6 +110,61 @@ eight-task application; direct named commands remain noninteractive. Final
 compatibility qualification uses exact `quillan==0.10.5`. See
 [Teacher-facing Meridian main menu](architecture/teacher-main-menu.md).
 
+Issue #110 establishes the teacher-guided evidence-workflow contract that will
+replace routine identifier entry with recognizable class, work, roster student,
+Standard, and Grade Item choices while preserving exact canonical identity
+internally. Slice 1 quarantines the existing Issue #57 raw-ID prompts as
+transitional legacy debt. Slice 2 adds bounded process-local teacher session
+context whose dependent selections clear on scope changes and whose complete
+state is discarded on terminal exit. Slice 3 adds a read-only current Academic
+Result inbox projection that uses the teacher-created `class_id` as practical
+class presentation, uses canonical work titles, and keeps unsupported or stale
+publications visible as blocked candidates. Slice 4 wires that inbox into the
+normal `Review New Evidence` route with class-first navigation: choose a
+teacher-created class ID, then choose evidence only from that class. Ready
+selections are carried into process-local session context and blocked selections
+receive teacher-facing explanations. Slice 5 adds guided authorized projection
+preparation using the stable internal `review_evidence` purpose and
+whole-assignment scope. Existing ingestion, adapter, manifest-verification, and
+projection-cache services remain authoritative; the menu neither asks for nor
+derives a cache key. Missing or denied deployment authorization fails closed. Slice 6 adds
+roster-backed teacher evidence review over the authorized inventory, presenting
+student names and readable evidence rows while carrying exact student/evidence
+identity internally. Duplicate student display labels use roster period when
+safe and otherwise block rather than falling back to IDs. Shared nonstudent
+evidence remains supported. Slice 7 adds guided eligibility continuation:
+Grade Items are selected by title, evidence identity is carried from the review
+row, teacher attribution is readable text, policy identity is represented by a
+teacher-facing title, and the exact newly written decision is selected without a
+free-text revision prompt. Existing preview/write/CAS-selection services remain
+authoritative, and current eligibility is reloaded after selection. Slice 8 adds
+guided attempt/reassessment continuation using roster student context,
+teacher-facing Grade Item labels, teacher-facing explicit-attempt policy presets,
+and numbered attempt candidates. Existing policy and decision
+preview/write/CAS-selection services remain authoritative; Meridian never
+auto-selects an attempt. Slice 9 adds guided Standard association using Core
+Standard code/label/source presentation plus current proficiency-scale
+title/context. Producer-declared Standards are prioritized but never
+auto-associated; teachers explicitly choose disposition and association basis.
+Existing #33 preview/write/CAS-selection services remain authoritative.
+Infrastructure identifiers remain hidden from the guided workflow. Slice 10
+adds a Grade Item bridge so missing included work relationships can be linked
+to an existing Grade Item or created and linked without exposing Grade Item,
+registration, membership, or calendar revision identifiers. Slice 11 carries
+the selected Grade Item/student/Standard/scale context into a guided
+proficiency preview, with current policies shown by title/strategy and current
+mapping profiles shown by mapping semantics. The teacher explicitly chooses the
+policy and mapping; preview/write/current-selection remain separate. Slice 12
+adds mechanical `C. Continue`, explicit evidence-list refresh, bounded derived
+catalog recovery, session reconciliation after refresh, read-only technical
+details, and teacher-readable empty/failure states while preserving Core
+`B / M / Q` navigation. Direct CLI remains exact and noninteractive, and the
+Meridian v0.3.1 exact producer-reader gates remain unchanged. Slice 13 adds
+installed ScoreForm 0.12.1 and Quillan 0.10.5 guided teacher journeys in their
+existing isolated qualification matrices; Core remains exactly 0.6.4 for
+installed qualification and Concord remains exactly 0.3.0. See
+[Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).
+
 Issue #58 extends the existing issue #43 read-only attention provider into the
 v0.3 Grade/report surfaces. Exact selected standards Grade staleness, selected
 ReportingSnapshot publication changes, safely provable snapshot refresh needs,

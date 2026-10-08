@@ -1,0 +1,73 @@
+{
+  "assignment": {
+    "assignment_id": "guided_quiz_1",
+    "choices": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "layout_id": "standard_15q_abcd_v1",
+    "question_count": 1,
+    "questions": [
+      {
+        "points_possible": 1,
+        "question_number": 1,
+        "standard_ids": [
+          "ela_reading_1"
+        ]
+      }
+    ],
+    "standards_profile_id": "guided_ela_profile",
+    "title": "Installed ScoreForm Reading Check",
+    "total_points": 1
+  },
+  "contract_version": "scoreform_academic_result_manifest_v1",
+  "generated_at": "2026-10-07T16:00:00.000000Z",
+  "producer_module_id": "scoreform",
+  "record_set": {
+    "record_set_id": "academic_results",
+    "revision": 1
+  },
+  "record_type": "scoreform_academic_result_manifest",
+  "source_snapshot": {
+    "assignment": {
+      "contract_version": null,
+      "relative_path": "assignment.json",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "results_history": {
+      "relative_path": "results.csv",
+      "result_schema_version": "2",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "students": [
+    {
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "points_earned": 1,
+          "points_possible": 1,
+          "provenance": {},
+          "recorded_at": "2026-10-07T15:30:00.000000Z",
+          "responses": [
+            {
+              "correct": true,
+              "question_number": 1,
+              "response_state": "selected",
+              "selected_answer": "A"
+            }
+          ],
+          "result_origin": "plain_paper_manual"
+        }
+      ],
+      "student_id": "student_alpha"
+    }
+  ],
+  "work": {
+    "class_id": "english_12_pd2",
+    "module_id": "scoreform",
+    "work_id": "guided_quiz_1"
+  }
+}

@@ -2,6 +2,127 @@
 
 ## Unreleased
 
+- Issue #110 Slice 13 adds installed end-to-end qualification for the guided
+  evidence route. Exact ScoreForm 0.12.1 and Quillan 0.10.5 run separately in
+  their existing prepared producer matrices with Core 0.6.4 and the candidate
+  Meridian wheel. The smoke builds canonical Core publication/roster state,
+  canonicalizes manifests through the installed producer codecs, rebuilds the
+  derived catalog, and drives class/assignment/student/evidence review without
+  routine infrastructure-ID prompts. Concord 0.3.0 remains qualified by the
+  existing Concord/all-adapters matrices; no seventh environment is added.
+
+- Issue #110 Slice 12 hardens guided navigation, empty states, and recovery.
+  Evidence detail now recomputes a mechanical `C. Continue` recommendation after
+  child workflows return. `R. Refresh evidence list` reloads the derived inbox
+  and conservatively clears only publication scope that the refreshed inbox
+  actually disproves; class/work absence alone is not treated as stale.
+  Missing/unreadable catalog state
+  can explicitly rebuild Core's disposable Academic Catalog; stale/drifted
+  publication rows expose the same bounded recovery. Empty/all-blocked,
+  withdrawn/superseded, authorization, reader, roster-ambiguity, and missing
+  teacher-attribution states remain teacher-readable and fail closed. Technical
+  details are explicit and read-only; Core `B / M / Q` navigation is preserved.
+
+- Issue #110 Slice 11 adds contextual proficiency continuation after a current
+  associated Standard decision. Grade Item, roster student, Standard, evidence,
+  and exact scale context are carried forward. Current calculation policies are
+  presented by title/strategy and current exact-signature mapping profiles by
+  readable mapping semantics. The teacher explicitly chooses both. The guided
+  calculation binds only the evidence row just reviewed, preserves the existing
+  read-only #34 preview, and keeps immutable result write and current selection
+  as separate confirmations.
+
+- Issue #110 Slice 10 adds the teacher-facing Grade Item bridge used when
+  eligibility, attempt/reassessment, or Standard association lacks a current
+  included work relationship. Teachers link to an existing active Grade Item or
+  create a new unweighted Grade Item by title/purpose, explicitly select it,
+  choose an Academic Period by label/type/date range, then preview/write/select
+  the included membership. Exact Grade Item, Academic Work Registration,
+  membership, calendar revision, and digest identity remains internal.
+
+- Issue #110 Slice 9 adds guided evidence/Standard association for
+  student-specific evidence. Producer-declared Standards are presented first
+  using Core code/label/source metadata, with an explicit browse-all-active
+  route. Current proficiency scales are presented by title and ordered level
+  context while exact scale identity remains internal. Teachers explicitly
+  choose association disposition and, when applicable, producer-declared versus
+  explicit basis. Existing #33 projection, immutable authoring, and CAS
+  selection services remain authoritative; no Standard or scale infrastructure
+  identifier is typed.
+
+- Issue #110 Slice 8 adds guided attempt/reassessment continuation for
+  student-specific evidence. Teachers use Grade Item labels, explicit policy
+  titles/cardinality, and numbered attempt candidates rather than student,
+  Grade Item, policy, or revision IDs. Guided policy setup reuses the existing
+  immutable policy authoring and CAS-selection services when the chosen preset
+  is not already current. Attempt decisions preserve preview, explicit write,
+  explicit selection, and current-state reload; Meridian never auto-selects an
+  attempt.
+
+- Issue #110 Slice 7 adds guided eligibility continuation from a selected
+  evidence row. Teachers select existing included Grade Items by title, choose
+  the eligibility disposition, use readable teacher attribution and policy
+  presentation, preview the immutable write, explicitly write it, then
+  explicitly select that exact newly written decision through the existing
+  CAS-protected selector. Current eligibility state is reloaded after selection.
+  No evidence item ID, Grade Item ID, actor ID, policy ID/version, or free-text
+  decision revision is requested. Missing Grade Item relationships remain
+  blocked rather than inferred or created.
+
+- Issue #110 Slice 6 adds read-only teacher-friendly evidence review over the
+  authorized projection. Individualized evidence resolves through the canonical
+  Core roster and displays student names instead of IDs; duplicate names use
+  roster period when sufficient and otherwise fail closed. Evidence rows render
+  target/sequence, producer-native value labels, result kind, and declared
+  Standards while exact item/student identity remains internal. Shared
+  nonstudent evidence remains reviewable without fabricated student identity.
+
+- Issue #110 Slice 5 adds guided authorized projection preparation for a selected
+  class/work publication. The route supplies stable internal purpose
+  `review_evidence` and whole-assignment student scope, then reuses existing
+  publication preparation, adapter invocation, deterministic cache persistence,
+  and authorized cache-load/current-use assessment. Publication IDs and cache
+  keys remain internal. No permissive authorizer is added: missing or denied
+  deployment authorization blocks safely without installing work/publication
+  selection into teacher session context.
+
+- Issue #110 Slice 4 routes the normal `Review New Evidence` teacher task to a
+  class-first compatibility-aware evidence inbox. Teachers choose a
+  teacher-created class ID before seeing evidence for that class. Ready
+  selections carry exact work and Publication identity into process-local
+  session context without displaying or prompting for Publication IDs; blocked
+  evidence receives teacher-facing explanations and does not replace an
+  existing same-class work selection. Protected student evidence is not opened
+  yet. The Issue #57 identifier-driven evidence controllers remain only as
+  transitional legacy infrastructure for later replacement.
+
+- Issue #110 Slice 3 adds the read-only teacher evidence inbox projection over
+  bounded current Core `academic_result_set` discovery and existing Meridian
+  publication-support diagnostics. Teacher-created `class_id` is accepted as
+  practical class presentation while canonical Academic Work Registration titles
+  identify assignments. Stale candidates, unavailable or unsupported readers,
+  and indistinguishable current publications stay visible but blocked.
+  Publication IDs, cache keys, hashes, revision handles, student IDs, and other
+  infrastructure identity remain outside the ordinary guided workflow. No
+  manifest, projection, authorization, read/unread, or academic state is created.
+
+- Issue #110 Slice 2 adds bounded process-local teacher session context for exact
+  active class, work, publication, Grade Item, and student identity. Normal child
+  return and Main Menu unwind preserve valid context; changing class/work/
+  publication clears dependent context rather than guessing; terminal quit,
+  EOF, and Ctrl+C discard the context. No session state is persisted and no
+  academic currentness, authorization, selection, proficiency, or Grade
+  authority moves into the menu layer.
+
+- Issue #110 Slice 1 freezes the teacher-guided evidence interaction contract:
+  routine guided workflows ask teachers for recognizable academic decisions
+  rather than Publication IDs, projection cache keys, student IDs, Grade Item
+  IDs, policy/scale identities, or revision handles. Existing Issue #57 raw-ID
+  prompts are explicitly quarantined as transitional legacy debt so later
+  slices can remove them without spreading the pattern. Direct CLI remains
+  exact/noninteractive, no runtime behavior changes yet, and ScoreForm 0.12.1,
+  Quillan 0.10.5, and Concord 0.3.0 reader qualification remains unchanged.
+
 - Issue #107 prepares Meridian v0.3.1 by advancing the exact optional ScoreForm
   reader qualification from 0.12.0 to 0.12.1. The authenticated 0.12.1 public
   reader accepts punctuation-bearing durable Standards Profile and Standard
