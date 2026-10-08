@@ -349,6 +349,53 @@ preview exact attempt decision
 Student IDs, Grade Item IDs, attempt-policy IDs, and decision revisions are not
 entered in the ordinary route.
 
+## Guided Standard association continuation
+
+Slice 9 adds teacher-guided evidence/Standard association for student-specific
+evidence. The routine route uses teacher-facing Standard metadata from Core and
+current proficiency-scale presentation rather than infrastructure identity.
+
+Standard selection has two layers:
+
+```text
+producer-declared Standards
+or
+Browse all active Standards
+```
+
+Producer-declared alignment is presented first, but it remains only a candidate
+relationship. Meridian never turns producer declaration into an association
+without an explicit teacher decision. The teacher chooses `Associated` or
+`Not associated`. When the chosen Standard was producer-declared, the teacher
+also chooses whether the decision basis is `Producer-declared alignment` or
+`Explicit teacher judgment`. A non-declared Standard uses explicit teacher
+judgment.
+
+Core `standard_id` remains the durable identity, but the routine menu presents
+Core's standard code, short label, and source. Missing producer-declared
+references remain visible as an unresolved count and are not silently
+substituted.
+
+The #33 review projection requires an exact proficiency-scale context. Slice 9
+lists only current class scales and presents scale title plus ordered level
+context; exact scale ID, revision, and digest remain internal. If no current
+scale exists, the route blocks with `Proficiency Scale Needed` rather than
+asking the teacher for scale infrastructure values.
+
+Association authoring preserves the existing authority sequence:
+
+```text
+build current Standards Review projection
+-> preview create/revise association
+-> explicitly write immutable decision
+-> preview exact newly written selection
+-> explicitly make it current
+-> reload current association state
+```
+
+No Standard, Grade Item, scale, evidence, student, revision, or digest identity
+is typed in the ordinary guided route.
+
 ## Publication discovery and compatibility remain separate
 
 Issue #110 preserves the distinction among publication discovery, contract

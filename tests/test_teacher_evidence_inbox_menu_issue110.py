@@ -158,6 +158,7 @@ def _dependencies(
         review_loader=load_review,
         eligibility_handler=lambda *_args: None,
         attempt_handler=lambda *_args: None,
+        standards_handler=lambda *_args: None,
     )
 
 
@@ -418,6 +419,7 @@ def test_evidence_detail_can_open_guided_eligibility_without_ids() -> None:
         review_loader=deps.review_loader,
         eligibility_handler=handle,
         attempt_handler=deps.attempt_handler,
+        standards_handler=deps.standards_handler,
     )
     output = StringIO()
     scripted = ScriptedInput(
@@ -466,6 +468,7 @@ def test_student_evidence_can_open_guided_attempts_without_ids() -> None:
         review_loader=deps.review_loader,
         eligibility_handler=deps.eligibility_handler,
         attempt_handler=handle,
+        standards_handler=deps.standards_handler,
     )
     output = StringIO()
     scripted = ScriptedInput(
@@ -494,6 +497,54 @@ def test_student_evidence_can_open_guided_attempts_without_ids() -> None:
     assert len(calls) == 1
     rendered = output.getvalue()
     assert "Review attempts / reassessment" in rendered
+    assert "item_hidden_1" not in rendered
+    assert "00001" not in rendered
+
+
+def test_student_evidence_can_open_guided_standards_without_ids() -> None:
+    calls: list[tuple[object, ...]] = []
+
+    def handle(*args: object) -> None:
+        calls.append(args)
+
+    deps = _dependencies(_two_class_inbox())
+    deps = TeacherEvidenceInboxMenuDependencies(
+        workspace_resolver=deps.workspace_resolver,
+        diagnostics=deps.diagnostics,
+        inbox_loader=deps.inbox_loader,
+        projection_preparer=deps.projection_preparer,
+        review_loader=deps.review_loader,
+        eligibility_handler=deps.eligibility_handler,
+        attempt_handler=deps.attempt_handler,
+        standards_handler=handle,
+    )
+    output = StringIO()
+    scripted = ScriptedInput(
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "3",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+    )
+
+    run_teacher_evidence_inbox_menu(
+        dependencies=deps,
+        session_context=TeacherSessionContext(),
+        input_fn=scripted,
+        output=output,
+        clear_fn=lambda: None,
+    )
+
+    assert len(calls) == 1
+    rendered = output.getvalue()
+    assert "Review Standard association" in rendered
     assert "item_hidden_1" not in rendered
     assert "00001" not in rendered
 

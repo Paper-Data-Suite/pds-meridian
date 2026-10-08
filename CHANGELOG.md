@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Issue #110 Slice 9 adds guided evidence/Standard association for
+  student-specific evidence. Producer-declared Standards are presented first
+  using Core code/label/source metadata, with an explicit browse-all-active
+  route. Current proficiency scales are presented by title and ordered level
+  context while exact scale identity remains internal. Teachers explicitly
+  choose association disposition and, when applicable, producer-declared versus
+  explicit basis. Existing #33 projection, immutable authoring, and CAS
+  selection services remain authoritative; no Standard or scale infrastructure
+  identifier is typed.
+
 - Issue #110 Slice 8 adds guided attempt/reassessment continuation for
   student-specific evidence. Teachers use Grade Item labels, explicit policy
   titles/cardinality, and numbered attempt candidates rather than student,

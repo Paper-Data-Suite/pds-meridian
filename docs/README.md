@@ -142,8 +142,12 @@ guided attempt/reassessment continuation using roster student context,
 teacher-facing Grade Item labels, teacher-facing explicit-attempt policy presets,
 and numbered attempt candidates. Existing policy and decision
 preview/write/CAS-selection services remain authoritative; Meridian never
-auto-selects an attempt. Infrastructure identifiers remain hidden from the
-guided workflow. Direct CLI
+auto-selects an attempt. Slice 9 adds guided Standard association using Core
+Standard code/label/source presentation plus current proficiency-scale
+title/context. Producer-declared Standards are prioritized but never
+auto-associated; teachers explicitly choose disposition and association basis.
+Existing #33 preview/write/CAS-selection services remain authoritative.
+Infrastructure identifiers remain hidden from the guided workflow. Direct CLI
 remains exact and noninteractive, and the Meridian v0.3.1 exact producer-reader
 gates remain unchanged. See
 [Teacher-guided evidence workflow contract](architecture/teacher-guided-evidence-workflow.md).

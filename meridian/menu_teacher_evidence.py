@@ -29,9 +29,11 @@ from meridian.guided_projection import (
     default_guided_projection_dependencies,
     prepare_guided_evidence_projection,
 )
+from meridian.guided_standards import GuidedStandardsDependencies
 from meridian.ingestion import PublicationIngestionError
 from meridian.menu_teacher_attempts import run_guided_attempt_menu
 from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
+from meridian.menu_teacher_standards import run_guided_standard_menu
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -87,6 +89,7 @@ EligibilityHandler: TypeAlias = Callable[
     None,
 ]
 AttemptHandler: TypeAlias = EligibilityHandler
+StandardsHandler: TypeAlias = EligibilityHandler
 
 
 @dataclass(frozen=True, slots=True)
@@ -100,6 +103,7 @@ class TeacherEvidenceInboxMenuDependencies:
     review_loader: TeacherEvidenceReviewLoader
     eligibility_handler: EligibilityHandler
     attempt_handler: AttemptHandler
+    standards_handler: StandardsHandler
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -187,6 +191,31 @@ def default_teacher_evidence_inbox_menu_dependencies(
             clear_fn=clear_fn,
         )
 
+    standards_dependencies = GuidedStandardsDependencies()
+
+    def handle_standards(
+        root: Path,
+        prepared: GuidedProjectionResult,
+        evidence: TeacherEvidenceReviewItem,
+        subject_label: str,
+        session: TeacherSessionContext,
+        input_fn: InputFunction,
+        output: TextIO,
+        clear_fn: ClearFunction,
+    ) -> None:
+        run_guided_standard_menu(
+            workspace_root=root,
+            prepared=prepared,
+            evidence=evidence,
+            subject_label=subject_label,
+            session_context=session,
+            dependencies=standards_dependencies,
+            eligibility_dependencies=eligibility_dependencies,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
@@ -195,6 +224,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
         review_loader=load_review,
         eligibility_handler=handle_eligibility,
         attempt_handler=handle_attempts,
+        standards_handler=handle_standards,
     )
 
 
@@ -470,6 +500,8 @@ def _show_review_item(
         if item.student_id is not None:
             actions.append("attempts")
             print("2. Review attempts / reassessment", file=output)
+            actions.append("standards")
+            print("3. Review Standard association", file=output)
         write_lines(output, "")
         print_standard_navigation(output)
         choice = read_choice(input_fn)
@@ -490,6 +522,18 @@ def _show_review_item(
             continue
         if choice == "2" and "attempts" in actions:
             dependencies.attempt_handler(
+                root,
+                prepared,
+                item,
+                subject_label,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            continue
+        if choice == "3" and "standards" in actions:
+            dependencies.standards_handler(
                 root,
                 prepared,
                 item,
