@@ -116,7 +116,7 @@ def test_issue111_slice2_does_not_broaden_runtime_reader_acceptance_yet() -> Non
             resolver=lambda _distribution: "0.13.0",
         )
 
-    assert SCOREFORM_ADAPTER_DESCRIPTOR.supported_producer_reader_versions == (
+    assert SCOREFORM_ADAPTER_DESCRIPTOR.legacy_exact_reader_versions == (
         frozenset({"0.12.1"})
     )
 

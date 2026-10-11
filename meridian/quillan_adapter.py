@@ -47,6 +47,7 @@ __all__ = [
     "QUILLAN_ADAPTER_ID",
     "QUILLAN_ADAPTER_KEY",
     "QUILLAN_PROJECTION_CONTRACT_VERSION",
+    "QUILLAN_READER_CONTRACT",
     "QUILLAN_READER_DISTRIBUTION",
     "QUILLAN_READER_VERSION",
     "QuillanAcademicResultAdapter",
@@ -54,6 +55,7 @@ __all__ = [
 
 QUILLAN_ADAPTER_ID: Final = "quillan.academic_result"
 QUILLAN_PROJECTION_CONTRACT_VERSION: Final = "1"
+QUILLAN_READER_CONTRACT: Final = "quillan_academic_result_reader_v1"
 QUILLAN_READER_DISTRIBUTION: Final = "quillan"
 QUILLAN_READER_VERSION: Final = "0.10.5"
 _QUILLAN_RECORD_SET_ID: Final = "academic_results"
@@ -75,7 +77,8 @@ QUILLAN_ADAPTER_DESCRIPTOR: Final = AdapterDescriptor(
     projection_contract_version=QUILLAN_PROJECTION_CONTRACT_VERSION,
     supported_capabilities=_QUILLAN_CAPABILITIES,
     producer_reader_distribution=QUILLAN_READER_DISTRIBUTION,
-    supported_producer_reader_versions=frozenset({QUILLAN_READER_VERSION}),
+    supported_producer_reader_contracts=frozenset({QUILLAN_READER_CONTRACT}),
+    legacy_exact_reader_versions=frozenset({QUILLAN_READER_VERSION}),
 )
 
 

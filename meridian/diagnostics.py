@@ -885,7 +885,7 @@ def diagnose_publication_support(
         )
         reader_distribution = descriptor.producer_reader_distribution
         supported_reader_versions = tuple(
-            sorted(descriptor.supported_producer_reader_versions)
+            sorted(descriptor.legacy_exact_reader_versions)
         )
         try:
             installed_reader_version = resolve_producer_reader_version(

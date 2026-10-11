@@ -50,7 +50,8 @@ def test_existing_reader_interfaces_and_versions_are_audited() -> None:
             alias.name == "read_academic_result_manifest"
             for node in reader_imports for alias in node.names
         )
-        assert "supported_producer_reader_versions=" in source
+        assert "supported_producer_reader_contracts=" in source
+        assert "legacy_exact_reader_versions=" in source
         assert repr(version) in source or f'"{version}"' in source
         assert manifest_contract in source
         expected_tokens = (

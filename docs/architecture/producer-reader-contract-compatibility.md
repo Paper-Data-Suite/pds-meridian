@@ -1,8 +1,8 @@
 # Producer reader-contract compatibility — Issue #111
 
-Status: Slice 2 restart baseline. Core v0.6.5 and all three academic-result
-producer reader contracts are released. **Runtime producer acceptance remains
-legacy exact-version-only until the later contract-first slice.**
+Status: Slice 3 compatibility-model baseline. Core v0.6.5 and all three
+academic-result producer reader contracts are released. **Runtime producer
+acceptance remains legacy exact-version-only until Slice 4.**
 
 ## Authority boundaries
 
@@ -63,6 +63,42 @@ new contract-advertising producer versions: still rejected until Slice 4
 
 That temporary state is deliberate. It proves Meridian can build and test against the released Core API without accidentally broadening producer acceptance before the compatibility result model and precedence rules exist.
 
+## Slice 3 compatibility model and bounded legacy path
+
+Slice 3 introduces an explicit semantic split:
+
+```text
+ProducerReaderRuntimeIdentity
+    distribution_name
+    installed_distribution_version
+
+ProducerReaderContractIdentity
+    manifest_contract_version
+    reader_contract_version
+
+ProducerReaderCompatibility
+    mode
+    support_state
+    stable reason_code
+    runtime_identity
+    contract_identity
+```
+
+Stable compatibility modes are `contract`, `legacy_exact`, `unsupported`, and
+`unavailable`. The bounded legacy table is now explicit on each adapter
+descriptor:
+
+| Producer distribution | Legacy exact version | Declared supported reader contract |
+| --- | --- | --- |
+| `scoreform` | `0.12.1` | `scoreform_academic_result_reader_v1` |
+| `quillan` | `0.10.5` | `quillan_academic_result_reader_v1` |
+| `pds-concord` | `0.3.0` | `concord_academic_result_reader_v1` |
+
+In Slice 3, contract identities are descriptive adapter capability only.
+`resolve_producer_reader_version(...)` still delegates to the bounded legacy
+path, so ScoreForm 0.13.0, Quillan 0.10.6, and Concord 0.3.2 remain rejected.
+Contract-first metadata precedence is deliberately deferred to Slice 4.
+
 ## Transitional compatibility rules for later slices
 
 1. Prefer producer-profile metadata declaring an exact supported public reader contract; explicit unsupported or invalid metadata fails closed.
@@ -75,8 +111,8 @@ That temporary state is deliberate. It proves Meridian can build and test agains
 ## Sequencing / handoff
 
 - **Slice 1:** architecture/dependency audit — complete at `f44dae711d1dfe1317d147bfbbd9d4a70f3e4122`.
-- **Slice 2:** Core v0.6.5 floor, exact Core reader-metadata observation, current qualification baseline — this slice.
-- **Slice 3:** Meridian reader runtime/contract identity, compatibility state/reason codes, bounded legacy exact table.
+- **Slice 2:** Core v0.6.5 floor, exact Core reader-metadata observation, current qualification baseline — complete at `0c5c35b44345b5774628536a1982bc13f530c694`.
+- **Slice 3:** Meridian reader runtime/contract identity, compatibility state/reason codes, bounded legacy exact table — this slice.
 - **Slice 4:** contract-first acceptance of the three released reader contracts; explicit metadata precedence; exact package version remains projection/cache provenance.
 - **Slice 5:** diagnostics, Issue #110 integration, and optional dependency relaxation.
 - **Slices 6-16:** teacher reporting suite, installed cross-producer qualification, release audit, and Meridian release as described by Issue #111.
