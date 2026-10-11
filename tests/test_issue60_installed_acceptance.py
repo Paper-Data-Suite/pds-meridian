@@ -61,7 +61,7 @@ def test_issue60_installed_program_covers_cross_policy_authorities() -> None:
         "scripts/smoke_program_cross_policy_adversarial.py"
     ).read_text(encoding="utf-8")
     for token in (
-        '"pds-core": "0.6.4"',
+        '"pds-core": "0.6.5"',
         '"scoreform": "0.12.1"',
         '"quillan": "0.10.5"',
         '"pds-concord": "0.3.0"',

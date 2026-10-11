@@ -15,7 +15,7 @@ def test_issue51_installed_smoke_is_exact_and_fresh_process() -> None:
     ).read_text(encoding="utf-8")
 
     for token in (
-        'metadata.version("pds-core") == "0.6.4"',
+        'metadata.version("pds-core") == "0.6.5"',
         'metadata.version("scoreform") == "0.12.1"',
         'metadata.version("quillan") == "0.10.5"',
         'metadata.version("pds-concord")',

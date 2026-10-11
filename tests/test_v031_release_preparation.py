@@ -40,8 +40,11 @@ def test_v031_current_docs_name_exact_qualified_readers() -> None:
         "docs/development/package-foundation.md",
     ):
         document = _read(relative)
-        assert "Meridian v0.3.1 is the prepared compatibility candidate" in document
-        assert "Core v0.6.4" in document
+        assert (
+            "Meridian v0.3.1 is the released baseline for Issue #111 development"
+            in document
+        )
+        assert "Core v0.6.5" in document
         assert "ScoreForm v0.12.1" in document
         assert "Quillan v0.10.5" in document
         assert "Concord v0.3.0" in document

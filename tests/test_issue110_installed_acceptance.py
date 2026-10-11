@@ -70,7 +70,7 @@ def test_issue110_core_remains_only_unconditional_runtime_dependency() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     dependencies = pyproject.split("dependencies = [", 1)[1].split("]", 1)[0]
 
-    assert '"pds-core>=0.6.3,<0.7"' in dependencies
+    assert '"pds-core>=0.6.5,<0.7"' in dependencies
     assert "scoreform" not in dependencies
     assert "quillan" not in dependencies
     assert "concord" not in dependencies
@@ -87,7 +87,7 @@ def test_issue110_smoke_program_requires_installed_package_origins() -> None:
     assert "_assert_installed_origin(quillan)" in source
     assert 'version("scoreform") != "0.12.1"' in source
     assert 'version("quillan") != "0.10.5"' in source
-    assert 'version("pds-core") != "0.6.4"' in source
+    assert 'version("pds-core") != "0.6.5"' in source
 
 
 def test_issue110_smoke_creates_producer_work_root_before_registration() -> None:

@@ -298,8 +298,8 @@ def main(argv: list[str] | None = None) -> int:
 
     _assert_installed_origin(meridian)
     _assert_installed_origin(pds_core)
-    if importlib.metadata.version("pds-core") != "0.6.4":
-        raise AssertionError("Core installed version must be exactly 0.6.4.")
+    if importlib.metadata.version("pds-core") != "0.6.5":
+        raise AssertionError("Core installed version must be exactly 0.6.5.")
 
     _, publication_id, title = _setup_workspace(args.workspace, args.producer)
     _run_teacher_journey(

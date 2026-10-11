@@ -83,7 +83,7 @@ def test_producer_readers_remain_optional_not_base_dependencies() -> None:
     dependencies = project_section.split("dependencies = [", maxsplit=1)[1]
     dependencies = dependencies.split("]", maxsplit=1)[0]
 
-    assert "pds-core>=0.6.3,<0.7" in dependencies
+    assert "pds-core>=0.6.5,<0.7" in dependencies
     assert "scoreform" not in dependencies
     assert "quillan" not in dependencies
     assert "pds-concord" not in dependencies

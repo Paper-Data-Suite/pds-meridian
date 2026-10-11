@@ -34,7 +34,7 @@ def test_issue43_installed_smoke_is_release_guarded() -> None:
     assert "smoke_program_grouping_signal_preview_review.py" in wrapper
 
     for required in (
-        'metadata.version("pds-core") != "0.6.4"',
+        'metadata.version("pds-core") != "0.6.5"',
         'metadata.version("pds-meridian") != "0.3.1"',
         "inspect_core_provider_entry_points",
         "diagnose_core_providers",

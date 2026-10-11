@@ -25,7 +25,7 @@ def test_issue59_installed_smoke_covers_profile_readiness_and_launcher() -> None
     )
 
     for required in (
-        'metadata.version("pds-core") != "0.6.4"',
+        'metadata.version("pds-core") != "0.6.5"',
         '"paper_data_suite"',
         "inspect_core_provider_entry_points",
         "diagnose_core_providers",

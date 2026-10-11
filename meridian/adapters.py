@@ -14,6 +14,13 @@ from pds_core.academic_work_registrations import (
     validate_academic_work_registration,
 )
 from pds_core.identifiers import IdentifierValidationError, validate_identifier
+from pds_core.publication_compatibility import (
+    PublicationProducerProfile,
+    PublicationProducerProfileError,
+    PublicationReaderSupport,
+    lookup_publication_reader_support,
+    validate_publication_producer_profile,
+)
 from pds_core.publication_records import (
     PublicationCapability,
     PublicationKind,
@@ -51,6 +58,7 @@ __all__ = [
     "ProducerReaderUnavailableError",
     "ProducerReaderVersionUnsupportedError",
     "adapter_key_from_core",
+    "declared_reader_support_for_descriptor",
     "installed_distribution_version",
     "projection_identity_from_descriptor",
     "resolve_producer_reader_version",
@@ -604,6 +612,40 @@ class DistributionVersionResolver(Protocol):
 def installed_distribution_version(distribution_name: str) -> str:
     """Return an installed distribution version using import metadata only."""
     return metadata.version(distribution_name)
+
+
+def declared_reader_support_for_descriptor(
+    profile: PublicationProducerProfile,
+    descriptor: AdapterDescriptor,
+) -> PublicationReaderSupport | None:
+    """Observe exact Core v0.6.5 reader metadata for one adapter descriptor.
+
+    This is metadata observation only.  It does not decide Meridian reader
+    compatibility, resolve an installed producer version, import a producer
+    reader, or authorize access to manifest bytes.  Slice 2 deliberately keeps
+    the existing exact-version runtime gate unchanged.
+    """
+    if not isinstance(profile, PublicationProducerProfile):
+        raise AdapterValidationError(
+            "profile must be a PublicationProducerProfile."
+        )
+    if not isinstance(descriptor, AdapterDescriptor):
+        raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
+    try:
+        checked = validate_publication_producer_profile(profile)
+        if checked.module_id != descriptor.key.producer_module_id:
+            raise AdapterValidationError(
+                "producer profile module_id does not match the adapter key."
+            )
+        return lookup_publication_reader_support(
+            checked,
+            descriptor.key.publication_kind,
+            descriptor.key.manifest_contract_version,
+        )
+    except PublicationProducerProfileError as error:
+        raise AdapterValidationError(
+            f"producer reader metadata is invalid: {error}"
+        ) from error
 
 
 def resolve_producer_reader_version(

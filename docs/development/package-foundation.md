@@ -2,10 +2,12 @@
 
 ## Status
 
-Meridian v0.3.1 is the prepared compatibility candidate for the released v0.3
-teacher-controlled evidence-policy, standards-proficiency, Grade, explanation,
-reporting, attention, and planning surface. Released v0.3.0, v0.2.0, and v0.1.1
-packages remain historical release foundations.
+Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
+owns the next feature release, expected to be v0.4.0, while preserving the
+released v0.3 teacher-controlled evidence-policy, standards-proficiency, Grade,
+explanation, reporting, attention, and planning authority boundaries. Released
+v0.3.1, v0.3.0, v0.2.0, and v0.1.1 packages remain historical release
+foundations.
 
 The v0.3 package retains publication/evidence and proficiency authority while
 adding conventional, standards-based, profile-constrained, and hybrid Grades,
@@ -17,7 +19,7 @@ Suite readiness integration, and bounded canonical storage paths.
 
 - Python 3.11 or later
 - the authenticated `pds-core` v0.6 line
-- the exact Core v0.6.4 wheel for candidate qualification
+- the exact Core v0.6.5 wheel for current qualification
 - the exact authenticated ScoreForm v0.12.1 wheel for adapter validation
 - the exact authenticated Quillan v0.10.5 wheel for adapter validation
 - the exact authenticated Concord v0.3.0 wheel for adapter validation
@@ -25,16 +27,16 @@ Suite readiness integration, and bounded canonical storage paths.
 The runtime dependency is:
 
 ```text
-pds-core>=0.6.3,<0.7
+pds-core>=0.6.5,<0.7
 ```
 
 ## Development installation
 
-Core v0.6.4 is distributed through its GitHub Release artifacts rather than
+Core v0.6.5 is distributed through its GitHub Release artifacts rather than
 PyPI. Install the exact qualified wheels before installing Meridian:
 
 ```powershell
-python -m pip install .\pds_core-0.6.4-py3-none-any.whl
+python -m pip install .\pds_core-0.6.5-py3-none-any.whl
 python -m pip install .\scoreform-0.12.1-py3-none-any.whl
 python -m pip install .\quillan-0.10.5-py3-none-any.whl
 python -m pip install .\pds_concord-0.3.0-py3-none-any.whl

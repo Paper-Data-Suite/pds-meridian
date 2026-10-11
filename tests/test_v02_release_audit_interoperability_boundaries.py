@@ -76,7 +76,7 @@ def test_distribution_dependency_direction_remains_core_plus_optional_readers() 
     )
     project = pyproject["project"]
 
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     optional = project["optional-dependencies"]
     assert optional["scoreform"] == ["scoreform==0.12.1"]
     assert optional["quillan"] == ["quillan==0.10.5"]

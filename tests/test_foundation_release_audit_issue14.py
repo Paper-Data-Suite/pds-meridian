@@ -255,7 +255,10 @@ def test_release_facing_descriptions_match_v03_grade_reporting_scope() -> None:
     )
     assert f'description = "{expected}"' in pyproject
     assert "publication-ingestion and typed-evidence" in cli
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in readme
+    assert (
+        "Meridian v0.3.1 is the released baseline for Issue #111 development"
+        in readme
+    )
     assert "conventional, standards-based, profile-constrained, and hybrid Grades" in (
         readme
     )

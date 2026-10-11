@@ -42,7 +42,7 @@ def test_issue60_does_not_expand_runtime_wheel_or_dependencies() -> None:
     assert '"scripts/"' in wheel_checker
     assert '"tests/"' in wheel_checker
     assert package_find["include"] == ["meridian", "meridian.*"]
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     assert all(
         producer not in project["dependencies"]
         for producer in ("scoreform", "quillan", "pds-concord")
@@ -75,7 +75,7 @@ def test_issue60_installed_program_pins_authenticated_sibling_versions() -> None
     ).read_text(encoding="utf-8")
 
     for token in (
-        '"pds-core": "0.6.4"',
+        '"pds-core": "0.6.5"',
         '"scoreform": "0.12.1"',
         '"quillan": "0.10.5"',
         '"pds-concord": "0.3.0"',

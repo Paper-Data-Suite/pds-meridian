@@ -1,15 +1,16 @@
 # Meridian documentation
 
-Meridian v0.3.1 is the prepared compatibility candidate for the released v0.3
-teacher-controlled evidence-policy, standards-proficiency, Grade, explanation,
-reporting, attention, and planning architecture.
+Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
+owns the next feature release, expected to be v0.4.0, while preserving the
+released v0.3 authority boundaries.
 
-Current candidate qualification uses exact released Core v0.6.4 plus optional
+Current Slice 2 qualification uses exact released Core v0.6.5 plus optional
 ScoreForm v0.12.1, Quillan v0.10.5, and Concord v0.3.0 readers. Core remains the
-only unconditional runtime dependency.
+only unconditional runtime dependency, and producer runtime acceptance remains
+legacy exact-version-only until the later contract-first slice.
 
-The released v0.3.0, v0.2.0, and v0.1.1 documentation remains historical
-release authority. In particular, the earlier handoff record remains:
+The released v0.3.1, v0.3.0, v0.2.0, and v0.1.1 documentation remains
+historical release authority. In particular, the earlier handoff record remains:
 
 ```text
 #46 final v0.2.0 audit — implemented; release preparation qualified
@@ -182,7 +183,10 @@ presentation, launcher orchestration, and opaque whole-workspace backup custody.
 See
 [Suite operations integration](architecture/suite-operations-integration.md).
 
-Issue #102 establishes the pre-deployment bounded canonical storage contract and moves current exact development/installed qualification to released Core 0.6.4 while retaining the compatible `pds-core>=0.6.3,<0.7` runtime floor. See [Canonical storage path budgets](architecture/canonical-storage-path-budgets.md).
+Issue #102 establishes the pre-deployment bounded canonical storage contract.
+Current Issue #111 development/installed qualification now uses released Core
+0.6.5 with the active `pds-core>=0.6.5,<0.7` runtime floor. See
+[Canonical storage path budgets](architecture/canonical-storage-path-budgets.md).
 
 Issue #60 adds final cross-policy adversarial and installed acceptance for the v0.3 Grade/report authority chain. It preserves policy and lifecycle distinctions under difficult combined states and reuses the existing six prepared installed matrices; the broad installed scenario runs in `all-adapters` and reloads in a fresh process. See [Cross-policy adversarial acceptance](architecture/cross-policy-adversarial-acceptance.md).
 
@@ -252,11 +256,11 @@ Issue #60 adds final cross-policy adversarial and installed acceptance for the v
 The package foundation provides:
 
 - Python `>=3.11` support;
-- `pds-core>=0.6.3,<0.7` as the only unconditional runtime dependency;
+- `pds-core>=0.6.5,<0.7` as the only unconditional runtime dependency;
 - exact optional `scoreform==0.12.1` adapter support;
 - exact optional `quillan==0.10.5` adapter support;
 - exact optional `pds-concord==0.3.0` adapter support;
-- exact authentication of the official Core v0.6.4 wheel in candidate CI;
+- exact authentication of the official Core v0.6.5 wheel in current CI;
 - the installed teacher-facing `meridian` / `meridian menu` application, with named direct commands remaining noninteractive;
 - seven independently invocable issue #41 task-oriented teacher workflows;
 - five independently invocable issue #42 read-only explanation/trace targets;

@@ -47,14 +47,23 @@ def test_v03_release_framing_preserves_history_and_names_current_siblings() -> N
     ).read_text(encoding="utf-8")
 
     for document in (readme, docs_readme, foundation):
-        assert "Core v0.6.4" in document
+        assert "Core v0.6.5" in document
         assert "ScoreForm v0.12.1" in document
         assert "Quillan v0.10.5" in document
         assert "Concord v0.3.0" in document
 
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in readme
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in docs_readme
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in foundation
+    assert (
+        "Meridian v0.3.1 is the released baseline for Issue #111 development"
+        in readme
+    )
+    assert (
+        "Meridian v0.3.1 is the released baseline for Issue #111 development"
+        in docs_readme
+    )
+    assert (
+        "Meridian v0.3.1 is the released baseline for Issue #111 development"
+        in foundation
+    )
     assert (
         "Security fixes for the v0.3 line target the latest `0.3.x` release."
         in security
