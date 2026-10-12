@@ -261,7 +261,7 @@ def test_verify_json_is_one_deterministic_document(
     ) == 0
     output = capsys.readouterr().out
     decoded = json.loads(output)
-    assert decoded["diagnostic_output_version"] == "1"
+    assert decoded["diagnostic_output_version"] == "2"
     assert decoded["kind"] == "publication_verification"
     assert decoded["canonical"]["manifest"]["access"] == "not_requested"
     assert decoded["canonical"]["manifest"]["bytes_checked"] is False

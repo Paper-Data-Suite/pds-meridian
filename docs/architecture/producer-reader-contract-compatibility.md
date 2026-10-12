@@ -1,9 +1,10 @@
 # Producer reader-contract compatibility — Issue #111
 
-Status: Slice 4 contract-first acceptance baseline. Core v0.6.5 and all three
-academic-result producer reader contracts are released. Runtime compatibility
-now prefers explicit producer-declared reader contracts and uses the bounded
-legacy exact-version path only when reader metadata is absent.
+Status: Slice 5 diagnostics and optional-dependency integration. Core v0.6.5
+and all three academic-result producer reader contracts are released. Runtime
+compatibility is contract-first; technical diagnostics expose contract/runtime
+identity separately; optional producer extras identify contract-advertising
+release floors rather than runtime version allowlists.
 
 ## Authority boundaries
 

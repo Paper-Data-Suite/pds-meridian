@@ -19,9 +19,9 @@ EXPECTED_SUMMARY = (
     "planning for Paper Data Suite"
 )
 EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.5,<0.7")
-EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.12.1; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.5; extra == 'quillan'")
-EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
+EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform>=0.13.0; extra == 'scoreform'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan>=0.10.6; extra == 'quillan'")
+EXPECTED_CONCORD_EXTRA = Requirement("pds-concord>=0.3.2; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
     "paper_data_suite.module_operations"
 )
@@ -168,15 +168,15 @@ def validate_wheel(path: str | Path) -> None:
         )
     if _scoreform_requirements(metadata) != [EXPECTED_SCOREFORM_EXTRA]:
         raise PackageValidationError(
-            "The scoreform extra must pin exactly scoreform==0.12.1."
+            "The scoreform extra must require scoreform>=0.13.0."
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.10.5."
+            "The quillan extra must require quillan>=0.10.6."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
-            "The concord extra must pin exactly pds-concord==0.3.0."
+            "The concord extra must require pds-concord>=0.3.2."
         )
 
     groups = frozenset(entry_points.sections())

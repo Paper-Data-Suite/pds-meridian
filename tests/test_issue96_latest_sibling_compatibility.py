@@ -19,7 +19,7 @@ def test_issue96_latest_stable_quillan_identity_is_exact() -> None:
         "031e5a5455c222da6b9a7d8f72e7823dd4c61acde7d90ddce94b49d9bcbe123f"
     )
     assert str(EXPECTED_QUILLAN_EXTRA) == (
-        'quillan==0.10.5; extra == "quillan"'
+        'quillan>=0.10.6; extra == "quillan"'
     )
 
 

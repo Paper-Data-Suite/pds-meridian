@@ -41,9 +41,9 @@ def test_issue61_package_extras_and_adapter_boundaries_move_together() -> None:
     )
     optional = pyproject["project"]["optional-dependencies"]
 
-    assert optional["scoreform"] == ["scoreform==0.12.1"]
-    assert optional["quillan"] == ["quillan==0.10.5"]
-    assert optional["concord"] == ["pds-concord==0.3.0"]
+    assert optional["scoreform"] == ["scoreform>=0.13.0"]
+    assert optional["quillan"] == ["quillan>=0.10.6"]
+    assert optional["concord"] == ["pds-concord>=0.3.2"]
 
     assert SCOREFORM_READER_VERSION == "0.12.1"
     assert QUILLAN_READER_VERSION == "0.10.5"

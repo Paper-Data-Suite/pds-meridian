@@ -56,7 +56,7 @@ def test_issue107_reader_rule_remains_exact_and_optional() -> None:
 
     assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     assert project["optional-dependencies"]["scoreform"] == [
-        "scoreform==0.12.1"
+        "scoreform>=0.13.0"
     ]
     assert SCOREFORM_READER_VERSION == "0.12.1"
     assert SCOREFORM_ADAPTER_DESCRIPTOR.supported_producer_reader_versions == (

@@ -9,6 +9,7 @@ from typing import Final, Literal
 from pds_core.publication_compatibility import (
     PublicationCompatibilityError,
     PublicationProducerDiscoveryError,
+    PublicationProducerProfile,
     PublicationProducerProfileError,
     PublicationProducerRegistry,
     PublicationProducerRegistryError,
@@ -25,11 +26,9 @@ from meridian.adapters import (
     AdapterRegistryError,
     AdapterValidationError,
     DistributionVersionResolver,
-    ProducerReaderUnavailableError,
-    ProducerReaderVersionUnsupportedError,
     adapter_key_from_core,
     installed_distribution_version,
-    resolve_producer_reader_version,
+    resolve_producer_reader_compatibility,
 )
 from meridian.evidence import (
     EligibilityStatus,
@@ -89,7 +88,7 @@ __all__ = [
     "verify_publication_diagnostic",
 ]
 
-DIAGNOSTIC_OUTPUT_VERSION: Final[str] = "1"
+DIAGNOSTIC_OUTPUT_VERSION: Final[str] = "2"
 
 DiagnosticsDependencyState = Literal[
     "available", "discovery_failed", "registry_invalid"
@@ -102,7 +101,19 @@ AdapterDiagnosticState = Literal[
     "supported", "missing", "capability_unsupported", "invalid", "not_evaluated"
 ]
 ReaderDiagnosticState = Literal[
-    "ready", "unavailable", "version_unsupported", "not_evaluated"
+    "ready",
+    "unavailable",
+    "version_unsupported",
+    "contract_unsupported",
+    "metadata_invalid",
+    "not_evaluated",
+]
+ReaderCompatibilityDiagnosticMode = Literal[
+    "contract",
+    "legacy_exact",
+    "unsupported",
+    "unavailable",
+    "not_evaluated",
 ]
 SupportDiagnosticState = Literal[
     "support_ready",
@@ -126,7 +137,17 @@ _ADAPTER_STATES = frozenset(
     {"supported", "missing", "capability_unsupported", "invalid", "not_evaluated"}
 )
 _READER_STATES = frozenset(
-    {"ready", "unavailable", "version_unsupported", "not_evaluated"}
+    {
+        "ready",
+        "unavailable",
+        "version_unsupported",
+        "contract_unsupported",
+        "metadata_invalid",
+        "not_evaluated",
+    }
+)
+_READER_COMPATIBILITY_MODES = frozenset(
+    {"contract", "legacy_exact", "unsupported", "unavailable", "not_evaluated"}
 )
 _SUPPORT_STATES = frozenset(
     {
@@ -597,6 +618,10 @@ class PublicationSupportDiagnostic:
     supported_reader_versions: tuple[str, ...]
     overall_state: SupportDiagnosticState
     reason_codes: tuple[str, ...]
+    reader_compatibility_mode: ReaderCompatibilityDiagnosticMode = "not_evaluated"
+    reader_contract_version: str | None = None
+    supported_reader_contracts: tuple[str, ...] = ()
+    reader_compatibility_reason: str | None = None
 
     def __post_init__(self) -> None:
         if self.profile_state not in _PROFILE_STATES:
@@ -607,6 +632,10 @@ class PublicationSupportDiagnostic:
             raise DiagnosticsDependencyError("adapter_state is invalid.")
         if self.reader_state not in _READER_STATES:
             raise DiagnosticsDependencyError("reader_state is invalid.")
+        if self.reader_compatibility_mode not in _READER_COMPATIBILITY_MODES:
+            raise DiagnosticsDependencyError(
+                "reader_compatibility_mode is invalid."
+            )
         if self.overall_state not in _SUPPORT_STATES:
             raise DiagnosticsDependencyError("overall_state is invalid.")
         if self.compatibility_codes != _codes(self.compatibility_codes):
@@ -629,6 +658,16 @@ class PublicationSupportDiagnostic:
             raise DiagnosticsDependencyError(
                 "supported_reader_versions must be unique and ordered."
             )
+        if self.supported_reader_contracts != tuple(
+            sorted(set(self.supported_reader_contracts))
+        ):
+            raise DiagnosticsDependencyError(
+                "supported_reader_contracts must be unique and ordered."
+            )
+
+    @property
+    def legacy_exact_reader_versions(self) -> tuple[str, ...]:
+        return self.supported_reader_versions
 
 
 @dataclass(frozen=True, slots=True)
@@ -798,6 +837,7 @@ def diagnose_publication_support(
 
     reasons: set[str] = set()
     compatibility_codes: tuple[str, ...] = ()
+    profile: PublicationProducerProfile | None = None
 
     profile_state: ProducerProfileDiagnosticState
     compatibility_state: CompatibilityDiagnosticState = "not_evaluated"
@@ -853,6 +893,10 @@ def diagnose_publication_support(
     reader_distribution: str | None = None
     installed_reader_version: str | None = None
     supported_reader_versions: tuple[str, ...] = ()
+    supported_reader_contracts: tuple[str, ...] = ()
+    reader_compatibility_mode: ReaderCompatibilityDiagnosticMode = "not_evaluated"
+    reader_contract_version: str | None = None
+    reader_compatibility_reason: str | None = None
 
     try:
         adapter_key = adapter_key_from_core(
@@ -887,25 +931,53 @@ def diagnose_publication_support(
         supported_reader_versions = tuple(
             sorted(descriptor.legacy_exact_reader_versions)
         )
-        try:
-            installed_reader_version = resolve_producer_reader_version(
-                descriptor, dependencies.distribution_version_resolver
-            )
-        except ProducerReaderUnavailableError:
-            reader_state = "unavailable"
-            reasons.add("adapters.reader_unavailable")
-        except ProducerReaderVersionUnsupportedError as error:
-            reader_state = "version_unsupported"
-            installed_reader_version = error.installed_version
-            reasons.add("adapters.reader_version_unsupported")
-        except (AdapterValidationError, AdapterRegistryError):
-            reader_state = "not_evaluated"
-            reasons.add("adapters.registry_invalid")
-        except Exception:
-            reader_state = "not_evaluated"
-            reasons.add("diagnostics.reader_resolution_failed")
-        else:
-            reader_state = "ready"
+        supported_reader_contracts = tuple(
+            sorted(descriptor.supported_producer_reader_contracts)
+        )
+        if profile is not None and compatibility_state == "compatible":
+            try:
+                reader_compatibility = resolve_producer_reader_compatibility(
+                    profile,
+                    descriptor,
+                    dependencies.distribution_version_resolver,
+                )
+            except (AdapterValidationError, AdapterRegistryError):
+                reader_state = "not_evaluated"
+                reasons.add("adapters.registry_invalid")
+            except Exception:
+                reader_state = "not_evaluated"
+                reasons.add("diagnostics.reader_resolution_failed")
+            else:
+                reader_compatibility_mode = reader_compatibility.mode
+                reader_compatibility_reason = reader_compatibility.reason_code
+
+                runtime = reader_compatibility.runtime_identity
+                contract = reader_compatibility.contract_identity
+
+                if runtime is not None:
+                    installed_reader_version = (
+                        runtime.installed_distribution_version
+                    )
+                if contract is not None:
+                    reader_contract_version = contract.reader_contract_version
+
+                if reader_compatibility.support_state == "supported":
+                    reader_state = "ready"
+                elif reader_compatibility.support_state == "unavailable":
+                    reader_state = "unavailable"
+                    reasons.add(reader_compatibility.reason_code)
+                else:
+                    if reader_compatibility.reason_code == "reader.metadata_invalid":
+                        reader_state = "metadata_invalid"
+                    elif (
+                        reader_compatibility.reason_code
+                        == "reader.contract_unsupported"
+                    ):
+                        reader_state = "contract_unsupported"
+                    else:
+                        reader_state = "version_unsupported"
+
+                    reasons.add(reader_compatibility.reason_code)
 
     if profile_state in {"discovery_failed", "registry_invalid", "evaluation_failed"}:
         overall_state: SupportDiagnosticState = "support_unverifiable"
@@ -917,7 +989,11 @@ def diagnose_publication_support(
         overall_state = "support_unverifiable"
     elif reader_state == "unavailable":
         overall_state = "support_unavailable"
-    elif reader_state == "version_unsupported":
+    elif reader_state in {
+        "version_unsupported",
+        "contract_unsupported",
+        "metadata_invalid",
+    }:
         overall_state = "support_unsupported"
     elif reader_state != "ready" or compatibility_state != "compatible":
         overall_state = "support_unverifiable"
@@ -940,6 +1016,10 @@ def diagnose_publication_support(
         supported_reader_versions=supported_reader_versions,
         overall_state=overall_state,
         reason_codes=_codes(reasons),
+        reader_compatibility_mode=reader_compatibility_mode,
+        reader_contract_version=reader_contract_version,
+        supported_reader_contracts=supported_reader_contracts,
+        reader_compatibility_reason=reader_compatibility_reason,
     )
 
 
@@ -1025,9 +1105,15 @@ def _support_to_dict(value: PublicationSupportDiagnostic) -> dict[str, object]:
         },
         "reader": {
             "state": value.reader_state,
+            "compatibility_mode": value.reader_compatibility_mode,
+            "compatibility_reason": value.reader_compatibility_reason,
             "distribution": value.reader_distribution,
             "installed_version": value.installed_reader_version,
-            "supported_versions": list(value.supported_reader_versions),
+            "contract_version": value.reader_contract_version,
+            "supported_contracts": list(value.supported_reader_contracts),
+            "legacy_exact_versions": list(
+                value.legacy_exact_reader_versions
+            ),
         },
     }
 
