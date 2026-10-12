@@ -1,4 +1,4 @@
-"""Teacher-facing Reports menu shell for Meridian Issue #111 Slice 6."""
+"""Teacher-facing Reports menu shell for Meridian Issue #111 Slice 7."""
 
 from __future__ import annotations
 
@@ -45,8 +45,8 @@ def run_reports_menu(
         write_lines(
             stream,
             "",
-            "Report framework ready; report-specific generators are added",
-            "in subsequent Issue #111 slices.",
+            "SIS Gradebook Reconciliation is available now.",
+            "Other report generators follow in subsequent Issue #111 slices.",
             "",
         )
         print_standard_navigation(stream)
@@ -54,9 +54,21 @@ def run_reports_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
-        if choice in {str(index) for index in range(1, 9)}:
+        if choice == "1":
             write_lines(
-                stream, "", "That report generator is not implemented in Slice 6 yet."
+                stream,
+                "",
+                "SIS Gradebook Reconciliation is available through:",
+                "meridian reports reconciliation --help",
+                "Guided selectors arrive in the report-menu hardening slice.",
+            )
+            pause_for_user(input_fn)
+            continue
+        if choice in {str(index) for index in range(2, 9)}:
+            write_lines(
+                stream,
+                "",
+                "That report generator is not implemented yet.",
             )
             pause_for_user(input_fn)
             continue

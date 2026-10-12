@@ -27,16 +27,16 @@ def test_reports_menu_shell_names_all_eight_report_families() -> None:
     assert len(REPORT_MENU_TITLES) == 8
     for index, title in enumerate(REPORT_MENU_TITLES, start=1):
         assert f"{index}. {title}" in rendered
-    assert "Report framework ready" in rendered
+    assert "SIS Gradebook Reconciliation is available now." in rendered
 
 
 def test_unimplemented_report_choice_is_explicit_not_silent() -> None:
     output = StringIO()
 
     run_reports_menu(
-        input_fn=ScriptedInput("1", "", "b"),
+        input_fn=ScriptedInput("2", "", "b"),
         output=output,
         clear_fn=lambda: None,
     )
 
-    assert "not implemented in Slice 6 yet" in output.getvalue()
+    assert "That report generator is not implemented yet." in output.getvalue()

@@ -6,6 +6,9 @@ import argparse
 import json
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.sis_reconciliation_cli import (
+    register_sis_gradebook_reconciliation_cli,
+)
 from meridian.teacher_report import TEACHER_REPORT_KINDS
 
 _LABELS = (
@@ -36,6 +39,7 @@ def add_teacher_reports_cli(
     kinds = commands.add_parser("kinds", help="List Issue #111 report families.")
     kinds.add_argument("--format", choices=("text", "json"), default="text")
     kinds.set_defaults(handler=_handle_report_kinds, show_group_help=None)
+    register_sis_gradebook_reconciliation_cli(commands)
     reports.set_defaults(show_group_help=reports)
 
 
@@ -48,7 +52,11 @@ def _handle_report_kinds(
         {
             "report_kind": kind,
             "title": title,
-            "generator_status": "pending_report_specific_slice",
+            "generator_status": (
+                "available"
+                if kind == "sis_gradebook_reconciliation"
+                else "pending_report_specific_slice"
+            ),
         }
         for kind, title in zip(TEACHER_REPORT_KINDS, _LABELS, strict=True)
     ]

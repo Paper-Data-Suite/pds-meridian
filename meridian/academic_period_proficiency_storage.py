@@ -1366,6 +1366,107 @@ def load_current_academic_period_proficiency_result(
     return stored
 
 
+def list_current_academic_period_proficiency_results(
+    workspace_root: str | Path,
+    class_id: str,
+    school_year: str,
+    period_id: str,
+) -> tuple[StoredAcademicPeriodProficiencyResult, ...]:
+    """Return all verified explicitly selected #35 results for one period."""
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    requested_period = _period_ref(school_year, period_id)
+    results = academic_period_proficiency_results_directory(root, class_value)
+    if not results.exists():
+        return ()
+    _validate_existing_directory_chain(root, results)
+    _require_storage_key_directory_collection(
+        results,
+        "Academic Period proficiency result collection",
+    )
+    try:
+        families = tuple(sorted(results.iterdir(), key=lambda item: item.name))
+    except OSError as error:
+        raise AcademicPeriodProficiencyStorageReadError(
+            "Could not inspect Academic Period proficiency result collection."
+        ) from error
+
+    selected: list[StoredAcademicPeriodProficiencyResult] = []
+    for family in families:
+        pointer_path = family / "current.json"
+        if not pointer_path.exists():
+            continue
+        mapping = _read_pointer(root, pointer_path, _RESULT_POINTER_KEYS)
+        if (
+            mapping["schema_version"]
+            != ACADEMIC_PERIOD_PROFICIENCY_RESULT_CURRENT_SCHEMA_VERSION
+            or mapping["record_type"]
+            != ACADEMIC_PERIOD_PROFICIENCY_RESULT_CURRENT_RECORD_TYPE
+            or mapping["class_id"] != class_value
+        ):
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Academic Period proficiency current-result pointer identity is "
+                "invalid."
+            )
+        pointer_period = _period_ref(
+            mapping["school_year"],
+            mapping["period_id"],
+        )
+        student = _identifier(mapping["student_id"], "student_id")
+        standard = _standard_id(mapping["standard_id"])
+        revision = _positive_int(mapping["result_revision"], "result_revision")
+        digest = _sha256(mapping["result_sha256"], "result_sha256")
+        if mapping["standard_key"] != academic_period_proficiency_standard_key(
+            standard
+        ):
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Academic Period proficiency current-result pointer standard key "
+                "is invalid."
+            )
+        _validate_result_family_directory(
+            family,
+            class_value,
+            pointer_period.school_year,
+            pointer_period.period_id,
+            student,
+            standard,
+        )
+        if pointer_period != requested_period:
+            continue
+        stored = load_current_academic_period_proficiency_result(
+            root,
+            class_value,
+            pointer_period.school_year,
+            pointer_period.period_id,
+            student,
+            standard,
+        )
+        if stored is None:
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Selected result pointer disappeared during verified enumeration."
+            )
+        if (
+            stored.snapshot.result_revision != revision
+            or stored.result_sha256 != digest
+        ):
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Selected result does not match its exact current pointer."
+            )
+        selected.append(stored)
+
+    return tuple(
+        sorted(
+            selected,
+            key=lambda item: (
+                item.snapshot.student_id,
+                item.snapshot.standard_id,
+                item.snapshot.result_revision,
+            ),
+        )
+    )
+
+
 def select_academic_period_proficiency_result_revision(
     workspace_root: str | Path,
     class_id: str,
