@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from importlib import metadata
 from typing import Final, Literal, Protocol, cast, runtime_checkable
 
@@ -59,6 +59,7 @@ __all__ = [
     "ProducerReaderCompatibilityMode",
     "ProducerReaderCompatibilityReason",
     "ProducerReaderContractIdentity",
+    "ProducerReaderContractUnsupportedError",
     "ProducerReaderRuntimeIdentity",
     "ProducerReaderSupportState",
     "ProducerReaderUnavailableError",
@@ -68,6 +69,7 @@ __all__ = [
     "installed_distribution_version",
     "projection_identity_from_descriptor",
     "resolve_legacy_producer_reader_compatibility",
+    "resolve_producer_reader_compatibility",
     "resolve_producer_reader_version",
     "validate_projected_inventory",
 ]
@@ -235,7 +237,7 @@ class ProducerReaderUnavailableError(AdapterError):
 
 
 class ProducerReaderVersionUnsupportedError(AdapterError):
-    """Raised when an installed producer-reader version was not declared supported."""
+    """Raised when an installed metadata-absent legacy reader is unsupported."""
 
     code = "adapters.reader_version_unsupported"
 
@@ -255,6 +257,31 @@ class ProducerReaderVersionUnsupportedError(AdapterError):
         self.distribution_name = distribution_name
         self.installed_version = installed_version
         self.supported_versions = supported_versions
+
+
+class ProducerReaderContractUnsupportedError(AdapterError):
+    """Raised when explicit producer reader metadata is unsupported."""
+
+    code = "adapters.reader_contract_unsupported"
+
+    def __init__(
+        self,
+        *,
+        adapter_id: str,
+        distribution_name: str,
+        manifest_contract_version: str,
+        reader_contract_version: str,
+        supported_contracts: tuple[str, ...],
+    ) -> None:
+        super().__init__(
+            f"Producer reader contract {reader_contract_version!r} for "
+            f"{distribution_name!r} is not supported by the selected adapter.",
+            adapter_id=adapter_id,
+        )
+        self.distribution_name = distribution_name
+        self.manifest_contract_version = manifest_contract_version
+        self.reader_contract_version = reader_contract_version
+        self.supported_contracts = supported_contracts
 
 
 class AdapterProjectionError(AdapterError):
@@ -506,21 +533,21 @@ class ProducerReaderCompatibility:
             if (
                 self.support_state != "supported"
                 or self.reason_code != "reader.contract_supported"
+                or self.runtime_identity is None
                 or self.contract_identity is None
             ):
                 raise AdapterValidationError(
-                    "contract compatibility requires a supported contract identity."
+                    "contract compatibility requires supported runtime and "
+                    "contract identities."
                 )
         elif self.mode == "unavailable":
             if (
                 self.support_state != "unavailable"
                 or self.reason_code != "reader.distribution_unavailable"
                 or self.runtime_identity is not None
-                or self.contract_identity is not None
             ):
                 raise AdapterValidationError(
-                    "unavailable compatibility must not claim runtime or contract "
-                    "identity."
+                    "unavailable compatibility must not claim runtime identity."
                 )
         elif self.support_state != "unsupported":
             raise AdapterValidationError(
@@ -786,12 +813,13 @@ class AdapterDescriptor:
 
 @dataclass(frozen=True, slots=True)
 class AdapterProjectionRequest:
-    """Verified immutable manifest bytes and exact Core projection context."""
+    """Verified immutable manifest bytes and exact projection execution context."""
 
     publication: PublicationRecord
     registration: AcademicWorkRegistration | None
     withdrawal: PublicationWithdrawal | None
     manifest_bytes: bytes = field(repr=False)
+    producer_reader_version: str | None = None
 
     def __post_init__(self) -> None:
         publication, registration = _validated_core_context(
@@ -808,6 +836,15 @@ class AdapterProjectionRequest:
                 ) from error
         if type(self.manifest_bytes) is not bytes:
             raise AdapterValidationError("manifest_bytes must be immutable bytes.")
+        if self.producer_reader_version is not None:
+            object.__setattr__(
+                self,
+                "producer_reader_version",
+                _single_line(
+                    self.producer_reader_version,
+                    "producer_reader_version",
+                ),
+            )
         if publication.manifest_digest_algorithm == "sha256":
             actual = hashlib.sha256(self.manifest_bytes).hexdigest()
             if actual != publication.manifest_digest:
@@ -900,7 +937,11 @@ def declared_reader_support_for_descriptor(
             descriptor.key.publication_kind,
             descriptor.key.manifest_contract_version,
         )
-    except PublicationProducerProfileError as error:
+    except (
+        PublicationProducerProfileError,
+        AttributeError,
+        TypeError,
+    ) as error:
         raise AdapterValidationError(
             f"producer reader metadata is invalid: {error}"
         ) from error
@@ -910,11 +951,7 @@ def resolve_legacy_producer_reader_compatibility(
     descriptor: AdapterDescriptor,
     resolver: DistributionVersionResolver = installed_distribution_version,
 ) -> ProducerReaderCompatibility:
-    """Resolve only the bounded metadata-absent legacy compatibility path.
-
-    Slice 3 does not consume reader-contract metadata for runtime acceptance.
-    Contract-first precedence is introduced in Slice 4.
-    """
+    """Resolve only the bounded metadata-absent legacy compatibility path."""
     if not isinstance(descriptor, AdapterDescriptor):
         raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
     try:
@@ -945,26 +982,156 @@ def resolve_legacy_producer_reader_compatibility(
     )
 
 
+def resolve_producer_reader_compatibility(
+    profile: PublicationProducerProfile,
+    descriptor: AdapterDescriptor,
+    resolver: DistributionVersionResolver = installed_distribution_version,
+) -> ProducerReaderCompatibility:
+    """Resolve contract-first compatibility from validated Core metadata.
+
+    Explicit reader metadata always wins. The bounded legacy exact-version
+    path is used only when Core reports no reader metadata for the selected
+    manifest contract.
+    """
+    if not isinstance(profile, PublicationProducerProfile):
+        raise AdapterValidationError(
+            "profile must be a PublicationProducerProfile."
+        )
+    if not isinstance(descriptor, AdapterDescriptor):
+        raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
+
+    try:
+        checked = validate_publication_producer_profile(profile)
+    except (
+        PublicationProducerProfileError,
+        AttributeError,
+        TypeError,
+    ):
+        return ProducerReaderCompatibility(
+            mode="unsupported",
+            support_state="unsupported",
+            reason_code="reader.metadata_invalid",
+        )
+
+    if checked.module_id != descriptor.key.producer_module_id:
+        raise AdapterValidationError(
+            "producer profile module_id does not match the adapter key."
+        )
+
+    try:
+        support = lookup_publication_reader_support(
+            checked,
+            descriptor.key.publication_kind,
+            descriptor.key.manifest_contract_version,
+        )
+    except (
+        PublicationProducerProfileError,
+        AttributeError,
+        TypeError,
+    ):
+        return ProducerReaderCompatibility(
+            mode="unsupported",
+            support_state="unsupported",
+            reason_code="reader.metadata_invalid",
+        )
+
+    if support is None:
+        return resolve_legacy_producer_reader_compatibility(
+            descriptor,
+            resolver,
+        )
+
+    contract = ProducerReaderContractIdentity(
+        manifest_contract_version=support.manifest_contract_version,
+        reader_contract_version=support.reader_contract_version,
+    )
+    if (
+        support.distribution_name != descriptor.producer_reader_distribution
+        or support.reader_contract_version
+        not in descriptor.supported_producer_reader_contracts
+    ):
+        return ProducerReaderCompatibility(
+            mode="unsupported",
+            support_state="unsupported",
+            reason_code="reader.contract_unsupported",
+            contract_identity=contract,
+        )
+
+    try:
+        version = resolver(descriptor.producer_reader_distribution)
+    except metadata.PackageNotFoundError:
+        return ProducerReaderCompatibility(
+            mode="unavailable",
+            support_state="unavailable",
+            reason_code="reader.distribution_unavailable",
+            contract_identity=contract,
+        )
+
+    runtime = ProducerReaderRuntimeIdentity(
+        distribution_name=descriptor.producer_reader_distribution,
+        installed_distribution_version=_single_line(
+            version,
+            "installed producer reader version",
+        ),
+    )
+    return ProducerReaderCompatibility(
+        mode="contract",
+        support_state="supported",
+        reason_code="reader.contract_supported",
+        runtime_identity=runtime,
+        contract_identity=contract,
+    )
+
+
 def resolve_producer_reader_version(
     descriptor: AdapterDescriptor,
     resolver: DistributionVersionResolver = installed_distribution_version,
+    *,
+    producer_profile: PublicationProducerProfile | None = None,
 ) -> str:
-    """Preserve the pre-Slice-4 exact-version runtime gate."""
-    compatibility = resolve_legacy_producer_reader_compatibility(
-        descriptor,
-        resolver,
+    """Return the exact installed version after semantic compatibility succeeds."""
+    compatibility = (
+        resolve_legacy_producer_reader_compatibility(descriptor, resolver)
+        if producer_profile is None
+        else resolve_producer_reader_compatibility(
+            producer_profile,
+            descriptor,
+            resolver,
+        )
     )
+
     if compatibility.mode == "unavailable":
         raise ProducerReaderUnavailableError(
             adapter_id=descriptor.adapter_id,
             distribution_name=descriptor.producer_reader_distribution,
         )
+
+    if compatibility.reason_code == "reader.metadata_invalid":
+        raise AdapterValidationError("producer reader metadata is invalid.")
+
+    if compatibility.reason_code == "reader.contract_unsupported":
+        contract = compatibility.contract_identity
+        if contract is None:
+            raise AdapterValidationError(
+                "unsupported reader contract is missing contract identity."
+            )
+        raise ProducerReaderContractUnsupportedError(
+            adapter_id=descriptor.adapter_id,
+            distribution_name=descriptor.producer_reader_distribution,
+            manifest_contract_version=contract.manifest_contract_version,
+            reader_contract_version=contract.reader_contract_version,
+            supported_contracts=tuple(
+                sorted(descriptor.supported_producer_reader_contracts)
+            ),
+        )
+
     runtime = compatibility.runtime_identity
     if runtime is None:
         raise AdapterValidationError(
             "reader compatibility result is missing runtime identity."
         )
-    if compatibility.mode != "legacy_exact":
+
+    if compatibility.mode == "unsupported":
         raise ProducerReaderVersionUnsupportedError(
             adapter_id=descriptor.adapter_id,
             distribution_name=descriptor.producer_reader_distribution,
@@ -973,6 +1140,7 @@ def resolve_producer_reader_version(
                 sorted(descriptor.legacy_exact_reader_versions)
             ),
         )
+
     return runtime.installed_distribution_version
 
 
@@ -1208,16 +1376,38 @@ class AdapterRegistry:
         self,
         request: AdapterProjectionRequest,
         resolver: DistributionVersionResolver = installed_distribution_version,
+        *,
+        producer_profile: PublicationProducerProfile | None = None,
     ) -> EvidenceInventory:
-        """Select, check reader availability, project, and enforce the contract."""
+        """Select, check reader compatibility, project, and enforce the contract."""
         if not isinstance(request, AdapterProjectionRequest):
             raise AdapterValidationError(
                 "request must be an AdapterProjectionRequest."
             )
         match = self.select(request.publication, request.registration)
-        reader_version = resolve_producer_reader_version(match.descriptor, resolver)
+        reader_version = resolve_producer_reader_version(
+            match.descriptor,
+            resolver,
+            producer_profile=producer_profile,
+        )
+        if (
+            request.producer_reader_version is not None
+            and request.producer_reader_version != reader_version
+        ):
+            raise AdapterValidationError(
+                "projection request producer_reader_version no longer matches "
+                "the resolved installed reader version."
+            )
+        invocation_request = (
+            request
+            if request.producer_reader_version == reader_version
+            else replace(
+                request,
+                producer_reader_version=reader_version,
+            )
+        )
         try:
-            inventory = match.adapter.project(request)
+            inventory = match.adapter.project(invocation_request)
         except AdapterProjectionError:
             raise
         except Exception as error:
@@ -1234,7 +1424,7 @@ class AdapterRegistry:
             )
         return validate_projected_inventory(
             inventory,
-            request,
+            invocation_request,
             match.descriptor,
             reader_version,
         )

@@ -257,7 +257,8 @@ class QuillanAcademicResultAdapter(ProducerAdapter):
         request: AdapterProjectionRequest, manifest: AcademicResultManifest
     ) -> EvidenceInventory:
         projection = projection_identity_from_descriptor(
-            QUILLAN_ADAPTER_DESCRIPTOR, QUILLAN_READER_VERSION
+            QUILLAN_ADAPTER_DESCRIPTOR,
+            request.producer_reader_version or QUILLAN_READER_VERSION,
         )
         scale = _native_scale(manifest)
         items: list[EvidenceItem] = []

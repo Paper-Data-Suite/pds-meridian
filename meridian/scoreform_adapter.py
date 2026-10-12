@@ -253,7 +253,8 @@ class ScoreFormAcademicResultAdapter(ProducerAdapter):
         request: AdapterProjectionRequest, manifest: AcademicResultManifest
     ) -> EvidenceInventory:
         projection = projection_identity_from_descriptor(
-            SCOREFORM_ADAPTER_DESCRIPTOR, SCOREFORM_READER_VERSION
+            SCOREFORM_ADAPTER_DESCRIPTOR,
+            request.producer_reader_version or SCOREFORM_READER_VERSION,
         )
         questions = {
             question.question_number: question

@@ -21,6 +21,7 @@ from pds_core.publication_compatibility import (
     PublicationContractSupport,
     PublicationProducerProfile,
     PublicationProducerRegistry,
+    PublicationReaderSupport,
 )
 from pds_core.publication_records import PublicationRecord, PublicationWithdrawal
 from pds_core.registry_services import (
@@ -37,6 +38,7 @@ from meridian.adapters import (
     AdapterDescriptor,
     AdapterKey,
     AdapterRegistry,
+    ProducerReaderContractUnsupportedError,
     ProducerReaderUnavailableError,
 )
 from meridian.evidence import EvidenceInventory
@@ -147,7 +149,11 @@ def catalog_row(
 
 
 class SyntheticAdapter:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        reader_contracts: frozenset[str] = frozenset(),
+    ) -> None:
         self.calls = 0
         self._descriptor = AdapterDescriptor(
             adapter_id="synthetic.adapter",
@@ -162,6 +168,7 @@ class SyntheticAdapter:
             projection_contract_version="1",
             supported_capabilities=frozenset({"points"}),
             producer_reader_distribution="synthetic-reader",
+            supported_producer_reader_contracts=reader_contracts,
             supported_producer_reader_versions=frozenset({"1.0.0"}),
         )
 
@@ -199,7 +206,21 @@ class DenyAuthorizer:
         )
 
 
-def profile_registry() -> PublicationProducerRegistry:
+def profile_registry(
+    *,
+    reader_contract: str | None = None,
+) -> PublicationProducerRegistry:
+    reader_support = (
+        ()
+        if reader_contract is None
+        else (
+            PublicationReaderSupport(
+                manifest_contract_version="synthetic_manifest_v1",
+                distribution_name="synthetic-reader",
+                reader_contract_version=reader_contract,
+            ),
+        )
+    )
     profile = PublicationProducerProfile(
         "synthetic",
         "Synthetic Producer",
@@ -212,6 +233,7 @@ def profile_registry() -> PublicationProducerRegistry:
                 frozenset({"points"}),
                 (),
                 True,
+                reader_support,
             ),
         ),
     )
@@ -454,6 +476,79 @@ def test_prepare_returns_request_without_invoking_adapter(
     assert adapter.calls == 0
     assert str(tmp_path) not in repr(result)
     assert MANIFEST_BYTES.decode() not in repr(result)
+
+
+def test_prepare_accepts_supported_reader_contract_without_version_allowlist(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    pub = publication()
+    patch_context(monkeypatch, pub=pub)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_bytes(MANIFEST_BYTES)
+    monkeypatch.setattr(
+        ingestion, "verify_publication_manifest", lambda root, value: manifest
+    )
+    adapter = SyntheticAdapter(
+        reader_contracts=frozenset({"synthetic_reader_v1"})
+    )
+
+    result = ingestion.prepare_publication_invocation(
+        tmp_path,
+        candidate(pub),
+        producer_registry=profile_registry(
+            reader_contract="synthetic_reader_v1"
+        ),
+        adapter_registry=AdapterRegistry((adapter,)),
+        authorizer=AllowAuthorizer(),
+        authorization_purpose_id="grading_import",
+        distribution_version_resolver=lambda name: "2.0.0",
+    )
+
+    assert result.producer_reader_version == "2.0.0"
+    assert result.projection_request.producer_reader_version == "2.0.0"
+    assert "2.0.0" not in adapter.descriptor.legacy_exact_reader_versions
+
+
+def test_prepare_explicit_unsupported_contract_fails_before_version_or_manifest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    patch_context(monkeypatch)
+    adapter = SyntheticAdapter(
+        reader_contracts=frozenset({"synthetic_reader_v1"})
+    )
+    authorizer = AllowAuthorizer()
+    resolver_called = False
+    manifest_called = False
+
+    def resolver(_: str) -> str:
+        nonlocal resolver_called
+        resolver_called = True
+        return "1.0.0"
+
+    def verify(root: object, pub: object) -> Path:
+        nonlocal manifest_called
+        manifest_called = True
+        raise AssertionError
+
+    monkeypatch.setattr(ingestion, "verify_publication_manifest", verify)
+
+    with pytest.raises(ProducerReaderContractUnsupportedError):
+        ingestion.prepare_publication_invocation(
+            "workspace",
+            candidate(),
+            producer_registry=profile_registry(
+                reader_contract="synthetic_reader_v2"
+            ),
+            adapter_registry=AdapterRegistry((adapter,)),
+            authorizer=authorizer,
+            authorization_purpose_id="grading_import",
+            distribution_version_resolver=resolver,
+        )
+
+    assert resolver_called is False
+    assert authorizer.requests == []
+    assert manifest_called is False
 
 
 def test_manifest_size_limit_is_enforced(

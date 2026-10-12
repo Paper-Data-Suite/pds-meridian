@@ -645,7 +645,7 @@ class ConcordAcademicResultAdapter(ProducerAdapter):
     ) -> EvidenceInventory:
         projection = projection_identity_from_descriptor(
             CONCORD_ADAPTER_DESCRIPTOR,
-            CONCORD_READER_VERSION,
+            request.producer_reader_version or CONCORD_READER_VERSION,
         )
         scale_by_id = {
             scale.scoring_scale_id: _native_scale(scale)

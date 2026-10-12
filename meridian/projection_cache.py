@@ -53,6 +53,7 @@ from meridian.adapters import (
     AdapterNotFoundError,
     AdapterRegistry,
     DistributionVersionResolver,
+    ProducerReaderContractUnsupportedError,
     ProducerReaderUnavailableError,
     ProducerReaderVersionUnsupportedError,
     installed_distribution_version,
@@ -157,6 +158,7 @@ _REASON_ORDER: Final[tuple[str, ...]] = (
     "cache.adapter_changed",
     "cache.adapter_capability_changed",
     "cache.reader_unavailable",
+    "cache.reader_contract_changed",
     "cache.reader_version_changed",
     "cache.projection_authorization_denied",
     "cache.projection_authorization_changed",
@@ -2251,10 +2253,14 @@ def assess_projection_snapshot(
             reasons.add("cache.adapter_changed")
         try:
             reader_version = resolve_producer_reader_version(
-                descriptor, distribution_version_resolver
+                descriptor,
+                distribution_version_resolver,
+                producer_profile=profile,
             )
         except ProducerReaderUnavailableError:
             reasons.add("cache.reader_unavailable")
+        except ProducerReaderContractUnsupportedError:
+            reasons.add("cache.reader_contract_changed")
         except ProducerReaderVersionUnsupportedError:
             reasons.add("cache.reader_version_changed")
         else:

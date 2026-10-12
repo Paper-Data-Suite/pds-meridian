@@ -1,8 +1,9 @@
 # Producer reader-contract compatibility — Issue #111
 
-Status: Slice 3 compatibility-model baseline. Core v0.6.5 and all three
-academic-result producer reader contracts are released. **Runtime producer
-acceptance remains legacy exact-version-only until Slice 4.**
+Status: Slice 4 contract-first acceptance baseline. Core v0.6.5 and all three
+academic-result producer reader contracts are released. Runtime compatibility
+now prefers explicit producer-declared reader contracts and uses the bounded
+legacy exact-version path only when reader metadata is absent.
 
 ## Authority boundaries
 
@@ -99,6 +100,48 @@ In Slice 3, contract identities are descriptive adapter capability only.
 path, so ScoreForm 0.13.0, Quillan 0.10.6, and Concord 0.3.2 remain rejected.
 Contract-first metadata precedence is deliberately deferred to Slice 4.
 
+## Slice 4 contract-first acceptance
+
+The runtime decision is now:
+
+```text
+validated producer profile
+    |
+    +-- reader metadata present
+    |       |
+    |       +-- supported exact manifest-bound reader contract
+    |       |       -> contract mode
+    |       |       -> resolve installed distribution version
+    |       |       -> exact version retained as execution/projection identity
+    |       |
+    |       +-- unsupported or mismatched explicit reader metadata
+    |               -> fail closed
+    |               -> no legacy fallback
+    |
+    +-- reader metadata absent
+            -> bounded legacy exact-version table only
+```
+
+The released contract-advertising versions are therefore compatible without
+being added to `legacy_exact_reader_versions`:
+
+- ScoreForm `0.13.0` via `scoreform_academic_result_reader_v1`;
+- Quillan `0.10.6` via `quillan_academic_result_reader_v1`;
+- Concord `0.3.2` via `concord_academic_result_reader_v1`.
+
+Package version is deliberately resolved only after a supported explicit
+contract is identified. An unsupported explicit contract does not consult the
+legacy version table, even if the installed package version would otherwise be
+historically qualified.
+
+`AdapterProjectionRequest.producer_reader_version` carries the exact resolved
+runtime version into producer projection so adapters stamp the code that
+actually executed into `ProjectionIdentity`. The persisted projection-cache
+schema is unchanged: it already records exact distribution/version execution
+identity. Two package versions implementing the same supported reader contract
+remain semantically compatible but produce different projection/cache execution
+identities and therefore require reprojection rather than cache reuse.
+
 ## Transitional compatibility rules for later slices
 
 1. Prefer producer-profile metadata declaring an exact supported public reader contract; explicit unsupported or invalid metadata fails closed.
@@ -112,8 +155,8 @@ Contract-first metadata precedence is deliberately deferred to Slice 4.
 
 - **Slice 1:** architecture/dependency audit — complete at `f44dae711d1dfe1317d147bfbbd9d4a70f3e4122`.
 - **Slice 2:** Core v0.6.5 floor, exact Core reader-metadata observation, current qualification baseline — complete at `0c5c35b44345b5774628536a1982bc13f530c694`.
-- **Slice 3:** Meridian reader runtime/contract identity, compatibility state/reason codes, bounded legacy exact table — this slice.
-- **Slice 4:** contract-first acceptance of the three released reader contracts; explicit metadata precedence; exact package version remains projection/cache provenance.
+- **Slice 3:** Meridian reader runtime/contract identity, compatibility state/reason codes, bounded legacy exact table — complete at `5895f47d7d5043726d1daae871489a1d8e755d4b`.
+- **Slice 4:** contract-first acceptance of the three released reader contracts; explicit metadata precedence; exact package version remains projection/cache provenance — this slice.
 - **Slice 5:** diagnostics, Issue #110 integration, and optional dependency relaxation.
 - **Slices 6-16:** teacher reporting suite, installed cross-producer qualification, release audit, and Meridian release as described by Issue #111.
 

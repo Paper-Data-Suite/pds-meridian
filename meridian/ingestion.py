@@ -874,6 +874,13 @@ class PreparedPublicationInvocation:
                 "projection_request must be an AdapterProjectionRequest."
             )
         if (
+            self.projection_request.producer_reader_version
+            != self.producer_reader_version
+        ):
+            raise IngestionValidationError(
+                "projection_request must preserve the exact resolved reader version."
+            )
+        if (
             self.projection_request.publication
             != self.canonical_context.publication
             or self.projection_request.registration
@@ -1063,6 +1070,7 @@ def prepare_publication_invocation(
     reader_version = resolve_producer_reader_version(
         match.descriptor,
         distribution_version_resolver,
+        producer_profile=profile,
     )
 
     authorization_request = PublicationAuthorizationRequest(
@@ -1108,6 +1116,7 @@ def prepare_publication_invocation(
             registration=initial_context.referenced_registration,
             withdrawal=initial_context.withdrawal,
             manifest_bytes=manifest_bytes,
+            producer_reader_version=reader_version,
         )
     except ValueError as error:
         raise ManifestInvalidError(
