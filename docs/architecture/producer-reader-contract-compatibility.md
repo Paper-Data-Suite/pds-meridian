@@ -157,8 +157,12 @@ identities and therefore require reprojection rather than cache reuse.
 - **Slice 1:** architecture/dependency audit — complete at `f44dae711d1dfe1317d147bfbbd9d4a70f3e4122`.
 - **Slice 2:** Core v0.6.5 floor, exact Core reader-metadata observation, current qualification baseline — complete at `0c5c35b44345b5774628536a1982bc13f530c694`.
 - **Slice 3:** Meridian reader runtime/contract identity, compatibility state/reason codes, bounded legacy exact table — complete at `5895f47d7d5043726d1daae871489a1d8e755d4b`.
-- **Slice 4:** contract-first acceptance of the three released reader contracts; explicit metadata precedence; exact package version remains projection/cache provenance — this slice.
-- **Slice 5:** diagnostics, Issue #110 integration, and optional dependency relaxation.
+- **Slice 4:** contract-first acceptance of the three released reader contracts; explicit metadata precedence; exact package version remains projection/cache provenance — complete.
+- **Slice 5:** diagnostics, Issue #110 integration, optional dependency relaxation, and the current compatibility matrix — complete.
 - **Slices 6-16:** teacher reporting suite, installed cross-producer qualification, release audit, and Meridian release as described by Issue #111.
 
-Do not rewrite v0.3.0/v0.3.1 historical release evidence and do not import producer readers during profile discovery.
+Current compatibility matrix:
+[`current-reader-compatibility.md`](current-reader-compatibility.md).
+
+Do not rewrite v0.3.0/v0.3.1 historical release evidence and do not import
+producer readers during profile discovery.

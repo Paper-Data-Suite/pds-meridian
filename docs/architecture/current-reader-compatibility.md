@@ -1,4 +1,4 @@
-# Current producer reader compatibility ? Issue #111
+# Current producer reader compatibility — Issue #111
 
 This is the active Meridian development compatibility matrix. Historical
 v0.3.0 and v0.3.1 qualification records remain immutable release evidence.
