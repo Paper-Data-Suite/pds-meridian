@@ -375,6 +375,7 @@ from meridian.standards_review_workflow import (
     StandardsReviewWorkflowScopeError,
     build_standards_review_projection,
 )
+from meridian.teacher_report_cli import add_teacher_reports_cli
 from meridian.teacher_workflows import (
     TeacherWorkflowCatalog,
     teacher_workflow_catalog,
@@ -475,6 +476,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     menu_parser.set_defaults(handler=_handle_teacher_menu)
     add_reporting_snapshot_cli(groups)
+    add_teacher_reports_cli(groups)
 
     attention = groups.add_parser(
         "attention",

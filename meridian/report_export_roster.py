@@ -296,6 +296,52 @@ def build_export_roster_observation(
     )
 
 
+def build_report_display_name_observation(
+    workspace_root: str | Path,
+    class_id: str,
+    student_ids: tuple[str, ...],
+) -> ExportRosterObservation:
+    """Observe only Core roster display names for exact report student IDs."""
+
+    checked_class_id = _identifier(class_id, "class_id")
+    selected_student_ids = _student_ids(student_ids)
+    try:
+        roster = load_class_roster(workspace_root, checked_class_id)
+    except (RosterError, OSError, ValueError) as error:
+        raise ReportExportRosterUnavailableError(
+            "Canonical Core roster is unavailable for report display names."
+        ) from error
+
+    lookup = student_lookup(roster)
+    students: list[ExportRosterStudentObservation] = []
+    for student_id in selected_student_ids:
+        student = lookup.get(student_id)
+        if student is None:
+            raise ReportExportRosterSubjectMissingError(
+                "Report student is absent from the current Core roster: "
+                f"{student_id!r}."
+            )
+        students.append(
+            ExportRosterStudentObservation(
+                student_id=student_id,
+                values=(
+                    ExportRosterObservedValue(
+                        source_field="roster.display_name",
+                        value=student_display_name(student),
+                    ),
+                ),
+            )
+        )
+
+    return ExportRosterObservation(
+        schema_version=EXPORT_ROSTER_OBSERVATION_SCHEMA_VERSION,
+        record_type=EXPORT_ROSTER_OBSERVATION_RECORD_TYPE,
+        class_id=checked_class_id,
+        source_fields=("roster.display_name",),
+        students=tuple(students),
+    )
+
+
 def export_roster_observation_sha256(value: ExportRosterObservation) -> str:
     """Return the SHA-256 digest of one exact canonical observation."""
 
@@ -661,6 +707,7 @@ __all__ = [
     "ReportExportRosterUnavailableError",
     "ReportExportRosterValidationError",
     "build_export_roster_observation",
+    "build_report_display_name_observation",
     "export_profile_roster_source_fields",
     "export_roster_observation_from_dict",
     "export_roster_observation_from_json_bytes",
