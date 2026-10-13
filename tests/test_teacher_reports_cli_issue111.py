@@ -38,6 +38,8 @@ def test_reports_kinds_json_is_deterministic_and_nonmutating(
     assert statuses["student_current_grade_justification"] == "available"
     assert statuses["class_standards_profile"] == "available"
     assert statuses["student_proficiency_growth"] == "available"
+    assert statuses["evidence_coverage"] == "available"
+    assert statuses["grade_checkpoint_comparison"] == "available"
 
 
 def test_reports_kinds_text_names_all_eight_reports(

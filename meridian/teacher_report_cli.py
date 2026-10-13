@@ -6,6 +6,9 @@ import argparse
 import json
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.evidence_checkpoint_reporting_cli import (
+    register_evidence_checkpoint_reporting_cli,
+)
 from meridian.sis_reconciliation_cli import (
     register_sis_gradebook_reconciliation_cli,
 )
@@ -46,6 +49,7 @@ def add_teacher_reports_cli(
     register_sis_gradebook_reconciliation_cli(commands)
     register_student_grade_justification_cli(commands)
     register_standards_reporting_cli(commands)
+    register_evidence_checkpoint_reporting_cli(commands)
     reports.set_defaults(show_group_help=reports)
 
 
@@ -66,6 +70,8 @@ def _handle_report_kinds(
                     "student_current_grade_justification",
                     "class_standards_profile",
                     "student_proficiency_growth",
+                    "evidence_coverage",
+                    "grade_checkpoint_comparison",
                 }
                 else "pending_report_specific_slice"
             ),
