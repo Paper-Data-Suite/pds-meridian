@@ -373,6 +373,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/external_gradebook_mapping.py",
         "meridian/sis_gradebook_reconciliation.py",
         "meridian/sis_reconciliation_cli.py",
+        "meridian/student_grade_justification.py",
+        "meridian/student_grade_justification_cli.py",
         "meridian/menu_reports.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",

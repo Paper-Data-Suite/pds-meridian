@@ -9,6 +9,9 @@ from meridian.diagnostics import DiagnosticsDependencies
 from meridian.sis_reconciliation_cli import (
     register_sis_gradebook_reconciliation_cli,
 )
+from meridian.student_grade_justification_cli import (
+    register_student_grade_justification_cli,
+)
 from meridian.teacher_report import TEACHER_REPORT_KINDS
 
 _LABELS = (
@@ -40,6 +43,7 @@ def add_teacher_reports_cli(
     kinds.add_argument("--format", choices=("text", "json"), default="text")
     kinds.set_defaults(handler=_handle_report_kinds, show_group_help=None)
     register_sis_gradebook_reconciliation_cli(commands)
+    register_student_grade_justification_cli(commands)
     reports.set_defaults(show_group_help=reports)
 
 
@@ -54,7 +58,11 @@ def _handle_report_kinds(
             "title": title,
             "generator_status": (
                 "available"
-                if kind == "sis_gradebook_reconciliation"
+                if kind
+                in {
+                    "sis_gradebook_reconciliation",
+                    "student_current_grade_justification",
+                }
                 else "pending_report_specific_slice"
             ),
         }

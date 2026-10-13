@@ -30,6 +30,12 @@ def test_reports_kinds_json_is_deterministic_and_nonmutating(
     assert [item["report_kind"] for item in payload["report_kinds"]] == list(
         TEACHER_REPORT_KINDS
     )
+    statuses = {
+        item["report_kind"]: item["generator_status"]
+        for item in payload["report_kinds"]
+    }
+    assert statuses["sis_gradebook_reconciliation"] == "available"
+    assert statuses["student_current_grade_justification"] == "available"
 
 
 def test_reports_kinds_text_names_all_eight_reports(
