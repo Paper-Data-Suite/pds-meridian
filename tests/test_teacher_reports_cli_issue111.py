@@ -36,6 +36,8 @@ def test_reports_kinds_json_is_deterministic_and_nonmutating(
     }
     assert statuses["sis_gradebook_reconciliation"] == "available"
     assert statuses["student_current_grade_justification"] == "available"
+    assert statuses["class_standards_profile"] == "available"
+    assert statuses["student_proficiency_growth"] == "available"
 
 
 def test_reports_kinds_text_names_all_eight_reports(

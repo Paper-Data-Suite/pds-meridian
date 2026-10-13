@@ -27,14 +27,14 @@ def test_reports_menu_shell_names_all_eight_report_families() -> None:
     assert len(REPORT_MENU_TITLES) == 8
     for index, title in enumerate(REPORT_MENU_TITLES, start=1):
         assert f"{index}. {title}" in rendered
-    assert "SIS Gradebook Reconciliation and Student Grade Justification" in rendered
+    assert "Reports 1-4 are available now." in rendered
 
 
 def test_unimplemented_report_choice_is_explicit_not_silent() -> None:
     output = StringIO()
 
     run_reports_menu(
-        input_fn=ScriptedInput("3", "", "b"),
+        input_fn=ScriptedInput("5", "", "b"),
         output=output,
         clear_fn=lambda: None,
     )

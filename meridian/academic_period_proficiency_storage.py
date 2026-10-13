@@ -1306,6 +1306,105 @@ def list_academic_period_proficiency_result_revisions(
     return revisions
 
 
+def list_academic_period_proficiency_result_standard_ids(
+    workspace_root: str | Path,
+    class_id: str,
+    school_year: str,
+    period_id: str,
+    student_id: str,
+) -> tuple[str, ...]:
+    """Return verified result-family standard IDs for one student/period.
+
+    This enumerates immutable result history independently of current selection,
+    so a historical family remains discoverable when it has no current pointer.
+    """
+
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    requested_period = _period_ref(school_year, period_id)
+    requested_student = _identifier(student_id, "student_id")
+    results = academic_period_proficiency_results_directory(root, class_value)
+    if not results.exists():
+        return ()
+    _validate_existing_directory_chain(root, results)
+    _require_storage_key_directory_collection(
+        results,
+        "Academic Period proficiency result collection",
+    )
+    try:
+        families = tuple(sorted(results.iterdir(), key=lambda item: item.name))
+    except OSError as error:
+        raise AcademicPeriodProficiencyStorageReadError(
+            "Could not inspect Academic Period proficiency result collection."
+        ) from error
+
+    standards: list[str] = []
+    for family in families:
+        revisions = _result_revision_numbers(family)
+        if not revisions:
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Academic Period proficiency result family has no revision history."
+            )
+        first_path = family / f"{revisions[0]}.json"
+        content, _ = _read_result_revision_pair(
+            root,
+            first_path,
+            DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULT_BYTES,
+        )
+        try:
+            first = academic_period_proficiency_result_snapshot_from_json_bytes(
+                content
+            )
+        except (
+            AcademicPeriodProficiencySerializationError,
+            AcademicPeriodProficiencyValidationError,
+        ) as error:
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Academic Period proficiency result family identity revision is "
+                f"invalid or noncanonical: {error}"
+            ) from error
+
+        period = first.target_period.period
+        expected_key = storage_path_key(
+            "academic_period_proficiency_result",
+            first.class_id,
+            period.school_year,
+            period.period_id,
+            first.student_id,
+            first.standard_id,
+        )
+        if first.class_id != class_value or family.name != expected_key:
+            raise AcademicPeriodProficiencyStorageIntegrityError(
+                "Academic Period proficiency result family identity does not "
+                "match its bounded canonical path."
+            )
+        _validate_result_family_directory(
+            family,
+            first.class_id,
+            period.school_year,
+            period.period_id,
+            first.student_id,
+            first.standard_id,
+        )
+        list_academic_period_proficiency_result_revisions(
+            root,
+            first.class_id,
+            period.school_year,
+            period.period_id,
+            first.student_id,
+            first.standard_id,
+        )
+        if period == requested_period and first.student_id == requested_student:
+            standards.append(first.standard_id)
+
+    if len(set(standards)) != len(standards):
+        raise AcademicPeriodProficiencyStorageIntegrityError(
+            "Academic Period proficiency result collection contains duplicate "
+            "student/standard histories."
+        )
+    return tuple(sorted(standards))
+
+
 def get_current_academic_period_proficiency_result_revision(
     workspace_root: str | Path,
     class_id: str,

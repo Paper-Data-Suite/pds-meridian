@@ -9,6 +9,7 @@ from meridian.diagnostics import DiagnosticsDependencies
 from meridian.sis_reconciliation_cli import (
     register_sis_gradebook_reconciliation_cli,
 )
+from meridian.standards_reporting_cli import register_standards_reporting_cli
 from meridian.student_grade_justification_cli import (
     register_student_grade_justification_cli,
 )
@@ -44,6 +45,7 @@ def add_teacher_reports_cli(
     kinds.set_defaults(handler=_handle_report_kinds, show_group_help=None)
     register_sis_gradebook_reconciliation_cli(commands)
     register_student_grade_justification_cli(commands)
+    register_standards_reporting_cli(commands)
     reports.set_defaults(show_group_help=reports)
 
 
@@ -62,6 +64,8 @@ def _handle_report_kinds(
                 in {
                     "sis_gradebook_reconciliation",
                     "student_current_grade_justification",
+                    "class_standards_profile",
+                    "student_proficiency_growth",
                 }
                 else "pending_report_specific_slice"
             ),

@@ -1,4 +1,4 @@
-"""Teacher-facing Reports menu shell for Meridian Issue #111 Slice 8."""
+"""Teacher-facing Reports menu shell for Meridian Issue #111 Slice 9."""
 
 from __future__ import annotations
 
@@ -45,8 +45,8 @@ def run_reports_menu(
         write_lines(
             stream,
             "",
-            "SIS Gradebook Reconciliation and Student Grade Justification",
-            "are available now. Other report generators follow later.",
+            "Reports 1-4 are available now.",
+            "Other report generators follow in subsequent Issue #111 slices.",
             "",
         )
         print_standard_navigation(stream)
@@ -74,7 +74,27 @@ def run_reports_menu(
             )
             pause_for_user(input_fn)
             continue
-        if choice in {str(index) for index in range(3, 9)}:
+        if choice == "3":
+            write_lines(
+                stream,
+                "",
+                "Class Standards Profile is available through:",
+                "meridian reports standards profile --help",
+                "Guided selectors arrive in the report-menu hardening slice.",
+            )
+            pause_for_user(input_fn)
+            continue
+        if choice == "4":
+            write_lines(
+                stream,
+                "",
+                "Student Proficiency Growth is available through:",
+                "meridian reports standards growth --help",
+                "Guided selectors arrive in the report-menu hardening slice.",
+            )
+            pause_for_user(input_fn)
+            continue
+        if choice in {str(index) for index in range(5, 9)}:
             write_lines(
                 stream,
                 "",
