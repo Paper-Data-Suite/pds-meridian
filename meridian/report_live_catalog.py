@@ -26,6 +26,11 @@ from pds_core.rosters import Roster
 from pds_core.routes import classes_dir
 from pds_core.workspace import resolve_workspace_root
 
+from meridian.external_gradebook_mapping import (
+    ExternalGradebookMappingError,
+    external_gradebook_mapping_from_json_bytes,
+    external_gradebook_mapping_reference,
+)
 from meridian.grade_items_workflow import GradeItemsReview, project_grade_items_review
 from meridian.report_guided_selection import (
     REPORT_GUIDES,
@@ -96,6 +101,7 @@ class LiveReportChoiceCatalog:
         default_factory=ReportLiveCatalogDependencies
     )
     _workspace: Path | None = field(default=None, init=False, repr=False)
+    _mapping_file: Path | None = field(default=None, init=False, repr=False)
 
     def _root(self) -> Path:
         root = self.dependencies.workspace_resolver().resolve(strict=True)
@@ -245,14 +251,91 @@ class LiveReportChoiceCatalog:
                     )
                 return tuple(found)
             # An external mapping profile is a teacher-supplied file, not an
-            # enumerated Meridian record. Guessing paths would be unsafe.
-            return ()
+            # enumerated Meridian record. It appears only after the teacher has
+            # named one exact file through ``choose_mapping_file``.
+            if self._mapping_file is None:
+                return ()
+            return (
+                self._mapping_option(
+                    root,
+                    folder.class_id,
+                    period,
+                    self._mapping_file,
+                ),
+            )
         except ReportSelectionUnavailable:
             raise
         except (OSError, ValueError) as error:
             raise ReportSelectionUnavailable(
                 "Authoritative report choices could not be verified."
             ) from error
+
+    def choose_mapping_file(
+        self,
+        *,
+        report_kind: str,
+        path_text: str,
+        selected: Mapping[ReportScope, str],
+    ) -> ReportOption:
+        """Validate one teacher-named mapping file without searching directories."""
+
+        if report_kind != "sis_gradebook_reconciliation":
+            raise ReportSelectionUnavailable(
+                "A mapping profile is not used by this report."
+            )
+        root = self._root()
+        folder = self._class(root, selected)
+        period = self._period(root, folder, selected)
+        try:
+            candidate = Path(path_text).expanduser().resolve(strict=True)
+        except (OSError, RuntimeError, ValueError) as error:
+            raise ReportSelectionUnavailable(
+                "The mapping profile file is unavailable."
+            ) from error
+        option = self._mapping_option(root, folder.class_id, period, candidate)
+        self._mapping_file = candidate
+        return option
+
+    @staticmethod
+    def _mapping_option(
+        root: Path,
+        class_id: str,
+        period: CatalogAcademicPeriod,
+        path: Path,
+    ) -> ReportOption:
+        # The file is an explicit teacher input, not canonical workspace state.
+        _ = root
+        try:
+            if path.is_symlink() or not path.is_file():
+                raise ReportSelectionUnavailable(
+                    "The mapping profile must be one regular non-linked file."
+                )
+            if path.stat().st_size > 512 * 1024:
+                raise ReportSelectionUnavailable(
+                    "The mapping profile exceeds the bounded input size."
+                )
+            profile = external_gradebook_mapping_from_json_bytes(path.read_bytes())
+        except ReportSelectionUnavailable:
+            raise
+        except (ExternalGradebookMappingError, OSError, ValueError) as error:
+            raise ReportSelectionUnavailable(
+                "The mapping profile file is invalid."
+            ) from error
+        if (
+            profile.class_id != class_id
+            or profile.target_period.school_year != period.school_year
+            or profile.target_period.period_id != period.period_id
+        ):
+            raise ReportSelectionUnavailable(
+                "The mapping profile does not match the selected class and period."
+            )
+        reference = external_gradebook_mapping_reference(profile)
+        return ReportOption(
+            str(path),
+            profile.title,
+            f"{profile.system_label} · revision {profile.profile_revision} "
+            f"· {reference.profile_sha256[:12]}",
+        )
 
 
 __all__ = ("LiveReportChoiceCatalog", "ReportLiveCatalogDependencies")

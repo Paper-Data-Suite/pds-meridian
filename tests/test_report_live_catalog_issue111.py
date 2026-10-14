@@ -8,17 +8,25 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
+from pds_core.academic_periods import AcademicPeriodRef
 from pds_core.class_metadata import ClassMetadata
 from pds_core.classes import ClassFolder, class_folder
 from pds_core.rosters import Roster
 
+from meridian.external_gradebook_mapping import (
+    ExternalGradebookMappingEntry,
+    compose_external_gradebook_mapping_revision,
+    external_gradebook_mapping_to_json_bytes,
+)
 from meridian.grade_items_workflow import GradeItemsReview
+from meridian.proficiency_mapping import proficiency_scale_reference
 from meridian.report_guided_selection import ReportSelectionUnavailable
 from meridian.report_live_catalog import (
     LiveReportChoiceCatalog,
     ReportLiveCatalogDependencies,
 )
 from meridian.reporting_snapshot_storage import StoredReportingSnapshot
+from tests.test_external_gradebook_mapping_issue111 import scale
 
 
 def make_catalog(
@@ -207,6 +215,44 @@ def test_mapping_never_guessed_from_files(catalog: LiveReportChoiceCatalog) -> N
         scope="mapping",
         selected={"class": "english12_p4", "period": "mp1"},
     ) == ()
+
+
+def test_teacher_named_mapping_file_is_validated_and_rechecked(
+    catalog: LiveReportChoiceCatalog,
+    tmp_path: Path,
+) -> None:
+    target_scale = replace(scale(), class_id="english12_p4")
+    profile = compose_external_gradebook_mapping_revision(
+        class_id="english12_p4",
+        profile_id="district_gradebook",
+        profile_revision=2,
+        title="School gradebook scale",
+        system_label="Any district gradebook",
+        target_period=AcademicPeriodRef("2026-2027", "mp1"),
+        target_scale=proficiency_scale_reference(target_scale),
+        entries=tuple(
+            ExternalGradebookMappingEntry(item.level_id, str(index + 1))
+            for index, item in enumerate(target_scale.levels)
+        ),
+        actor_id="teacher_local",
+        revised_at=datetime(2026, 10, 13, 12, 0, tzinfo=UTC),
+    )
+    path = tmp_path / "mapping.json"
+    path.write_bytes(external_gradebook_mapping_to_json_bytes(profile))
+    selected = {"class": "english12_p4", "period": "mp1"}
+
+    option = catalog.choose_mapping_file(
+        report_kind="sis_gradebook_reconciliation",
+        path_text=str(path),
+        selected=selected,
+    )
+
+    assert "Any district gradebook" in option.display
+    assert catalog.options(
+        report_kind="sis_gradebook_reconciliation",
+        scope="mapping",
+        selected=selected,
+    ) == (option,)
 
 
 def test_invalid_previous_class_rejected(catalog: LiveReportChoiceCatalog) -> None:

@@ -62,9 +62,9 @@ def test_issue60_installed_program_covers_cross_policy_authorities() -> None:
     ).read_text(encoding="utf-8")
     for token in (
         '"pds-core": "0.6.5"',
-        '"scoreform": "0.12.1"',
-        '"quillan": "0.10.5"',
-        '"pds-concord": "0.3.0"',
+        '"scoreform": "0.13.0"',
+        '"quillan": "0.10.6"',
+        '"pds-concord": "0.3.2"',
         "issue54._conventional_state",
         "issue54._standards_state",
         "profile99._calculate",

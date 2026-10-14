@@ -23,11 +23,11 @@ def test_issue96_latest_stable_quillan_identity_is_exact() -> None:
     )
 
 
-def test_issue96_ci_uses_authenticated_quillan_0105_release() -> None:
+def test_issue111_ci_uses_authenticated_quillan_0106_release() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
 
-    assert "quillan-0.10.5-py3-none-any.whl" in workflow
-    assert "pds-quillan/releases/download/v0.10.5/" in workflow
+    assert "quillan-0.10.6-py3-none-any.whl" in workflow
+    assert "pds-quillan/releases/download/v0.10.6/" in workflow
     assert "quillan-0.10.3-py3-none-any.whl" not in workflow
 
 
@@ -46,7 +46,7 @@ def test_issue96_documentation_preserves_0103_qualification_history() -> None:
     assert "2026-09-26" in matrix
 
 
-def test_issue96_cross_producer_test_authority_tracks_quillan_0105() -> None:
+def test_issue111_preserves_legacy_fixture_and_uses_current_installed_quillan() -> None:
     support = Path("tests/cross_producer_test_support.py").read_text(
         encoding="utf-8"
     )
@@ -62,8 +62,8 @@ def test_issue96_cross_producer_test_authority_tracks_quillan_0105() -> None:
 
     assert '"quillan": "0.10.5"' in support
     assert 'lambda _: "0.10.5"' in native
-    assert 'metadata.version("quillan") == "0.10.5"' in issue51
-    assert 'metadata.version("quillan") == "0.10.5"' in issue52
+    assert 'metadata.version("quillan") == "0.10.6"' in issue51
+    assert 'metadata.version("quillan") == "0.10.6"' in issue52
 
 
 def test_issue96_package_metadata_test_tracks_quillan_0105() -> None:

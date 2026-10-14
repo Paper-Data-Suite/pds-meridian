@@ -26,7 +26,7 @@ def test_issue54_installed_program_covers_all_preview_surfaces() -> None:
     )
     for token in (
         'metadata.version("pds-core")',
-        '"pds-concord": "0.3.0"',
+            '"pds-concord": "0.3.2"',
         "meridian.grade_preview_explanation",
         "meridian.current_grade_preview",
         "meridian.grade_preview_comparison",

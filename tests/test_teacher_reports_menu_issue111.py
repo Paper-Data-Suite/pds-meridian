@@ -26,7 +26,7 @@ def test_reports_menu_presents_eight_teacher_questions() -> None:
     assert len(REPORT_MENU_TITLES) == 8
     assert "What would you like to find out?" in rendered
     assert "1. What do I need to update in my gradebook?" in rendered
-    assert "8. What did this assessment contribute?" in rendered
+    assert "8. What did this assignment or assessment contribute?" in rendered
     assert "Genesis" not in rendered
     for title in REPORT_MENU_TITLES:
         assert title in rendered  # preserve legacy report-family names
@@ -80,7 +80,7 @@ def test_injected_catalog_prepares_scopes_without_running_engine() -> None:
     prepared = []
     output = StringIO()
     run_reports_menu(
-        input_fn=ScriptedInput("7", "1", "1", "1", "b", "b"),
+        input_fn=ScriptedInput("7", "1", "1", "1", "1", "b", "b"),
         output=output,
         clear_fn=lambda: None,
         catalog=Catalog(),

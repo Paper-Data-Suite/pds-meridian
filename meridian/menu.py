@@ -42,6 +42,10 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.report_menu_execution import (
+    LiveReportMenuExecutor,
+    ReportMenuExecutionDependencies,
+)
 from meridian.teacher_session import TeacherSessionContext
 
 TeacherMenuTaskId: TypeAlias = Literal[
@@ -191,6 +195,9 @@ def default_teacher_menu_dependencies(
             input_fn=input_fn,
             output=stream,
             clear_fn=clear_fn,
+            executor=LiveReportMenuExecutor(
+                ReportMenuExecutionDependencies(diagnostics=diagnostics)
+            ),
         ),
         session_context=session,
     )

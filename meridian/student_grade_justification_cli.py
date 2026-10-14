@@ -11,14 +11,21 @@ from pds_core.academic_periods import AcademicPeriodRef
 
 from meridian.diagnostics import DiagnosticsDependencies
 from meridian.grade_preview_explanation import GradePreviewTarget
+from meridian.report_export_commit import (
+    ReportExportCommitError,
+    write_or_verify_local_artifact,
+)
 from meridian.reporting_snapshot import ReportingSnapshotReference
 from meridian.student_grade_justification import (
     StudentGradeJustificationError,
     build_current_student_grade_justification,
     build_snapshot_student_grade_justification,
 )
-from meridian.teacher_report import TeacherReportError
-from meridian.teacher_report_render import render_teacher_report
+from meridian.teacher_report import TeacherReportError, TeacherReportPreview
+from meridian.teacher_report_render import (
+    TeacherReportRenderFormat,
+    render_teacher_report,
+)
 
 
 def register_student_grade_justification_cli(
@@ -60,6 +67,11 @@ def register_student_grade_justification_cli(
         default="markdown",
     )
     current.add_argument("--generated-at", type=_datetime_argument)
+    current.add_argument(
+        "--output",
+        type=Path,
+        help="Safely create or verify the exact local report artifact.",
+    )
     _add_workspace_argument(current)
     current.set_defaults(handler=_handle_current, show_group_help=None)
 
@@ -81,6 +93,11 @@ def register_student_grade_justification_cli(
         default="markdown",
     )
     snapshot.add_argument("--generated-at", type=_datetime_argument)
+    snapshot.add_argument(
+        "--output",
+        type=Path,
+        help="Safely create or verify the exact local report artifact.",
+    )
     _add_workspace_argument(snapshot)
     snapshot.set_defaults(handler=_handle_snapshot, show_group_help=None)
 
@@ -105,9 +122,13 @@ def _handle_current(
             target,
             generated_at=args.generated_at,
         )
-        sys.stdout.write(render_teacher_report(report, args.format).decode("utf-8"))
-        return 0
-    except (StudentGradeJustificationError, TeacherReportError, ValueError) as error:
+        return _emit(report, args.format, args.output)
+    except (
+        ReportExportCommitError,
+        StudentGradeJustificationError,
+        TeacherReportError,
+        ValueError,
+    ) as error:
         return _print_error(error)
 
 
@@ -129,10 +150,28 @@ def _handle_snapshot(
             calculation_family=args.family,
             generated_at=args.generated_at,
         )
-        sys.stdout.write(render_teacher_report(report, args.format).decode("utf-8"))
-        return 0
-    except (StudentGradeJustificationError, TeacherReportError, ValueError) as error:
+        return _emit(report, args.format, args.output)
+    except (
+        ReportExportCommitError,
+        StudentGradeJustificationError,
+        TeacherReportError,
+        ValueError,
+    ) as error:
         return _print_error(error)
+
+
+def _emit(
+    report: TeacherReportPreview,
+    representation: TeacherReportRenderFormat,
+    output: Path | None,
+) -> int:
+    payload = render_teacher_report(report, representation)
+    if output is None:
+        sys.stdout.write(payload.decode("utf-8"))
+    else:
+        disposition = write_or_verify_local_artifact(output, payload)
+        print(f"{disposition}: {output}")
+    return 0
 
 
 def _print_error(error: BaseException) -> int:

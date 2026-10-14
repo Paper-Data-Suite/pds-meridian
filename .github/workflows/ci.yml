@@ -52,19 +52,19 @@ jobs:
 
           $scoreformWheel = Join-Path `
             $scoreformDirectory `
-            "scoreform-0.12.1-py3-none-any.whl"
+            "scoreform-0.13.0-py3-none-any.whl"
           "SCOREFORM_WHEEL=$scoreformWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           $quillanWheel = Join-Path `
             $quillanDirectory `
-            "quillan-0.10.5-py3-none-any.whl"
+            "quillan-0.10.6-py3-none-any.whl"
           "QUILLAN_WHEEL=$quillanWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           $concordWheel = Join-Path `
             $concordDirectory `
-            "pds_concord-0.3.0-py3-none-any.whl"
+            "pds_concord-0.3.2-py3-none-any.whl"
           "CONCORD_WHEEL=$concordWheel" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
@@ -96,30 +96,30 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest `
-            -Uri "https://github.com/Paper-Data-Suite/pds-scoreform/releases/download/v0.12.1/scoreform-0.12.1-py3-none-any.whl" `
+            -Uri "https://github.com/Paper-Data-Suite/pds-scoreform/releases/download/v0.13.0/scoreform-0.13.0-py3-none-any.whl" `
             -OutFile $env:SCOREFORM_WHEEL `
             -ErrorAction Stop
-          python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"
+          python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL" --current
           python -m pip install "$env:SCOREFORM_WHEEL"
 
       - name: Download official Quillan release wheel
         shell: pwsh
         run: |
           Invoke-WebRequest `
-            -Uri "https://github.com/Paper-Data-Suite/pds-quillan/releases/download/v0.10.5/quillan-0.10.5-py3-none-any.whl" `
+            -Uri "https://github.com/Paper-Data-Suite/pds-quillan/releases/download/v0.10.6/quillan-0.10.6-py3-none-any.whl" `
             -OutFile $env:QUILLAN_WHEEL `
             -ErrorAction Stop
-          python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"
+          python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL" --current
           python -m pip install "$env:QUILLAN_WHEEL"
 
       - name: Download official Concord release wheel
         shell: pwsh
         run: |
           Invoke-WebRequest `
-            -Uri "https://github.com/Paper-Data-Suite/pds-concord/releases/download/v0.3.0/pds_concord-0.3.0-py3-none-any.whl" `
+            -Uri "https://github.com/Paper-Data-Suite/pds-concord/releases/download/v0.3.2/pds_concord-0.3.2-py3-none-any.whl" `
             -OutFile $env:CONCORD_WHEEL `
             -ErrorAction Stop
-          python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"
+          python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL" --current
           python -m pip install "$env:CONCORD_WHEEL"
 
       - name: Install Meridian development dependencies

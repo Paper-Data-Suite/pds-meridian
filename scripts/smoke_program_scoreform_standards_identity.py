@@ -1,4 +1,4 @@
-"""Installed ScoreForm 0.12.1 punctuation-bearing identity acceptance."""
+"""Installed current ScoreForm punctuation-bearing identity acceptance."""
 
 from __future__ import annotations
 
@@ -158,7 +158,7 @@ def _request(manifest_bytes: bytes) -> AdapterProjectionRequest:
 
 
 def main() -> None:
-    _require(metadata.version("scoreform") == "0.12.1", "ScoreForm version changed.")
+    _require(metadata.version("scoreform") == "0.13.0", "ScoreForm version changed.")
     _require(SCOREFORM_READER_VERSION == "0.12.1", "Adapter version changed.")
 
     source = _manifest_bytes()
@@ -196,7 +196,7 @@ def main() -> None:
     _require(len(inventory.items) == 12, "Meridian dropped native attempt evidence.")
     _require(
         all(
-            item.provenance.projection.producer_reader_version == "0.12.1"
+            item.provenance.projection.producer_reader_version == "0.13.0"
             for item in inventory.items
         ),
         "Projection identity is not the exact ScoreForm reader.",

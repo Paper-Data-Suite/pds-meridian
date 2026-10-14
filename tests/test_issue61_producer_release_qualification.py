@@ -53,12 +53,12 @@ def test_issue61_ci_uses_the_same_authenticated_release_artifacts() -> None:
     workflow = (REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert (
-        "pds-scoreform/releases/download/v0.12.1/"
-        "scoreform-0.12.1-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.13.0/"
+        "scoreform-0.13.0-py3-none-any.whl"
     ) in workflow
     assert (
-        "pds-quillan/releases/download/v0.10.5/"
-        "quillan-0.10.5-py3-none-any.whl"
+        "pds-quillan/releases/download/v0.10.6/"
+        "quillan-0.10.6-py3-none-any.whl"
     ) in workflow
 
     assert "scoreform-0.11.0-py3-none-any.whl" not in workflow
@@ -82,8 +82,9 @@ def test_issue61_installed_smokes_bind_latest_direct_reader_versions() -> None:
         for relative in current_version_files
     )
 
-    assert "0.12.1" in combined
-    assert "0.10.5" in combined
+    assert "0.13.0" in combined
+    assert "0.10.6" in combined
+    assert "0.3.2" in combined
     assert "0.11.0" not in combined
     assert "0.10.3" not in combined
 

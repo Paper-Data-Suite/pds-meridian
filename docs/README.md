@@ -199,6 +199,9 @@ Issue #60 adds final cross-policy adversarial and installed acceptance for the v
 
 ## Recommended reading order
 
+For the normal teacher workflow, start with the
+[teacher reporting quick guide](teacher-reporting-quick-guide.md).
+
 1. [Root README](../README)
 2. [Package and validation foundation](development/package-foundation.md)
 3. [Synthetic data policy](development/synthetic-data.md)

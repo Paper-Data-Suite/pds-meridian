@@ -24,8 +24,8 @@ def test_concord_release_diagnostics_name_exact_v030() -> None:
     assert verify_concord_wheel.EXPECTED_CONCORD_VERSION == "0.3.0"
     assert "version is not exactly 0.2.0" not in source
     assert "must be exactly 0.2.0" not in source
-    assert "version is not exactly 0.3.0" in source
-    assert "must be exactly 0.3.0" in source
+    assert "Concord wheel version is not exactly {version}." in source
+    assert "Installed pds-concord must be exactly " in source
 
 
 def test_v02_audit_and_release_notes_use_nonrecursive_hash_boundary() -> None:

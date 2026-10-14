@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
 from pds_core.academic_periods import AcademicPeriodRef
@@ -77,6 +78,39 @@ def test_snapshot_cli_renders_exact_report(
     output = capsys.readouterr().out
     assert "# Student Grade Justification" in output
     assert "Effective Grade" in output
+
+
+def test_snapshot_cli_safely_writes_exact_local_copy(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "build_snapshot_student_grade_justification",
+        lambda *args, **kwargs: _report(),
+    )
+    output_path = tmp_path / "justification.json"
+    arguments = (
+        "reports",
+        "justify",
+        "snapshot",
+        "class_2026",
+        "snapshot_001",
+        "a" * 64,
+        "student_001",
+        "--format",
+        "json",
+        "--generated-at",
+        "2026-10-12T23:10:00Z",
+        "--output",
+        str(output_path),
+    )
+
+    assert main(arguments) == 0
+    assert main(arguments) == 0
+    assert output_path.read_bytes().endswith(b"\n")
+    assert "created:" in capsys.readouterr().out
 
 
 def test_current_nonstandards_error_is_explicit_and_privacy_bounded(

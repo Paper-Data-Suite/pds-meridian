@@ -385,6 +385,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/assessment_impact.py",
         "meridian/readiness_impact_reporting_cli.py",
         "meridian/report_live_catalog.py",
+        "meridian/report_menu_execution.py",
         "meridian/report_guided_selection.py",
         "meridian/menu_reports.py",
         "meridian/ingestion.py",

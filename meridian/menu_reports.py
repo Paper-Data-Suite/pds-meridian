@@ -1,13 +1,10 @@
-"""Teacher-first Reports discovery and guided selection, Issue #111 Slice 12.2.
-
-Report computations remain in the existing report engine / direct CLI.
-Read-only live canonical discovery is enabled; preview/export follow later.
-"""
+"""Teacher-first discovery, execution, preview, and local report copies."""
 
 from __future__ import annotations
 
 import sys
 from collections.abc import Callable
+from pathlib import Path
 from typing import Final, TextIO
 
 from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
@@ -21,6 +18,10 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.report_export_commit import (
+    ReportExportCommitError,
+    write_or_verify_local_artifact,
+)
 from meridian.report_guided_selection import (
     REPORT_GUIDES,
     ReportChoiceCatalog,
@@ -28,6 +29,12 @@ from meridian.report_guided_selection import (
     collect_guided_report_selection,
 )
 from meridian.report_live_catalog import LiveReportChoiceCatalog
+from meridian.report_menu_execution import (
+    LiveReportMenuExecutor,
+    ReportMenuExecutionError,
+)
+from meridian.teacher_report import TeacherReportPreview
+from meridian.teacher_report_render import render_teacher_report
 
 # Retained for API and historical report-family identity compatibility.
 REPORT_MENU_TITLES: Final[tuple[str, ...]] = (
@@ -41,7 +48,151 @@ REPORT_MENU_TITLES: Final[tuple[str, ...]] = (
     "Grade Item / Assessment Impact",
 )
 
-SelectionHandler = Callable[[ReportPreparedSelection], None]
+SelectionHandler = Callable[[ReportPreparedSelection], TeacherReportPreview | None]
+
+
+def _show_preview(
+    preview: TeacherReportPreview,
+    *,
+    prepared: ReportPreparedSelection,
+    revalidate: Callable[
+        [ReportPreparedSelection, TeacherReportPreview | None], None
+    ]
+    | None,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> bool:
+    """Show a bounded preview; return True when selections should be changed."""
+
+    expanded = False
+    while True:
+        clear_fn()
+        print_menu_header(output, "Report preview")
+        write_lines(
+            output,
+            preview.title,
+            (
+                f"Class {preview.class_id} · "
+                f"{preview.target_period.school_year} / "
+                f"{preview.target_period.period_id}"
+            ),
+            "READ-ONLY preview · nothing was posted or synchronized",
+            "",
+        )
+        for line in preview.summary:
+            print(line, file=output)
+        limit = len(preview.rows) if expanded else min(10, len(preview.rows))
+        if preview.rows:
+            print(file=output)
+            print(" | ".join(column.title for column in preview.columns), file=output)
+            for row in preview.rows[:limit]:
+                print(
+                    " | ".join("" if value is None else value for value in row.values),
+                    file=output,
+                )
+            if limit < len(preview.rows):
+                print(f"… {len(preview.rows) - limit} more row(s)", file=output)
+        if preview.diagnostics:
+            print(file=output)
+            for item in preview.diagnostics:
+                print(f"{item.severity.upper()}: {item.message}", file=output)
+        write_lines(
+            output,
+            "",
+            "1. View all rows" if not expanded else "1. Show compact preview",
+            "2. Save a local teacher copy",
+            "3. Preview again",
+            "4. Change selections",
+            "D. Details / Audit Trail",
+            "",
+        )
+        print_standard_navigation(output)
+        choice = read_choice(input_fn)
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or not choice:
+            return False
+        if choice == "1":
+            expanded = not expanded
+            continue
+        if choice == "2":
+            _save_copy(
+                preview,
+                prepared=prepared,
+                revalidate=revalidate,
+                input_fn=input_fn,
+                output=output,
+            )
+            continue
+        if choice == "3":
+            return False
+        if choice == "4":
+            return True
+        if choice.casefold() == "d":
+            write_lines(
+                output,
+                "",
+                f"Preview SHA-256: {preview.preview_sha256}",
+                f"Generated: {preview.generated_at.isoformat()}",
+                f"Source references: {len(preview.source_references)}",
+            )
+            for source in preview.source_references:
+                print(
+                    f"  {source.source_kind}: {source.source_id} "
+                    f"({source.source_sha256[:12]}…)",
+                    file=output,
+                )
+            input_fn("Press Enter to return to the preview...")
+            continue
+        write_lines(output, "", "Choose 1-4, D, B, M, or Q.")
+
+
+def _save_copy(
+    preview: TeacherReportPreview,
+    *,
+    prepared: ReportPreparedSelection,
+    revalidate: Callable[
+        [ReportPreparedSelection, TeacherReportPreview | None], None
+    ]
+    | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    format_choice = input_fn(
+        "Format (markdown/csv/tsv/json, or B): "
+    ).strip().casefold()
+    navigation = parse_navigation_choice(format_choice)
+    if navigation is NavigationChoice.BACK or not format_choice:
+        return
+    aliases = {"md": "markdown"}
+    representation = aliases.get(format_choice, format_choice)
+    if representation not in {"markdown", "csv", "tsv", "json"}:
+        print("Choose markdown, csv, tsv, or json.", file=output)
+        input_fn("Press Enter to return to the preview...")
+        return
+    destination = input_fn(
+        "Full path for this local teacher copy (existing files are not replaced): "
+    ).strip()
+    if not destination:
+        return
+    try:
+        if revalidate is not None:
+            revalidate(prepared, preview)
+        payload = render_teacher_report(preview, representation)  # type: ignore[arg-type]
+        disposition = write_or_verify_local_artifact(Path(destination), payload)
+    except (ReportExportCommitError, ReportMenuExecutionError, OSError, ValueError):
+        print(
+            "The local copy was not saved. Choose an existing real folder and a "
+            "new filename, then refresh the report if its sources changed.",
+            file=output,
+        )
+        input_fn("Press Enter to return to the preview...")
+        return
+    print(
+        f"Local teacher copy {disposition}. Nothing was sent to an external system.",
+        file=output,
+    )
+    input_fn("Press Enter to return to the preview...")
 
 
 def _report_detail(
@@ -52,6 +203,10 @@ def _report_detail(
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
+    revalidate: Callable[
+        [ReportPreparedSelection, TeacherReportPreview | None], None
+    ]
+    | None = None,
 ) -> None:
     guide = REPORT_GUIDES[index]
     while True:
@@ -119,17 +274,52 @@ def _report_detail(
             )
             if prepared is None:
                 continue
-            if on_prepared is not None:
-                on_prepared(prepared)
-            else:
+            clear_fn()
+            print_menu_header(output, "Confirm report context")
+            for scope, option in prepared.choices:
+                label = scope.replace("_", " ").title()
+                print(f"{label}: {option.display}", file=output)
+            write_lines(
+                output,
+                "",
+                "This creates a read-only preview. It does not change academic records",
+                "or write to an external gradebook.",
+                "",
+                "1. Generate preview",
+            )
+            print_standard_navigation(output)
+            confirmation = read_choice(input_fn)
+            navigation = parse_navigation_choice(confirmation)
+            if navigation is NavigationChoice.BACK or not confirmation:
+                continue
+            if confirmation != "1":
+                write_lines(output, "", "Choose 1, B, M, or Q.")
+                input_fn("Press Enter to return to this report...")
+                continue
+            try:
+                preview = None if on_prepared is None else on_prepared(prepared)
+            except (ReportMenuExecutionError, OSError, RuntimeError, ValueError):
                 write_lines(
                     output,
                     "",
-                    "Your selections are ready.",
-                    "Preview/export wiring is a later Slice 12 increment.",
-                    "No report was generated or saved.",
+                    "The report could not be generated from verified current records.",
+                    "Refresh the choices, choose another exact checkpoint, or return",
+                    "to report selection. No report was saved.",
                 )
                 input_fn("Press Enter to return to this report...")
+                continue
+            if preview is None:
+                # Injection-only callbacks may observe the prepared selection.
+                continue
+            if _show_preview(
+                preview,
+                prepared=prepared,
+                revalidate=revalidate,
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+            ):
+                continue
             continue
         write_lines(output, "", "Choose 1, T, B, M, or Q.")
 
@@ -141,10 +331,16 @@ def run_reports_menu(
     clear_fn: ClearFunction = clear_screen,
     catalog: ReportChoiceCatalog | None = None,
     on_prepared: SelectionHandler | None = None,
+    executor: LiveReportMenuExecutor | None = None,
 ) -> None:
     """Show eight teacher-facing questions, preserving Core B/M/Q semantics."""
     stream = sys.stdout if output is None else output
     active_catalog = LiveReportChoiceCatalog() if catalog is None else catalog
+    live_executor = (
+        (executor or LiveReportMenuExecutor()) if on_prepared is None else None
+    )
+    active_handler = live_executor.build if live_executor is not None else on_prepared
+    revalidate = live_executor.revalidate if live_executor is not None else None
     while True:
         clear_fn()
         print_menu_header(stream, "Reports")
@@ -173,10 +369,11 @@ def run_reports_menu(
             _report_detail(
                 index=int(choice) - 1,
                 catalog=active_catalog,
-                on_prepared=on_prepared,
+                on_prepared=active_handler,
                 input_fn=input_fn,
                 output=stream,
                 clear_fn=clear_fn,
+                revalidate=revalidate,
             )
             continue
         write_lines(stream, "", "Please choose 1-8, B, M, or Q.")

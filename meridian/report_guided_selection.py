@@ -63,7 +63,7 @@ REPORT_GUIDES: Final[tuple[ReportGuide, ...]] = (
     ),
     ReportGuide(
         "student_proficiency_growth",
-        "How has a student progressed?",
+        "How has this student progressed?",
         "Review recorded proficiency changes without assuming every "
         "change is an improvement.",
         ("class", "period", "student"),
@@ -79,10 +79,10 @@ REPORT_GUIDES: Final[tuple[ReportGuide, ...]] = (
     ),
     ReportGuide(
         "grade_checkpoint_comparison",
-        "What changed since our last grade checkpoint?",
+        "What changed since our last checkpoint?",
         "Compare an exact earlier reporting checkpoint with the "
         "current Grade picture.",
-        ("class", "period", "checkpoint"),
+        ("class", "period"),
         "meridian reports checkpoint --help",
     ),
     ReportGuide(
@@ -95,7 +95,7 @@ REPORT_GUIDES: Final[tuple[ReportGuide, ...]] = (
     ),
     ReportGuide(
         "assessment_impact",
-        "What did this assessment contribute?",
+        "What did this assignment or assessment contribute?",
         "Review which results included an assignment; participation "
         "does not prove that it caused a Grade change.",
         ("class", "period", "grade_item"),
@@ -225,21 +225,46 @@ def collect_guided_report_selection(
             print("No report was generated or changed.", file=output)
             input_fn("Press Enter to return to this report...")
             return None
+        if not options and scope == "mapping":
+            chooser = getattr(catalog, "choose_mapping_file", None)
+            if callable(chooser):
+                raw_path = input_fn(
+                    "Mapping profile file (B to go back, M for main menu, Q to quit): "
+                ).strip()
+                navigation = parse_navigation_choice(raw_path)
+                if navigation is NavigationChoice.BACK or not raw_path:
+                    if selected:
+                        selected.pop()
+                        continue
+                    return None
+                try:
+                    chosen = chooser(
+                        report_kind=guide.report_kind,
+                        path_text=raw_path,
+                        selected=current,
+                    )
+                except Exception:
+                    print(
+                        "That mapping file could not be verified for this class "
+                        "and marking period.",
+                        file=output,
+                    )
+                    input_fn("Press Enter to try again...")
+                    continue
+                if not isinstance(chosen, ReportOption):
+                    print(
+                        "The mapping choice could not be verified safely.",
+                        file=output,
+                    )
+                    input_fn("Press Enter to try again...")
+                    continue
+                selected.append((scope, chosen))
+                continue
         if not options:
             print(
                 f"No verified choices are available for: {SCOPE_PROMPTS[scope]}",
                 file=output,
             )
-            if scope == "mapping":
-                print(
-                    "Gradebook mappings are still selected from a teacher file.",
-                    file=output,
-                )
-                print(
-                    "Use Advanced command information until guided file "
-                    "selection is ready.",
-                    file=output,
-                )
             print("No report was generated or changed.", file=output)
             input_fn("Press Enter to return to this report...")
             return None
