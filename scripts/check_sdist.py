@@ -644,6 +644,7 @@ FORBIDDEN_EXACT_MEMBERS = frozenset(
         "docs/development/v0.3.0-release-audit.md",
         "docs/development/v0.3.1-release-audit.md",
         "docs/development/v0.4.0-release-audit.md",
+        "docs/development/v0.4.1-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (

@@ -264,6 +264,7 @@ For the normal teacher workflow, start with the
 60. [Teacher-local publication authorization](architecture/teacher-local-publication-authorization.md)
 61. [Benchmark analysis and instructional response](architecture/benchmark-analysis-and-instructional-response.md)
 62. [v0.4.1 release notes](development/v0.4.1-release-notes.md)
+63. [v0.4.1 release audit](development/v0.4.1-release-audit.md)
 
 
 ## Development foundation
