@@ -196,7 +196,11 @@ class TeacherLocalPublicationAuthorizer:
 
 
 def default_authorization_policy_path(workspace_root: str | Path) -> Path:
-    root = Path(workspace_root).resolve(strict=True)
+    # Core deliberately resolves the default workspace before it has been
+    # created. Policy discovery must therefore remain read-only and tolerate
+    # that absent default; an actual policy is still loaded only against an
+    # existing, exact workspace below.
+    root = Path(workspace_root).resolve(strict=False)
     return root / ".pds" / "meridian" / "authorization-policy.json"
 
 

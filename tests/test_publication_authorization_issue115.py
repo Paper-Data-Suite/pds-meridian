@@ -8,6 +8,7 @@ from pds_core.academic_work_registrations import AcademicWorkRegistration
 from pds_core.publication_records import PublicationRecord
 from pds_core.routing_models import ModuleWorkRef
 
+import meridian.publication_authorization as authorization_module
 from meridian.ingestion import PublicationAuthorizationRequest
 from meridian.publication_authorization import (
     AUTHORIZATION_POLICY_ENVIRONMENT_VARIABLE,
@@ -122,6 +123,16 @@ def test_default_resolution_is_absent_fail_closed_and_loads_default(tmp_path) ->
     resolved = resolve_configured_publication_authorizer(workspace_root=tmp_path)
     assert resolved is not None
     assert resolved.authorize(_request(operation="read_projection_cache")).allowed
+
+
+def test_absent_default_workspace_does_not_break_normal_launch(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    absent = tmp_path / "not-created"
+    monkeypatch.setattr(
+        authorization_module, "resolve_workspace_root", lambda: absent
+    )
+    assert resolve_configured_publication_authorizer() is None
 
 
 def test_explicit_missing_policy_is_configuration_error(
