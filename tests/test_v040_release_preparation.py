@@ -48,4 +48,13 @@ def test_v040_release_docs_name_current_and_legacy_boundaries() -> None:
     ):
         assert value in notes + audit
     assert "six installed matrices" in audit
-    assert "Tag/publication authorization: **NOT YET AUTHORIZED**" in audit
+    assert "Status: **RELEASED AND VERIFIED**" in audit
+    assert "67aa0cde4ed033ce8a5178a31330c121379940fa" in audit
+    assert "actions/runs/38502495518" in audit
+    assert "actions/runs/38504823155" in audit
+    assert "releases/tag/v0.4.0" in audit
+    assert "4bd4bfaf988a036e90c4bfa7e3bb2a915affba6ffde154af103cd9bbbf5879fe" in audit
+    assert "dad3f4a2f0168cf86d66bdecb0e7c6e0bc7c00b5b98421f7aaee350e7504ed83" in audit
+    assert (
+        "Tag/publication authorization: **COMPLETED AFTER ALL GATES PASSED**" in audit
+    )
