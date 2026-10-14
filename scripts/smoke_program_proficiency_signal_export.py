@@ -761,6 +761,7 @@ def _project_and_cache(
         inventory = adapter_registry.invoke(
             prepared.projection_request,
             installed_distribution_version,
+            producer_profile=prepared.producer_profile,
         )
         cached = cache_projected_inventory(
             workspace,

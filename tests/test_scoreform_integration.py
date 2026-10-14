@@ -4,11 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from pds_core.academic_catalog import PublicationCatalogQuery, rebuild_academic_catalog
-from pds_core.publication_compatibility import (
-    PublicationContractSupport,
-    PublicationProducerProfile,
-    PublicationProducerRegistry,
-)
+from pds_core.publication_compatibility import PublicationProducerRegistry
 from pds_core.registry_services import (
     AcademicWorkRegistrationRequest,
     PublicationManifestRequest,
@@ -17,6 +13,7 @@ from pds_core.registry_services import (
 )
 from pds_core.routes import module_work_dir
 from pds_core.routing_models import ModuleRecordRef
+from scoreform.pds_publication import get_publication_producer_profile
 
 import meridian.ingestion as ingestion
 from meridian.adapters import AdapterRegistry
@@ -35,27 +32,7 @@ class AllowSyntheticProjection:
 
 
 def scoreform_profile_registry() -> PublicationProducerRegistry:
-    return PublicationProducerRegistry(
-        (
-            PublicationProducerProfile(
-                "scoreform",
-                "ScoreForm",
-                frozenset({"1"}),
-                frozenset({"scoreform_academic_work_v1"}),
-                (
-                    PublicationContractSupport(
-                        "academic_result_set",
-                        frozenset({"scoreform_academic_result_manifest_v1"}),
-                        frozenset(
-                            {"points", "question_evidence", "multiple_attempts"}
-                        ),
-                        (),
-                        True,
-                    ),
-                ),
-            ),
-        )
-    )
+    return PublicationProducerRegistry((get_publication_producer_profile(),))
 
 
 def test_real_reader_core_ingestion_projection_and_cache(tmp_path: Path) -> None:
@@ -126,10 +103,13 @@ def test_real_reader_core_ingestion_projection_and_cache(tmp_path: Path) -> None
         authorizer=authorizer,
         authorization_purpose_id="grading_import",
     )
-    assert prepared.producer_reader_version == "0.12.1"
+    assert prepared.producer_reader_version == "0.13.0"
     assert prepared.projection_request.manifest_bytes == manifest_bytes
 
-    inventory = registry.invoke(prepared.projection_request)
+    inventory = registry.invoke(
+        prepared.projection_request,
+        producer_profile=prepared.producer_profile,
+    )
     assert len(inventory.items) == 24
     assert {item.subject.student_id for item in inventory.items} == {
         "student_synthetic_001",
@@ -147,4 +127,4 @@ def test_real_reader_core_ingestion_projection_and_cache(tmp_path: Path) -> None
     assert snapshot.projection.adapter_id == "scoreform.academic_result"
     assert snapshot.projection.projection_contract_version == "1"
     assert snapshot.projection.producer_reader_distribution == "scoreform"
-    assert snapshot.projection.producer_reader_version == "0.12.1"
+    assert snapshot.projection.producer_reader_version == "0.13.0"

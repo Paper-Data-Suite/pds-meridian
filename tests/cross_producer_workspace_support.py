@@ -381,6 +381,7 @@ def project_and_cache_all(
         inventory = mixed.adapter_registry.invoke(
             value.projection_request,
             exact_reader_version,
+            producer_profile=value.producer_profile,
         )
         cached = cache_projected_inventory(
             mixed.root,

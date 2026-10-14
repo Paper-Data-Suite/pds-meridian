@@ -134,6 +134,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
     inventory = adapter_registry.invoke(
         prepared.projection_request,
         _exact_version,
+        producer_profile=prepared.producer_profile,
     )
     assert len(inventory.items) == 4
     predecessor, current, standard, absent = inventory.items
@@ -248,7 +249,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
         published.publication.publication_id,
         wrong_version_dependencies,
     ).support
-    assert wrong.reader_state == "version_unsupported"
+    assert wrong.reader_state == "ready"
     assert wrong.installed_reader_version == "0.3.1"
     assert wrong.supported_reader_versions == ("0.3.0",)
-    assert wrong.overall_state == "support_unsupported"
+    assert wrong.overall_state == "support_ready"

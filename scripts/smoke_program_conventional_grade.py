@@ -470,7 +470,9 @@ def _project(workspace: Path, baseline: ProducerBaseline) -> CachedProjection:
         distribution_version_resolver=installed_distribution_version,
     )
     inventory = adapter_registry.invoke(
-        prepared.projection_request, installed_distribution_version
+        prepared.projection_request,
+        installed_distribution_version,
+        producer_profile=prepared.producer_profile,
     )
     cached = cache_projected_inventory(
         workspace,

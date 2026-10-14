@@ -281,6 +281,7 @@ def _current_scoreform_projection(
     inventory = mixed.adapter_registry.invoke(
         prepared.projection_request,
         exact_reader_version,
+        producer_profile=prepared.producer_profile,
     )
     cached = cache_projected_inventory(
         mixed.root,

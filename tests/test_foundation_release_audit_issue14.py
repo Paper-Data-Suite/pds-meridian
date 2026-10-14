@@ -30,6 +30,7 @@ def _scoreform_projection(tmp_path: Path):
     inventory = mixed.adapter_registry.invoke(
         prepared.projection_request,
         exact_reader_version,
+        producer_profile=prepared.producer_profile,
     )
     return mixed, prepared, inventory
 

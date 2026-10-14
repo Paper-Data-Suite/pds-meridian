@@ -519,6 +519,7 @@ def _concord_state(workspace: Path) -> dict[str, object]:
     inventory = adapter_registry.invoke(
         prepared.projection_request,
         issue54.issue45.installed_distribution_version,
+        producer_profile=prepared.producer_profile,
     )
     groups = tuple(
         item for item in inventory.items if item.target.target_kind == "concord_group"
