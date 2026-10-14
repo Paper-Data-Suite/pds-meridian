@@ -26,6 +26,7 @@ from scoreform.academic_result_manifest import (
     academic_result_manifest_to_canonical_json_bytes,
 )
 from scoreform.academic_result_reader import read_academic_result_manifest
+from scoreform.pds_publication import get_publication_producer_profile
 
 from meridian.adapters import AdapterProjectionRequest, AdapterRegistry
 from meridian.evidence import NativePointValue
@@ -186,6 +187,7 @@ def main() -> None:
     inventory = AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
         _request(source),
         metadata.version,
+        producer_profile=get_publication_producer_profile(),
     )
 
     _require(source == source_before, "Meridian mutated source manifest bytes.")
