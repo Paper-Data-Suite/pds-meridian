@@ -2,12 +2,19 @@
 
 Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
 owns the next feature release, expected to be v0.4.0, while preserving the
-released v0.3 authority boundaries.
+released v0.3 authority boundaries; v0.4.0 has not yet been published.
 
-Current Slice 2 qualification uses exact released Core v0.6.5 plus optional
-ScoreForm v0.12.1, Quillan v0.10.5, and Concord v0.3.0 readers. Core remains the
-only unconditional runtime dependency, and producer runtime acceptance remains
-legacy exact-version-only until the later contract-first slice.
+Issue #111 now uses Core v0.6.5 and manifest-bound producer reader contracts
+for ScoreForm v0.13.0, Quillan v0.10.6, and Concord v0.3.2. Previously
+qualified exact readers (0.12.1, 0.10.5, and 0.3.0, respectively) remain in
+the bounded metadata-absent legacy path. Optional producer dependencies use
+contract-advertising release floors; exact runtime versions remain projection
+provenance. Slice 11 report integration is under qualification, not release.
+
+The Meridian v0.3.1 release was qualified against exact ScoreForm v0.12.1,
+Quillan v0.10.5, and Concord v0.3.0 reader artifacts. Those versions remain
+historical qualification evidence and bounded legacy compatibility, not
+current optional dependency pins or general runtime compatibility allowlists.
 
 The released v0.3.1, v0.3.0, v0.2.0, and v0.1.1 documentation remains
 historical release authority. In particular, the earlier handoff record remains:

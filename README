@@ -1,14 +1,21 @@
 # PDS Meridian
 
-Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
-owns the next feature release, expected to be v0.4.0, and begins by adopting
-Core v0.6.5 reader-contract metadata without yet broadening producer runtime
-acceptance.
+Meridian is an installable Python package for teacher-controlled evidence, Grade, and reporting workflows. Its outputs remain advisory and do not constitute official SIS or district gradebook records.
 
-Current Slice 2 qualification uses exact released Core v0.6.5, ScoreForm
-v0.12.1, Quillan v0.10.5, and Concord v0.3.0. Core remains Meridian's only
-unconditional runtime dependency; producer readers remain exact optional
-dependencies in this slice.
+Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
+owns the next feature release, expected to be v0.4.0; that release is not yet
+qualified or published.
+
+Current Issue #111 development requires Core v0.6.5 and uses manifest-bound,
+producer-declared reader contracts for ScoreForm v0.13.0, Quillan v0.10.6, and
+Concord v0.3.2. The earlier exact ScoreForm v0.12.1, Quillan v0.10.5, and
+Concord v0.3.0 readers remain supported only through a bounded legacy path.
+Producer versions remain exact projection provenance, not compatibility
+allowlists. Core is the only unconditional sibling runtime dependency.
+
+Slice 11 adds teacher-facing Marking-Period Readiness and Assessment Impact
+reports to the existing report suite. Repository-wide and installed-package
+qualification remains pending, and the reports do not finalize SIS grades.
 
 v0.3 adds conventional, standards-based, profile-constrained, and hybrid Grades;
 immutable teacher Grade overrides; deterministic Grade/report explanations;

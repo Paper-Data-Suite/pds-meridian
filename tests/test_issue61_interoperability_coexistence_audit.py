@@ -43,15 +43,14 @@ def test_issue61_exact_direct_interoperability_versions_remain_aligned() -> None
     assert EXPECTED_CONCORD_VERSION == CONCORD_READER_VERSION == "0.3.0"
 
 
-def test_issue61_package_dependency_direction_is_core_plus_exact_optional_readers(
-) -> None:
+def test_issue61_optional_readers_use_contract_floor() -> None:
     project = _project()
 
     assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     optional = project["optional-dependencies"]
-    assert optional["scoreform"] == ["scoreform==0.12.1"]
-    assert optional["quillan"] == ["quillan==0.10.5"]
-    assert optional["concord"] == ["pds-concord==0.3.0"]
+    assert optional["scoreform"] == ["scoreform>=0.13.0"]
+    assert optional["quillan"] == ["quillan>=0.10.6"]
+    assert optional["concord"] == ["pds-concord>=0.3.2"]
 
 
 def test_issue61_ecosystem_peers_are_not_meridian_runtime_dependencies() -> None:

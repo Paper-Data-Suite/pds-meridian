@@ -1,4 +1,4 @@
-"""Teacher-facing Reports menu shell for Meridian Issue #111 Slice 10."""
+"""Teacher-facing Reports menu shell for Meridian Issue #111 Slice 11."""
 
 from __future__ import annotations
 
@@ -45,8 +45,8 @@ def run_reports_menu(
         write_lines(
             stream,
             "",
-            "Reports 1-6 are available now.",
-            "Reports 7-8 follow in subsequent Issue #111 slices.",
+            "Reports 1-8 are available now.",
+            "Guided selectors are completed in the next Issue #111 slice.",
             "",
         )
         print_standard_navigation(stream)
@@ -115,11 +115,23 @@ def run_reports_menu(
             )
             pause_for_user(input_fn)
             continue
-        if choice in {str(index) for index in range(7, 9)}:
+        if choice == "7":
             write_lines(
                 stream,
                 "",
-                "That report generator is not implemented yet.",
+                "Marking-Period Readiness is available through:",
+                "meridian reports readiness --help",
+                "Guided selectors arrive in the report-menu hardening slice.",
+            )
+            pause_for_user(input_fn)
+            continue
+        if choice == "8":
+            write_lines(
+                stream,
+                "",
+                "Grade Item / Assessment Impact is available through:",
+                "meridian reports impact --help",
+                "Guided selectors arrive in the report-menu hardening slice.",
             )
             pause_for_user(input_fn)
             continue

@@ -40,6 +40,8 @@ def test_reports_kinds_json_is_deterministic_and_nonmutating(
     assert statuses["student_proficiency_growth"] == "available"
     assert statuses["evidence_coverage"] == "available"
     assert statuses["grade_checkpoint_comparison"] == "available"
+    assert statuses["marking_period_readiness"] == "available"
+    assert statuses["assessment_impact"] == "available"
 
 
 def test_reports_kinds_text_names_all_eight_reports(
@@ -50,4 +52,4 @@ def test_reports_kinds_text_names_all_eight_reports(
 
     assert "1. SIS Gradebook Reconciliation" in output
     assert "8. Grade Item / Assessment Impact" in output
-    assert "subsequent Issue #111 slices" in output
+    assert "All eight report-specific generators are available." in output

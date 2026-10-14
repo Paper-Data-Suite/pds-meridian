@@ -181,7 +181,9 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
     assert quillan.overall_state == "support_unsupported"
     assert quillan.reader_state == "version_unsupported"
     assert quillan.installed_reader_version == "0.10.1"
-    assert quillan.reason_codes == ("adapters.reader_version_unsupported",)
+    assert quillan.reason_codes == (
+        "reader.metadata_absent_legacy_exact_unsupported",
+    )
 
     assert concord.overall_state == "support_ready"
     assert concord.reader_state == "ready"

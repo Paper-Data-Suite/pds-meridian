@@ -52,15 +52,15 @@ def test_issue110_installed_smoke_is_wired_to_existing_isolated_matrices() -> No
     assert "DependencyMatrixId.QUILLAN" in source
 
 
-def test_issue110_exact_reader_versions_remain_frozen() -> None:
+def test_issue110_legacy_readers_frozen_and_extras_contract_based() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     scoreform = Path("meridian/scoreform_adapter.py").read_text(encoding="utf-8")
     quillan = Path("meridian/quillan_adapter.py").read_text(encoding="utf-8")
     concord = Path("meridian/concord_adapter.py").read_text(encoding="utf-8")
 
-    assert '"scoreform==0.12.1"' in pyproject
-    assert '"quillan==0.10.5"' in pyproject
-    assert '"pds-concord==0.3.0"' in pyproject
+    assert '"scoreform>=0.13.0"' in pyproject
+    assert '"quillan>=0.10.6"' in pyproject
+    assert '"pds-concord>=0.3.2"' in pyproject
     assert 'SCOREFORM_READER_VERSION: Final = "0.12.1"' in scoreform
     assert 'QUILLAN_READER_VERSION: Final = "0.10.5"' in quillan
     assert 'CONCORD_READER_VERSION: Final = "0.3.0"' in concord

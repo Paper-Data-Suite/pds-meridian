@@ -27,16 +27,18 @@ def test_reports_menu_shell_names_all_eight_report_families() -> None:
     assert len(REPORT_MENU_TITLES) == 8
     for index, title in enumerate(REPORT_MENU_TITLES, start=1):
         assert f"{index}. {title}" in rendered
-    assert "Reports 1-6 are available now." in rendered
+    assert "Reports 1-8 are available now." in rendered
 
 
-def test_unimplemented_report_choice_is_explicit_not_silent() -> None:
+def test_slice11_report_choices_route_to_direct_cli_help() -> None:
     output = StringIO()
 
     run_reports_menu(
-        input_fn=ScriptedInput("7", "", "b"),
+        input_fn=ScriptedInput("7", "", "8", "", "b"),
         output=output,
         clear_fn=lambda: None,
     )
 
-    assert "That report generator is not implemented yet." in output.getvalue()
+    rendered = output.getvalue()
+    assert "meridian reports readiness --help" in rendered
+    assert "meridian reports impact --help" in rendered

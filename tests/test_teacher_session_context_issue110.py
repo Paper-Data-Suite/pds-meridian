@@ -43,6 +43,7 @@ def _dependencies(
         snapshots=lambda: None,
         export=lambda: None,
         explain=lambda: None,
+        reports=lambda: None,
         session_context=session,
     )
 

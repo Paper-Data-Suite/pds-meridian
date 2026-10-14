@@ -54,7 +54,7 @@ From an activated repository virtual environment:
 
 ```powershell
 .\run_tests.ps1 `
-  -CoreWheel C:\path\to\pds_core-0.6.4-py3-none-any.whl `
+  -CoreWheel C:\path\to\pds_core-0.6.5-py3-none-any.whl `
   -ScoreFormWheel C:\path\to\scoreform-0.12.1-py3-none-any.whl `
   -QuillanWheel C:\path\to\quillan-0.10.5-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl
