@@ -42,9 +42,10 @@ def test_reports_kinds_json_is_deterministic_and_nonmutating(
     assert statuses["grade_checkpoint_comparison"] == "available"
     assert statuses["marking_period_readiness"] == "available"
     assert statuses["assessment_impact"] == "available"
+    assert statuses["benchmark_analysis_instructional_response"] == "available"
 
 
-def test_reports_kinds_text_names_all_eight_reports(
+def test_reports_kinds_text_names_all_nine_reports(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     assert main(("reports", "kinds")) == 0
@@ -52,4 +53,20 @@ def test_reports_kinds_text_names_all_eight_reports(
 
     assert "1. SIS Gradebook Reconciliation" in output
     assert "8. Grade Item / Assessment Impact" in output
-    assert "All eight report-specific generators are available." in output
+    assert "9. Benchmark Analysis & Instructional Response Planner" in output
+    assert "All nine report-specific generators are available." in output
+
+
+def test_benchmark_help_supports_file_and_live_workspace_modes(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as raised:
+        main(("reports", "benchmark", "--help"))
+    assert raised.value.code == 0
+    output = capsys.readouterr().out
+    assert "--input" in output
+    assert "--workspace" in output
+    assert "--grade-item-id" in output
+    assert "--load-plan-id" in output
+    assert "--save-plan-id" in output
+    assert "--confirm-save" in output

@@ -13,9 +13,9 @@ def _read(relative: str) -> str:
 
 
 def test_v031_candidate_identity_and_artifact_guards_are_aligned() -> None:
-    assert meridian.__version__ == "0.4.0"
-    assert check_package.EXPECTED_VERSION == "0.4.0"
-    assert check_sdist.EXPECTED_VERSION == "0.4.0"
+    assert meridian.__version__ == "0.4.1"
+    assert check_package.EXPECTED_VERSION == "0.4.1"
+    assert check_sdist.EXPECTED_VERSION == "0.4.1"
 
     notes = _read("docs/development/v0.3.1-release-notes.md")
     assert "pds_meridian-0.3.1-py3-none-any.whl" in notes
@@ -41,7 +41,7 @@ def test_v031_current_docs_name_exact_qualified_readers() -> None:
     ):
         document = _read(relative)
         assert (
-            "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+            "Meridian v0.4.1 implements Issue #115"
             in document
         )
         assert "Core v0.6.5" in document
@@ -91,7 +91,7 @@ def test_v031_installed_programs_require_the_candidate_version() -> None:
         )
     )
 
-    assert 'version("pds-meridian") == "0.4.0"' in active
-    assert 'version("pds-meridian") != "0.4.0"' in active
+    assert 'version("pds-meridian") == "0.4.1"' in active
+    assert 'version("pds-meridian") != "0.4.1"' in active
     assert 'version("pds-meridian") == "0.3.0"' not in active
     assert 'version("pds-meridian") != "0.3.0"' not in active

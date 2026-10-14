@@ -1,7 +1,8 @@
 # Meridian documentation
 
-Meridian v0.4.0 is the Issue #111 feature-release candidate. It preserves the
-released v0.3 authority boundaries and immutable historical release evidence.
+Meridian v0.4.1 implements Issue #115's protected-workflow authorization repair
+and ninth Benchmark Analysis & Instructional Response Planner. It preserves the
+released v0.4.0 authority boundaries and immutable historical release evidence.
 
 Issue #111 now uses Core v0.6.5 and manifest-bound producer reader contracts
 for ScoreForm v0.13.0, Quillan v0.10.6, and Concord v0.3.2. Previously
@@ -260,6 +261,9 @@ For the normal teacher workflow, start with the
 57. [v0.3.1 compatibility release preparation](development/v0.3.1-release-audit.md)
 58. [v0.4.0 release notes](development/v0.4.0-release-notes.md)
 59. [v0.4.0 release audit](development/v0.4.0-release-audit.md)
+60. [Teacher-local publication authorization](architecture/teacher-local-publication-authorization.md)
+61. [Benchmark analysis and instructional response](architecture/benchmark-analysis-and-instructional-response.md)
+62. [v0.4.1 release notes](development/v0.4.1-release-notes.md)
 
 
 ## Development foundation

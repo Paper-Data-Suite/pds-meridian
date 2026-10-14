@@ -147,7 +147,7 @@ def test_issue61_interoperability_audit_supports_promoted_candidate() -> None:
         REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.4.0"' in version
+    assert '__version__: Final[str] = "0.4.1"' in version
     assert "Interoperability and ecosystem-coexistence audit — CONFORMS" in audit
     assert "Final inventory pass: **CONFORMS — 2026-10-06**" in audit
     assert "Candidate qualification: **PENDING**" in audit

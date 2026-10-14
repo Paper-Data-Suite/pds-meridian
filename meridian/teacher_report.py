@@ -30,6 +30,7 @@ TeacherReportKind: TypeAlias = Literal[
     "grade_checkpoint_comparison",
     "marking_period_readiness",
     "assessment_impact",
+    "benchmark_analysis_instructional_response",
 ]
 TeacherReportDiagnosticSeverity: TypeAlias = Literal["info", "warning"]
 
@@ -42,6 +43,7 @@ TEACHER_REPORT_KINDS: Final[tuple[TeacherReportKind, ...]] = (
     "grade_checkpoint_comparison",
     "marking_period_readiness",
     "assessment_impact",
+    "benchmark_analysis_instructional_response",
 )
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")

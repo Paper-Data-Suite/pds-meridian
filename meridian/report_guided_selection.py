@@ -101,6 +101,14 @@ REPORT_GUIDES: Final[tuple[ReportGuide, ...]] = (
         ("class", "period", "grade_item"),
         "meridian reports impact --help",
     ),
+    ReportGuide(
+        "benchmark_analysis_instructional_response",
+        "What should I teach next after this assessment?",
+        "Analyze native assessment and proficiency evidence, then document a "
+        "teacher-controlled instructional response and follow-up.",
+        ("class", "period", "grade_item"),
+        "meridian reports benchmark --help",
+    ),
 )
 
 

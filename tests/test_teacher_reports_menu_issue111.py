@@ -15,7 +15,7 @@ class ScriptedInput:
         return next(self._responses)
 
 
-def test_reports_menu_presents_eight_teacher_questions() -> None:
+def test_reports_menu_presents_nine_teacher_questions() -> None:
     output = StringIO()
     run_reports_menu(
         input_fn=ScriptedInput("b"),
@@ -23,19 +23,20 @@ def test_reports_menu_presents_eight_teacher_questions() -> None:
         clear_fn=lambda: None,
     )
     rendered = output.getvalue()
-    assert len(REPORT_MENU_TITLES) == 8
+    assert len(REPORT_MENU_TITLES) == 9
     assert "What would you like to find out?" in rendered
     assert "1. What do I need to update in my gradebook?" in rendered
     assert "8. What did this assignment or assessment contribute?" in rendered
+    assert "9. What should I teach next after this assessment?" in rendered
     assert "Genesis" not in rendered
     for title in REPORT_MENU_TITLES:
         assert title in rendered  # preserve legacy report-family names
 
 
-def test_all_eight_reports_have_an_advanced_direct_cli_route() -> None:
+def test_all_nine_reports_have_an_advanced_direct_cli_route() -> None:
     output = StringIO()
     responses: list[str] = []
-    for number in range(1, 9):
+    for number in range(1, 10):
         responses.extend((str(number), "t", "", "b"))
     responses.append("b")
     run_reports_menu(
@@ -46,7 +47,7 @@ def test_all_eight_reports_have_an_advanced_direct_cli_route() -> None:
     rendered = output.getvalue()
     for command in (
         "reconciliation", "justify", "standards profile", "standards growth",
-        "evidence", "checkpoint", "readiness", "impact"
+        "evidence", "checkpoint", "readiness", "impact", "benchmark"
     ):
         assert f"meridian reports {command} --help" in rendered
     assert "For advanced use" in rendered

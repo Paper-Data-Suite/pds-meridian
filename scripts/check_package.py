@@ -13,7 +13,7 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.4.0"
+EXPECTED_VERSION = "0.4.1"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -383,6 +383,8 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/evidence_checkpoint_reporting_cli.py",
         "meridian/marking_period_readiness.py",
         "meridian/assessment_impact.py",
+        "meridian/benchmark_analysis.py",
+        "meridian/benchmark_plan_storage.py",
         "meridian/readiness_impact_reporting_cli.py",
         "meridian/report_live_catalog.py",
         "meridian/report_menu_execution.py",
@@ -390,6 +392,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/menu_reports.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",
+        "meridian/publication_authorization.py",
         "meridian/proficiency_mapping.py",
         "meridian/proficiency_mapping_storage.py",
         "meridian/reassessment.py",

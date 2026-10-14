@@ -344,6 +344,9 @@ from meridian.proficiency_mapping import (
     ProficiencyScaleReference,
 )
 from meridian.projection_cache import ProjectionCacheError
+from meridian.publication_authorization import (
+    PublicationAuthorizationConfigurationError,
+)
 from meridian.report_export_cli import ReportExportCliError
 from meridian.reporting_snapshot_cli import (
     ReportingSnapshotCliError,
@@ -9142,7 +9145,11 @@ def main(
     """Parse CLI arguments and return a stable process exit status."""
     effective_argv = tuple(sys.argv[1:] if argv is None else argv)
     if not effective_argv:
-        return run_menu(diagnostics=dependencies)
+        try:
+            return run_menu(diagnostics=dependencies)
+        except PublicationAuthorizationConfigurationError as error:
+            print(f"error: {error.code}: {error}", file=sys.stderr)
+            return 1
     parser = build_parser()
     args = parser.parse_args(effective_argv)
     group_help = getattr(args, "show_group_help", None)
@@ -9154,7 +9161,16 @@ def main(
         parser.print_help()
         return 0
     try:
-        return int(handler(args, dependencies))
+        effective_dependencies = dependencies
+        workspace = getattr(args, "workspace", None)
+        if effective_dependencies is None and workspace is not None:
+            effective_dependencies = default_diagnostics_dependencies(
+                workspace_root=workspace
+            )
+        return int(handler(args, effective_dependencies))
+    except PublicationAuthorizationConfigurationError as error:
+        print(f"error: {error.code}: {error}", file=sys.stderr)
+        return 1
     except (ReportingSnapshotCliError, ReportExportCliError) as error:
         print(f"error: {error.code}: {error}", file=sys.stderr)
         return 1

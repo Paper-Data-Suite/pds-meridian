@@ -13,9 +13,9 @@ EXPECTED_SUMMARY = (
 
 
 def test_v03_line_patch_version_and_package_summary_are_promoted() -> None:
-    assert meridian.__version__ == "0.4.0"
-    assert check_package.EXPECTED_VERSION == "0.4.0"
-    assert check_sdist.EXPECTED_VERSION == "0.4.0"
+    assert meridian.__version__ == "0.4.1"
+    assert check_package.EXPECTED_VERSION == "0.4.1"
+    assert check_sdist.EXPECTED_VERSION == "0.4.1"
     assert check_package.EXPECTED_SUMMARY == EXPECTED_SUMMARY
     assert check_sdist.EXPECTED_SUMMARY == EXPECTED_SUMMARY
 
@@ -53,15 +53,15 @@ def test_v03_release_framing_preserves_history_and_names_current_siblings() -> N
         assert "Concord v0.3.2" in document
 
     assert (
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        "Meridian v0.4.1 implements Issue #115"
         in readme
     )
     assert (
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        "Meridian v0.4.1 implements Issue #115"
         in docs_readme
     )
     assert (
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        "Meridian v0.4.1 implements Issue #115"
         in foundation
     )
     assert (

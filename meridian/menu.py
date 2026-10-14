@@ -13,7 +13,10 @@ from pds_core.menu_navigation import (
     parse_navigation_choice,
 )
 
-from meridian.diagnostics import DiagnosticsDependencies
+from meridian.diagnostics import (
+    DiagnosticsDependencies,
+    default_diagnostics_dependencies,
+)
 from meridian.menu_explain import run_explain_menu
 from meridian.menu_export import run_export_menu
 from meridian.menu_grade_items import run_grade_items_menu
@@ -135,6 +138,8 @@ def default_teacher_menu_dependencies(
     """Compose the nine real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
+    if diagnostics is None:
+        diagnostics = default_diagnostics_dependencies()
     session = TeacherSessionContext() if session_context is None else session_context
     inbox_dependencies = default_teacher_evidence_inbox_menu_dependencies(
         diagnostics=diagnostics,

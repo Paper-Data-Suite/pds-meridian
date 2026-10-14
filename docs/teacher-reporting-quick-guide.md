@@ -1,6 +1,6 @@
 # Teacher reporting quick guide
 
-Meridian's eight reports are read-only views of existing teacher-controlled
+Meridian's nine reports are read-only views of existing teacher-controlled
 Meridian records. They do not calculate or select a new Grade, create a new
 proficiency judgment, change evidence, author a checkpoint, or write to an SIS,
 LMS, or district gradebook.
@@ -24,7 +24,7 @@ current use in the **Snapshots** task. If no single current-use checkpoint can b
 resolved safely, Meridian asks the teacher to select one; it never guesses the
 newest snapshot.
 
-## The eight questions
+## The nine questions
 
 1. **What do I need to update in my gradebook?** Select an explicit,
    teacher-authored mapping JSON file. Meridian validates its class, marking
@@ -47,6 +47,13 @@ newest snapshot.
    approval authority.
 8. **What did this assignment or assessment contribute?** Describe recorded
    participation and associated changes without claiming unsupported causality.
+9. **What should I teach next after this assessment?** Review native assessment,
+   proficiency, standards, and supported item evidence; optionally add
+   teacher-authored instructional groups; document reteach, revisit, small-group,
+   enrichment, or extension responses; then save a revision for later
+   reassessment. Missing or insufficient evidence is never converted to zero or
+   Developing, and an optional Bubble group never changes authoritative
+   proficiency.
 
 Use **B** for Back, **M** for Main Menu, and **Q** to quit. If authority moves
 during selection or generation, Meridian fails closed and asks for refreshed
@@ -67,10 +74,16 @@ system received, accepted, synchronized, or published anything.
 ## Direct noninteractive commands
 
 Power users and qualification automation can use `meridian reports --help`.
-All eight report families support deterministic JSON plus practical Markdown,
+All nine report families support deterministic JSON plus practical Markdown,
 CSV, or TSV rendering. File-output options use the same exact-byte,
 non-overwriting writer as the menu. Direct commands remain explicit and never
 open the interactive menu.
+
+For the benchmark planner, use `meridian reports benchmark --help`. A live
+preview uses exact workspace, class, period, and Grade Item selectors. A
+canonical preview can be saved as an immutable local plan revision only with
+`--save-plan-id`, `--teacher-id`, and `--confirm-save`; reopen the latest or an
+exact prior revision with `--load-plan-id` and optional `--plan-revision`.
 
 > Exact release artifacts prove what Meridian tested. Reader contracts determine
 > what Meridian may consume.
