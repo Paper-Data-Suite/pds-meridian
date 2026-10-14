@@ -89,8 +89,8 @@ def _distribution_absent(distribution: str) -> bool:
 
 
 def _assert_isolated_install() -> str:
-    if metadata.version("pds-core") != "0.6.4":
-        raise RuntimeError("Issue #59 installed acceptance requires exact Core 0.6.4.")
+    if metadata.version("pds-core") != "0.6.5":
+        raise RuntimeError("Issue #59 installed acceptance requires exact Core 0.6.5.")
 
     meridian_version = metadata.version("pds-meridian")
     if not meridian_version:

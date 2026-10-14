@@ -1,6 +1,6 @@
 """Issue #50 installed ScoreForm conventional-Grade acceptance.
 
-The program publishes real ScoreForm v0.12.1 producer state through Core,
+The program publishes current ScoreForm producer state through Core,
 projects it through installed Meridian, authors exact #28-#31 teacher state,
 activates one conventional Grade policy, persists/selects/reloads the result,
 and proves producer-owned bytes remain unchanged.
@@ -216,8 +216,8 @@ def _assert_absent_producers() -> None:
 
 
 def _verify_installed_composition() -> None:
-    _require(metadata.version("pds-core") == "0.6.4", "Core version mismatch.")
-    _require(metadata.version("scoreform") == "0.12.1", "ScoreForm version mismatch.")
+    _require(metadata.version("pds-core") == "0.6.5", "Core version mismatch.")
+    _require(metadata.version("scoreform") == "0.13.0", "ScoreForm version mismatch.")
     _require(
         meridian.__version__ == metadata.version("pds-meridian"),
         "Meridian module/distribution versions disagree.",
@@ -470,7 +470,9 @@ def _project(workspace: Path, baseline: ProducerBaseline) -> CachedProjection:
         distribution_version_resolver=installed_distribution_version,
     )
     inventory = adapter_registry.invoke(
-        prepared.projection_request, installed_distribution_version
+        prepared.projection_request,
+        installed_distribution_version,
+        producer_profile=prepared.producer_profile,
     )
     cached = cache_projected_inventory(
         workspace,

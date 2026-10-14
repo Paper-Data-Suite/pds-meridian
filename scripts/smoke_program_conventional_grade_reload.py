@@ -54,8 +54,8 @@ def _load_baseline(root: Path) -> dict[str, Any]:
 
 
 def main() -> None:
-    _require(metadata.version("pds-core") == "0.6.4", "Core version mismatch.")
-    _require(metadata.version("scoreform") == "0.12.1", "ScoreForm version mismatch.")
+    _require(metadata.version("pds-core") == "0.6.5", "Core version mismatch.")
+    _require(metadata.version("scoreform") == "0.13.0", "ScoreForm version mismatch.")
     for distribution_name, package_name in (
         ("quillan", "quillan"),
         ("pds-concord", "concord"),

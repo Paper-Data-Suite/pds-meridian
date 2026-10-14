@@ -11,7 +11,7 @@ from meridian.menu import (
 )
 
 
-def test_default_composition_routes_all_eight_real_controllers(
+def test_default_composition_routes_all_nine_real_controllers(
     monkeypatch,
 ) -> None:
     calls: list[tuple[str, object, object, object]] = []
@@ -73,6 +73,7 @@ def test_default_composition_routes_all_eight_real_controllers(
         "run_snapshots_menu": "snapshots",
         "run_export_menu": "export",
         "run_explain_menu": "explain",
+        "run_reports_menu": "reports",
     }
     for attribute, name in routes.items():
         monkeypatch.setattr(menu_module, attribute, fake(name))

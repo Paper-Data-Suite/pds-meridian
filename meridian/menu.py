@@ -23,6 +23,7 @@ from meridian.menu_proficiency import (
     default_grade_item_proficiency_action_dependencies,
     run_proficiency_menu,
 )
+from meridian.menu_reports import run_reports_menu
 from meridian.menu_snapshots import (
     default_snapshot_freeze_dependencies,
     run_snapshots_menu,
@@ -41,6 +42,10 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.report_menu_execution import (
+    LiveReportMenuExecutor,
+    ReportMenuExecutionDependencies,
+)
 from meridian.teacher_session import TeacherSessionContext
 
 TeacherMenuTaskId: TypeAlias = Literal[
@@ -52,6 +57,7 @@ TeacherMenuTaskId: TypeAlias = Literal[
     "snapshots",
     "export",
     "explain",
+    "reports",
 ]
 MenuTaskHandler: TypeAlias = Callable[[], None]
 
@@ -74,6 +80,7 @@ TEACHER_MENU_TASKS: Final[tuple[TeacherMenuTask, ...]] = (
     TeacherMenuTask("snapshots", 6, "Snapshots"),
     TeacherMenuTask("export", 7, "Export"),
     TeacherMenuTask("explain", 8, "Explain"),
+    TeacherMenuTask("reports", 9, "Reports"),
 )
 
 
@@ -89,6 +96,7 @@ class TeacherMenuDependencies:
     snapshots: MenuTaskHandler
     export: MenuTaskHandler
     explain: MenuTaskHandler
+    reports: MenuTaskHandler
     session_context: TeacherSessionContext = field(
         default_factory=TeacherSessionContext
     )
@@ -111,6 +119,8 @@ class TeacherMenuDependencies:
             return self.export
         if task_id == "explain":
             return self.explain
+        if task_id == "reports":
+            return self.reports
         raise AssertionError(f"Unhandled teacher menu task: {task_id!r}")
 
 
@@ -122,7 +132,7 @@ def default_teacher_menu_dependencies(
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> TeacherMenuDependencies:
-    """Compose the eight real teacher controllers over one terminal session."""
+    """Compose the nine real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
     session = TeacherSessionContext() if session_context is None else session_context
@@ -181,6 +191,14 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
+        reports=lambda: run_reports_menu(
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+            executor=LiveReportMenuExecutor(
+                ReportMenuExecutionDependencies(diagnostics=diagnostics)
+            ),
+        ),
         session_context=session,
     )
 
@@ -210,7 +228,7 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
     write_lines(
         output,
         "Meridian helps teachers review academic evidence, proficiency, Grades,",
-        "overrides, frozen reporting snapshots, and deliberate local exports.",
+        "overrides, frozen snapshots, local exports, and teacher reports.",
         "",
         "Meridian Grade and report outputs are teacher-controlled local PDS results.",
         "They do not prove that an SIS, LMS, or district gradebook was updated.",
@@ -232,7 +250,7 @@ def run_menu(
     """Run the composed low-density teacher application.
 
     Explicit dependencies remain injectable for qualification. Normal launch
-    composes all eight real task controllers and passes one terminal session
+    composes all nine real task controllers and passes one terminal session
     through every nested screen.
     """
 
@@ -266,7 +284,7 @@ def run_menu(
                 active.handler_for(task.task_id)()
                 continue
 
-            write_lines(stream, "", "Please choose 1-8, H, or Q.")
+            write_lines(stream, "", "Please choose 1-9, H, or Q.")
             pause_for_user(input_fn)
         except ReturnToMainMenu:
             continue

@@ -13,9 +13,9 @@ EXPECTED_SUMMARY = (
 
 
 def test_v03_line_patch_version_and_package_summary_are_promoted() -> None:
-    assert meridian.__version__ == "0.3.1"
-    assert check_package.EXPECTED_VERSION == "0.3.1"
-    assert check_sdist.EXPECTED_VERSION == "0.3.1"
+    assert meridian.__version__ == "0.4.0"
+    assert check_package.EXPECTED_VERSION == "0.4.0"
+    assert check_sdist.EXPECTED_VERSION == "0.4.0"
     assert check_package.EXPECTED_SUMMARY == EXPECTED_SUMMARY
     assert check_sdist.EXPECTED_SUMMARY == EXPECTED_SUMMARY
 
@@ -47,14 +47,23 @@ def test_v03_release_framing_preserves_history_and_names_current_siblings() -> N
     ).read_text(encoding="utf-8")
 
     for document in (readme, docs_readme, foundation):
-        assert "Core v0.6.4" in document
-        assert "ScoreForm v0.12.1" in document
-        assert "Quillan v0.10.5" in document
-        assert "Concord v0.3.0" in document
+        assert "Core v0.6.5" in document
+        assert "ScoreForm v0.13.0" in document
+        assert "Quillan v0.10.6" in document
+        assert "Concord v0.3.2" in document
 
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in readme
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in docs_readme
-    assert "Meridian v0.3.1 is the prepared compatibility candidate" in foundation
+    assert (
+        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        in readme
+    )
+    assert (
+        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        in docs_readme
+    )
+    assert (
+        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        in foundation
+    )
     assert (
         "Security fixes for the v0.3 line target the latest `0.3.x` release."
         in security

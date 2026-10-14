@@ -37,21 +37,20 @@ def _runtime_import_roots() -> set[str]:
 
 
 def test_issue61_exact_direct_interoperability_versions_remain_aligned() -> None:
-    assert EXPECTED_CORE_VERSION == "0.6.4"
+    assert EXPECTED_CORE_VERSION == "0.6.5"
     assert EXPECTED_SCOREFORM_VERSION == SCOREFORM_READER_VERSION == "0.12.1"
     assert EXPECTED_QUILLAN_VERSION == QUILLAN_READER_VERSION == "0.10.5"
     assert EXPECTED_CONCORD_VERSION == CONCORD_READER_VERSION == "0.3.0"
 
 
-def test_issue61_package_dependency_direction_is_core_plus_exact_optional_readers(
-) -> None:
+def test_issue61_optional_readers_use_contract_floor() -> None:
     project = _project()
 
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     optional = project["optional-dependencies"]
-    assert optional["scoreform"] == ["scoreform==0.12.1"]
-    assert optional["quillan"] == ["quillan==0.10.5"]
-    assert optional["concord"] == ["pds-concord==0.3.0"]
+    assert optional["scoreform"] == ["scoreform>=0.13.0"]
+    assert optional["quillan"] == ["quillan>=0.10.6"]
+    assert optional["concord"] == ["pds-concord>=0.3.2"]
 
 
 def test_issue61_ecosystem_peers_are_not_meridian_runtime_dependencies() -> None:
@@ -148,7 +147,7 @@ def test_issue61_interoperability_audit_supports_promoted_candidate() -> None:
         REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.3.1"' in version
+    assert '__version__: Final[str] = "0.4.0"' in version
     assert "Interoperability and ecosystem-coexistence audit — CONFORMS" in audit
     assert "Final inventory pass: **CONFORMS — 2026-10-06**" in audit
     assert "Candidate qualification: **PENDING**" in audit

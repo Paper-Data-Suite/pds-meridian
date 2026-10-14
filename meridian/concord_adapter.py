@@ -49,6 +49,7 @@ __all__ = [
     "CONCORD_ADAPTER_ID",
     "CONCORD_ADAPTER_KEY",
     "CONCORD_PROJECTION_CONTRACT_VERSION",
+    "CONCORD_READER_CONTRACT",
     "CONCORD_READER_DISTRIBUTION",
     "CONCORD_READER_VERSION",
     "ConcordAcademicResultAdapter",
@@ -56,6 +57,7 @@ __all__ = [
 
 CONCORD_ADAPTER_ID: Final = "concord.academic_result"
 CONCORD_PROJECTION_CONTRACT_VERSION: Final = "1"
+CONCORD_READER_CONTRACT: Final = "concord_academic_result_reader_v1"
 CONCORD_READER_DISTRIBUTION: Final = "pds-concord"
 CONCORD_READER_VERSION: Final = "0.3.0"
 
@@ -79,7 +81,8 @@ CONCORD_ADAPTER_DESCRIPTOR: Final = AdapterDescriptor(
     projection_contract_version=CONCORD_PROJECTION_CONTRACT_VERSION,
     supported_capabilities=_CONCORD_CAPABILITIES,
     producer_reader_distribution=CONCORD_READER_DISTRIBUTION,
-    supported_producer_reader_versions=frozenset({CONCORD_READER_VERSION}),
+    supported_producer_reader_contracts=frozenset({CONCORD_READER_CONTRACT}),
+    legacy_exact_reader_versions=frozenset({CONCORD_READER_VERSION}),
 )
 
 
@@ -642,7 +645,7 @@ class ConcordAcademicResultAdapter(ProducerAdapter):
     ) -> EvidenceInventory:
         projection = projection_identity_from_descriptor(
             CONCORD_ADAPTER_DESCRIPTOR,
-            CONCORD_READER_VERSION,
+            request.producer_reader_version or CONCORD_READER_VERSION,
         )
         scale_by_id = {
             scale.scoring_scale_id: _native_scale(scale)

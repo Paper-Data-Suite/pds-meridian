@@ -348,6 +348,23 @@ def _destination_receipt(
     return ReportExportDestinationReceipt("copyable_text", None)
 
 
+def write_or_verify_local_artifact(
+    path: str | Path,
+    payload: bytes,
+) -> Literal["created", "existing"]:
+    """Safely create or verify one exact local artifact using export discipline."""
+
+    if not isinstance(path, (str, Path)):
+        raise ReportExportCommitValidationError(
+            "local artifact path must be a string or Path."
+        )
+    if type(payload) is not bytes:
+        raise ReportExportCommitValidationError(
+            "local artifact payload must be immutable bytes."
+        )
+    return _write_or_verify_file(Path(path), payload)
+
+
 def _write_or_verify_file(path: Path, payload: bytes) -> Literal["created", "existing"]:
     target = _absolute_path(path)
     _validate_destination_parent(target.parent)
@@ -502,4 +519,5 @@ __all__ = [
     "commit_report_export",
     "copyable_text_destination",
     "file_export_destination",
+    "write_or_verify_local_artifact",
 ]

@@ -1,4 +1,4 @@
-"""Installed ScoreForm 0.12.1 punctuation-bearing identity acceptance."""
+"""Installed current ScoreForm punctuation-bearing identity acceptance."""
 
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ from scoreform.academic_result_manifest import (
     academic_result_manifest_to_canonical_json_bytes,
 )
 from scoreform.academic_result_reader import read_academic_result_manifest
+from scoreform.pds_publication import get_publication_producer_profile
 
 from meridian.adapters import AdapterProjectionRequest, AdapterRegistry
 from meridian.evidence import NativePointValue
@@ -158,7 +159,7 @@ def _request(manifest_bytes: bytes) -> AdapterProjectionRequest:
 
 
 def main() -> None:
-    _require(metadata.version("scoreform") == "0.12.1", "ScoreForm version changed.")
+    _require(metadata.version("scoreform") == "0.13.0", "ScoreForm version changed.")
     _require(SCOREFORM_READER_VERSION == "0.12.1", "Adapter version changed.")
 
     source = _manifest_bytes()
@@ -186,6 +187,7 @@ def main() -> None:
     inventory = AdapterRegistry((ScoreFormAcademicResultAdapter(),)).invoke(
         _request(source),
         metadata.version,
+        producer_profile=get_publication_producer_profile(),
     )
 
     _require(source == source_before, "Meridian mutated source manifest bytes.")
@@ -196,7 +198,7 @@ def main() -> None:
     _require(len(inventory.items) == 12, "Meridian dropped native attempt evidence.")
     _require(
         all(
-            item.provenance.projection.producer_reader_version == "0.12.1"
+            item.provenance.projection.producer_reader_version == "0.13.0"
             for item in inventory.items
         ),
         "Projection identity is not the exact ScoreForm reader.",

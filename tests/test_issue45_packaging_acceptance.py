@@ -56,13 +56,13 @@ def test_issue45_producer_dependencies_remain_optional() -> None:
     dependencies = project.split("dependencies = [", maxsplit=1)[1]
     dependencies = dependencies.split("]", maxsplit=1)[0]
 
-    assert "pds-core>=0.6.3,<0.7" in dependencies
+    assert "pds-core>=0.6.5,<0.7" in dependencies
     assert "scoreform" not in dependencies
     assert "quillan" not in dependencies
     assert "pds-concord" not in dependencies
-    assert '"scoreform==0.12.1"' in optional
-    assert '"quillan==0.10.5"' in optional
-    assert '"pds-concord==0.3.0"' in optional
+    assert '"scoreform>=0.13.0"' in optional
+    assert '"quillan>=0.10.6"' in optional
+    assert '"pds-concord>=0.3.2"' in optional
 
 
 def test_issue45_wrapper_has_no_concord_wheel_parameter() -> None:

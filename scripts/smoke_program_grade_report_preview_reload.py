@@ -148,7 +148,7 @@ def main() -> int:
     if len(sys.argv) != 2:
         raise SystemExit("usage: smoke_program_grade_report_preview_reload.py <root>")
     issue54._verify_installed_composition()
-    _require(metadata.version("pds-concord") == "0.3.0", "Concord version changed.")
+    _require(metadata.version("pds-concord") == "0.3.2", "Concord version changed.")
     root = Path(sys.argv[1]).resolve()
     baseline = _mapping(
         json.loads((root / issue54.BASELINE_NAME).read_text(encoding="utf-8")),

@@ -13,15 +13,15 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.3.1"
+EXPECTED_VERSION = "0.4.0"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
 )
-EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.3,<0.7")
-EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform==0.12.1; extra == 'scoreform'")
-EXPECTED_QUILLAN_EXTRA = Requirement("quillan==0.10.5; extra == 'quillan'")
-EXPECTED_CONCORD_EXTRA = Requirement("pds-concord==0.3.0; extra == 'concord'")
+EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.5,<0.7")
+EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform>=0.13.0; extra == 'scoreform'")
+EXPECTED_QUILLAN_EXTRA = Requirement("quillan>=0.10.6; extra == 'quillan'")
+EXPECTED_CONCORD_EXTRA = Requirement("pds-concord>=0.3.2; extra == 'concord'")
 EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
     "paper_data_suite.module_operations"
 )
@@ -164,19 +164,19 @@ def validate_wheel(path: str | Path) -> None:
 
     if _runtime_requirements(metadata) != [EXPECTED_CORE_REQUIREMENT]:
         raise PackageValidationError(
-            "The only runtime requirement must be pds-core>=0.6.3,<0.7."
+            "The only runtime requirement must be pds-core>=0.6.5,<0.7."
         )
     if _scoreform_requirements(metadata) != [EXPECTED_SCOREFORM_EXTRA]:
         raise PackageValidationError(
-            "The scoreform extra must pin exactly scoreform==0.12.1."
+            "The scoreform extra must require scoreform>=0.13.0."
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
         raise PackageValidationError(
-            "The quillan extra must pin exactly quillan==0.10.5."
+            "The quillan extra must require quillan>=0.10.6."
         )
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
-            "The concord extra must pin exactly pds-concord==0.3.0."
+            "The concord extra must require pds-concord>=0.3.2."
         )
 
     groups = frozenset(entry_points.sections())
@@ -366,6 +366,28 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/report_export_receipt.py",
         "meridian/report_export_commit.py",
         "meridian/report_export_cli.py",
+        "meridian/teacher_report.py",
+        "meridian/teacher_report_render.py",
+        "meridian/teacher_report_output.py",
+        "meridian/teacher_report_cli.py",
+        "meridian/external_gradebook_mapping.py",
+        "meridian/sis_gradebook_reconciliation.py",
+        "meridian/sis_reconciliation_cli.py",
+        "meridian/student_grade_justification.py",
+        "meridian/student_grade_justification_cli.py",
+        "meridian/class_standards_profile.py",
+        "meridian/student_proficiency_growth.py",
+        "meridian/standards_reporting_cli.py",
+        "meridian/evidence_coverage.py",
+        "meridian/grade_checkpoint_comparison.py",
+        "meridian/evidence_checkpoint_reporting_cli.py",
+        "meridian/marking_period_readiness.py",
+        "meridian/assessment_impact.py",
+        "meridian/readiness_impact_reporting_cli.py",
+        "meridian/report_live_catalog.py",
+        "meridian/report_menu_execution.py",
+        "meridian/report_guided_selection.py",
+        "meridian/menu_reports.py",
         "meridian/ingestion.py",
         "meridian/projection_cache.py",
         "meridian/proficiency_mapping.py",

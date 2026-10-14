@@ -83,17 +83,17 @@ def test_producer_readers_remain_optional_not_base_dependencies() -> None:
     dependencies = project_section.split("dependencies = [", maxsplit=1)[1]
     dependencies = dependencies.split("]", maxsplit=1)[0]
 
-    assert "pds-core>=0.6.3,<0.7" in dependencies
+    assert "pds-core>=0.6.5,<0.7" in dependencies
     assert "scoreform" not in dependencies
     assert "quillan" not in dependencies
     assert "pds-concord" not in dependencies
 
     assert 'scoreform = [' in optional_section
-    assert '"scoreform==0.12.1"' in optional_section
+    assert '"scoreform>=0.13.0"' in optional_section
     assert 'quillan = [' in optional_section
-    assert '"quillan==0.10.5"' in optional_section
+    assert '"quillan>=0.10.6"' in optional_section
     assert 'concord = [' in optional_section
-    assert '"pds-concord==0.3.0"' in optional_section
+    assert '"pds-concord>=0.3.2"' in optional_section
 
 
 def test_concord_group_path_excludes_before_student_proficiency(

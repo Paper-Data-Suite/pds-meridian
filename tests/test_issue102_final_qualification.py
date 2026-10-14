@@ -10,26 +10,27 @@ from scripts.verify_core_wheel import (
 )
 
 
-def test_issue102_exact_core_064_qualification_baseline() -> None:
-    assert EXPECTED_CORE_VERSION == "0.6.4"
-    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.4-py3-none-any.whl"
+def test_issue102_reused_acceptance_tracks_current_core_qualification_baseline(
+) -> None:
+    assert EXPECTED_CORE_VERSION == "0.6.5"
+    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.5-py3-none-any.whl"
     assert EXPECTED_CORE_WHEEL_SHA256 == (
-        "48cea9317f2967bdc0f2d4c14349a56677c7c3f8211f0f33978ccb1a1c75859b"
+        "9ace75f17b23b7f0ed6a709d531af5120db43d0325b4148d26f2d6ba1d4b3c18"
     )
 
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-core/releases/download/v0.6.4/pds_core-0.6.4-py3-none-any.whl"
+        "pds-core/releases/download/v0.6.5/pds_core-0.6.5-py3-none-any.whl"
         in workflow
     )
-    assert "pds_core-0.6.3-py3-none-any.whl" not in workflow
+    assert "pds_core-0.6.4-py3-none-any.whl" not in workflow
 
 
 def test_issue102_runtime_core_floor_remains_compatible() -> None:
     with Path("pyproject.toml").open("rb") as source:
         project = tomllib.load(source)["project"]
 
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
 
 
 def test_issue102_installed_acceptance_is_core_only_and_prepared() -> None:
@@ -48,7 +49,7 @@ def test_issue102_installed_acceptance_is_core_only_and_prepared() -> None:
         assert token in core_programs
 
     for token in (
-        'importlib.metadata.version("pds-core") != "0.6.4"',
+        'importlib.metadata.version("pds-core") != "0.6.5"',
         "LONG_ID_SIZE = 1024",
         "LONG_WORK_SIZE = 80",
         "write_grade_item_revision",
@@ -115,7 +116,7 @@ def test_issue102_documentation_records_predeployment_contract() -> None:
         assert token in document
 
     assert "Issue #102" in changelog
-    assert "Core v0.6.4" in readme
+    assert "Core v0.6.5" in readme
     assert "canonical-storage-path-budgets.md" in docs_readme
     assert "Issue #102" in matrix
     assert "`0.6.4`" in matrix

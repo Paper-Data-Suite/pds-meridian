@@ -1,26 +1,34 @@
 # PDS Meridian
 
-Meridian v0.3.1 is the prepared compatibility candidate for the released v0.3
-teacher-controlled evidence, standards-proficiency, Grade, explanation,
-reporting, attention, and planning surface. This patch changes only the exact
-ScoreForm reader qualification; tag/publication and fresh-download verification
-remain pending owner authorization. The candidate is installable for review and
-qualification.
+Meridian is an installable Python package for teacher-controlled evidence, Grade, and reporting workflows. Its outputs remain advisory and do not constitute official SIS or district gradebook records.
 
-Current candidate qualification uses exact released Core v0.6.4, ScoreForm
-v0.12.1, Quillan v0.10.5, and Concord v0.3.0. Core remains Meridian's only
-unconditional runtime dependency; producer readers remain exact optional
-dependencies.
+Meridian v0.4.0 is the Issue #111 feature-release candidate. It adds the
+teacher-facing reporting suite while preserving the released v0.3 authority
+boundaries and immutable historical release evidence.
+
+Current Issue #111 development requires Core v0.6.5 and uses manifest-bound,
+producer-declared reader contracts for ScoreForm v0.13.0, Quillan v0.10.6, and
+Concord v0.3.2. The earlier exact ScoreForm v0.12.1, Quillan v0.10.5, and
+Concord v0.3.0 readers remain supported only through a bounded legacy path.
+Producer versions remain exact projection provenance, not compatibility
+allowlists. Core is the only unconditional sibling runtime dependency.
+
+Issue #111 now connects all eight report engines to guided canonical class,
+marking-period, student, assessment, checkpoint, and explicit mapping-file
+selection. The normal `9. Reports` route confirms context, generates a read-only
+preview, and can create a verified non-overwriting local teacher copy in JSON,
+Markdown, CSV, or TSV. See the
+[teacher reporting quick guide](docs/teacher-reporting-quick-guide.md).
+The reports do not finalize or write SIS grades.
 
 v0.3 adds conventional, standards-based, profile-constrained, and hybrid Grades;
 immutable teacher Grade overrides; deterministic Grade/report explanations;
 ReportingSnapshots; explicit local report exports and receipts; Grade/report
 attention; Suite readiness integration; and bounded canonical storage paths.
 
-Meridian v0.3.0 remains the current stable release until this v0.3.1 candidate
-passes review, exact post-merge qualification, tag/publication, and
-fresh-download verification. Historical v0.3.0 and v0.2 statements remain
-release facts rather than current v0.3.1 authority.
+Meridian v0.3.1 is the released historical baseline for this work. Historical
+v0.3.0, v0.3.1, and v0.2 release statements remain release facts rather than
+current Issue #111 development authority.
 
 The verified v0.2.0 release baseline was Core v0.6.3 with ScoreForm v0.11.0, Quillan v0.10.0, and Concord v0.3.0. Those versions remain historical release facts; they are not current v0.3 candidate authority.
 
@@ -112,7 +120,7 @@ is now v0.10.5. See
 
 ## Issue #102 bounded canonical storage paths
 
-Current v0.3 development now serializes Meridian-owned variable filesystem identity through deterministic bounded keys while preserving full logical identity in authoritative records. Exact development/installed qualification uses released Core v0.6.4; the compatible runtime floor remains `pds-core>=0.6.3,<0.7`. Because this correction occurs before first teacher deployment, there is no legacy Meridian path migration layer. See [Canonical storage path budgets](docs/architecture/canonical-storage-path-budgets.md).
+Current v0.3 development now serializes Meridian-owned variable filesystem identity through deterministic bounded keys while preserving full logical identity in authoritative records. Exact development/installed qualification uses released Core v0.6.5; the compatible runtime floor remains `pds-core>=0.6.5,<0.7`. Because this correction occurs before first teacher deployment, there is no legacy Meridian path migration layer. See [Canonical storage path budgets](docs/architecture/canonical-storage-path-budgets.md).
 
 ## Issue #59 Suite operations integration
 
@@ -122,13 +130,13 @@ actions remain inert Meridian routing identity; Suite owns cross-module
 doctor/dashboard presentation and public-launcher orchestration. Canonical
 Meridian state remains workspace-contained for Suite's opaque whole-workspace
 backup, while external report payloads remain noncanonical. Meridian keeps
-`pds-core>=0.6.3,<0.7` as its only unconditional runtime dependency and adds no
+`pds-core>=0.6.5,<0.7` as its only unconditional runtime dependency and adds no
 Suite dependency. See
 [Suite operations integration](docs/architecture/suite-operations-integration.md).
 
 ## Issue #60 cross-policy adversarial acceptance
 
-Current v0.3 development has permanent adversarial acceptance across conventional, weighted standards, profile-constrained standards, hybrid, teacher override, ReportingSnapshot, producer lifecycle, and Suite-operations boundaries. Empty/unknown/incomplete state remains distinct from zero, write remains distinct from selection, group evidence remains nonstudent, and rounding remains final-only Decimal policy. Installed acceptance uses the existing six prepared matrices and runs the broad fresh-process scenario in `all-adapters` against exact Core 0.6.4, ScoreForm 0.12.1, Quillan 0.10.5, and Concord 0.3.0. See [Cross-policy adversarial acceptance](docs/architecture/cross-policy-adversarial-acceptance.md).
+Current v0.3 development has permanent adversarial acceptance across conventional, weighted standards, profile-constrained standards, hybrid, teacher override, ReportingSnapshot, producer lifecycle, and Suite-operations boundaries. Empty/unknown/incomplete state remains distinct from zero, write remains distinct from selection, group evidence remains nonstudent, and rounding remains final-only Decimal policy. Installed acceptance uses the existing six prepared matrices and runs the broad fresh-process scenario in `all-adapters` against exact Core 0.6.5, ScoreForm 0.12.1, Quillan 0.10.5, and Concord 0.3.0. See [Cross-policy adversarial acceptance](docs/architecture/cross-policy-adversarial-acceptance.md).
 
 ## Purpose
 
@@ -192,7 +200,7 @@ The current package provides:
 - authorization-gated inspection/explanation of persisted evidence snapshots;
 - privacy-safe stable `ingestion.*`, `contracts.*`, `adapters.*`, and `cache.*`
   outcomes;
-- exact verification of the official Core v0.6.4 wheel;
+- exact verification of the official Core v0.6.5 wheel;
 - wheel and source-distribution validation and isolated-wheel smoke testing; and
 - reusable documentation and repository validation tooling.
 - explicit, lazy adapters for exact ScoreForm v0.12.1, Quillan v0.10.5, and
@@ -223,7 +231,7 @@ The current package provides:
   immutable withdrawal, non-floating source rebinding, freshness diagnostics,
   and deterministic read-only effective Grade resolution;
 - formal adoption of Core's `grouping_signal_set_v1` as the sole shared
-  planning-signal interchange, preserving `pds-core>=0.6.3,<0.7`; and
+  planning-signal interchange, preserving `pds-core>=0.6.5,<0.7`; and
 - focused plus isolated installed-wheel qualification of Core's canonical signal
   model/JSON, `grouping_signal_csv_v1`, immutable exchange storage, canonical
   signal digest, and workspace-aware roster diagnostics with Concord absent; and
@@ -438,10 +446,10 @@ See [Academic Period standards-proficiency aggregation](docs/architecture/academ
 Issue #36 adopts Core's released `grouping_signal_set_v1` as Meridian's only
 shared planning-signal interchange contract. The contract first shipped in Core
 v0.6.1; Meridian's active and authenticated qualification baseline is Core
-v0.6.3, so the runtime floor remains:
+v0.6.5, so the runtime floor remains:
 
 ```text
-pds-core>=0.6.3,<0.7
+pds-core>=0.6.5,<0.7
 ```
 
 Core remains authoritative for the typed signal model, canonical JSON,
@@ -578,14 +586,21 @@ manifest, race, error, and privacy boundary.
 
 ## Requirements
 
-Meridian v0.3.1 requires:
+Current Issue #111 development requires:
+
+```text
+Python >=3.11
+pds-core>=0.6.5,<0.7
+```
+
+Released Meridian v0.3.1 historically requires:
 
 ```text
 Python >=3.11
 pds-core>=0.6.3,<0.7
 ```
 
-Current candidate and CI qualification use exact released Core v0.6.4,
+Current development and CI qualification use exact released Core v0.6.5,
 ScoreForm v0.12.1, Quillan v0.10.5, and Concord v0.3.0 artifacts. Historical
 Meridian v0.3.0 qualification remains ScoreForm v0.12.0; v0.2 and v0.1.1
 dependency statements likewise remain release facts and are not rewritten.
@@ -598,7 +613,7 @@ Install the official Core wheel, then install Meridian in editable development
 mode:
 
 ```powershell
-python -m pip install .\pds_core-0.6.4-py3-none-any.whl
+python -m pip install .\pds_core-0.6.5-py3-none-any.whl
 python -m pip install .\scoreform-0.12.1-py3-none-any.whl
 python -m pip install .\quillan-0.10.5-py3-none-any.whl
 python -m pip install .\pds_concord-0.3.0-py3-none-any.whl
@@ -611,8 +626,8 @@ meridian --help
 The current official Core qualification artifact is:
 
 ```text
-pds_core-0.6.4-py3-none-any.whl
-SHA-256: 48cea9317f2967bdc0f2d4c14349a56677c7c3f8211f0f33978ccb1a1c75859b
+pds_core-0.6.5-py3-none-any.whl
+SHA-256: 9ace75f17b23b7f0ed6a709d531af5120db43d0325b4148d26f2d6ba1d4b3c18
 ```
 
 Do not substitute a sibling Core checkout or locally rebuilt wheel when running
@@ -660,7 +675,7 @@ From an activated repository virtual environment, run:
 
 ```powershell
 .\run_tests.ps1 `
-  -CoreWheel C:\path\to\pds_core-0.6.4-py3-none-any.whl `
+  -CoreWheel C:\path\to\pds_core-0.6.5-py3-none-any.whl `
   -ScoreFormWheel C:\path\to\scoreform-0.12.1-py3-none-any.whl `
   -QuillanWheel C:\path\to\quillan-0.10.5-py3-none-any.whl `
   -ConcordWheel C:\path\to\pds_concord-0.3.0-py3-none-any.whl

@@ -76,11 +76,11 @@ def test_distribution_dependency_direction_remains_core_plus_optional_readers() 
     )
     project = pyproject["project"]
 
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     optional = project["optional-dependencies"]
-    assert optional["scoreform"] == ["scoreform==0.12.1"]
-    assert optional["quillan"] == ["quillan==0.10.5"]
-    assert optional["concord"] == ["pds-concord==0.3.0"]
+    assert optional["scoreform"] == ["scoreform>=0.13.0"]
+    assert optional["quillan"] == ["quillan>=0.10.6"]
+    assert optional["concord"] == ["pds-concord>=0.3.2"]
 
 
 def test_producer_adapters_import_only_academic_result_read_contracts() -> None:

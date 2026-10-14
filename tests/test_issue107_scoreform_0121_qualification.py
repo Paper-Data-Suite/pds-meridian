@@ -44,19 +44,19 @@ def test_issue107_exact_upstream_release_authority_is_frozen() -> None:
     assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
         "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
     )
-    assert EXPECTED_CORE_VERSION == "0.6.4"
-    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.4-py3-none-any.whl"
+    assert EXPECTED_CORE_VERSION == "0.6.5"
+    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.5-py3-none-any.whl"
     assert EXPECTED_CORE_WHEEL_SHA256 == (
-        "48cea9317f2967bdc0f2d4c14349a56677c7c3f8211f0f33978ccb1a1c75859b"
+        "9ace75f17b23b7f0ed6a709d531af5120db43d0325b4148d26f2d6ba1d4b3c18"
     )
 
 
 def test_issue107_reader_rule_remains_exact_and_optional() -> None:
     project = tomllib.loads(_read("pyproject.toml"))["project"]
 
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     assert project["optional-dependencies"]["scoreform"] == [
-        "scoreform==0.12.1"
+        "scoreform>=0.13.0"
     ]
     assert SCOREFORM_READER_VERSION == "0.12.1"
     assert SCOREFORM_ADAPTER_DESCRIPTOR.supported_producer_reader_versions == (

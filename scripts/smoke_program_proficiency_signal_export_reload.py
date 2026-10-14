@@ -135,9 +135,9 @@ def _assert_no_concord() -> None:
 
 def _verify_installed_composition() -> None:
     expected = {
-        "pds-core": "0.6.4",
-        "scoreform": "0.12.1",
-        "quillan": "0.10.5",
+        "pds-core": "0.6.5",
+        "scoreform": "0.13.0",
+        "quillan": "0.10.6",
     }
     for distribution_name, expected_version in expected.items():
         _require(

@@ -375,6 +375,7 @@ from meridian.standards_review_workflow import (
     StandardsReviewWorkflowScopeError,
     build_standards_review_projection,
 )
+from meridian.teacher_report_cli import add_teacher_reports_cli
 from meridian.teacher_workflows import (
     TeacherWorkflowCatalog,
     teacher_workflow_catalog,
@@ -475,6 +476,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     menu_parser.set_defaults(handler=_handle_teacher_menu)
     add_reporting_snapshot_cli(groups)
+    add_teacher_reports_cli(groups)
 
     attention = groups.add_parser(
         "attention",
@@ -8920,7 +8922,7 @@ def _render_publication_list(
         return
     print(
         "publication | producer | class | work | kind | record_set/revision | "
-        "canonical_state | contract_support | adapter | reader"
+        "canonical_state | contract_support | adapter | reader_mode/state"
     )
     for observation in result.observations:
         row = observation.candidate.catalog_publication
@@ -8948,7 +8950,8 @@ def _render_publication_list(
             f"{context.publication.record_set_id}/"
             f"{context.publication.record_set_revision} | "
             f"{canonical_state_text} | {support.compatibility_state} | "
-            f"{support.adapter_state} | {support.reader_state}"
+            f"{support.adapter_state} | "
+            f"{support.reader_compatibility_mode}/{support.reader_state}"
         )
 
 
@@ -9101,13 +9104,31 @@ def _render_publication_verification(
     if support.adapter_id is not None:
         print(f"adapter id: {support.adapter_id}")
     print(f"reader: {support.reader_state}")
+    print(f"reader compatibility mode: {support.reader_compatibility_mode}")
+
     if support.reader_distribution is not None:
         print(f"reader distribution: {support.reader_distribution}")
+
     if support.installed_reader_version is not None:
         print(f"installed reader version: {support.installed_reader_version}")
-    if support.supported_reader_versions:
-        versions = ", ".join(support.supported_reader_versions)
-        print(f"supported reader versions: {versions}")
+
+    if support.reader_contract_version is not None:
+        print(f"reader contract: {support.reader_contract_version}")
+
+    if support.supported_reader_contracts:
+        contracts = ", ".join(support.supported_reader_contracts)
+        print(f"supported reader contracts: {contracts}")
+
+    if support.legacy_exact_reader_versions:
+        versions = ", ".join(support.legacy_exact_reader_versions)
+        print(f"legacy exact reader versions: {versions}")
+
+    if support.reader_compatibility_reason is not None:
+        print(
+            "reader compatibility reason: "
+            f"{support.reader_compatibility_reason}"
+        )
+
     print(f"support status: {support.overall_state}")
     if support.reason_codes:
         print(f"reason codes: {', '.join(support.reason_codes)}")

@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-10-13
+
+- Adds eight deterministic, read-only teacher reports for external-gradebook
+  reconciliation, student Grade justification, class Standards, student
+  growth, evidence coverage, checkpoint comparison, marking-period readiness,
+  and assessment participation.
+- Connects every report to the normal `9. Reports` workflow with canonical
+  class/period/student/Grade Item/checkpoint selection, bounded previews,
+  audit details, and non-overwriting JSON, Markdown, CSV, and TSV copies.
+- Keeps external-gradebook reconciliation SIS-agnostic and requires an explicit
+  versioned mapping bound to the exact proficiency scale.
+- Adopts producer-declared reader-contract compatibility while preserving the
+  bounded metadata-absent fallback for ScoreForm 0.12.1, Quillan 0.10.5, and
+  Concord 0.3.0.
+- Qualifies Core 0.6.5 with current ScoreForm 0.13.0, Quillan 0.10.6, and
+  Concord 0.3.2 artifacts across the existing six installed matrices.
+
 - Issue #110 Slice 13 adds installed end-to-end qualification for the guided
   evidence route. Exact ScoreForm 0.12.1 and Quillan 0.10.5 run separately in
   their existing prepared producer matrices with Core 0.6.4 and the candidate

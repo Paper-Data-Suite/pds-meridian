@@ -290,6 +290,27 @@ def test_reader_version_mismatch_is_not_hidden() -> None:
     assert inbox.items[0].status_label == "Reader not compatible"
 
 
+def test_contract_unsupported_stays_teacher_friendly() -> None:
+    support = replace(
+        _ready_support(),
+        reader_state="contract_unsupported",
+        installed_reader_version=None,
+        overall_state="support_unsupported",
+        reason_codes=("reader.contract_unsupported",),
+    )
+
+    observation = _observation(
+        ordinal=0,
+        publication_id="pub_45454545454545454545454545454545",
+        support=support,
+    )
+
+    inbox = project_teacher_evidence_inbox(_diagnostic(observation))
+
+    assert inbox.items[0].status_code == "reader_not_compatible"
+    assert inbox.items[0].status_label == "Reader not compatible"
+
+
 def test_candidate_drift_becomes_refresh_needed_not_ready() -> None:
     observation = _observation(
         ordinal=0,

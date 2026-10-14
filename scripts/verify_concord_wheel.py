@@ -1,4 +1,4 @@
-"""Authenticate the exact released Concord v0.3.0 wheel and installation."""
+"""Authenticate historical legacy and current contract Concord releases."""
 
 from __future__ import annotations
 
@@ -31,6 +31,15 @@ EXPECTED_CORE_REQUIREMENTS = frozenset(
         "pds-core<0.7,>=0.6.3",
     }
 )
+CURRENT_CONCORD_VERSION = "0.3.2"
+CURRENT_CONCORD_RELEASE_TAG = "v0.3.2"
+CURRENT_CONCORD_RELEASE_COMMIT = (
+    "ba69d05148c625d3440d7d26ea07193715e237e3"
+)
+CURRENT_CONCORD_WHEEL_FILENAME = "pds_concord-0.3.2-py3-none-any.whl"
+CURRENT_CONCORD_WHEEL_SHA256 = (
+    "825b27bc6142cc8bce8c3b9381a3337c4a55e983f6f3f2e7e4b1a10f980e83ce"
+)
 
 
 class ConcordVerificationError(ValueError):
@@ -62,20 +71,31 @@ def _wheel_metadata(archive: zipfile.ZipFile) -> Message:
     return BytesParser().parsebytes(archive.read(matches[0]))
 
 
-def verify_concord_wheel(path: str | Path) -> None:
-    """Authenticate the exact published Concord v0.3.0 wheel."""
+def verify_concord_wheel(path: str | Path, *, current: bool = False) -> None:
+    """Authenticate an exact published legacy or current Concord wheel."""
     wheel = Path(path)
-    if wheel.name != EXPECTED_CONCORD_WHEEL_FILENAME:
+    filename = (
+        CURRENT_CONCORD_WHEEL_FILENAME
+        if current
+        else EXPECTED_CONCORD_WHEEL_FILENAME
+    )
+    version = CURRENT_CONCORD_VERSION if current else EXPECTED_CONCORD_VERSION
+    expected_sha256 = (
+        CURRENT_CONCORD_WHEEL_SHA256
+        if current
+        else EXPECTED_CONCORD_WHEEL_SHA256
+    )
+    if wheel.name != filename:
         raise ConcordVerificationError(
-            f"Expected {EXPECTED_CONCORD_WHEEL_FILENAME!r}, got {wheel.name!r}."
+            f"Expected {filename!r}, got {wheel.name!r}."
         )
     if not wheel.is_file():
         raise ConcordVerificationError(f"Concord wheel does not exist: {wheel}")
     actual = _sha256(wheel)
-    if actual != EXPECTED_CONCORD_WHEEL_SHA256:
+    if actual != expected_sha256:
         raise ConcordVerificationError(
             "Concord wheel SHA-256 mismatch: expected "
-            f"{EXPECTED_CONCORD_WHEEL_SHA256}, got {actual}."
+            f"{expected_sha256}, got {actual}."
         )
     try:
         with zipfile.ZipFile(wheel) as archive:
@@ -94,9 +114,9 @@ def verify_concord_wheel(path: str | Path) -> None:
         raise ConcordVerificationError(
             "Concord wheel distribution name is not pds-concord."
         )
-    if metadata["Version"] != EXPECTED_CONCORD_VERSION:
+    if metadata["Version"] != version:
         raise ConcordVerificationError(
-            "Concord wheel version is not exactly 0.3.0."
+            f"Concord wheel version is not exactly {version}."
         )
     missing_members = sorted(EXPECTED_PUBLIC_MEMBERS - set(names))
     if missing_members:
@@ -109,26 +129,29 @@ def verify_concord_wheel(path: str | Path) -> None:
         for item in (metadata.get_all("Requires-Dist") or [])
         if item.replace(" ", "").lower().startswith("pds-core")
     }
+    floor = "0.6.5" if current else "0.6.3"
     if core_requirements not in (
-        {"pds-core>=0.6.3,<0.7"},
-        {"pds-core<0.7,>=0.6.3"},
+        {f"pds-core>={floor},<0.7"},
+        {f"pds-core<0.7,>={floor}"},
     ):
         raise ConcordVerificationError(
-            "Concord wheel must require exactly pds-core>=0.6.3,<0.7."
+            f"Concord wheel must require exactly pds-core>={floor},<0.7."
         )
 
 
-def verify_installed_concord() -> None:
-    """Verify the active environment resolves exact Concord v0.3.0."""
+def verify_installed_concord(*, current: bool = False) -> None:
+    """Verify the active environment resolves the requested Concord release."""
     try:
         version = importlib.metadata.version(CONCORD_DISTRIBUTION_NAME)
     except importlib.metadata.PackageNotFoundError as error:
         raise ConcordVerificationError(
             "Installed pds-concord metadata is missing."
         ) from error
-    if version != EXPECTED_CONCORD_VERSION:
+    expected_version = CURRENT_CONCORD_VERSION if current else EXPECTED_CONCORD_VERSION
+    if version != expected_version:
         raise ConcordVerificationError(
-            f"Installed pds-concord must be exactly 0.3.0; found {version}."
+            "Installed pds-concord must be exactly "
+            f"{expected_version}; found {version}."
         )
 
     import concord
@@ -162,13 +185,18 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("wheel", nargs="?", type=Path)
     parser.add_argument("--installed", action="store_true")
+    parser.add_argument(
+        "--current",
+        action="store_true",
+        help="Authenticate the current reader-contract release instead of legacy.",
+    )
     args = parser.parse_args(argv)
     if args.wheel is None and not args.installed:
         parser.error("provide a wheel path, --installed, or both")
     if args.wheel is not None:
-        verify_concord_wheel(args.wheel)
+        verify_concord_wheel(args.wheel, current=args.current)
     if args.installed:
-        verify_installed_concord()
+        verify_installed_concord(current=args.current)
     return 0
 
 

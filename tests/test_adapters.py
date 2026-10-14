@@ -8,6 +8,11 @@ from typing import Callable, cast
 
 import pytest
 from pds_core.academic_work_registrations import AcademicWorkRegistration
+from pds_core.publication_compatibility import (
+    PublicationContractSupport,
+    PublicationProducerProfile,
+    PublicationReaderSupport,
+)
 from pds_core.publication_records import PublicationRecord, PublicationWithdrawal
 from pds_core.routing_models import ModuleRecordRef, ModuleWorkRef
 
@@ -24,9 +29,11 @@ from meridian.adapters import (
     AdapterValidationError,
     DuplicateAdapterIdentityError,
     DuplicateAdapterKeyError,
+    ProducerReaderContractUnsupportedError,
     ProducerReaderUnavailableError,
     ProducerReaderVersionUnsupportedError,
     adapter_key_from_core,
+    resolve_producer_reader_compatibility,
     resolve_producer_reader_version,
 )
 from meridian.evidence import (
@@ -147,6 +154,7 @@ def descriptor(
     projection_contract_version: str = "projection_1",
     capabilities: frozenset[str] = frozenset({"points"}),
     reader_distribution: str = "synthetic-reader",
+    reader_contracts: frozenset[str] = frozenset(),
     reader_versions: frozenset[str] = frozenset({"1.0.0"}),
     interface_version: str = MERIDIAN_ADAPTER_INTERFACE_VERSION,
 ) -> AdapterDescriptor:
@@ -158,6 +166,7 @@ def descriptor(
         projection_contract_version=projection_contract_version,
         supported_capabilities=cast(object, capabilities),
         producer_reader_distribution=reader_distribution,
+        supported_producer_reader_contracts=reader_contracts,
         supported_producer_reader_versions=reader_versions,
         adapter_interface_version=interface_version,
     )
@@ -464,6 +473,120 @@ def test_reader_unavailable_is_explicit() -> None:
     with pytest.raises(ProducerReaderUnavailableError) as raised:
         resolve_producer_reader_version(descriptor(), missing)
     assert raised.value.code == "adapters.reader_unavailable"
+
+
+def _reader_profile(
+    *,
+    reader_contract: str | None,
+    distribution_name: str = "synthetic-reader",
+) -> PublicationProducerProfile:
+    reader_support = (
+        ()
+        if reader_contract is None
+        else (
+            PublicationReaderSupport(
+                manifest_contract_version="manifest_contract_1",
+                distribution_name=distribution_name,
+                reader_contract_version=reader_contract,
+            ),
+        )
+    )
+    return PublicationProducerProfile(
+        module_id="synthetic_producer",
+        display_name="Synthetic Producer",
+        supported_core_publication_schema_versions=frozenset({"1"}),
+        supported_academic_work_contract_versions=frozenset(
+            {"producer_contract_1"}
+        ),
+        publication_contracts=(
+            PublicationContractSupport(
+                publication_kind="academic_result_set",
+                manifest_contract_versions=frozenset({"manifest_contract_1"}),
+                supported_capabilities=frozenset({"points"}),
+                reader_support=reader_support,
+            ),
+        ),
+    )
+
+
+def test_contract_reader_acceptance_is_package_version_independent() -> None:
+    selected = descriptor(
+        reader_contracts=frozenset({"synthetic_reader_v1"}),
+    )
+    profile = _reader_profile(reader_contract="synthetic_reader_v1")
+
+    first = resolve_producer_reader_compatibility(
+        profile,
+        selected,
+        lambda _: "2.0.0",
+    )
+    second = resolve_producer_reader_compatibility(
+        profile,
+        selected,
+        lambda _: "9.9.9",
+    )
+
+    assert first.mode == second.mode == "contract"
+    assert first.reason_code == second.reason_code == "reader.contract_supported"
+    assert first.runtime_identity is not None
+    assert second.runtime_identity is not None
+    assert first.runtime_identity.installed_distribution_version == "2.0.0"
+    assert second.runtime_identity.installed_distribution_version == "9.9.9"
+
+
+def test_explicit_unsupported_contract_never_falls_back_to_legacy_version() -> None:
+    selected = descriptor(
+        reader_contracts=frozenset({"synthetic_reader_v1"}),
+        reader_versions=frozenset({"1.0.0"}),
+    )
+    profile = _reader_profile(reader_contract="synthetic_reader_v2")
+    resolver_called = False
+
+    def resolver(_: str) -> str:
+        nonlocal resolver_called
+        resolver_called = True
+        return "1.0.0"
+
+    compatibility = resolve_producer_reader_compatibility(
+        profile,
+        selected,
+        resolver,
+    )
+
+    assert compatibility.mode == "unsupported"
+    assert compatibility.reason_code == "reader.contract_unsupported"
+    assert resolver_called is False
+
+    with pytest.raises(ProducerReaderContractUnsupportedError):
+        resolve_producer_reader_version(
+            selected,
+            resolver,
+            producer_profile=profile,
+        )
+    assert resolver_called is False
+
+
+def test_registry_injects_exact_contract_reader_version_into_projection_request(
+) -> None:
+    selected = descriptor(
+        reader_contracts=frozenset({"synthetic_reader_v1"}),
+    )
+    profile = _reader_profile(reader_contract="synthetic_reader_v1")
+    seen_versions: list[str | None] = []
+
+    def project(value: AdapterProjectionRequest) -> EvidenceInventory:
+        seen_versions.append(value.producer_reader_version)
+        return EvidenceInventory(())
+
+    adapter = SyntheticAdapter(selected, project)
+    result = AdapterRegistry((adapter,)).invoke(
+        request(),
+        lambda _: "2.5.7",
+        producer_profile=profile,
+    )
+
+    assert result == EvidenceInventory(())
+    assert seen_versions == ["2.5.7"]
 
 
 def test_selection_does_not_resolve_or_invoke_reader() -> None:

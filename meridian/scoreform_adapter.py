@@ -44,6 +44,7 @@ __all__ = [
     "SCOREFORM_ADAPTER_ID",
     "SCOREFORM_ADAPTER_KEY",
     "SCOREFORM_PROJECTION_CONTRACT_VERSION",
+    "SCOREFORM_READER_CONTRACT",
     "SCOREFORM_READER_DISTRIBUTION",
     "SCOREFORM_READER_VERSION",
     "ScoreFormAcademicResultAdapter",
@@ -51,6 +52,7 @@ __all__ = [
 
 SCOREFORM_ADAPTER_ID: Final = "scoreform.academic_result"
 SCOREFORM_PROJECTION_CONTRACT_VERSION: Final = "1"
+SCOREFORM_READER_CONTRACT: Final = "scoreform_academic_result_reader_v1"
 SCOREFORM_READER_DISTRIBUTION: Final = "scoreform"
 SCOREFORM_READER_VERSION: Final = "0.12.1"
 _SCOREFORM_RECORD_SET_ID: Final = "academic_results"
@@ -72,7 +74,8 @@ SCOREFORM_ADAPTER_DESCRIPTOR: Final = AdapterDescriptor(
     projection_contract_version=SCOREFORM_PROJECTION_CONTRACT_VERSION,
     supported_capabilities=_SCOREFORM_CAPABILITIES,
     producer_reader_distribution=SCOREFORM_READER_DISTRIBUTION,
-    supported_producer_reader_versions=frozenset({SCOREFORM_READER_VERSION}),
+    supported_producer_reader_contracts=frozenset({SCOREFORM_READER_CONTRACT}),
+    legacy_exact_reader_versions=frozenset({SCOREFORM_READER_VERSION}),
 )
 
 
@@ -250,7 +253,8 @@ class ScoreFormAcademicResultAdapter(ProducerAdapter):
         request: AdapterProjectionRequest, manifest: AcademicResultManifest
     ) -> EvidenceInventory:
         projection = projection_identity_from_descriptor(
-            SCOREFORM_ADAPTER_DESCRIPTOR, SCOREFORM_READER_VERSION
+            SCOREFORM_ADAPTER_DESCRIPTOR,
+            request.producer_reader_version or SCOREFORM_READER_VERSION,
         )
         questions = {
             question.question_number: question

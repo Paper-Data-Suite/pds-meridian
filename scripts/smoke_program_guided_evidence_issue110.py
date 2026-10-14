@@ -87,8 +87,8 @@ def _scoreform_manifest() -> ProducerManifest:
     from scoreform import academic_result_manifest as scoreform_manifest
 
     _assert_installed_origin(scoreform)
-    if importlib.metadata.version("scoreform") != "0.12.1":
-        raise AssertionError("ScoreForm installed version must be exactly 0.12.1.")
+    if importlib.metadata.version("scoreform") != "0.13.0":
+        raise AssertionError("ScoreForm installed version must be exactly 0.13.0.")
 
     raw = (FIXTURE_DIR / "scoreform_manifest_issue110.json").read_bytes()
     manifest = scoreform_manifest.manifest_from_json_bytes(raw)
@@ -111,8 +111,8 @@ def _quillan_manifest() -> ProducerManifest:
     from quillan import academic_result_manifest as quillan_manifest
 
     _assert_installed_origin(quillan)
-    if importlib.metadata.version("quillan") != "0.10.5":
-        raise AssertionError("Quillan installed version must be exactly 0.10.5.")
+    if importlib.metadata.version("quillan") != "0.10.6":
+        raise AssertionError("Quillan installed version must be exactly 0.10.6.")
 
     raw = (FIXTURE_DIR / "quillan_manifest_issue110.json").read_bytes()
     manifest = quillan_manifest.manifest_from_json_bytes(raw)
@@ -298,8 +298,8 @@ def main(argv: list[str] | None = None) -> int:
 
     _assert_installed_origin(meridian)
     _assert_installed_origin(pds_core)
-    if importlib.metadata.version("pds-core") != "0.6.4":
-        raise AssertionError("Core installed version must be exactly 0.6.4.")
+    if importlib.metadata.version("pds-core") != "0.6.5":
+        raise AssertionError("Core installed version must be exactly 0.6.5.")
 
     _, publication_id, title = _setup_workspace(args.workspace, args.producer)
     _run_teacher_journey(

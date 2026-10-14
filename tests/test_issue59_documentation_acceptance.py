@@ -76,6 +76,6 @@ def test_issue59_final_repository_qualification_reaches_installed_core_smoke() -
     assert "run_core_program_smokes" in runner
     assert "ISSUE59_OPERATIONS_PROGRAM" in core_programs
     assert "issue59-operations" in core_programs
-    assert 'metadata.version("pds-core") != "0.6.4"' in installed_smoke
+    assert 'metadata.version("pds-core") != "0.6.5"' in installed_smoke
     assert "paper_data_suite" in installed_smoke
     assert "meridian.cli:main" in installed_smoke

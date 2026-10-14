@@ -199,17 +199,27 @@ These are different keys and never fall back to one another.
 - adapter-interface version;
 - projection contract version;
 - supported Core publication capabilities;
-- producer-reader distribution name; and
-- exact supported producer-reader distribution versions.
+- producer-reader distribution name;
+- supported public producer-reader contract identities; and
+- a bounded set of historically qualified legacy exact reader versions.
 
 The adapter ID becomes the evidence `ProjectionIdentity.projection_id`.
 
 The projection contract version identifies Meridian's projection semantics. It
 is not the producer manifest version or reader package version.
 
-Reader versions are an explicit nonempty set of exact tested distribution
-versions. The registry does not use version ranges and does not add a runtime
-version-parsing dependency.
+Reader contracts and exact installed versions are separate identities. Explicit
+producer reader metadata is the preferred compatibility authority; when present,
+its manifest-bound reader contract must be supported by the descriptor and no
+legacy fallback is allowed. The legacy table applies only when reader metadata
+is absent and contains only exact historically qualified distribution versions.
+
+The installed distribution version is resolved after semantic compatibility and
+is carried through `AdapterProjectionRequest` into `ProjectionIdentity`. This
+preserves exact execution/cache provenance without turning package versions into
+the contract compatibility allowlist. `supported_producer_reader_versions`
+remains a temporary source-compatibility alias for the bounded legacy table
+during the #111 migration.
 
 ## Capability semantics
 

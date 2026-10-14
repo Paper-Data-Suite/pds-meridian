@@ -293,8 +293,15 @@ def _status_code(
         return "compatibility_unavailable"
     if support.reader_state == "unavailable":
         return "reader_unavailable"
-    if support.reader_state == "version_unsupported":
+    if support.reader_state in {
+        "version_unsupported",
+        "contract_unsupported",
+    }:
         return "reader_not_compatible"
+
+    if support.reader_state == "metadata_invalid":
+        return "compatibility_unavailable"
+
     if support.overall_state == "support_unsupported":
         return "not_supported"
     if support.overall_state in {"support_unavailable", "support_unverifiable"}:

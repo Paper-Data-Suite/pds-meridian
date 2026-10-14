@@ -82,6 +82,7 @@ def validate(
             python,
             "scripts/verify_scoreform_wheel.py",
             str(scoreform),
+            "--current",
             "--installed",
         ]
     )
@@ -90,6 +91,7 @@ def validate(
             python,
             "scripts/verify_quillan_wheel.py",
             str(quillan),
+            "--current",
             "--installed",
         ]
     )
@@ -98,6 +100,7 @@ def validate(
             python,
             "scripts/verify_concord_wheel.py",
             str(concord),
+            "--current",
             "--installed",
         ]
     )

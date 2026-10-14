@@ -27,7 +27,7 @@ def test_issue59_keeps_existing_core_floor_and_no_suite_dependency() -> None:
     with Path("pyproject.toml").open("rb") as source:
         project = tomllib.load(source)["project"]
 
-    assert project["dependencies"] == ["pds-core>=0.6.3,<0.7"]
+    assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     assert all(
         "paper-data-suite" not in dependency
         for dependency in project["dependencies"]

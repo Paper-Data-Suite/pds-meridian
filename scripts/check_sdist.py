@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.3.1"
+EXPECTED_VERSION = "0.4.0"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -25,10 +25,23 @@ REQUIRED_MEMBERS = frozenset(
         "README",
         "Security.md",
         "pyproject.toml",
+        "docs/architecture/teacher-report-live-discovery.md",
+        "docs/teacher-reporting-quick-guide.md",
+        "meridian/report_live_catalog.py",
+        "meridian/report_menu_execution.py",
+        "tests/test_report_live_catalog_issue111.py",
+        "tests/test_teacher_report_menu_end_to_end_issue111.py",
+        "tests/test_report_menu_execution_adversarial_issue111.py",
+        "tests/test_issue111_current_producer_artifacts.py",
+        "tests/test_v040_release_preparation.py",
+        "docs/architecture/teacher-report-guided-selection.md",
+        "meridian/report_guided_selection.py",
+        "tests/test_report_guided_selection_issue111.py",
         "docs/README.md",
         "docs/development/v0.2.0-release-notes.md",
         "docs/development/v0.3.0-release-notes.md",
         "docs/development/v0.3.1-release-notes.md",
+        "docs/development/v0.4.0-release-notes.md",
         "docs/development/installed-qualification-matrix.md",
         "docs/architecture/attempt-selection-policy-and-decisions.md",
         "docs/architecture/evidence-eligibility-decisions.md",
@@ -595,6 +608,13 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_cli_new_evidence_workflow.py",
         "tests/test_cli_new_evidence_eligibility_authoring.py",
         "tests/test_cli_new_evidence_eligibility_selection.py",
+        "docs/architecture/marking-period-readiness-assessment-impact.md",
+        "meridian/assessment_impact.py",
+        "meridian/marking_period_readiness.py",
+        "meridian/readiness_impact_reporting_cli.py",
+        "tests/test_assessment_impact_issue111.py",
+        "tests/test_marking_period_readiness_issue111.py",
+        "tests/test_readiness_impact_reporting_cli_issue111.py",
         "tests/test_grade_items_workflow.py",
         "tests/test_grade_item_authoring_workflow.py",
         "tests/test_grade_item_selection_workflow.py",
@@ -615,6 +635,7 @@ FORBIDDEN_EXACT_MEMBERS = frozenset(
         "docs/development/v0.2.0-release-audit.md",
         "docs/development/v0.3.0-release-audit.md",
         "docs/development/v0.3.1-release-audit.md",
+        "docs/development/v0.4.0-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (

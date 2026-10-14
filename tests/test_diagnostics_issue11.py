@@ -10,6 +10,7 @@ from pds_core.publication_compatibility import (
     PublicationContractSupport,
     PublicationProducerProfile,
     PublicationProducerRegistry,
+    PublicationReaderSupport,
 )
 from pds_core.publication_records import PublicationRecord
 from pds_core.routing_models import ModuleWorkRef
@@ -117,7 +118,11 @@ def catalog_row(pub: PublicationRecord | None = None) -> CatalogPublication:
 
 
 class SyntheticAdapter:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        reader_contracts: frozenset[str] = frozenset(),
+    ) -> None:
         self.calls = 0
         self._descriptor = AdapterDescriptor(
             adapter_id="synthetic.adapter",
@@ -132,6 +137,7 @@ class SyntheticAdapter:
             projection_contract_version="1",
             supported_capabilities=frozenset({"points"}),
             producer_reader_distribution="synthetic-reader",
+            supported_producer_reader_contracts=reader_contracts,
             supported_producer_reader_versions=frozenset({"1.0.0"}),
         )
 
@@ -145,8 +151,22 @@ class SyntheticAdapter:
 
 
 def producer_registry(
-    *, manifest_version: str = "synthetic_manifest_v1"
+    *,
+    manifest_version: str = "synthetic_manifest_v1",
+    reader_contract: str | None = None,
 ) -> PublicationProducerRegistry:
+    reader_support = (
+        ()
+        if reader_contract is None
+        else (
+            PublicationReaderSupport(
+                manifest_contract_version=manifest_version,
+                distribution_name="synthetic-reader",
+                reader_contract_version=reader_contract,
+            ),
+        )
+    )
+
     return PublicationProducerRegistry(
         (
             PublicationProducerProfile(
@@ -161,6 +181,7 @@ def producer_registry(
                         frozenset({"points"}),
                         (),
                         True,
+                        reader_support,
                     ),
                 ),
             ),
@@ -194,6 +215,10 @@ def test_support_diagnostics_are_metadata_only() -> None:
     assert result.adapter_state == "supported"
     assert result.adapter_id == "synthetic.adapter"
     assert result.reader_state == "ready"
+    assert result.reader_compatibility_mode == "legacy_exact"
+    assert result.reader_compatibility_reason == (
+        "reader.metadata_absent_legacy_exact_supported"
+    )
     assert result.installed_reader_version == "1.0.0"
     assert result.reason_codes == ()
     assert adapter.calls == 0
@@ -209,8 +234,12 @@ def test_reader_unavailable_is_distinct_from_unsupported_contract() -> None:
         context(), dependencies(adapter, resolver=missing)
     )
     assert result.reader_state == "unavailable"
+    assert result.reader_compatibility_mode == "unavailable"
+    assert result.reader_compatibility_reason == (
+        "reader.distribution_unavailable"
+    )
     assert result.overall_state == "support_unavailable"
-    assert result.reason_codes == ("adapters.reader_unavailable",)
+    assert result.reason_codes == ("reader.distribution_unavailable",)
     assert adapter.calls == 0
 
 
@@ -224,10 +253,41 @@ def test_reader_wrong_version_is_reported_without_fallback() -> None:
         context(), dependencies(adapter, resolver=wrong)
     )
     assert result.reader_state == "version_unsupported"
+    assert result.reader_compatibility_mode == "unsupported"
+    assert result.reader_compatibility_reason == (
+        "reader.metadata_absent_legacy_exact_unsupported"
+    )
     assert result.installed_reader_version == "2.0.0"
     assert result.supported_reader_versions == ("1.0.0",)
     assert result.overall_state == "support_unsupported"
-    assert result.reason_codes == ("adapters.reader_version_unsupported",)
+    assert result.reason_codes == (
+        "reader.metadata_absent_legacy_exact_unsupported",
+    )
+
+
+def test_contract_reader_is_package_version_independent() -> None:
+    adapter = SyntheticAdapter(
+        reader_contracts=frozenset({"synthetic_reader_v1"})
+    )
+
+    result = diagnostics.diagnose_publication_support(
+        context(),
+        dependencies(
+            adapter,
+            registry=producer_registry(
+                reader_contract="synthetic_reader_v1"
+            ),
+            resolver=lambda _name: "9.9.9",
+        ),
+    )
+
+    assert result.overall_state == "support_ready"
+    assert result.reader_state == "ready"
+    assert result.reader_compatibility_mode == "contract"
+    assert result.reader_contract_version == "synthetic_reader_v1"
+    assert result.supported_reader_contracts == ("synthetic_reader_v1",)
+    assert result.installed_reader_version == "9.9.9"
+    assert result.reader_compatibility_reason == "reader.contract_supported"
 
 
 def test_profile_incompatibility_preserves_core_contract_codes() -> None:

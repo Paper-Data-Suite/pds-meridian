@@ -50,6 +50,7 @@ def _dependencies(
         snapshots=handler("snapshots"),
         export=handler("export"),
         explain=handler("explain"),
+        reports=handler("reports"),
     )
 
 
@@ -65,6 +66,7 @@ def test_teacher_menu_catalog_has_exact_issue57_order() -> None:
         (6, "snapshots", "Snapshots"),
         (7, "export", "Export"),
         (8, "explain", "Explain"),
+        (9, "reports", "Reports"),
     )
 
 
@@ -102,6 +104,7 @@ def test_main_menu_is_low_density_and_has_only_valid_top_navigation() -> None:
         ("6", "snapshots"),
         ("7", "export"),
         ("8", "explain"),
+        ("9", "reports"),
     ],
 )
 def test_numbered_choice_dispatches_by_symbolic_task_identity(
@@ -150,7 +153,7 @@ def test_invalid_choice_pauses_then_redraws() -> None:
         clear_fn=lambda: None,
     ) == 0
 
-    assert "Please choose 1-8, H, or Q." in output.getvalue()
+    assert "Please choose 1-9, H, or Q." in output.getvalue()
 
 
 def test_return_to_main_menu_unwinds_nested_task() -> None:

@@ -195,6 +195,7 @@ def _run_projection(
     return diagnostics.adapter_registry.invoke(
         prepared.projection_request,
         diagnostics.distribution_version_resolver,
+        producer_profile=prepared.producer_profile,
     )
 
 

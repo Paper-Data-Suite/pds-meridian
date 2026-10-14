@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
+from importlib import metadata
 from pathlib import Path
 
 import pytest
@@ -140,13 +141,18 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
 
     versions = {
         "scoreform": "0.12.1",
-        "quillan": "0.10.1",
         "pds-concord": "0.3.0",
     }
+
+    def resolve_version(distribution_name: str) -> str:
+        if distribution_name == "quillan":
+            raise metadata.PackageNotFoundError(distribution_name)
+        return versions[distribution_name]
+
     dependencies = diagnostics.DiagnosticsDependencies(
         producer_registry=mixed.producer_registry,
         adapter_registry=mixed.adapter_registry,
-        distribution_version_resolver=versions.__getitem__,
+        distribution_version_resolver=resolve_version,
     )
     request = ingestion.PublicationDiscoveryRequest(
         PublicationCatalogQuery(
@@ -178,10 +184,10 @@ def test_mixed_diagnostics_keep_reader_failure_local_to_one_publication(
     assert scoreform.reader_state == "ready"
     assert scoreform.installed_reader_version == "0.12.1"
 
-    assert quillan.overall_state == "support_unsupported"
-    assert quillan.reader_state == "version_unsupported"
-    assert quillan.installed_reader_version == "0.10.1"
-    assert quillan.reason_codes == ("adapters.reader_version_unsupported",)
+    assert quillan.overall_state == "support_unavailable"
+    assert quillan.reader_state == "unavailable"
+    assert quillan.installed_reader_version is None
+    assert quillan.reason_codes == ("reader.distribution_unavailable",)
 
     assert concord.overall_state == "support_ready"
     assert concord.reader_state == "ready"

@@ -97,10 +97,10 @@ def _require(condition: bool, message: str) -> None:
 def _verify_installed() -> None:
     issue54._verify_installed_composition()
     expected = {
-        "pds-core": "0.6.4",
-        "scoreform": "0.12.1",
-        "quillan": "0.10.5",
-        "pds-concord": "0.3.0",
+        "pds-core": "0.6.5",
+        "scoreform": "0.13.0",
+        "quillan": "0.10.6",
+        "pds-concord": "0.3.2",
     }
     for distribution, version in expected.items():
         _require(
@@ -519,6 +519,7 @@ def _concord_state(workspace: Path) -> dict[str, object]:
     inventory = adapter_registry.invoke(
         prepared.projection_request,
         issue54.issue45.installed_distribution_version,
+        producer_profile=prepared.producer_profile,
     )
     groups = tuple(
         item for item in inventory.items if item.target.target_kind == "concord_group"

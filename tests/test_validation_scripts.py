@@ -128,27 +128,36 @@ def test_package_checker_rejects_invalid_archive(tmp_path: Path) -> None:
 def test_ci_wires_exact_scoreform_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-scoreform/releases/download/v0.12.1/scoreform-0.12.1-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.13.0/scoreform-0.13.0-py3-none-any.whl"
     ) in workflow
-    assert 'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL"' in workflow
+    assert (
+        'python scripts/verify_scoreform_wheel.py "$env:SCOREFORM_WHEEL" --current'
+        in workflow
+    )
     assert '--scoreform-wheel "$env:SCOREFORM_WHEEL"' in workflow
 
 
 def test_ci_wires_exact_quillan_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-quillan/releases/download/v0.10.5/quillan-0.10.5-py3-none-any.whl"
+        "pds-quillan/releases/download/v0.10.6/quillan-0.10.6-py3-none-any.whl"
     ) in workflow
-    assert 'python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL"' in workflow
+    assert (
+        'python scripts/verify_quillan_wheel.py "$env:QUILLAN_WHEEL" --current'
+        in workflow
+    )
     assert '--quillan-wheel "$env:QUILLAN_WHEEL"' in workflow
 
 
 def test_ci_wires_exact_concord_release_artifact() -> None:
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-concord/releases/download/v0.3.0/pds_concord-0.3.0-py3-none-any.whl"
+        "pds-concord/releases/download/v0.3.2/pds_concord-0.3.2-py3-none-any.whl"
     ) in workflow
-    assert 'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL"' in workflow
+    assert (
+        'python scripts/verify_concord_wheel.py "$env:CONCORD_WHEEL" --current'
+        in workflow
+    )
     assert '".[dev,scoreform,quillan,concord]"' in workflow
     assert '--concord-wheel "$env:CONCORD_WHEEL"' in workflow
 
@@ -159,7 +168,7 @@ def test_base_wheel_smoke_quits_interactive_teacher_menu_entrypoints() -> None:
     assert '([str(meridian)], "q\\n")' in smoke
     assert '([str(python), "-m", "meridian"], "q\\n")' in smoke
     assert "_run(command, outside, input_text=input_text)" in smoke
-    assert smoke.count("assert m.version('quillan') == '0.10.5'; ") == 2
+    assert smoke.count("assert m.version('quillan') == '0.10.6'; ") == 2
     assert "assert m.version('quillan') == '0.10.3'; " not in smoke
     assert "assert m.version('quillan') == '0.10.2'; " not in smoke
     assert "assert m.version('quillan') == '0.10.1'; " not in smoke
@@ -232,7 +241,7 @@ def test_grouping_signal_contract_ci_uses_exact_core_release_and_validator() -> 
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
 
     assert (
-        "pds-core/releases/download/v0.6.4/pds_core-0.6.4-py3-none-any.whl"
+        "pds-core/releases/download/v0.6.5/pds_core-0.6.5-py3-none-any.whl"
     ) in workflow
     assert 'python scripts/verify_core_wheel.py "$env:PDS_CORE_WHEEL"' in workflow
     assert "python scripts/validate_repository.py" in workflow

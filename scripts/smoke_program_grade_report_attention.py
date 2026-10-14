@@ -135,12 +135,12 @@ def _tree_state(root: Path) -> tuple[tuple[str, str], ...]:
 
 def _assert_installed_boundary() -> None:
     _require(
-        metadata.version("pds-core") == "0.6.4",
-        "Issue #58 installed smoke requires exact Core 0.6.4.",
+        metadata.version("pds-core") == "0.6.5",
+        "Issue #58 installed smoke requires exact Core 0.6.5.",
     )
     _require(
-        metadata.version("pds-meridian") == "0.3.1",
-        "Issue #58 installed smoke requires candidate Meridian 0.3.1.",
+        metadata.version("pds-meridian") == "0.4.0",
+        "Issue #58 installed smoke requires candidate Meridian 0.4.0.",
     )
     for name in SIBLING_MODULES:
         _require(
