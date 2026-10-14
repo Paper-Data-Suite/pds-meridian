@@ -2,9 +2,9 @@
 
 Meridian is an installable Python package for teacher-controlled evidence, Grade, and reporting workflows. Its outputs remain advisory and do not constitute official SIS or district gradebook records.
 
-Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
-owns the next feature release, expected to be v0.4.0; that release is not yet
-qualified or published.
+Meridian v0.4.0 is the Issue #111 feature-release candidate. It adds the
+teacher-facing reporting suite while preserving the released v0.3 authority
+boundaries and immutable historical release evidence.
 
 Current Issue #111 development requires Core v0.6.5 and uses manifest-bound,
 producer-declared reader contracts for ScoreForm v0.13.0, Quillan v0.10.6, and
@@ -19,8 +19,7 @@ selection. The normal `9. Reports` route confirms context, generates a read-only
 preview, and can create a verified non-overwriting local teacher copy in JSON,
 Markdown, CSV, or TSV. See the
 [teacher reporting quick guide](docs/teacher-reporting-quick-guide.md).
-Repository-wide and installed-package qualification remains pending, and the
-reports do not finalize or write SIS grades.
+The reports do not finalize or write SIS grades.
 
 v0.3 adds conventional, standards-based, profile-constrained, and hybrid Grades;
 immutable teacher Grade overrides; deterministic Grade/report explanations;

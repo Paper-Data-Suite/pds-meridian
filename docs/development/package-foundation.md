@@ -2,12 +2,10 @@
 
 ## Status
 
-Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
-owns the next feature release, expected to be v0.4.0, while preserving the
+Meridian v0.4.0 is the Issue #111 feature-release candidate. It preserves the
 released v0.3 teacher-controlled evidence-policy, standards-proficiency, Grade,
 explanation, reporting, attention, and planning authority boundaries. Released
-v0.3.1, v0.3.0, v0.2.0, and v0.1.1 packages remain historical release
-foundations.
+v0.3.1, v0.3.0, v0.2.0, and v0.1.1 packages remain historical foundations.
 
 The v0.3 package retains publication/evidence and proficiency authority while
 adding conventional, standards-based, profile-constrained, and hybrid Grades,
@@ -20,9 +18,9 @@ Suite readiness integration, and bounded canonical storage paths.
 - Python 3.11 or later
 - the authenticated `pds-core` v0.6 line
 - the exact Core v0.6.5 wheel for current qualification
-- the exact authenticated ScoreForm v0.12.1 wheel for adapter validation
-- the exact authenticated Quillan v0.10.5 wheel for adapter validation
-- the exact authenticated Concord v0.3.0 wheel for adapter validation
+- the exact authenticated ScoreForm v0.13.0 wheel for current qualification
+- the exact authenticated Quillan v0.10.6 wheel for current qualification
+- the exact authenticated Concord v0.3.2 wheel for current qualification
 
 The runtime dependency is:
 

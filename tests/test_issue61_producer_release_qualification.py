@@ -95,7 +95,7 @@ def test_issue61_promotion_requires_completed_substantive_audit() -> None:
         REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.3.1"' in version_file
+    assert '__version__: Final[str] = "0.4.0"' in version_file
     assert "Substantive blocker count: **0**" in audit
     assert "Release-preparation authorization: **AUTHORIZED**" in audit
     assert "Version promotion to `0.3.0`: **COMPLETED**" in audit

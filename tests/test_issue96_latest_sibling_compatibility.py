@@ -66,10 +66,10 @@ def test_issue111_preserves_legacy_fixture_and_uses_current_installed_quillan() 
     assert 'metadata.version("quillan") == "0.10.6"' in issue52
 
 
-def test_issue96_package_metadata_test_tracks_quillan_0105() -> None:
+def test_issue111_package_metadata_test_tracks_current_quillan_floor() -> None:
     package_test = Path("tests/test_package_metadata.py").read_text(
         encoding="utf-8"
     )
 
-    assert 'quillan==0.10.5; extra == \'quillan\'' in package_test
+    assert 'quillan>=0.10.6; extra == \'quillan\'' in package_test
     assert 'quillan==0.10.3; extra == \'quillan\'' not in package_test

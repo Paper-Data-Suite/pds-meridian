@@ -1,15 +1,14 @@
 # Meridian documentation
 
-Meridian v0.3.1 is the released baseline for Issue #111 development. Issue #111
-owns the next feature release, expected to be v0.4.0, while preserving the
-released v0.3 authority boundaries; v0.4.0 has not yet been published.
+Meridian v0.4.0 is the Issue #111 feature-release candidate. It preserves the
+released v0.3 authority boundaries and immutable historical release evidence.
 
 Issue #111 now uses Core v0.6.5 and manifest-bound producer reader contracts
 for ScoreForm v0.13.0, Quillan v0.10.6, and Concord v0.3.2. Previously
 qualified exact readers (0.12.1, 0.10.5, and 0.3.0, respectively) remain in
 the bounded metadata-absent legacy path. Optional producer dependencies use
 contract-advertising release floors; exact runtime versions remain projection
-provenance. Slice 11 report integration is under qualification, not release.
+provenance.
 
 The Meridian v0.3.1 release was qualified against exact ScoreForm v0.12.1,
 Quillan v0.10.5, and Concord v0.3.0 reader artifacts. Those versions remain
@@ -259,6 +258,8 @@ For the normal teacher workflow, start with the
 55. [v0.3.0 release audit](development/v0.3.0-release-audit.md)
 56. [v0.3.1 release notes](development/v0.3.1-release-notes.md)
 57. [v0.3.1 compatibility release preparation](development/v0.3.1-release-audit.md)
+58. [v0.4.0 release notes](development/v0.4.0-release-notes.md)
+59. [v0.4.0 release audit](development/v0.4.0-release-audit.md)
 
 
 ## Development foundation

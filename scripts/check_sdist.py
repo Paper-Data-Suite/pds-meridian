@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.3.1"
+EXPECTED_VERSION = "0.4.0"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -33,6 +33,7 @@ REQUIRED_MEMBERS = frozenset(
         "tests/test_teacher_report_menu_end_to_end_issue111.py",
         "tests/test_report_menu_execution_adversarial_issue111.py",
         "tests/test_issue111_current_producer_artifacts.py",
+        "tests/test_v040_release_preparation.py",
         "docs/architecture/teacher-report-guided-selection.md",
         "meridian/report_guided_selection.py",
         "tests/test_report_guided_selection_issue111.py",
@@ -40,6 +41,7 @@ REQUIRED_MEMBERS = frozenset(
         "docs/development/v0.2.0-release-notes.md",
         "docs/development/v0.3.0-release-notes.md",
         "docs/development/v0.3.1-release-notes.md",
+        "docs/development/v0.4.0-release-notes.md",
         "docs/development/installed-qualification-matrix.md",
         "docs/architecture/attempt-selection-policy-and-decisions.md",
         "docs/architecture/evidence-eligibility-decisions.md",
@@ -633,6 +635,7 @@ FORBIDDEN_EXACT_MEMBERS = frozenset(
         "docs/development/v0.2.0-release-audit.md",
         "docs/development/v0.3.0-release-audit.md",
         "docs/development/v0.3.1-release-audit.md",
+        "docs/development/v0.4.0-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (
