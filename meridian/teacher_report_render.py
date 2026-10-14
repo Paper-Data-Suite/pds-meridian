@@ -46,13 +46,11 @@ def render_teacher_report_markdown(value: TeacherReportPreview) -> bytes:
     ]
     if preview.summary:
         lines.extend(["", "## Summary", "", *preview.summary])
-    lines.extend(["", "## Report", ""])
-    headers = [item.title for item in preview.columns]
-    lines.append("| " + " | ".join(_md(item) for item in headers) + " |")
-    lines.append("| " + " | ".join("---" for _ in headers) + " |")
-    for row in preview.rows:
-        values = ["" if item is None else item for item in row.values]
-        lines.append("| " + " | ".join(_md(item) for item in values) + " |")
+    if preview.report_kind == "benchmark_analysis_instructional_response":
+        _append_benchmark_sections(lines, preview)
+    else:
+        lines.extend(["", "## Report", ""])
+        _append_table(lines, preview)
     if preview.diagnostics:
         lines.extend(["", "## Diagnostics", ""])
         for item in preview.diagnostics:
@@ -61,11 +59,40 @@ def render_teacher_report_markdown(value: TeacherReportPreview) -> bytes:
         [
             "",
             "_Meridian teacher report. This local artifact does not prove that "
-            "an SIS, LMS, or district gradebook was updated._",
+            "an SIS, LMS, or district gradebook was updated, or that this plan "
+            "was officially submitted or approved._",
             "",
         ]
     )
     return "\n".join(lines).encode("utf-8")
+
+
+def _append_table(lines: list[str], preview: TeacherReportPreview) -> None:
+    headers = [item.title for item in preview.columns]
+    lines.append("| " + " | ".join(_md(item) for item in headers) + " |")
+    lines.append("| " + " | ".join("---" for _ in headers) + " |")
+    for row in preview.rows:
+        values = ["" if item is None else item for item in row.values]
+        lines.append("| " + " | ".join(_md(item) for item in values) + " |")
+
+
+def _append_benchmark_sections(
+    lines: list[str], preview: TeacherReportPreview
+) -> None:
+    """Give the planner a print-friendly four-section Markdown layout."""
+    sections: dict[str, list[tuple[str | None, ...]]] = {}
+    for row in preview.rows:
+        section = row.values[0]
+        if section is not None:
+            sections.setdefault(section, []).append(row.values[1:])
+    headings = [item.title for item in preview.columns[1:]]
+    for section, rows in sections.items():
+        lines.extend(["", f"## {section}", ""])
+        lines.append("| " + " | ".join(_md(item) for item in headings) + " |")
+        lines.append("| " + " | ".join("---" for _ in headings) + " |")
+        for values_row in rows:
+            values = ["" if item is None else item for item in values_row]
+            lines.append("| " + " | ".join(_md(item) for item in values) + " |")
 
 
 def _render_delimited(preview: TeacherReportPreview, delimiter: str) -> bytes:

@@ -55,9 +55,9 @@ class Catalog:
         return options[scope]
 
 
-def test_eight_guides_use_sis_neutral_teacher_questions() -> None:
-    assert len(REPORT_GUIDES) == 8
-    assert len({guide.report_kind for guide in REPORT_GUIDES}) == 8
+def test_nine_guides_use_sis_neutral_teacher_questions() -> None:
+    assert len(REPORT_GUIDES) == 9
+    assert len({guide.report_kind for guide in REPORT_GUIDES}) == 9
     assert all(guide.scopes[:2] == ("class", "period") for guide in REPORT_GUIDES)
     assert "my gradebook" in REPORT_GUIDES[0].question
     assert "Genesis" not in str(REPORT_GUIDES)

@@ -24,6 +24,7 @@ EXPECTED = (
     Path("docs/development/v0.3.0-release-notes.md"),
     Path("docs/development/v0.3.1-release-notes.md"),
     Path("docs/development/v0.4.0-release-notes.md"),
+    Path("docs/development/v0.4.1-release-notes.md"),
     Path("docs/development/installed-qualification-matrix.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),
@@ -73,6 +74,8 @@ EXPECTED = (
     Path("docs/architecture/reporting-snapshots.md"),
     Path("docs/architecture/reporting-exports.md"),
     Path("docs/architecture/teacher-main-menu.md"),
+    Path("docs/architecture/teacher-local-publication-authorization.md"),
+    Path("docs/architecture/benchmark-analysis-and-instructional-response.md"),
     Path("docs/decisions/README.md"),
     Path(
         "docs/decisions/"
@@ -264,7 +267,7 @@ REQUIRED_TEXT = {
         "reporting-exports.md",
         "0.1.1",
         "pds-core>=0.6.3,<0.7",
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate",
+        "Meridian v0.4.1 implements Issue #115",
         "Issue #49 now implements versioned Grade-policy models",
         "Core v0.6.0 and Quillan v0.9.0",
         "Core v0.6.3",
@@ -324,7 +327,7 @@ REQUIRED_TEXT = {
         "pds-core>=0.6.3,<0.7",
         "scoreform==0.11.0",
         "pds-concord==0.3.0",
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate",
+        "Meridian v0.4.1 implements Issue #115",
         "Issue #49 implements the versioned Grade-policy model/storage layer",
         "Issue #56",
         "reporting-exports.md",
@@ -929,7 +932,7 @@ REQUIRED_TEXT = {
         "v0.2 stops before Grade preview and issued reporting",
     ),
     Path("docs/development/package-foundation.md"): (
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate",
+        "Meridian v0.4.1 implements Issue #115",
         "Core v0.6.5",
         "ScoreForm v0.13.0",
         "Quillan v0.10.6",

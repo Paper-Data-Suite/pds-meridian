@@ -36,7 +36,7 @@ from meridian.report_menu_execution import (
 from meridian.teacher_report import TeacherReportPreview
 from meridian.teacher_report_render import render_teacher_report
 
-# Retained for API and historical report-family identity compatibility.
+# Reports 1-8 retain their historical identity and position; report 9 is append-only.
 REPORT_MENU_TITLES: Final[tuple[str, ...]] = (
     "SIS Gradebook Reconciliation",
     "Student Current Grade Justification",
@@ -46,6 +46,7 @@ REPORT_MENU_TITLES: Final[tuple[str, ...]] = (
     "Grade Checkpoint Comparison",
     "Marking-Period Readiness",
     "Grade Item / Assessment Impact",
+    "Benchmark Analysis & Instructional Response",
 )
 
 SelectionHandler = Callable[[ReportPreparedSelection], TeacherReportPreview | None]
@@ -333,7 +334,7 @@ def run_reports_menu(
     on_prepared: SelectionHandler | None = None,
     executor: LiveReportMenuExecutor | None = None,
 ) -> None:
-    """Show eight teacher-facing questions, preserving Core B/M/Q semantics."""
+    """Show nine teacher-facing questions, preserving Core B/M/Q semantics."""
     stream = sys.stdout if output is None else output
     active_catalog = LiveReportChoiceCatalog() if catalog is None else catalog
     live_executor = (
@@ -365,7 +366,7 @@ def run_reports_menu(
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or not choice:
             return
-        if choice in {str(number) for number in range(1, 9)}:
+        if choice in {str(number) for number in range(1, 10)}:
             _report_detail(
                 index=int(choice) - 1,
                 catalog=active_catalog,
@@ -376,7 +377,7 @@ def run_reports_menu(
                 revalidate=revalidate,
             )
             continue
-        write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+        write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
 
 
 __all__ = ("REPORT_MENU_TITLES", "run_reports_menu")

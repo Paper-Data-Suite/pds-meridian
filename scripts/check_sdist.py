@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.4.0"
+EXPECTED_VERSION = "0.4.1"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -26,13 +26,20 @@ REQUIRED_MEMBERS = frozenset(
         "Security.md",
         "pyproject.toml",
         "docs/architecture/teacher-report-live-discovery.md",
+        "docs/architecture/teacher-local-publication-authorization.md",
+        "docs/architecture/benchmark-analysis-and-instructional-response.md",
         "docs/teacher-reporting-quick-guide.md",
+        "meridian/benchmark_analysis.py",
+        "meridian/benchmark_plan_storage.py",
+        "meridian/publication_authorization.py",
         "meridian/report_live_catalog.py",
         "meridian/report_menu_execution.py",
         "tests/test_report_live_catalog_issue111.py",
         "tests/test_teacher_report_menu_end_to_end_issue111.py",
         "tests/test_report_menu_execution_adversarial_issue111.py",
         "tests/test_issue111_current_producer_artifacts.py",
+        "tests/test_benchmark_analysis_issue115.py",
+        "tests/test_publication_authorization_issue115.py",
         "tests/test_v040_release_preparation.py",
         "docs/architecture/teacher-report-guided-selection.md",
         "meridian/report_guided_selection.py",
@@ -42,6 +49,7 @@ REQUIRED_MEMBERS = frozenset(
         "docs/development/v0.3.0-release-notes.md",
         "docs/development/v0.3.1-release-notes.md",
         "docs/development/v0.4.0-release-notes.md",
+        "docs/development/v0.4.1-release-notes.md",
         "docs/development/installed-qualification-matrix.md",
         "docs/architecture/attempt-selection-policy-and-decisions.md",
         "docs/architecture/evidence-eligibility-decisions.md",

@@ -773,11 +773,21 @@ def build_builtin_adapter_registry() -> AdapterRegistry:
 def default_diagnostics_dependencies(
     *,
     authorizer: PublicationAuthorizer | None = None,
+    workspace_root: str | Path | None = None,
     distribution_version_resolver: DistributionVersionResolver = (
         installed_distribution_version
     ),
 ) -> DiagnosticsDependencies:
     """Discover Core producer profiles only for an actual data-command invocation."""
+    if authorizer is None:
+        # Resolve configuration lazily so parser construction remains free of I/O.
+        from meridian.publication_authorization import (
+            resolve_configured_publication_authorizer,
+        )
+
+        authorizer = resolve_configured_publication_authorizer(
+            workspace_root=workspace_root
+        )
     try:
         adapter_registry = build_builtin_adapter_registry()
     except (AdapterRegistryError, AdapterValidationError) as error:

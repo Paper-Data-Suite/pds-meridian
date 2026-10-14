@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-10-14
+
+- Fixes normal installed authorization bootstrap with a workspace-bound,
+  teacher-local policy file while preserving explicit dependency injection and
+  fail-closed behavior for missing, invalid, denied, withdrawn, or mismatched
+  authorization state.
+- Adds the ninth district-neutral **Benchmark Analysis & Instructional Response
+  Planner** without changing report positions 1-8 or introducing a mandatory
+  proficiency scale or instructional grouping.
+- Preserves native score/proficiency semantics and distinct roster, expected,
+  tested, valid, missing, unassessed, invalid, blank, and ambiguous
+  denominators. Optional groups such as Bubble remain teacher-authored and do
+  not alter authoritative proficiency.
+- Adds four-section Markdown plus deterministic JSON/CSV/TSV rendering,
+  append-only confirmed plan revisions, reassessment observations, and explicit
+  non-causality and non-SIS notices.
+
 ## 0.4.0 - 2026-10-13
 
 - Adds eight deterministic, read-only teacher reports for external-gradebook

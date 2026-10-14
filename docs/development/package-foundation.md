@@ -2,8 +2,8 @@
 
 ## Status
 
-Meridian v0.4.0 is the Issue #111 feature-release candidate. It preserves the
-released v0.3 teacher-controlled evidence-policy, standards-proficiency, Grade,
+Meridian v0.4.1 implements Issue #115's authorization bootstrap repair and
+ninth teacher report. It preserves the released v0.4.0 teacher-controlled Grade,
 explanation, reporting, attention, and planning authority boundaries. Released
 v0.3.1, v0.3.0, v0.2.0, and v0.1.1 packages remain historical foundations.
 

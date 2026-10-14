@@ -257,7 +257,7 @@ def test_release_facing_descriptions_match_v03_grade_reporting_scope() -> None:
     assert f'description = "{expected}"' in pyproject
     assert "publication-ingestion and typed-evidence" in cli
     assert (
-        "Meridian v0.4.0 is the Issue #111 feature-release candidate"
+        "Meridian v0.4.1 implements Issue #115"
         in readme
     )
     assert "conventional, standards-based, profile-constrained, and hybrid Grades" in (
@@ -290,9 +290,9 @@ def test_historical_releases_remain_finalized_while_v031_is_candidate() -> None:
         encoding="utf-8"
     )
 
-    assert '__version__: Final[str] = "0.4.0"' in version_source
-    assert 'EXPECTED_VERSION = "0.4.0"' in package_checker
-    assert 'EXPECTED_VERSION = "0.4.0"' in sdist_checker
+    assert '__version__: Final[str] = "0.4.1"' in version_source
+    assert 'EXPECTED_VERSION = "0.4.1"' in package_checker
+    assert 'EXPECTED_VERSION = "0.4.1"' in sdist_checker
     assert "## 0.3.0 — 2026-10-06" in changelog
     assert "## 0.2.0 — 2026-09-07" in changelog
     assert "## 0.1.1 — 2026-08-18" in changelog
