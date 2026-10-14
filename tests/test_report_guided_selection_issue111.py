@@ -242,3 +242,36 @@ def test_invalid_number_is_reprompted_without_selecting() -> None:
         clear_fn=lambda: None,
     ) is None
     assert "Choose a number from the list" in output.getvalue()
+
+
+def test_final_revalidation_rejects_prior_scope_after_change() -> None:
+    class ChangedEarlierCatalog(Catalog):
+        def __init__(self) -> None:
+            super().__init__()
+            self.class_calls = 0
+
+        def options(
+            self,
+            *,
+            report_kind: str,
+            scope: ReportScope,
+            selected: Mapping[ReportScope, str],
+        ) -> tuple[ReportOption, ...]:
+            if scope == "class":
+                self.class_calls += 1
+                if self.class_calls > 2:
+                    return (ReportOption("other", "Other class"),)
+            return super().options(
+                report_kind=report_kind, scope=scope, selected=selected
+            )
+
+    output = StringIO()
+    result = collect_guided_report_selection(
+        REPORT_GUIDES[6],
+        catalog=ChangedEarlierCatalog(),
+        input_fn=ScriptedInput("1", "1", ""),
+        output=output,
+        clear_fn=lambda: None,
+    )
+    assert result is None
+    assert "changed during selection" in output.getvalue()

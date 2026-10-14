@@ -1,7 +1,7 @@
-"""Teacher-first Reports discovery and guided selection, Issue #111 Slice 12.1.
+"""Teacher-first Reports discovery and guided selection, Issue #111 Slice 12.2.
 
 Report computations remain in the existing report engine / direct CLI.
-Catalog-backed menu execution will be completed in later Slice 12 increments.
+Read-only live canonical discovery is enabled; preview/export follow later.
 """
 
 from __future__ import annotations
@@ -27,6 +27,7 @@ from meridian.report_guided_selection import (
     ReportPreparedSelection,
     collect_guided_report_selection,
 )
+from meridian.report_live_catalog import LiveReportChoiceCatalog
 
 # Retained for API and historical report-family identity compatibility.
 REPORT_MENU_TITLES: Final[tuple[str, ...]] = (
@@ -102,8 +103,8 @@ def _report_detail(
                 write_lines(
                     output,
                     "",
-                    "The guided choices are not connected to your class data yet.",
-                    "The report engine is available via its advanced command.",
+                    "Verified class choices are not available.",
+                    "Try checking your workspace and academic calendar.",
                     "No report was generated or saved.",
                     "",
                 )
@@ -143,6 +144,7 @@ def run_reports_menu(
 ) -> None:
     """Show eight teacher-facing questions, preserving Core B/M/Q semantics."""
     stream = sys.stdout if output is None else output
+    active_catalog = LiveReportChoiceCatalog() if catalog is None else catalog
     while True:
         clear_fn()
         print_menu_header(stream, "Reports")
@@ -158,7 +160,7 @@ def run_reports_menu(
         write_lines(
             stream,
             "",
-            "All eight report engines are available; the guided menu is being wired.",
+            "Guided choices use your existing class and reporting records.",
             "Reports are read-only and do not write to an external gradebook.",
             "",
         )
@@ -170,7 +172,7 @@ def run_reports_menu(
         if choice in {str(number) for number in range(1, 9)}:
             _report_detail(
                 index=int(choice) - 1,
-                catalog=catalog,
+                catalog=active_catalog,
                 on_prepared=on_prepared,
                 input_fn=input_fn,
                 output=stream,

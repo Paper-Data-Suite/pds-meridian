@@ -52,15 +52,20 @@ def test_all_eight_reports_have_an_advanced_direct_cli_route() -> None:
     assert "For advanced use" in rendered
 
 
-def test_unconnected_catalog_does_not_claim_to_generate_report() -> None:
+def test_empty_live_options_do_not_claim_to_generate_report() -> None:
+    class EmptyCatalog:
+        def options(self, *, report_kind: str, scope: ReportScope, selected: object):
+            return ()
+
     output = StringIO()
     run_reports_menu(
         input_fn=ScriptedInput("7", "1", "", "b", "b"),
         output=output,
         clear_fn=lambda: None,
+        catalog=EmptyCatalog(),
     )
-    assert "not connected to your class data yet" in output.getvalue()
-    assert "No report was generated or saved." in output.getvalue()
+    assert "No verified choices are available" in output.getvalue()
+    assert "No report was generated or changed." in output.getvalue()
 
 
 def test_injected_catalog_prepares_scopes_without_running_engine() -> None:

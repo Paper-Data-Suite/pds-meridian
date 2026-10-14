@@ -230,6 +230,16 @@ def collect_guided_report_selection(
                 f"No verified choices are available for: {SCOPE_PROMPTS[scope]}",
                 file=output,
             )
+            if scope == "mapping":
+                print(
+                    "Gradebook mappings are still selected from a teacher file.",
+                    file=output,
+                )
+                print(
+                    "Use Advanced command information until guided file "
+                    "selection is ready.",
+                    file=output,
+                )
             print("No report was generated or changed.", file=output)
             input_fn("Press Enter to return to this report...")
             return None
@@ -273,6 +283,23 @@ def collect_guided_report_selection(
             input_fn("Press Enter to try again...")
             continue
         selected.append((scope, chosen))
+    # All previous choices must still be authoritative at completion. Earlier
+    # scopes may have changed while the teacher was choosing later details.
+    checked: dict[ReportScope, str] = {}
+    for scope, chosen in selected:
+        try:
+            current_options = _available_options(catalog, guide, scope, checked)
+        except ReportSelectionUnavailable:
+            print("The report details changed during selection.", file=output)
+            print("No report was generated or saved.", file=output)
+            input_fn("Press Enter to return to this report...")
+            return None
+        if chosen not in current_options:
+            print("The report details changed during selection.", file=output)
+            print("No report was generated or saved.", file=output)
+            input_fn("Press Enter to return to this report...")
+            return None
+        checked[scope] = chosen.value
     return ReportPreparedSelection(guide.report_kind, tuple(selected))
 
 
