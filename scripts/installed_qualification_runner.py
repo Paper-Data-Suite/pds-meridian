@@ -17,6 +17,9 @@ from scripts.installed_qualification_harness import (
     PreparedInstalledEnvironment,
 )
 from scripts.installed_qualification_matrix import DependencyMatrixId, matrix_for
+from scripts.smoke_test_concord_benchmark_issue117 import (
+    run_prepared_smoke as run_concord_benchmark_prepared_smoke,
+)
 from scripts.smoke_test_conventional_grade_wheel import (
     run_prepared_smoke as run_conventional_grade_prepared_smoke,
 )
@@ -258,6 +261,19 @@ def run_migrated_matrices(
             lambda: run_concord_adapter_prepared_smoke(
                 prepared.python,
                 outside,
+            ),
+        )
+
+        concord_root, concord_outside = _working_layout(
+            prepared, "issue117-concord-benchmark"
+        )
+        _run_acceptance(
+            prepared,
+            "issue117-concord-benchmark",
+            lambda: run_concord_benchmark_prepared_smoke(
+                prepared.python,
+                concord_outside,
+                concord_root / "workspace",
             ),
         )
 

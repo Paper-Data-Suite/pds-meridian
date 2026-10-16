@@ -13,9 +13,9 @@ EXPECTED_SUMMARY = (
 
 
 def test_v03_line_patch_version_and_package_summary_are_promoted() -> None:
-    assert meridian.__version__ == "0.4.1"
-    assert check_package.EXPECTED_VERSION == "0.4.1"
-    assert check_sdist.EXPECTED_VERSION == "0.4.1"
+    assert meridian.__version__ == "0.4.2"
+    assert check_package.EXPECTED_VERSION == "0.4.2"
+    assert check_sdist.EXPECTED_VERSION == "0.4.2"
     assert check_package.EXPECTED_SUMMARY == EXPECTED_SUMMARY
     assert check_sdist.EXPECTED_SUMMARY == EXPECTED_SUMMARY
 

@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.4.2 — release candidate (Issue #117)
+
+- Corrects a protected-evidence authorization scope vulnerability: a grant for
+  specific students does not authorize an unrestricted whole-assignment read.
+- Adds teacher-local authorization setup and truthful evidence readiness for
+  supported ScoreForm, Quillan, and Concord publications.
+- Completes interactive Report 9 benchmark planning from current Grade Item
+  evidence without requiring a ReportingSnapshot, preserving original
+  missing/unassessed states and producer-native semantics.
+- Supports optional instructional groups, teacher notes, confirmed immutable
+  plan revisions, reassessment observations, and local four-section reports.
+- Extends installed producer acceptance inside the existing six dependency
+  matrices and pins qualification to official Core v0.6.6 (Windows viewer-safe
+  deep-path handoff); the compatible Core 0.6 dependency range is preserved.
+- Preserves the historical v0.4.1 wheel, sdist, and release audit unchanged.
+
 ## 0.4.1 - 2026-10-14
 
 - Fixes normal installed authorization bootstrap with a workspace-bound,

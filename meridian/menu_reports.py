@@ -9,6 +9,7 @@ from typing import Final, TextIO
 
 from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 
+from meridian.menu_benchmark_planner import run_benchmark_planner_menu
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -105,6 +106,9 @@ def _show_preview(
             "2. Save a local teacher copy",
             "3. Preview again",
             "4. Change selections",
+            "P. Write / revisit benchmark teaching plan"
+            if preview.report_kind == "benchmark_analysis_instructional_response"
+            else "",
             "D. Details / Audit Trail",
             "",
         )
@@ -129,6 +133,18 @@ def _show_preview(
             return False
         if choice == "4":
             return True
+        if (
+            choice.casefold() == "p"
+            and preview.report_kind == "benchmark_analysis_instructional_response"
+        ):
+            run_benchmark_planner_menu(
+                report=preview,
+                prepared=prepared,
+                revalidate=revalidate,
+                input_fn=input_fn,
+                output=output,
+            )
+            continue
         if choice.casefold() == "d":
             write_lines(
                 output,
@@ -145,7 +161,12 @@ def _show_preview(
                 )
             input_fn("Press Enter to return to the preview...")
             continue
-        write_lines(output, "", "Choose 1-4, D, B, M, or Q.")
+        options = (
+            "Choose 1-4, P, D, B, M, or Q."
+            if preview.report_kind == "benchmark_analysis_instructional_response"
+            else "Choose 1-4, D, B, M, or Q."
+        )
+        write_lines(output, "", options)
 
 
 def _save_copy(

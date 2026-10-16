@@ -290,7 +290,7 @@ def test_historical_releases_remain_finalized_while_v031_is_candidate() -> None:
         encoding="utf-8"
     )
 
-    assert '__version__: Final[str] = "0.4.1"' in version_source
+    assert '__version__: Final[str] = "0.4.2"' in version_source
     assert 'EXPECTED_VERSION = "0.4.1"' in package_checker
     assert 'EXPECTED_VERSION = "0.4.1"' in sdist_checker
     assert "## 0.3.0 — 2026-10-06" in changelog

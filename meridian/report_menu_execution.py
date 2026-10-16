@@ -36,6 +36,7 @@ from meridian.benchmark_analysis import (
     BenchmarkStudentResult,
     compose_benchmark_analysis,
 )
+from meridian.benchmark_current_analysis import build_current_benchmark_analysis
 from meridian.class_standards_profile import build_current_class_standards_profile
 from meridian.diagnostics import DiagnosticsDependencies
 from meridian.evidence import (
@@ -311,7 +312,16 @@ class LiveReportMenuExecutor:
                 dependencies=self.dependencies.diagnostics,
             )
         if report_kind == "benchmark_analysis_instructional_response":
-            return self._benchmark(context, generated_at)
+            return build_current_benchmark_analysis(
+                context.root,
+                class_id=context.class_id,
+                grade_item_id=self._required(context, "grade_item"),
+                target_period=period,
+                calendar_revision=context.period.calendar_revision,
+                generated_at=generated_at,
+                diagnostics=self.dependencies.diagnostics,
+                item_observer=_benchmark_item_observations,
+            )
         raise ReportMenuExecutionError("The selected report family is unsupported.")
 
     def _benchmark(
@@ -808,7 +818,6 @@ class LiveReportMenuExecutor:
             "grade_checkpoint_comparison",
             "marking_period_readiness",
             "assessment_impact",
-            "benchmark_analysis_instructional_response",
         }
         if context.report_kind in checkpoint_reports:
             pieces.append(self._checkpoint(context).snapshot_sha256)

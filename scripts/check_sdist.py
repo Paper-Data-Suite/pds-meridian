@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.4.1"
+EXPECTED_VERSION = "0.4.2"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -20,6 +20,44 @@ EXPECTED_ROOT = f"pds_meridian-{EXPECTED_VERSION}"
 REQUIRED_MEMBERS = frozenset(
     {
         "CHANGELOG.md",
+        "docs/architecture/issue117-benchmark-current-assessment.md",
+        "docs/architecture/issue117-benchmark-draft-restoration.md",
+        "docs/architecture/issue117-benchmark-plan-authoring.md",
+        "docs/architecture/issue117-benchmark-plan-menu.md",
+        "docs/architecture/issue117-evidence-authorization-readiness.md",
+        "docs/architecture/issue117-teacher-authorization-menu.md",
+        "docs/architecture/issue117-teacher-authorization-setup.md",
+        "docs/architecture/issue117-universal-teacher-evidence-acceptance.md",
+        "docs/development/issue117-benchmark-reassessment-installed.md",
+        "docs/development/issue117-core066-qualification.md",
+        "docs/development/issue117-installed-benchmark-scoreform-quillan.md",
+        "docs/development/issue117-installed-concord-benchmark.md",
+        "docs/development/v0.4.2-release-notes.md",
+        "meridian/benchmark_current_analysis.py",
+        "meridian/benchmark_plan_authoring.py",
+        "meridian/benchmark_plan_notes.py",
+        "meridian/menu_benchmark_planner.py",
+        "meridian/menu_teacher_authorization.py",
+        "meridian/publication_authorization_setup.py",
+        "scripts/installed_benchmark_helpers.py",
+        "scripts/smoke_program_concord_benchmark_issue117.py",
+        "scripts/smoke_test_concord_benchmark_issue117.py",
+        "tests/test_issue117_authorization_scope.py",
+        "tests/test_issue117_authorization_setup.py",
+        "tests/test_issue117_benchmark_notes_restoration.py",
+        "tests/test_issue117_benchmark_plan_authoring.py",
+        "tests/test_issue117_benchmark_plan_menu.py",
+        "tests/test_issue117_benchmark_real_membership.py",
+        "tests/test_issue117_benchmark_reassessment_revision.py",
+        "tests/test_issue117_benchmark_without_checkpoint.py",
+        "tests/test_issue117_core066_release_qualification.py",
+        "tests/test_issue117_dual_operation_readiness.py",
+        "tests/test_issue117_evidence_readiness.py",
+        "tests/test_issue117_installed_benchmark_journey.py",
+        "tests/test_issue117_installed_concord_benchmark.py",
+        "tests/test_issue117_producer_teacher_acceptance.py",
+        "tests/test_issue117_release_candidate_contracts.py",
+        "tests/test_issue117_teacher_authorization_menu.py",
         "LICENSE",
         "MANIFEST.in",
         "README",
@@ -645,6 +683,7 @@ FORBIDDEN_EXACT_MEMBERS = frozenset(
         "docs/development/v0.3.1-release-audit.md",
         "docs/development/v0.4.0-release-audit.md",
         "docs/development/v0.4.1-release-audit.md",
+        "docs/development/v0.4.2-release-audit.md",
     }
 )
 FORBIDDEN_PREFIXES = (

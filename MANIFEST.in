@@ -7,5 +7,6 @@ exclude docs/development/v0.3.0-release-audit.md
 exclude docs/development/v0.3.1-release-audit.md
 exclude docs/development/v0.4.0-release-audit.md
 exclude docs/development/v0.4.1-release-audit.md
+exclude docs/development/v0.4.2-release-audit.md
 recursive-include scripts *.py
 recursive-include tests *.py *.json

@@ -31,6 +31,9 @@ from meridian.menu_snapshots import (
     default_snapshot_freeze_dependencies,
     run_snapshots_menu,
 )
+from meridian.menu_teacher_authorization import (
+    run_teacher_evidence_authorization_menu,
+)
 from meridian.menu_teacher_evidence import (
     default_teacher_evidence_inbox_menu_dependencies,
     run_teacher_evidence_inbox_menu,
@@ -44,6 +47,9 @@ from meridian.menu_ui import (
     print_standard_navigation,
     read_choice,
     write_lines,
+)
+from meridian.publication_authorization import (
+    TeacherLocalPublicationAuthorizer,
 )
 from meridian.report_menu_execution import (
     LiveReportMenuExecutor,
@@ -103,6 +109,9 @@ class TeacherMenuDependencies:
     session_context: TeacherSessionContext = field(
         default_factory=TeacherSessionContext
     )
+    setup_evidence_access: (
+        Callable[[], TeacherLocalPublicationAuthorizer | None] | None
+    ) = None
 
     def handler_for(self, task_id: TeacherMenuTaskId) -> MenuTaskHandler:
         """Resolve one stable symbolic task to its injected application route."""
@@ -205,6 +214,14 @@ def default_teacher_menu_dependencies(
             ),
         ),
         session_context=session,
+        setup_evidence_access=lambda: (
+            run_teacher_evidence_authorization_menu(
+                diagnostics=diagnostics,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+        ),
     )
 
 
@@ -215,11 +232,15 @@ def _task_for_choice(choice: str) -> TeacherMenuTask | None:
     return None
 
 
-def _render_main_menu(output: TextIO) -> None:
+def _render_main_menu(
+    output: TextIO, *, setup_available: bool = False
+) -> None:
     print_menu_header(output)
     for task in TEACHER_MENU_TASKS:
         print(f"{task.number}. {task.title}", file=output)
     print(file=output)
+    if setup_available:
+        print("A. Set Up Evidence Access", file=output)
     print("H. Help", file=output)
     print_standard_navigation(
         output,
@@ -269,8 +290,29 @@ def run_menu(
     while True:
         try:
             clear_fn()
-            _render_main_menu(stream)
+            _render_main_menu(
+                stream,
+                setup_available=active.setup_evidence_access is not None,
+            )
             choice = read_choice(input_fn)
+
+            if choice.casefold() == "a" and (
+                active.setup_evidence_access is not None
+            ):
+                authorized = active.setup_evidence_access()
+                if authorized is not None:
+                    # Recompose protected readers with the newly loaded
+                    # provider, without restarting Meridian.
+                    active = default_teacher_menu_dependencies(
+                        diagnostics=default_diagnostics_dependencies(
+                            authorizer=authorized
+                        ),
+                        session_context=active.session_context,
+                        input_fn=input_fn,
+                        output=stream,
+                        clear_fn=clear_fn,
+                    )
+                continue
 
             if choice.casefold() == "h":
                 clear_fn()
@@ -289,7 +331,10 @@ def run_menu(
                 active.handler_for(task.task_id)()
                 continue
 
-            write_lines(stream, "", "Please choose 1-9, H, or Q.")
+            options = "1-9, A, H, or Q" if (
+                active.setup_evidence_access is not None
+            ) else "1-9, H, or Q"
+            write_lines(stream, "", f"Please choose {options}.")
             pause_for_user(input_fn)
         except ReturnToMainMenu:
             continue

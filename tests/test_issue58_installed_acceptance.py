@@ -15,7 +15,7 @@ def test_issue58_installed_smoke_is_core_only_and_real_state_backed() -> None:
         '"--no-deps"',
         '"pip", "check"',
         'metadata.version("pds-core") == "0.6.5"',
-            'metadata.version("pds-meridian") == "0.4.1"',
+            'metadata.version("pds-meridian") == "0.4.2"',
         "ReportingSnapshotPredecessor",
         "select_reporting_snapshot",
         "replaces_for_current_use",
