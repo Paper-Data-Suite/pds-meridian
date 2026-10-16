@@ -80,7 +80,7 @@ def test_issue45_program_pins_released_versions_and_installed_origins() -> None:
     program = PROGRAM.read_text(encoding="utf-8")
 
     for required in (
-        '"pds-core": "0.6.5"',
+        '"pds-core": "0.6.6"',
         '"scoreform": "0.13.0"',
         '"quillan": "0.10.6"',
         'metadata.version("pds-meridian")',

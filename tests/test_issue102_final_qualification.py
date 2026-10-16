@@ -12,15 +12,15 @@ from scripts.verify_core_wheel import (
 
 def test_issue102_reused_acceptance_tracks_current_core_qualification_baseline(
 ) -> None:
-    assert EXPECTED_CORE_VERSION == "0.6.5"
-    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.5-py3-none-any.whl"
+    assert EXPECTED_CORE_VERSION == "0.6.6"
+    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.6-py3-none-any.whl"
     assert EXPECTED_CORE_WHEEL_SHA256 == (
-        "9ace75f17b23b7f0ed6a709d531af5120db43d0325b4148d26f2d6ba1d4b3c18"
+        "d6d21e426092b0329bcfd69b6fbee44c345edc46794a914d847d5ea73a2b7301"
     )
 
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-core/releases/download/v0.6.5/pds_core-0.6.5-py3-none-any.whl"
+        "pds-core/releases/download/v0.6.6/pds_core-0.6.6-py3-none-any.whl"
         in workflow
     )
     assert "pds_core-0.6.4-py3-none-any.whl" not in workflow
@@ -49,7 +49,7 @@ def test_issue102_installed_acceptance_is_core_only_and_prepared() -> None:
         assert token in core_programs
 
     for token in (
-        'importlib.metadata.version("pds-core") != "0.6.5"',
+        'importlib.metadata.version("pds-core") != "0.6.6"',
         "LONG_ID_SIZE = 1024",
         "LONG_WORK_SIZE = 80",
         "write_grade_item_revision",

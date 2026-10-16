@@ -422,6 +422,15 @@ def _render_class_list(
             "Blocked evidence remains visible with a reason.",
             "",
         )
+    if any(
+        item.status_code in {"access_not_configured", "access_not_granted"}
+        for item in inbox.items
+    ):
+        write_lines(
+            output,
+            "To enable access, return to Main Menu (M) and select A.",
+            "",
+        )
     write_lines(output, "Choose a class.", "")
     for index, group in enumerate(inbox.groups, start=1):
         ready, blocked = _group_counts(group)
@@ -497,6 +506,21 @@ def _status_explanation(item: TeacherEvidenceInboxItem) -> tuple[str, ...]:
         "work_title_unavailable": (
             "The assignment name is unavailable from canonical PDS state.",
             "Meridian will not substitute an internal work identifier.",
+        ),
+        "access_not_configured": (
+            "This evidence source is compatible, but access is not configured.",
+            "Return to Main Menu (M), then select A. Set Up Evidence Access.",
+            "No protected student evidence has been opened.",
+        ),
+        "access_not_granted": (
+            "A configured policy does not grant whole-assignment review access.",
+            "Return to Main Menu (M), then select A to review access scope.",
+            "No protected student evidence has been opened.",
+        ),
+        "access_check_unavailable": (
+            "Meridian could not verify access with the configured provider.",
+            "Check the local authorization configuration before retrying.",
+            "No protected student evidence has been opened.",
         ),
         "ambiguous_presentation": (
             "More than one current evidence source has the same visible class,",
@@ -1050,14 +1074,17 @@ def _show_projection_failure(
     output: TextIO,
     clear_fn: ClearFunction,
 ) -> None:
+    lines: tuple[str, ...]
     if isinstance(error, GuidedProjectionAuthorizationUnavailableError):
         lines = (
             "Evidence access is not configured for this Meridian process.",
+            "Return to Main Menu (M), then select A. Set Up Evidence Access.",
             "No protected evidence was opened.",
         )
     elif isinstance(error, GuidedProjectionAuthorizationDeniedError):
         lines = (
             "Access to this evidence was denied by the configured policy.",
+            "Return to Main Menu (M), then select A to review access scope.",
             "No protected evidence was opened.",
         )
     elif isinstance(error, GuidedProjectionSelectionStaleError):

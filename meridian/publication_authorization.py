@@ -123,9 +123,14 @@ class PublicationAuthorizationGrant:
             and publication.publication_id not in self.publication_ids
         ):
             return False
-        return not self.student_ids or set(request.requested_student_ids).issubset(
-            self.student_ids
-        )
+        # The ingestion contract uses an empty requested-student tuple to mean
+        # the WHOLE assignment, not a request for zero students. A student-
+        # restricted grant must never satisfy that unrestricted request.
+        if self.student_ids:
+            return bool(request.requested_student_ids) and set(
+                request.requested_student_ids
+            ).issubset(self.student_ids)
+        return True
 
 
 def _checked_tuple(

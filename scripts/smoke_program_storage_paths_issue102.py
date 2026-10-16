@@ -261,10 +261,10 @@ def _assert_installed_origins() -> None:
                 f"{origin}"
             )
 
-    if importlib.metadata.version("pds-core") != "0.6.5":
+    if importlib.metadata.version("pds-core") != "0.6.6":
         raise AssertionError(
             "Current storage-path acceptance requires exact installed "
-            "pds-core 0.6.5."
+            "pds-core 0.6.6."
         )
 
     for module_name in ("scoreform", "quillan", "concord", "pds_concord"):

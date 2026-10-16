@@ -9,7 +9,7 @@ import os
 import sys
 from io import StringIO
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from pds_core.academic_catalog import rebuild_academic_catalog
 from pds_core.classes import ensure_class_folder, write_class_roster
@@ -56,7 +56,7 @@ class AllowInstalledAcceptance:
         self,
         request: PublicationAuthorizationRequest,
     ) -> PublicationAuthorizationDecision:
-        if request.purpose_id != "review_evidence":
+        if request.purpose_id not in {"review_evidence", "teacher_reporting"}:
             raise AssertionError("Unexpected guided authorization purpose.")
         return PublicationAuthorizationDecision(
             True,
@@ -298,15 +298,37 @@ def main(argv: list[str] | None = None) -> int:
 
     _assert_installed_origin(meridian)
     _assert_installed_origin(pds_core)
-    if importlib.metadata.version("pds-core") != "0.6.5":
-        raise AssertionError("Core installed version must be exactly 0.6.5.")
+    if importlib.metadata.version("pds-core") != "0.6.6":
+        raise AssertionError("Core installed version must be exactly 0.6.6.")
 
-    _, publication_id, title = _setup_workspace(args.workspace, args.producer)
+    work, publication_id, title = _setup_workspace(
+        args.workspace, args.producer
+    )
     _run_teacher_journey(
         args.workspace,
         args.producer,
         publication_id,
         title,
+    )
+    if TYPE_CHECKING:
+        from scripts.installed_benchmark_helpers import (
+            run_installed_benchmark_teacher_journey,
+            setup_installed_benchmark_records,
+        )
+    else:
+        # Direct-script execution resolves this sibling without the repo root.
+        from installed_benchmark_helpers import (
+            run_installed_benchmark_teacher_journey,
+            setup_installed_benchmark_records,
+        )
+
+    setup_installed_benchmark_records(args.workspace, work, title)
+    reporting_diagnostics = default_diagnostics_dependencies(
+        authorizer=AllowInstalledAcceptance(),
+    )
+    run_installed_benchmark_teacher_journey(
+        args.workspace, work, reporting_diagnostics,
+        publication_id=publication_id,
     )
     print(
         f"Issue #110 installed guided {args.producer} teacher journey passed.",

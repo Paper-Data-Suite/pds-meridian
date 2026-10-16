@@ -15,11 +15,22 @@ from meridian.diagnostics import (
     PublicationObservationDiagnostic,
     list_publication_diagnostics,
 )
-from meridian.ingestion import CandidateDriftField, PublicationDiscoveryRequest
+from meridian.ingestion import (
+    AuthorizationOperation,
+    CandidateDriftField,
+    CanonicalPublicationContext,
+    PublicationAuthorizationDecision,
+    PublicationAuthorizationRequest,
+    PublicationAuthorizer,
+    PublicationDiscoveryRequest,
+)
 
 TeacherEvidenceActionability: TypeAlias = Literal["ready", "blocked"]
 TeacherEvidenceStatusCode: TypeAlias = Literal[
     "ready_to_review",
+    "access_not_configured",
+    "access_not_granted",
+    "access_check_unavailable",
     "refresh_needed",
     "publication_unavailable",
     "no_longer_current",
@@ -39,6 +50,9 @@ _PRODUCER_LABELS = {
 
 _STATUS_LABELS: dict[TeacherEvidenceStatusCode, str] = {
     "ready_to_review": "Ready to review",
+    "access_not_configured": "Evidence access not configured",
+    "access_not_granted": "Evidence access not granted",
+    "access_check_unavailable": "Evidence access could not be checked",
     "refresh_needed": "Refresh needed",
     "publication_unavailable": "Publication unavailable",
     "no_longer_current": "No longer current",
@@ -52,6 +66,14 @@ _STATUS_LABELS: dict[TeacherEvidenceStatusCode, str] = {
 
 _UNKNOWN_WORK_TITLE = "Assignment name unavailable"
 _UNKNOWN_PRODUCER_LABEL = "Other producer"
+
+
+class _CompatibilityOnly:
+    """Marker for legacy pure projections without a deployment authorizer."""
+
+
+_COMPATIBILITY_ONLY = _CompatibilityOnly()
+AuthorizerReadiness = PublicationAuthorizer | None | _CompatibilityOnly
 
 
 class TeacherEvidenceInboxError(RuntimeError):
@@ -202,13 +224,22 @@ def load_teacher_evidence_inbox(
         ),
         dependencies,
     )
-    return project_teacher_evidence_inbox(diagnostic)
+    return project_teacher_evidence_inbox(
+        diagnostic, authorizer=dependencies.authorizer
+    )
 
 
 def project_teacher_evidence_inbox(
     diagnostic: PublicationListDiagnostic,
+    *,
+    authorizer: AuthorizerReadiness = _COMPATIBILITY_ONLY,
 ) -> TeacherEvidenceInbox:
-    """Project diagnostics without opening manifests or writing inbox state."""
+    """Read-only readiness preflight; no manifest or cache is opened.
+
+    Production inbox loading always passes its deployment authorizer.
+    A direct projection without one retains the legacy compatibility-only
+    diagnostic contract for existing callers and synthetic tests.
+    """
     if not isinstance(diagnostic, PublicationListDiagnostic):
         raise TeacherEvidenceInboxValidationError(
             "diagnostic must be a PublicationListDiagnostic."
@@ -218,6 +249,7 @@ def project_teacher_evidence_inbox(
         _project_observation(
             observation,
             school_year=observation.candidate.catalog_publication.school_year,
+            authorizer=authorizer,
         )
         for observation in diagnostic.observations
     ]
@@ -243,6 +275,7 @@ def _project_observation(
     observation: PublicationObservationDiagnostic,
     *,
     school_year: str | None,
+    authorizer: AuthorizerReadiness,
 ) -> TeacherEvidenceInboxItem:
     context = observation.canonical_context
     work = (
@@ -251,7 +284,9 @@ def _project_observation(
         else observation.candidate.catalog_publication.work
     )
     title = _work_title(observation)
-    status = _status_code(observation, work_title=title)
+    status = _status_code(
+        observation, work_title=title, authorizer=authorizer
+    )
 
     return TeacherEvidenceInboxItem(
         publication_id=observation.publication_id,
@@ -277,6 +312,7 @@ def _status_code(
     observation: PublicationObservationDiagnostic,
     *,
     work_title: str | None,
+    authorizer: AuthorizerReadiness,
 ) -> TeacherEvidenceStatusCode:
     context = observation.canonical_context
     if context is None:
@@ -308,6 +344,51 @@ def _status_code(
         return "compatibility_unavailable"
     if support.overall_state != "support_ready":
         return "compatibility_unavailable"
+    return _authorization_status(context, authorizer)
+
+
+def _authorization_status(
+    context: CanonicalPublicationContext,
+    authorizer: AuthorizerReadiness,
+) -> TeacherEvidenceStatusCode:
+    """Preflight exactly the whole-assignment review scope, never evidence.
+
+    The eventual projection and cache read must authorize independently.
+    This observation is not a reusable access token or a guarantee.
+    """
+    if authorizer is _COMPATIBILITY_ONLY:
+        return "ready_to_review"
+    if authorizer is None:
+        return "access_not_configured"
+    if not isinstance(authorizer, PublicationAuthorizer):
+        return "access_check_unavailable"
+    # Guided review requires both projection and subsequent protected cache
+    # loading. A grant for only one operation must never be presented as ready.
+    # These are read-only preflights, not durable access decisions: each
+    # protected service authorizes independently when the teacher continues.
+    operations: tuple[AuthorizationOperation, ...] = (
+        "project_evidence",
+        "read_projection_cache",
+    )
+    for operation in operations:
+        try:
+            request = PublicationAuthorizationRequest(
+                publication=context.publication,
+                referenced_registration=context.referenced_registration,
+                withdrawal=context.withdrawal,
+                canonical_state=context.canonical_state,
+                operation=operation,
+                purpose_id="review_evidence",
+                requested_student_ids=(),
+            )
+            decision = authorizer.authorize(request)
+        except Exception:
+            # A broken provider cannot imply authorization. No manifest read.
+            return "access_check_unavailable"
+        if not isinstance(decision, PublicationAuthorizationDecision):
+            return "access_check_unavailable"
+        if not decision.allowed:
+            return "access_not_granted"
     return "ready_to_review"
 
 

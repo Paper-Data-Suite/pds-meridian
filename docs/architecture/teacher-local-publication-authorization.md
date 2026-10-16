@@ -55,8 +55,16 @@ lists when the local policy requires narrower access.
   grant otherwise matches.
 - Cache reads require their own `read_projection_cache` decision; an earlier
   projection decision is not reused as authority.
-- The caller's exact requested student scope must be a subset of a configured
-  student allowlist when one is present.
+- A request with `requested_student_ids=()` means **whole-assignment access**,
+  not a request for zero students. Only a grant with an empty `student_ids`
+  filter (i.e., explicit unrestricted access for its class, purpose, operation,
+  and optional producer/publication filters) can permit whole-assignment access.
+- A grant with a nonempty `student_ids` filter permits only **nonempty**, fully
+  contained student requests; even a request partially outside the allowlist is
+  denied. Multiple restricted grants do not combine into whole-assignment
+  authority.
+- This scope rule applies independently to `project_evidence` and
+  `read_projection_cache`. A cached projection never widens a restricted grant.
 - Existing embedding deployments can still inject an authorizer explicitly;
   injected dependencies take precedence over local resolution.
 

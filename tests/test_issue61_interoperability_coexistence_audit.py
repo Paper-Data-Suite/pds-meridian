@@ -37,7 +37,7 @@ def _runtime_import_roots() -> set[str]:
 
 
 def test_issue61_exact_direct_interoperability_versions_remain_aligned() -> None:
-    assert EXPECTED_CORE_VERSION == "0.6.5"
+    assert EXPECTED_CORE_VERSION == "0.6.6"
     assert EXPECTED_SCOREFORM_VERSION == SCOREFORM_READER_VERSION == "0.12.1"
     assert EXPECTED_QUILLAN_VERSION == QUILLAN_READER_VERSION == "0.10.5"
     assert EXPECTED_CONCORD_VERSION == CONCORD_READER_VERSION == "0.3.0"
@@ -147,7 +147,7 @@ def test_issue61_interoperability_audit_supports_promoted_candidate() -> None:
         REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
     ).read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.4.1"' in version
+    assert '__version__: Final[str] = "0.4.2"' in version
     assert "Interoperability and ecosystem-coexistence audit — CONFORMS" in audit
     assert "Final inventory pass: **CONFORMS — 2026-10-06**" in audit
     assert "Candidate qualification: **PENDING**" in audit

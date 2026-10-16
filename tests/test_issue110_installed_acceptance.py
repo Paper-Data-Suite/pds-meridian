@@ -87,7 +87,7 @@ def test_issue110_smoke_program_requires_installed_package_origins() -> None:
     assert "_assert_installed_origin(quillan)" in source
     assert 'version("scoreform") != "0.13.0"' in source
     assert 'version("quillan") != "0.10.6"' in source
-    assert 'version("pds-core") != "0.6.5"' in source
+    assert 'version("pds-core") != "0.6.6"' in source
 
 
 def test_issue110_smoke_creates_producer_work_root_before_registration() -> None:

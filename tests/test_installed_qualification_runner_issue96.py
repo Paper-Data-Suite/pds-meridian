@@ -149,6 +149,11 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     )
     monkeypatch.setattr(
         runner,
+        "run_concord_benchmark_prepared_smoke",
+        record("concord-benchmark"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_all_adapters_prepared_smoke",
         record("all-adapters"),
     )
@@ -204,6 +209,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         "standards-grade",
         "hybrid-grade",
         "concord",
+        "concord-benchmark",
         "all-adapters",
         "issue60-cross-policy",
         "grade-report-preview",
@@ -233,6 +239,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
         (DependencyMatrixId.SCOREFORM_QUILLAN, "standards-grade"),
         (DependencyMatrixId.SCOREFORM_QUILLAN, "hybrid-grade"),
         (DependencyMatrixId.CONCORD, "concord-adapter"),
+        (DependencyMatrixId.CONCORD, "issue117-concord-benchmark"),
         (DependencyMatrixId.ALL_ADAPTERS, "all-adapters-composition"),
         (
             DependencyMatrixId.ALL_ADAPTERS,
@@ -323,6 +330,11 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
     )
     monkeypatch.setattr(
         runner,
+        "run_concord_benchmark_prepared_smoke",
+        capture("concord-benchmark"),
+    )
+    monkeypatch.setattr(
+        runner,
         "run_all_adapters_prepared_smoke",
         capture("all-adapters"),
     )
@@ -366,6 +378,7 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         "standards-grade": Path("python-scoreform-quillan"),
         "hybrid-grade": Path("python-scoreform-quillan"),
         "concord": Path("python-concord"),
+        "concord-benchmark": Path("python-concord"),
         "all-adapters": Path("python-all-adapters"),
         "issue60-cross-policy": Path("python-all-adapters"),
         "grade-report-preview": Path("python-all-adapters"),

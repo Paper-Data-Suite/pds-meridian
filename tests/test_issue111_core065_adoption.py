@@ -68,10 +68,10 @@ def test_issue111_slice2_uses_released_core_065_as_active_floor() -> None:
         project = tomllib.load(source)["project"]
 
     assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
-    assert EXPECTED_CORE_VERSION == "0.6.5"
-    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.5-py3-none-any.whl"
+    assert EXPECTED_CORE_VERSION == "0.6.6"
+    assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.6-py3-none-any.whl"
     assert EXPECTED_CORE_WHEEL_SHA256 == (
-        "9ace75f17b23b7f0ed6a709d531af5120db43d0325b4148d26f2d6ba1d4b3c18"
+        "d6d21e426092b0329bcfd69b6fbee44c345edc46794a914d847d5ea73a2b7301"
     )
 
 
@@ -122,7 +122,7 @@ def test_issue111_slice2_does_not_broaden_runtime_reader_acceptance_yet() -> Non
 
 
 def test_issue111_slice2_current_environment_exposes_core_reader_api() -> None:
-    assert metadata.version("pds-core") == "0.6.5"
+    assert metadata.version("pds-core") == "0.6.6"
 
     document = (
         ROOT / "docs/architecture/producer-reader-contract-compatibility.md"

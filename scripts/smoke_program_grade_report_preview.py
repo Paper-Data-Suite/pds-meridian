@@ -80,12 +80,12 @@ def _installed_origin(module_name: str) -> None:
 
 def _verify_installed_composition() -> None:
     expected = {
-        "pds-core": "0.6.5",
+        "pds-core": "0.6.6",
         "scoreform": "0.13.0",
         "quillan": "0.10.6",
         "pds-concord": "0.3.2",
     }
-    _require(metadata.version("pds-core") == "0.6.5", "Core version mismatch.")
+    _require(metadata.version("pds-core") == "0.6.6", "Core version mismatch.")
     _require(
         metadata.version("scoreform") == "0.13.0",
         "ScoreForm version mismatch.",
