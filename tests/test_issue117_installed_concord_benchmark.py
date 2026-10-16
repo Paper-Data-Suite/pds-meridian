@@ -98,3 +98,36 @@ def test_concord_qualifier_is_separate_from_scoreform_quillan() -> None:
     assert "PDS_WORKSPACE_ROOT" in program
     for absent in ("import quillan", "import scoreform"):
         assert absent not in program
+
+
+def test_concord_fixture_matches_real_installed_producer_profile(
+    tmp_path: Path,
+) -> None:
+    """Reject synthetic publications that Concord's own profile would reject.
+
+    This checks the actual Core record/registration against the installed
+    Concord profile, rather than substituting an invented compatibility profile.
+    """
+    from concord.pds_publication import get_publication_producer_profile
+    from pds_core.publication_compatibility import evaluate_publication_compatibility
+    from pds_core.routing_models import ModuleWorkRef
+
+    from meridian.ingestion import load_canonical_publication_context
+    from scripts.smoke_program_concord_benchmark_issue117 import _create_publication
+
+    workspace = tmp_path / "concord_profile_acceptance"
+    work = ModuleWorkRef("concord", "english_12_pd2", "concord_benchmark_1")
+    publication_id = _create_publication(workspace, work)
+    context = load_canonical_publication_context(workspace, publication_id)
+    profile = get_publication_producer_profile()
+    compatibility = evaluate_publication_compatibility(
+        context.publication,
+        profile,
+        context.referenced_registration,
+    )
+    assert compatibility.compatible, compatibility.codes
+    assert compatibility.codes == ()
+    assert context.publication.source_record is not None
+    assert context.publication.source_record in (
+        context.referenced_registration.source_records
+    )

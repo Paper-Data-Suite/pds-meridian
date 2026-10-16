@@ -235,7 +235,20 @@ def _manifest(work: ModuleWorkRef) -> tuple[bytes, tuple[PublicationCapability, 
 def _create_publication(
     workspace: Path, work: ModuleWorkRef
 ) -> str:
+    from concord.pds_contract import (
+        CONCORD_ACADEMIC_WORK_CONTRACT_VERSION,
+        CONCORD_ACADEMIC_WORK_KIND,
+        CONCORD_ACTIVITY_CONTRACT_VERSION,
+        CONCORD_ACTIVITY_RECORD_KIND,
+    )
+
     canonical, capabilities = _manifest(work)
+    activity_source = ModuleRecordRef(
+        "concord",
+        CONCORD_ACTIVITY_RECORD_KIND,
+        work.work_id,
+        CONCORD_ACTIVITY_CONTRACT_VERSION,
+    )
     workspace.mkdir(parents=True)
     ensure_class_folder(workspace, work.class_id)
     write_class_roster(
@@ -256,12 +269,12 @@ def _create_publication(
         workspace,
         AcademicWorkRegistrationRequest(
             work=work,
-            producer_contract_version="concord_activity_v1",
+            producer_contract_version=CONCORD_ACADEMIC_WORK_CONTRACT_VERSION,
             title="Installed Concord Benchmark",
-            work_kind="assignment",
+            work_kind=CONCORD_ACADEMIC_WORK_KIND,
             academic_intent="summative",
             lifecycle="active",
-            source_records=(),
+            source_records=(activity_source,),
         ),
     )
     if registered.registration.registration_revision != 1:
@@ -274,7 +287,7 @@ def _create_publication(
         workspace,
         PublicationManifestRequest(
             work=work,
-            source_record=None,
+            source_record=activity_source,
             publication_kind="academic_result_set",
             capabilities=capabilities,
             record_set_id="academic_results",
