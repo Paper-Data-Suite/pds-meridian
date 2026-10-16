@@ -37,7 +37,7 @@ def _runtime_import_roots() -> set[str]:
 
 
 def test_issue61_exact_direct_interoperability_versions_remain_aligned() -> None:
-    assert EXPECTED_CORE_VERSION == "0.6.5"
+    assert EXPECTED_CORE_VERSION == "0.6.6"
     assert EXPECTED_SCOREFORM_VERSION == SCOREFORM_READER_VERSION == "0.12.1"
     assert EXPECTED_QUILLAN_VERSION == QUILLAN_READER_VERSION == "0.10.5"
     assert EXPECTED_CONCORD_VERSION == CONCORD_READER_VERSION == "0.3.0"

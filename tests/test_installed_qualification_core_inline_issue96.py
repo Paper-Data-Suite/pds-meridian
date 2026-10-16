@@ -105,7 +105,7 @@ def test_issue96_grouping_contract_smoke_tracks_promoted_candidate_version() -> 
     ).read_text(encoding="utf-8")
 
     assert 'version("pds-meridian") == "0.4.2"' in source
-    assert 'version("pds-core") == "0.6.5"' in source
+    assert 'version("pds-core") == "0.6.6"' in source
     assert 'version("pds-meridian") == "0.2.0"' not in source
 
 

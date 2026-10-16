@@ -81,3 +81,30 @@ def test_declared_core_minor_contract_and_producer_extras_are_preserved() -> Non
     assert '"scoreform>=0.13.0"' in pyproject
     assert '"quillan>=0.10.6"' in pyproject
     assert '"pds-concord>=0.3.2"' in pyproject
+
+
+def test_active_installed_smokes_pin_core_066_and_never_065() -> None:
+    # Keep older installed acceptance programs aligned with the exact Core
+    # release used by the six qualification matrices. This does not change
+    # Meridian's >=0.6.5 runtime compatibility floor.
+    active_smokes = (
+        "scripts/smoke_program_attention.py",
+        "scripts/smoke_program_conventional_grade.py",
+        "scripts/smoke_program_conventional_grade_reload.py",
+        "scripts/smoke_program_cross_policy_adversarial.py",
+        "scripts/smoke_program_grade_report_attention.py",
+        "scripts/smoke_program_grade_report_preview.py",
+        "scripts/smoke_program_hybrid_grade.py",
+        "scripts/smoke_program_issue59_operations.py",
+        "scripts/smoke_program_proficiency_signal_export.py",
+        "scripts/smoke_program_proficiency_signal_export_reload.py",
+        "scripts/smoke_program_standards_grade.py",
+        "scripts/smoke_program_storage_paths_issue102.py",
+        "scripts/smoke_test_grouping_signal_contract_wheel.py",
+        "scripts/smoke_test_wheel.py",
+        "scripts/smoke_program_guided_evidence_issue110.py",
+    )
+    for relative in active_smokes:
+        source = Path(relative).read_text(encoding="utf-8")
+        assert "0.6.5" not in source, relative
+        assert "0.6.6" in source, relative

@@ -97,7 +97,7 @@ def _require(condition: bool, message: str) -> None:
 def _verify_installed() -> None:
     issue54._verify_installed_composition()
     expected = {
-        "pds-core": "0.6.5",
+        "pds-core": "0.6.6",
         "scoreform": "0.13.0",
         "quillan": "0.10.6",
         "pds-concord": "0.3.2",
