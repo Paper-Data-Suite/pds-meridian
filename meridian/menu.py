@@ -56,7 +56,10 @@ from meridian.report_menu_execution import (
     LiveReportMenuExecutor,
     ReportMenuExecutionDependencies,
 )
-from meridian.teacher_attribution_input import TeacherAttributionInput
+from meridian.teacher_attribution_input import (
+    OneActionAttributionOverride,
+    TeacherAttributionInput,
+)
 from meridian.teacher_profile import TeacherIdentityProvider, TeacherProfileStore
 from meridian.teacher_session import TeacherSessionContext
 
@@ -113,6 +116,7 @@ class TeacherMenuDependencies:
         default_factory=TeacherSessionContext
     )
     attribution_provider: TeacherIdentityProvider | None = None
+    attribution_override: OneActionAttributionOverride | None = None
     setup_evidence_access: (
         Callable[[], TeacherLocalPublicationAuthorizer | None] | None
     ) = None
@@ -145,6 +149,7 @@ def default_teacher_menu_dependencies(
     diagnostics: DiagnosticsDependencies | None = None,
     session_context: TeacherSessionContext | None = None,
     attribution_provider: TeacherIdentityProvider | None = None,
+    attribution_override: OneActionAttributionOverride | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -152,9 +157,15 @@ def default_teacher_menu_dependencies(
     """Compose the nine real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
+    next_attribution = attribution_override
+    if next_attribution is None and attribution_provider is not None:
+        next_attribution = OneActionAttributionOverride(attribution_provider)
     teacher_input: InputFunction = (
         TeacherAttributionInput(
-            input_fn=input_fn, provider=attribution_provider, output=stream
+            input_fn=input_fn,
+            provider=attribution_provider,
+            output=stream,
+            override=next_attribution,
         )
         if attribution_provider is not None
         else input_fn
@@ -227,6 +238,7 @@ def default_teacher_menu_dependencies(
         ),
         session_context=session,
         attribution_provider=attribution_provider,
+        attribution_override=next_attribution,
         setup_evidence_access=lambda: run_teacher_evidence_authorization_menu(
             diagnostics=diagnostics,
             input_fn=teacher_input,
@@ -243,7 +255,12 @@ def _task_for_choice(choice: str) -> TeacherMenuTask | None:
     return None
 
 
-def _render_main_menu(output: TextIO, *, setup_available: bool = False) -> None:
+def _render_main_menu(
+    output: TextIO,
+    *,
+    setup_available: bool = False,
+    pending_override: OneActionAttributionOverride | None = None,
+) -> None:
     print_menu_header(output)
     for task in TEACHER_MENU_TASKS:
         print(f"{task.number}. {task.title}", file=output)
@@ -251,6 +268,11 @@ def _render_main_menu(output: TextIO, *, setup_available: bool = False) -> None:
     if setup_available:
         print("A. Set Up Evidence Access", file=output)
     print("S. Teacher Settings / First-Time Setup", file=output)
+    if pending_override is not None and pending_override.pending:
+        print(
+            "Temporary attribution armed for next action; use S to review/cancel.",
+            file=output,
+        )
     print("H. Help", file=output)
     print_standard_navigation(
         output,
@@ -305,6 +327,7 @@ def run_menu(
             _render_main_menu(
                 stream,
                 setup_available=active.setup_evidence_access is not None,
+                pending_override=active.attribution_override,
             )
             choice = read_choice(input_fn)
 
@@ -319,6 +342,7 @@ def run_menu(
                         ),
                         session_context=active.session_context,
                         attribution_provider=active.attribution_provider,
+                        attribution_override=active.attribution_override,
                         input_fn=input_fn,
                         output=stream,
                         clear_fn=clear_fn,
@@ -328,6 +352,12 @@ def run_menu(
             if choice.casefold() == "s":
                 run_teacher_settings_menu(
                     session_context=active.session_context,
+                    attribution_override=active.attribution_override,
+                    profile_store=(
+                        active.attribution_provider.store
+                        if active.attribution_provider is not None
+                        else None
+                    ),
                     input_fn=input_fn,
                     output=stream,
                     clear_fn=clear_fn,
@@ -361,6 +391,8 @@ def run_menu(
         except ReturnToMainMenu:
             continue
         except (QuitPDS, EOFError, KeyboardInterrupt):
+            if active.attribution_override is not None:
+                active.attribution_override.clear()
             active.session_context.clear()
             clear_fn()
             return 0

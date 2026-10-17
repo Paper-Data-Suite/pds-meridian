@@ -539,6 +539,25 @@ class TeacherIdentityProvider:
     def __init__(self, store: TeacherProfileStore) -> None:
         self._store = store
 
+    @property
+    def store(self) -> TeacherProfileStore:
+        """Expose the shared store to explicitly composed Settings only."""
+        return self._store
+
+    def resolve_with_fingerprint(self) -> tuple[TeacherIdentity, str]:
+        """Read the actor and exact saved-profile fingerprint together."""
+        current = self._store.load()
+        if current is None:
+            raise TeacherProfileNotConfiguredError(
+                "Set up teacher identity in Settings before recording a decision."
+            )
+        return (
+            TeacherIdentity(
+                current.profile.actor_id, current.profile.display_name, "saved"
+            ),
+            current.sha256,
+        )
+
     def resolve(self) -> TeacherIdentity:
         current = self._store.load()
         if current is None:

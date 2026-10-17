@@ -25,6 +25,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_attribution_input import OneActionAttributionOverride
 from meridian.teacher_preferences import (
     StoredTeacherNavigationPreferences,
     TeacherNavigationPreferences,
@@ -187,6 +188,57 @@ def _profile_action(
                 "Profile Reset",
                 "Set up a new profile before authoring future decisions.",
             )
+
+
+def _arm_temporary_attribution(
+    override: OneActionAttributionOverride,
+    current: StoredTeacherProfile | None,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    """Queue one explicitly confirmed future attribution, never a profile edit."""
+    if current is None:
+        _message(
+            output,
+            input_fn,
+            clear_fn,
+            "Profile Setup Required",
+            "Set up your saved identity before using an override.",
+        )
+        return
+    clear_fn()
+    print_menu_header(output, "Temporary Attribution (Advanced)")
+    name = read_choice(input_fn, "Name for next attributed action: ")
+    actor_id = read_choice(input_fn, "Actor ID (Advanced): ")
+    if not _confirmation(
+        output,
+        input_fn,
+        f"Saved teacher: {current.profile.display_name}",
+        f"Temporary attribution name: {name}",
+        f"Temporary actor ID: {actor_id}",
+        "This affects only the NEXT attribution request, not your saved profile.",
+        "It will NOT authorize evidence access or make an academic decision.",
+        "It is consumed even if that following action is canceled.",
+        keyword="OVERRIDE",
+    ):
+        return
+    override.arm(
+        actor_id=actor_id,
+        display_name=name,
+        confirmation="OVERRIDE",
+        expected_profile_sha256=current.sha256,
+    )
+    _message(
+        output,
+        input_fn,
+        clear_fn,
+        "One-Action Attribution Armed",
+        "One temporary actor is selected for the next attributed action.",
+        "The saved teacher profile has not changed.",
+        "Return to Main Menu and choose the intended academic action.",
+    )
 
 
 def _resume_candidate(
@@ -416,6 +468,7 @@ def _clear_navigation(
 def run_teacher_settings_menu(
     *,
     session_context: TeacherSessionContext,
+    attribution_override: OneActionAttributionOverride | None = None,
     profile_store: TeacherProfileStore | None = None,
     preferences_store: TeacherNavigationPreferencesStore | None = None,
     workspace_resolver: WorkspaceResolver = resolve_workspace_root,
@@ -454,6 +507,13 @@ def run_teacher_settings_menu(
                 "",
                 "1. View teacher attribution (Advanced)",
             )
+        if attribution_override is not None and attribution_override.pending:
+            write_lines(
+                stream,
+                "",
+                "Temporary actor queued for next attribution: "
+                + str(attribution_override.pending_name),
+            )
         write_lines(
             stream,
             "2. Change display name (Advanced)",
@@ -462,6 +522,14 @@ def run_teacher_settings_menu(
             "5. Save current class / assessment preference",
             "6. Resume verified saved class",
             "7. Clear saved classroom preference",
+            *(
+                (
+                    "8. Override next attribution (Advanced)",
+                    "9. Cancel queued temporary attribution",
+                )
+                if attribution_override is not None
+                else ()
+            ),
             "",
             "A saved identity does not grant access to student evidence.",
         )
@@ -475,6 +543,23 @@ def run_teacher_settings_menu(
                 _profile_action(
                     choice,
                     profile,
+                    current,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+            elif choice == "9" and attribution_override is not None:
+                attribution_override.clear()
+                _message(
+                    stream,
+                    input_fn,
+                    clear_fn,
+                    "Temporary Attribution Cleared",
+                    "Future actions will use the saved teacher profile.",
+                )
+            elif choice == "8" and attribution_override is not None:
+                _arm_temporary_attribution(
+                    attribution_override,
                     current,
                     input_fn=input_fn,
                     output=stream,
@@ -514,7 +599,7 @@ def run_teacher_settings_menu(
                     input_fn,
                     clear_fn,
                     "Unknown Setting",
-                    "Choose an option from 1-7, or B to return.",
+                    "Choose a listed option, or B to return.",
                 )
         except (
             TeacherProfileError,
