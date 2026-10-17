@@ -279,6 +279,15 @@ def _posix_flock(fd: int, *, unlock: bool) -> None:
     flock(fd, operation)
 
 
+def _windows_lock(fd: int, *, unlock: bool) -> None:
+    """Call the Windows-only CRT lock API without platform-dependent stubs."""
+    import msvcrt
+
+    locking = cast(Callable[[int, int, int], None], getattr(msvcrt, "locking"))
+    operation = cast(int, getattr(msvcrt, "LK_UNLCK" if unlock else "LK_LOCK"))
+    locking(fd, operation, 1)
+
+
 class TeacherProfileStore:
     """Guarded user-local profile under Core's per-user config convention."""
 
@@ -382,15 +391,13 @@ class TeacherProfileStore:
                     "Profile lock is not private or regular."
                 )
             if os.name == "nt":
-                import msvcrt
-
                 os.lseek(fd, 0, os.SEEK_SET)
                 if info.st_size == 0:
                     os.write(fd, b"0")
                     os.fsync(fd)
                 os.lseek(fd, 0, os.SEEK_SET)
                 try:
-                    msvcrt.locking(fd, msvcrt.LK_LOCK, 1)
+                    _windows_lock(fd, unlock=False)
                 except OSError as error:
                     raise TeacherProfileStorageError(
                         "Cannot lock local profile."
@@ -404,7 +411,7 @@ class TeacherProfileStore:
             finally:
                 if os.name == "nt":
                     os.lseek(fd, 0, os.SEEK_SET)
-                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                    _windows_lock(fd, unlock=True)
                 else:
                     _posix_flock(fd, unlock=True)
         finally:
