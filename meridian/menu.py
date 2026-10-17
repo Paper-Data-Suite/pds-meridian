@@ -56,6 +56,8 @@ from meridian.report_menu_execution import (
     LiveReportMenuExecutor,
     ReportMenuExecutionDependencies,
 )
+from meridian.teacher_attribution_input import TeacherAttributionInput
+from meridian.teacher_profile import TeacherIdentityProvider, TeacherProfileStore
 from meridian.teacher_session import TeacherSessionContext
 
 TeacherMenuTaskId: TypeAlias = Literal[
@@ -110,6 +112,7 @@ class TeacherMenuDependencies:
     session_context: TeacherSessionContext = field(
         default_factory=TeacherSessionContext
     )
+    attribution_provider: TeacherIdentityProvider | None = None
     setup_evidence_access: (
         Callable[[], TeacherLocalPublicationAuthorizer | None] | None
     ) = None
@@ -141,6 +144,7 @@ def default_teacher_menu_dependencies(
     *,
     diagnostics: DiagnosticsDependencies | None = None,
     session_context: TeacherSessionContext | None = None,
+    attribution_provider: TeacherIdentityProvider | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -148,6 +152,13 @@ def default_teacher_menu_dependencies(
     """Compose the nine real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
+    teacher_input: InputFunction = (
+        TeacherAttributionInput(
+            input_fn=input_fn, provider=attribution_provider, output=stream
+        )
+        if attribution_provider is not None
+        else input_fn
+    )
     if diagnostics is None:
         diagnostics = default_diagnostics_dependencies()
     session = TeacherSessionContext() if session_context is None else session_context
@@ -165,49 +176,49 @@ def default_teacher_menu_dependencies(
         review_new_evidence=lambda: run_teacher_evidence_inbox_menu(
             dependencies=inbox_dependencies,
             session_context=session,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         manage_grade_items=lambda: run_grade_items_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         review_proficiency=lambda: run_proficiency_menu(
             action_dependencies=proficiency_actions,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         preview_grades=lambda: run_grade_preview_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         overrides=lambda: run_overrides_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         snapshots=lambda: run_snapshots_menu(
             freeze_dependencies=freeze_dependencies,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         export=lambda: run_export_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         explain=lambda: run_explain_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         reports=lambda: run_reports_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
             executor=LiveReportMenuExecutor(
@@ -215,9 +226,10 @@ def default_teacher_menu_dependencies(
             ),
         ),
         session_context=session,
+        attribution_provider=attribution_provider,
         setup_evidence_access=lambda: run_teacher_evidence_authorization_menu(
             diagnostics=diagnostics,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
@@ -282,6 +294,7 @@ def run_menu(
     stream = sys.stdout if output is None else output
     active = dependencies or default_teacher_menu_dependencies(
         diagnostics=diagnostics,
+        attribution_provider=TeacherIdentityProvider(TeacherProfileStore()),
         input_fn=input_fn,
         output=stream,
         clear_fn=clear_fn,
@@ -305,6 +318,7 @@ def run_menu(
                             authorizer=authorized
                         ),
                         session_context=active.session_context,
+                        attribution_provider=active.attribution_provider,
                         input_fn=input_fn,
                         output=stream,
                         clear_fn=clear_fn,
