@@ -38,6 +38,7 @@ from meridian.menu_teacher_evidence import (
     default_teacher_evidence_inbox_menu_dependencies,
     run_teacher_evidence_inbox_menu,
 )
+from meridian.menu_teacher_settings import run_teacher_settings_menu
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -55,6 +56,11 @@ from meridian.report_menu_execution import (
     LiveReportMenuExecutor,
     ReportMenuExecutionDependencies,
 )
+from meridian.teacher_attribution_input import (
+    OneActionAttributionOverride,
+    TeacherAttributionInput,
+)
+from meridian.teacher_profile import TeacherIdentityProvider, TeacherProfileStore
 from meridian.teacher_session import TeacherSessionContext
 
 TeacherMenuTaskId: TypeAlias = Literal[
@@ -109,6 +115,8 @@ class TeacherMenuDependencies:
     session_context: TeacherSessionContext = field(
         default_factory=TeacherSessionContext
     )
+    attribution_provider: TeacherIdentityProvider | None = None
+    attribution_override: OneActionAttributionOverride | None = None
     setup_evidence_access: (
         Callable[[], TeacherLocalPublicationAuthorizer | None] | None
     ) = None
@@ -140,6 +148,8 @@ def default_teacher_menu_dependencies(
     *,
     diagnostics: DiagnosticsDependencies | None = None,
     session_context: TeacherSessionContext | None = None,
+    attribution_provider: TeacherIdentityProvider | None = None,
+    attribution_override: OneActionAttributionOverride | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -147,6 +157,19 @@ def default_teacher_menu_dependencies(
     """Compose the nine real teacher controllers over one terminal session."""
 
     stream = sys.stdout if output is None else output
+    next_attribution = attribution_override
+    if next_attribution is None and attribution_provider is not None:
+        next_attribution = OneActionAttributionOverride(attribution_provider)
+    teacher_input: InputFunction = (
+        TeacherAttributionInput(
+            input_fn=input_fn,
+            provider=attribution_provider,
+            output=stream,
+            override=next_attribution,
+        )
+        if attribution_provider is not None
+        else input_fn
+    )
     if diagnostics is None:
         diagnostics = default_diagnostics_dependencies()
     session = TeacherSessionContext() if session_context is None else session_context
@@ -164,49 +187,49 @@ def default_teacher_menu_dependencies(
         review_new_evidence=lambda: run_teacher_evidence_inbox_menu(
             dependencies=inbox_dependencies,
             session_context=session,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         manage_grade_items=lambda: run_grade_items_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         review_proficiency=lambda: run_proficiency_menu(
             action_dependencies=proficiency_actions,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         preview_grades=lambda: run_grade_preview_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         overrides=lambda: run_overrides_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         snapshots=lambda: run_snapshots_menu(
             freeze_dependencies=freeze_dependencies,
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         export=lambda: run_export_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         explain=lambda: run_explain_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         reports=lambda: run_reports_menu(
-            input_fn=input_fn,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
             executor=LiveReportMenuExecutor(
@@ -214,13 +237,13 @@ def default_teacher_menu_dependencies(
             ),
         ),
         session_context=session,
-        setup_evidence_access=lambda: (
-            run_teacher_evidence_authorization_menu(
-                diagnostics=diagnostics,
-                input_fn=input_fn,
-                output=stream,
-                clear_fn=clear_fn,
-            )
+        attribution_provider=attribution_provider,
+        attribution_override=next_attribution,
+        setup_evidence_access=lambda: run_teacher_evidence_authorization_menu(
+            diagnostics=diagnostics,
+            input_fn=teacher_input,
+            output=stream,
+            clear_fn=clear_fn,
         ),
     )
 
@@ -233,7 +256,10 @@ def _task_for_choice(choice: str) -> TeacherMenuTask | None:
 
 
 def _render_main_menu(
-    output: TextIO, *, setup_available: bool = False
+    output: TextIO,
+    *,
+    setup_available: bool = False,
+    pending_override: OneActionAttributionOverride | None = None,
 ) -> None:
     print_menu_header(output)
     for task in TEACHER_MENU_TASKS:
@@ -241,6 +267,12 @@ def _render_main_menu(
     print(file=output)
     if setup_available:
         print("A. Set Up Evidence Access", file=output)
+    print("S. Teacher Settings / First-Time Setup", file=output)
+    if pending_override is not None and pending_override.pending:
+        print(
+            "Temporary attribution armed for next action; use S to review/cancel.",
+            file=output,
+        )
     print("H. Help", file=output)
     print_standard_navigation(
         output,
@@ -259,6 +291,7 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
         "Meridian Grade and report outputs are teacher-controlled local PDS results.",
         "They do not prove that an SIS, LMS, or district gradebook was updated.",
         "",
+        "S opens teacher identity and classroom navigation settings.",
         "Inside a task, use B for Back, M for Main Menu, and Q to Quit.",
         "For exact noninteractive commands, use: meridian --help",
     )
@@ -283,6 +316,7 @@ def run_menu(
     stream = sys.stdout if output is None else output
     active = dependencies or default_teacher_menu_dependencies(
         diagnostics=diagnostics,
+        attribution_provider=TeacherIdentityProvider(TeacherProfileStore()),
         input_fn=input_fn,
         output=stream,
         clear_fn=clear_fn,
@@ -293,12 +327,11 @@ def run_menu(
             _render_main_menu(
                 stream,
                 setup_available=active.setup_evidence_access is not None,
+                pending_override=active.attribution_override,
             )
             choice = read_choice(input_fn)
 
-            if choice.casefold() == "a" and (
-                active.setup_evidence_access is not None
-            ):
+            if choice.casefold() == "a" and (active.setup_evidence_access is not None):
                 authorized = active.setup_evidence_access()
                 if authorized is not None:
                     # Recompose protected readers with the newly loaded
@@ -308,10 +341,27 @@ def run_menu(
                             authorizer=authorized
                         ),
                         session_context=active.session_context,
+                        attribution_provider=active.attribution_provider,
+                        attribution_override=active.attribution_override,
                         input_fn=input_fn,
                         output=stream,
                         clear_fn=clear_fn,
                     )
+                continue
+
+            if choice.casefold() == "s":
+                run_teacher_settings_menu(
+                    session_context=active.session_context,
+                    attribution_override=active.attribution_override,
+                    profile_store=(
+                        active.attribution_provider.store
+                        if active.attribution_provider is not None
+                        else None
+                    ),
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
                 continue
 
             if choice.casefold() == "h":
@@ -331,14 +381,18 @@ def run_menu(
                 active.handler_for(task.task_id)()
                 continue
 
-            options = "1-9, A, H, or Q" if (
-                active.setup_evidence_access is not None
-            ) else "1-9, H, or Q"
+            options = (
+                "1-9, A, S, H, or Q"
+                if (active.setup_evidence_access is not None)
+                else "1-9, S, H, or Q"
+            )
             write_lines(stream, "", f"Please choose {options}.")
             pause_for_user(input_fn)
         except ReturnToMainMenu:
             continue
         except (QuitPDS, EOFError, KeyboardInterrupt):
+            if active.attribution_override is not None:
+                active.attribution_override.clear()
             active.session_context.clear()
             clear_fn()
             return 0

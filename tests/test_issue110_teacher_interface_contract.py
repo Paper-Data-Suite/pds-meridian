@@ -16,6 +16,17 @@ _BASELINE_RAW_PROMPT_COUNT = 188
 _BASELINE_RAW_PROMPT_SHA256 = (
     "2639c4eeb08692c4a7286eab52156a720496bd7552f28575c72c9cd2dfa5ae55"
 )
+# These are deliberate, Advanced-only identity controls introduced by #121.
+# They do not ask for opaque student, evidence, or academic-record IDs.
+# Match exact file/function/prompt triples; do not exempt generic ID prompts.
+_ADVANCED_TEACHER_IDENTITY_SITES = frozenset(
+    {
+        "meridian/menu_teacher_settings.py|_profile_action|"
+        "Name for the new identity: ",
+        "meridian/menu_teacher_settings.py|_arm_temporary_attribution|"
+        "Actor ID (Advanced): ",
+    }
+)
 
 
 def _looks_like_raw_identifier_prompt(prompt: str) -> bool:
@@ -76,12 +87,15 @@ def _read_choice_prompts(path: Path) -> list[tuple[str, str]]:
     return observed
 
 
-def _raw_prompt_sites() -> tuple[str, ...]:
+def _raw_prompt_sites(*, include_advanced: bool = False) -> tuple[str, ...]:
     sites: list[str] = []
     for path in sorted(Path("meridian").glob("menu*.py")):
         for function_name, prompt in _read_choice_prompts(path):
             if _looks_like_raw_identifier_prompt(prompt):
-                sites.append(f"{path.as_posix()}|{function_name}|{prompt}")
+                site = f"{path.as_posix()}|{function_name}|{prompt}"
+                if not include_advanced and site in _ADVANCED_TEACHER_IDENTITY_SITES:
+                    continue
+                sites.append(site)
     return tuple(sorted(sites))
 
 
@@ -113,6 +127,15 @@ def test_issue110_raw_id_prompt_surface_is_frozen_as_legacy_debt() -> None:
         "legacy prompts must deliberately refresh the frozen count/digest; "
         "new or relocated raw-ID prompts are not allowed."
     )
+
+
+def test_issue121_advanced_identity_prompts_are_not_legacy_raw_id_debt() -> None:
+    # Both explicit settings-only prompts must remain in source. No other
+    # new identifier prompt is allowed to evade the frozen Issue #110 digest.
+    all_sites = set(_raw_prompt_sites(include_advanced=True))
+    legacy_sites = set(_raw_prompt_sites())
+    assert all_sites - legacy_sites == _ADVANCED_TEACHER_IDENTITY_SITES
+    assert legacy_sites.isdisjoint(_ADVANCED_TEACHER_IDENTITY_SITES)
 
 
 def test_issue110_contract_preserves_exact_direct_cli() -> None:
