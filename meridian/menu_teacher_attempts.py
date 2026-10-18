@@ -15,12 +15,9 @@ from meridian.guided_attempts import (
     GuidedAttemptPolicyPreset,
     GuidedAttemptReview,
     apply_guided_attempt_policy,
-    commit_guided_attempt_decision,
-    commit_guided_attempt_selection,
     load_guided_attempt_review,
     plan_guided_attempt_policy,
     preview_guided_attempt_decision,
-    preview_guided_attempt_selection,
 )
 from meridian.guided_eligibility import (
     GuidedEligibilityDependencies,
@@ -29,7 +26,7 @@ from meridian.guided_eligibility import (
 )
 from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.guided_projection import GuidedProjectionResult
-from meridian.menu_teacher_grade_items import run_grade_item_bridge
+from meridian.menu_teacher_grade_items import _review_apply, run_grade_item_bridge
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -39,7 +36,12 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_action_attempt_standards import prepare_attempt_decision_action
+from meridian.teacher_action_guided import resolve_menu_actor
+from meridian.teacher_action_orchestration import TeacherActionConflictError
+from meridian.teacher_action_receipts import TeacherActionReceiptError
 from meridian.teacher_evidence_review import TeacherEvidenceReviewItem
+from meridian.teacher_profile import TeacherProfileError
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -466,9 +468,7 @@ def run_guided_attempt_menu(
     )
     if indexes is None:
         return
-    selected_attempts = tuple(
-        review.candidates[index - 1].attempt for index in indexes
-    )
+    selected_attempts = tuple(review.candidates[index - 1].attempt for index in indexes)
 
     clear_fn()
     print_menu_header(output, "Attempt Decision Rationale")
@@ -503,7 +503,7 @@ def run_guided_attempt_menu(
         return
 
     clear_fn()
-    print_menu_header(output, "Review Attempt Decision Before Write")
+    print_menu_header(output, "Review and Save Attempt Decision")
     write_lines(
         output,
         f"Student: {subject_label}",
@@ -519,69 +519,42 @@ def run_guided_attempt_menu(
     write_lines(
         output,
         "",
-        "Writing creates one immutable attempt decision.",
-        "It does not make that decision current until you select it.",
+        "Save writes and selects precisely the reviewed attempt decision.",
         "",
-        "1. Write this decision",
+        "1. Save and make current",
         "2. Cancel",
     )
-    if read_choice(input_fn) != "1":
-        write_lines(output, "", "No attempt decision was written.")
-        pause_for_user(input_fn)
-        return
-
     try:
-        written = commit_guided_attempt_decision(
+        actor = resolve_menu_actor(teacher, input_fn)
+        action = prepare_attempt_decision_action(
             workspace_root,
-            prepared=prepared,
-            preview=preview,
-            dependencies=dependencies,
+            prepared,
+            preview,
+            actor,
+            dependencies,
         )
-        selection_preview = preview_guided_attempt_selection(
-            workspace_root,
-            prepared=prepared,
-            grade_item_id=grade_item.grade_item_id,
-            student_id=evidence.student_id,
-            written_revision=written.written_revision,
-            dependencies=dependencies,
-        )
-    except GuidedAttemptError as error:
+    except (
+        TeacherActionConflictError,
+        TeacherProfileError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ) as error:
         _show_error(
-            error,
+            GuidedAttemptActionError(str(error)),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return
-
-    clear_fn()
-    print_menu_header(output, "Make Attempt Decision Current")
-    write_lines(
-        output,
-        f"Student: {subject_label}",
-        f"Selected attempts: {len(selected_attempts)}",
-        "",
-        "The decision was written but is not current yet.",
-        "",
-        "1. Make this decision current",
-        "2. Leave it unselected",
-    )
-    if read_choice(input_fn) != "1":
-        write_lines(
-            output,
-            "",
-            "The attempt decision remains written but unselected.",
-        )
-        pause_for_user(input_fn)
+    if not _review_apply(
+        action,
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+    ):
         return
-
     try:
-        commit_guided_attempt_selection(
-            workspace_root,
-            prepared=prepared,
-            preview=selection_preview,
-            dependencies=dependencies,
-        )
         refreshed = load_guided_attempt_review(
             workspace_root,
             prepared=prepared,
@@ -590,14 +563,18 @@ def run_guided_attempt_menu(
             dependencies=dependencies,
         )
     except GuidedAttemptError as error:
-        _show_error(
-            error,
+        _show_error(error, input_fn=input_fn, output=output, clear_fn=clear_fn)
+        return
+    if refreshed.selected_count != len(selected_attempts):
+        _show_blocker(
+            "Attempt Selection Requires Review",
+            "The selected attempt count changed after canonical verification.",
+            "Review the current attempts before further grading.",
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return
-
     clear_fn()
     print_menu_header(output, "Attempt Decision Updated")
     write_lines(

@@ -23,15 +23,12 @@ from meridian.guided_standards import (
     GuidedStandardsDependencies,
     GuidedStandardsError,
     build_guided_standards_projection,
-    commit_guided_standard_association,
-    commit_guided_standard_selection,
     load_guided_scale_choices,
     load_guided_standard_choices,
     preview_guided_standard_association,
-    preview_guided_standard_selection,
     reload_guided_standards_projection,
 )
-from meridian.menu_teacher_grade_items import run_grade_item_bridge
+from meridian.menu_teacher_grade_items import _review_apply, run_grade_item_bridge
 from meridian.menu_teacher_proficiency import run_guided_proficiency_menu
 from meridian.menu_ui import (
     ClearFunction,
@@ -46,7 +43,14 @@ from meridian.standards_association_authoring_workflow import (
     StandardsAssociationBasis,
     StandardsAssociationDisposition,
 )
+from meridian.teacher_action_attempt_standards import (
+    prepare_standard_association_action,
+)
+from meridian.teacher_action_guided import resolve_menu_actor
+from meridian.teacher_action_orchestration import TeacherActionConflictError
+from meridian.teacher_action_receipts import TeacherActionReceiptError
 from meridian.teacher_evidence_review import TeacherEvidenceReviewItem
+from meridian.teacher_profile import TeacherProfileError
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -565,7 +569,7 @@ def run_guided_standard_menu(
         return
 
     clear_fn()
-    print_menu_header(output, "Review Standard Association Before Write")
+    print_menu_header(output, "Review and Save Standard Association")
     write_lines(
         output,
         f"Student: {subject_label}",
@@ -586,69 +590,42 @@ def run_guided_standard_menu(
     write_lines(
         output,
         "",
-        "Writing creates one immutable Standard association decision.",
-        "It does not make that decision current until you select it.",
+        "Save writes and selects the exact Standard association and basis.",
         "",
-        "1. Write this decision",
+        "1. Save and make current",
         "2. Cancel",
     )
-    if read_choice(input_fn) != "1":
-        write_lines(output, "", "No Standard association was written.")
-        pause_for_user(input_fn)
-        return
-
     try:
-        written = commit_guided_standard_association(
+        actor = resolve_menu_actor(teacher, input_fn)
+        action = prepare_standard_association_action(
             workspace_root,
             prepared,
             preview,
-            dependencies=dependencies,
+            actor,
+            dependencies,
         )
-        selection_preview = preview_guided_standard_selection(
-            workspace_root,
-            prepared,
-            projection,
-            written.written_revision,
-            dependencies=dependencies,
-        )
-    except GuidedStandardsError as error:
+    except (
+        TeacherActionConflictError,
+        TeacherProfileError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ) as error:
         _show_error(
-            error,
+            GuidedStandardsError(str(error)),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return
-
-    clear_fn()
-    print_menu_header(output, "Make Standard Association Current")
-    write_lines(
-        output,
-        f"Student: {subject_label}",
-        f"Standard: {standard.label}",
-        f"Decision: {_humanize(disposition)}",
-        "",
-        "The decision was written but is not current yet.",
-        "",
-        "1. Make this decision current",
-        "2. Leave it unselected",
-    )
-    if read_choice(input_fn) != "1":
-        write_lines(
-            output,
-            "",
-            "The Standard association remains written but unselected.",
-        )
-        pause_for_user(input_fn)
+    if not _review_apply(
+        action,
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+    ):
         return
-
     try:
-        commit_guided_standard_selection(
-            workspace_root,
-            prepared,
-            selection_preview,
-            dependencies=dependencies,
-        )
         refreshed = reload_guided_standards_projection(
             workspace_root,
             prepared,
@@ -659,14 +636,17 @@ def run_guided_standard_menu(
             scale=scale,
         )
     except GuidedStandardsError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
+        _show_error(error, input_fn=input_fn, output=output, clear_fn=clear_fn)
         return
-
+    if refreshed.association_disposition != disposition:
+        write_lines(
+            output,
+            "",
+            "Current association differs from the reviewed decision.",
+            "Review current source and Standard state before further grading.",
+        )
+        pause_for_user(input_fn)
+        return
     clear_fn()
     print_menu_header(output, "Standard Association Updated")
     write_lines(
