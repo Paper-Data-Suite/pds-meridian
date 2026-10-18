@@ -524,6 +524,54 @@ class TeacherActionReceiptStore:
             return None
         return self._load_existing(action_id)
 
+    def list_receipts(self) -> tuple[TeacherActionReceipt, ...]:
+        """Enumerate validated class receipts without creating or modifying files.
+
+        Unknown names, temporary files, symlinks, corrupt receipts and excessive
+        entries cause a fail-closed error. A partial inventory is never returned.
+        """
+        if not self._guard_chain(create=False):
+            return ()
+        try:
+            entries = tuple(self.directory.iterdir())
+        except OSError as error:
+            raise TeacherActionReceiptUnsafeError(
+                "Could not enumerate the action journal."
+            ) from error
+        if len(entries) > _MAX_RECEIPTS_PER_CLASS + 1:
+            raise TeacherActionReceiptUnsafeError(
+                "Journal has too many entries for complete review."
+            )
+        receipts: list[TeacherActionReceipt] = []
+        for entry in sorted(entries, key=lambda item: item.name):
+            if entry.name == ".journal.lock":
+                _guard_file(entry)
+                continue
+            match = re.fullmatch(r"([0-9a-f]{32})\.json", entry.name)
+            if match is None:
+                raise TeacherActionReceiptUnsafeError(
+                    "Journal contains an unrecognized or incomplete entry."
+                )
+            _guard_file(entry)
+            receipt = self._load_existing(match.group(1))
+            if receipt is None:
+                raise TeacherActionReceiptUnsafeError(
+                    "Journal receipt disappeared during enumeration."
+                )
+            receipts.append(receipt)
+        try:
+            final_names = tuple(sorted(item.name for item in self.directory.iterdir()))
+        except OSError as error:
+            raise TeacherActionReceiptUnsafeError(
+                "Journal changed while enumerating entries."
+            ) from error
+        original_names = tuple(sorted(entry.name for entry in entries))
+        if final_names != original_names:
+            raise TeacherActionReceiptUnsafeError(
+                "Journal changed while enumerating entries."
+            )
+        return tuple(receipts)
+
     @contextmanager
     def _locked(self) -> Iterator[None]:
         self._guard_chain(create=True)
