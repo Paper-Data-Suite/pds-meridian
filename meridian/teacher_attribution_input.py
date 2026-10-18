@@ -124,10 +124,18 @@ class TeacherAttributionInput:
         self._provider = provider
         self._output = output
         self._override = override
+        self._last_attribution: tuple[TeacherIdentity, str] | None = None
+
+    def take_last_attribution(self) -> tuple[TeacherIdentity, str] | None:
+        """Consume the most recent verified attribution, including an override."""
+        value = self._last_attribution
+        self._last_attribution = None
+        return value
 
     def __call__(self, prompt: str) -> str:
         if prompt not in ATTRIBUTION_PROMPTS:
             return self._input_fn(prompt)
+        self._last_attribution = None
         try:
             identity = (
                 self._override.resolve_next()
@@ -166,6 +174,11 @@ class TeacherAttributionInput:
             )
         else:
             print(f"Recorded by: {identity.display_name}", file=self._output)
+        try:
+            _, digest = self._provider.resolve_with_fingerprint()
+        except TeacherProfileError:
+            raise ReturnToMainMenu from None
+        self._last_attribution = (identity, digest)
         return identity.actor_id
 
 

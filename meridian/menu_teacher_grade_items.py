@@ -14,13 +14,9 @@ from meridian.guided_grade_items import (
     GuidedGradeItemBridgeDependencies,
     GuidedGradeItemBridgeError,
     GuidedGradeItemChoice,
-    commit_membership_link,
-    commit_new_grade_item,
     load_guided_grade_item_bridge_context,
     preview_membership_link,
     preview_new_grade_item,
-    select_membership_link,
-    select_new_grade_item,
     verify_current_membership_link,
 )
 from meridian.menu_ui import (
@@ -32,6 +28,19 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_action_contract import (
+    TeacherActionActor,
+    teacher_action_outcome_message,
+)
+from meridian.teacher_action_guided import (
+    PreparedGuidedAction,
+    prepare_grade_item_action,
+    prepare_membership_action,
+    resolve_menu_actor,
+)
+from meridian.teacher_action_orchestration import TeacherActionConflictError
+from meridian.teacher_action_receipts import TeacherActionReceiptError
+from meridian.teacher_profile import TeacherProfileError
 from meridian.teacher_session import TeacherSessionContext
 
 _PURPOSES: tuple[tuple[str, GradeItemPurpose], ...] = (
@@ -172,6 +181,7 @@ def _create_grade_item(
     context: GuidedGradeItemBridgeContext,
     teacher: str,
     *,
+    actor: TeacherActionActor,
     dependencies: GuidedGradeItemBridgeDependencies,
     input_fn: InputFunction,
     output: TextIO,
@@ -182,15 +192,9 @@ def _create_grade_item(
     title = read_choice(input_fn, "Grade Item title: ").strip()
     if not title:
         return None
-
-    purpose = _choose_purpose(
-        input_fn=input_fn,
-        output=output,
-        clear_fn=clear_fn,
-    )
+    purpose = _choose_purpose(input_fn=input_fn, output=output, clear_fn=clear_fn)
     if purpose is None:
         return None
-
     try:
         preview = preview_new_grade_item(
             root,
@@ -200,79 +204,41 @@ def _create_grade_item(
             teacher_attribution=teacher,
             dependencies=dependencies,
         )
-    except GuidedGradeItemBridgeError as error:
+        action = prepare_grade_item_action(root, preview, actor, dependencies)
+    except (
+        GuidedGradeItemBridgeError,
+        TeacherActionConflictError,
+        TeacherProfileError,
+        TeacherActionReceiptError,
+        ValueError,
+    ) as error:
         _show_error(
-            error,
+            GuidedGradeItemBridgeError(str(error)),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return None
-
     clear_fn()
-    print_menu_header(output, "Review New Grade Item")
+    print_menu_header(output, "Review and Save Grade Item")
     write_lines(
         output,
         f"Title: {title}",
         f"Purpose: {purpose.replace('_', ' ').capitalize()}",
         "Weighting: not set",
+        "Save creates the immutable Grade Item and makes this exact revision current.",
         "",
-        "1. Create this Grade Item",
+        "1. Save and make current",
         "2. Cancel",
     )
-    if read_choice(input_fn) != "1":
+    if not _review_apply(action, input_fn=input_fn, output=output, clear_fn=clear_fn):
         return None
-
-    try:
-        written = commit_new_grade_item(
-            root,
-            preview,
-            dependencies=dependencies,
-        )
-    except GuidedGradeItemBridgeError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
-        return None
-
-    clear_fn()
-    print_menu_header(output, "Make Grade Item Current")
-    write_lines(
-        output,
-        f"Title: {title}",
-        "",
-        "The Grade Item was written but is not current yet.",
-        "",
-        "1. Make this Grade Item current",
-        "2. Leave it unselected",
-    )
-    if read_choice(input_fn) != "1":
-        return None
-
-    try:
-        selected = select_new_grade_item(
-            root,
-            written,
-            dependencies=dependencies,
-        )
-    except GuidedGradeItemBridgeError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
-        return None
-
     return GuidedGradeItemChoice(
         grade_item_id=preview.candidate.grade_item_id,
         title=title,
         purpose=purpose,
         display_label=title,
-        selected_revision=selected.selected_revision,
+        selected_revision=preview.candidate.grade_item_revision,
     )
 
 
@@ -284,6 +250,7 @@ def _link_work(
     teacher: str,
     rationale: str | None,
     *,
+    actor: TeacherActionActor,
     dependencies: GuidedGradeItemBridgeDependencies,
     input_fn: InputFunction,
     output: TextIO,
@@ -299,74 +266,43 @@ def _link_work(
             rationale=rationale,
             dependencies=dependencies,
         )
-    except GuidedGradeItemBridgeError as error:
+        action = prepare_membership_action(root, preview, actor, dependencies)
+    except (
+        GuidedGradeItemBridgeError,
+        TeacherActionConflictError,
+        TeacherProfileError,
+        TeacherActionReceiptError,
+        ValueError,
+    ) as error:
         _show_error(
-            error,
+            GuidedGradeItemBridgeError(str(error)),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return False
-
     clear_fn()
-    print_menu_header(output, "Review Grade Item Relationship")
+    print_menu_header(output, "Review and Save Grade Item Relationship")
     write_lines(
         output,
         f"Work: {context.work_title}",
         f"Grade Item: {grade_item.display_label}",
         f"Academic Period: {period.display_label}",
-        f"Teacher: {teacher}",
     )
     if rationale is not None:
         write_lines(output, f"Rationale: {rationale}")
     write_lines(
         output,
         "",
-        "Writing creates one immutable included relationship.",
-        "It does not make that relationship current until you select it.",
+        "Save writes the included relationship and makes this exact revision current.",
         "",
-        "1. Write this relationship",
+        "1. Save and make current",
         "2. Cancel",
     )
-    if read_choice(input_fn) != "1":
+    if not _review_apply(action, input_fn=input_fn, output=output, clear_fn=clear_fn):
         return False
-
+    # Additional teacher-facing relational verification remains authoritative.
     try:
-        written = commit_membership_link(
-            root,
-            preview,
-            dependencies=dependencies,
-        )
-    except GuidedGradeItemBridgeError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
-        return False
-
-    clear_fn()
-    print_menu_header(output, "Make Relationship Current")
-    write_lines(
-        output,
-        f"Work: {context.work_title}",
-        f"Grade Item: {grade_item.display_label}",
-        "",
-        "The relationship was written but is not current yet.",
-        "",
-        "1. Make this relationship current",
-        "2. Leave it unselected",
-    )
-    if read_choice(input_fn) != "1":
-        return False
-
-    try:
-        select_membership_link(
-            root,
-            written,
-            dependencies=dependencies,
-        )
         valid = verify_current_membership_link(
             root,
             context,
@@ -374,25 +310,18 @@ def _link_work(
             dependencies=dependencies,
         )
     except GuidedGradeItemBridgeError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
+        _show_error(error, input_fn=input_fn, output=output, clear_fn=clear_fn)
         return False
-
     if not valid:
         _show_error(
             GuidedGradeItemBridgeError(
-                "Current relationship did not match the reviewed work context."
+                "Saved relationship could not be verified as applicable."
             ),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return False
-
     clear_fn()
     print_menu_header(output, "Grade Item Relationship Ready")
     write_lines(
@@ -405,6 +334,45 @@ def _link_work(
     )
     pause_for_user(input_fn)
     return True
+
+
+def _review_apply(
+    action: PreparedGuidedAction,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> bool:
+    if read_choice(input_fn) != "1":
+        write_lines(
+            output, "", "Canceled before saving. No academic write was requested."
+        )
+        return False
+    outcome = action.apply(confirmed=True)
+    write_lines(output, "", teacher_action_outcome_message(outcome))
+    if outcome.succeeded:
+        return True
+    if outcome.status == "written_not_current":
+        write_lines(
+            output,
+            "",
+            "1. Resume selecting this exact saved decision",
+            "2. Leave unselected / review changes later",
+        )
+        if read_choice(input_fn) == "1":
+            resumed = action.resume(confirmed=True)
+            write_lines(output, "", teacher_action_outcome_message(resumed))
+            if resumed.succeeded:
+                return True
+    else:
+        write_lines(
+            output,
+            "",
+            "The action was not confirmed current.",
+            "Review changes or use exact-action recovery before retrying.",
+        )
+    pause_for_user(input_fn)
+    return False
 
 
 def run_grade_item_bridge(
@@ -458,12 +426,20 @@ def run_grade_item_bridge(
         pause_for_user(input_fn)
         return False
 
+    try:
+        actor = resolve_menu_actor(teacher, input_fn)
+    except (TeacherActionConflictError, TeacherProfileError) as error:
+        write_lines(output, "", f"Attribution unavailable: {error}")
+        pause_for_user(input_fn)
+        return False
+
     mode, grade_item = selected
     if mode == "new":
         grade_item = _create_grade_item(
             workspace_root,
             context,
             teacher,
+            actor=actor,
             dependencies=dependencies,
             input_fn=input_fn,
             output=output,
@@ -495,6 +471,7 @@ def run_grade_item_bridge(
         period,
         teacher,
         rationale,
+        actor=actor,
         dependencies=dependencies,
         input_fn=input_fn,
         output=output,

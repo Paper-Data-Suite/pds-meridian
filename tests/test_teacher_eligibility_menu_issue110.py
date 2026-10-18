@@ -1,3 +1,5 @@
+"""Issue #110 eligibility teacher labels with #122 single Save/Apply."""
+
 from __future__ import annotations
 
 from io import StringIO
@@ -13,6 +15,7 @@ from meridian.guided_eligibility import (
 )
 from meridian.guided_projection import GuidedProjectionResult
 from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
+from meridian.teacher_action_contract import TeacherActionActor
 from meridian.teacher_evidence_review import TeacherEvidenceReviewItem
 from meridian.teacher_session import TeacherSessionContext
 
@@ -35,9 +38,7 @@ def _prepared() -> GuidedProjectionResult:
                 current_context=SimpleNamespace(
                     publication=SimpleNamespace(
                         work=ModuleWorkRef(
-                            "scoreform",
-                            "english_12_pd2",
-                            "memory_snapshot",
+                            "scoreform", "english_12_pd2", "memory_snapshot"
                         )
                     )
                 )
@@ -62,21 +63,17 @@ def test_no_grade_item_relationship_is_teacher_facing() -> None:
         grade_items_loader=lambda _root, _class_id: SimpleNamespace(items=()),
     )
     output = StringIO()
-
     run_guided_eligibility_menu(
         workspace_root=Path("workspace"),
         prepared=_prepared(),
         evidence=_evidence(),
         subject_label="Jane Smith",
-        session_context=TeacherSessionContext(
-            active_class_id="english_12_pd2"
-        ),
+        session_context=TeacherSessionContext(active_class_id="english_12_pd2"),
         dependencies=deps,
         input_fn=ScriptedInput(""),
         output=output,
         clear_fn=lambda: None,
     )
-
     rendered = output.getvalue()
     assert "Grade Item Relationship Needed" in rendered
     assert "will not infer or create" in rendered
@@ -84,7 +81,9 @@ def test_no_grade_item_relationship_is_teacher_facing() -> None:
     assert "00001" not in rendered
 
 
-def test_guided_menu_uses_labels_and_explicit_write_then_select() -> None:
+def test_guided_menu_uses_labels_and_one_explicit_save(monkeypatch) -> None:
+    import meridian.menu_teacher_eligibility as menu
+
     log: list[str] = []
     policy = GuidedEligibilityPolicyChoice(
         title="Teacher review",
@@ -92,13 +91,12 @@ def test_guided_menu_uses_labels_and_explicit_write_then_select() -> None:
         policy_version="1",
     )
     prepared = _prepared()
-    exact_work = prepared.authorized.current_context.publication.work
-
+    work = prepared.authorized.current_context.publication.work
     states = iter(("no_decision", "included"))
 
     def review_loader(*_args: object) -> object:
         return SimpleNamespace(
-            work=exact_work,
+            work=work,
             membership_state="included",
             rows=(
                 SimpleNamespace(
@@ -119,46 +117,42 @@ def test_guided_menu_uses_labels_and_explicit_write_then_select() -> None:
                     purpose="conventional_grade",
                     memberships=(
                         SimpleNamespace(
-                            work=exact_work,
+                            work=work,
                             selected_revision=1,
                             decision="included",
-                            grade_item_basis_state=(
-                                "matches_current_grade_item"
-                            ),
+                            grade_item_basis_state="matches_current_grade_item",
                         ),
                     ),
                 ),
             )
         ),
         evidence_review_loader=review_loader,  # type: ignore[arg-type]
-        authoring_previewer=lambda *_args: (
-            log.append("preview-write") or SimpleNamespace()
-        ),
-        authoring_committer=lambda *_args: (
-            log.append("write") or SimpleNamespace(written_revision=3)
-        ),
-        selection_previewer=lambda *_args: (
-            log.append("preview-select") or SimpleNamespace()
-        ),
-        selection_committer=lambda *_args: (
-            log.append("select") or SimpleNamespace()
-        ),
+        authoring_previewer=lambda *_args: log.append("preview") or SimpleNamespace(),
         policies=(policy,),
     )  # type: ignore[arg-type]
 
-    output = StringIO()
-    scripted = ScriptedInput(
-        "1",
-        "1",
-        "1",
-        "Stephen Severino",
-        "",
-        "1",
-        "1",
-        "",
+    monkeypatch.setattr(
+        menu,
+        "resolve_menu_actor",
+        lambda *_args, **_kwargs: TeacherActionActor(
+            "teacher_synthetic", "a" * 64, "saved"
+        ),
     )
-    session = TeacherSessionContext(active_class_id="english_12_pd2")
 
+    class SyntheticAction:
+        def apply(self, *, confirmed: bool) -> object:
+            assert confirmed
+            log.append("apply")
+            return SimpleNamespace(succeeded=True, status="applied")
+
+    monkeypatch.setattr(
+        menu,
+        "prepare_eligibility_action",
+        lambda *_args, **_kwargs: log.append("prepare") or SyntheticAction(),
+    )
+    output = StringIO()
+    scripted = ScriptedInput("1", "1", "1", "teacher_synthetic", "", "1", "")
+    session = TeacherSessionContext(active_class_id="english_12_pd2")
     run_guided_eligibility_menu(
         workspace_root=Path("workspace"),
         prepared=prepared,
@@ -171,14 +165,16 @@ def test_guided_menu_uses_labels_and_explicit_write_then_select() -> None:
         clear_fn=lambda: None,
     )
 
-    assert log == ["preview-write", "write", "preview-select", "select"]
+    assert log == ["preview", "prepare", "apply"]
     assert session.active_grade_item_id == "hidden_grade_item"
     rendered = output.getvalue()
     assert "Unit 1 Writing" in rendered
     assert "Jane Smith" in rendered
     assert "Teacher review" in rendered
     assert "Current eligibility: Included" in rendered
+    assert "Save and make current" in rendered
     assert "Current canonical state was reloaded" in rendered
+    assert "Make Eligibility Current" not in rendered
     for forbidden in (
         "hidden_grade_item",
         "hidden_item_1",
