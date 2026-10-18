@@ -21,6 +21,8 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_action_contract import teacher_action_outcome_message
+from meridian.teacher_action_orchestration import TeacherActionConflictError
 from meridian.teacher_action_receipts import (
     TeacherActionReceiptError,
     TeacherActionReceiptStore,
@@ -29,6 +31,10 @@ from meridian.teacher_action_recovery_inventory import (
     RecoveryInboxEntry,
     TeacherActionRecoveryInventoryError,
     read_recovery_inbox,
+)
+from meridian.teacher_action_restart_grade_item import (
+    inspect_restart_grade_item,
+    resume_restart_grade_item,
 )
 from meridian.teacher_session import TeacherSessionContext
 
@@ -55,6 +61,69 @@ def _show_entry(output: TextIO, entry: RecoveryInboxEntry) -> None:
         "Return to the relevant workflow and inspect the current decision.",
         "No write, selection or permission change was requested.",
     )
+
+
+def _offer_grade_item_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only verified, exact creation recovery may present an active control."""
+    try:
+        inspection = inspect_restart_grade_item(root, store, entry.receipt)
+    except (
+        TeacherActionConflictError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ):
+        write_lines(
+            output,
+            "",
+            "Exact Grade Item recovery could not be verified safely.",
+            "No selection changed. Review current Grade Item state manually.",
+        )
+        return
+    if not inspection.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact Grade Item resume is not authorized by current state.",
+            "No selection changed. Review current Grade Item state manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        f"Saved Grade Item: {inspection.title}",
+        "The exact immutable revision exists, and its original",
+        "unselected CAS baseline and teacher attribution were reverified.",
+        "Type RESUME to select ONLY this saved Grade Item revision.",
+        "Any other input leaves it unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no selection changed.")
+        return
+    try:
+        result = resume_restart_grade_item(
+            root, store, entry.receipt, confirmation="RESUME"
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (
+        TeacherActionConflictError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ):
+        write_lines(
+            output,
+            "",
+            "Exact selection was blocked or could not be verified.",
+            "Review current canonical Grade Item state before any retry.",
+        )
 
 
 def run_teacher_action_recovery_menu(
@@ -142,7 +211,12 @@ def run_teacher_action_recovery_menu(
             ordinal = int(choice)
             if 1 <= ordinal <= len(visible):
                 clear_fn()
-                _show_entry(stream, visible[ordinal - 1])
+                entry = visible[ordinal - 1]
+                _show_entry(stream, entry)
+                if entry.kind == "grade_item":
+                    _offer_grade_item_resume(
+                        root, store, entry, input_fn=input_fn, output=stream
+                    )
                 write_lines(stream, "")
                 pause_for_user(input_fn)
                 continue
