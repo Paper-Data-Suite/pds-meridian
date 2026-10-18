@@ -36,6 +36,10 @@ from meridian.teacher_action_restart_grade_item import (
     inspect_restart_grade_item,
     resume_restart_grade_item,
 )
+from meridian.teacher_action_restart_membership import (
+    inspect_restart_membership,
+    resume_restart_membership,
+)
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -123,6 +127,59 @@ def _offer_grade_item_resume(
             "",
             "Exact selection was blocked or could not be verified.",
             "Review current canonical Grade Item state before any retry.",
+        )
+
+
+def _offer_membership_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only an exact, current-dependency-verified relationship is selectable."""
+    try:
+        inspection = inspect_restart_membership(root, store, entry.receipt)
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact work relationship could not be verified safely.",
+            "No selection changed. Review current relationships manually.",
+        )
+        return
+    if not inspection.can_resume:
+        write_lines(
+            output,
+            "",
+            "The saved relationship cannot be resumed under current conditions.",
+            "No selection changed. Review current relationships manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "Saved work relationship: Verified exact included decision",
+        "Its Grade Item, work registration and academic period were rechecked.",
+        "The original current-selection baseline still matches.",
+        "Type RESUME to select ONLY this previously saved relationship.",
+        "Any other input leaves the current selection unchanged.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no selection changed.")
+        return
+    try:
+        result = resume_restart_membership(
+            root, store, entry.receipt, confirmation="RESUME"
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact relationship selection was blocked or could not be verified.",
+            "Review canonical Grade Item membership before retrying.",
         )
 
 
@@ -215,6 +272,10 @@ def run_teacher_action_recovery_menu(
                 _show_entry(stream, entry)
                 if entry.kind == "grade_item":
                     _offer_grade_item_resume(
+                        root, store, entry, input_fn=input_fn, output=stream
+                    )
+                elif entry.kind == "grade_item_membership":
+                    _offer_membership_resume(
                         root, store, entry, input_fn=input_fn, output=stream
                     )
                 write_lines(stream, "")

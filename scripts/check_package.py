@@ -295,6 +295,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/teacher_action_proficiency.py",
         "meridian/teacher_action_recovery_inventory.py",
         "meridian/teacher_action_restart_grade_item.py",
+        "meridian/teacher_action_restart_membership.py",
         "meridian/menu_teacher_action_recovery.py",
         "meridian/standards_review_workflow.py",
         "meridian/standards_association_authoring_workflow.py",
