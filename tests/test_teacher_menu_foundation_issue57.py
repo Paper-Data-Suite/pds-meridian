@@ -153,7 +153,7 @@ def test_invalid_choice_pauses_then_redraws() -> None:
         clear_fn=lambda: None,
     ) == 0
 
-    assert "Please choose 1-9, H, or Q." in output.getvalue()
+    assert "Please choose 1-9, S, H, or Q." in output.getvalue()
 
 
 def test_return_to_main_menu_unwinds_nested_task() -> None:
