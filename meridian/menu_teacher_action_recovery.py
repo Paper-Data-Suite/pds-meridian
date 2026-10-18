@@ -11,6 +11,7 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.routes import class_metadata_path
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
+from meridian.attempt_selection import AttemptProjectionReference
 from meridian.diagnostics import DiagnosticsDependencies
 from meridian.evidence_eligibility import EvidenceSourceReference
 from meridian.menu_ui import (
@@ -34,6 +35,11 @@ from meridian.teacher_action_recovery_inventory import (
     RecoveryInboxEntry,
     TeacherActionRecoveryInventoryError,
     read_recovery_inbox,
+)
+from meridian.teacher_action_restart_attempt import (
+    inspect_restart_attempt,
+    load_fresh_restart_attempt_authorization,
+    resume_restart_attempt,
 )
 from meridian.teacher_action_restart_eligibility import (
     inspect_restart_eligibility,
@@ -271,6 +277,80 @@ def _offer_eligibility_resume(
         )
 
 
+def _offer_attempt_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Reauthorization and exact CAS revalidation precede any resume prompt."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Current evidence access is required for attempt recovery.",
+            "Use A. Set Up Evidence Access, then return to recovery.",
+            "No attempt selection was changed.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: AttemptProjectionReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_attempt_authorization(root, source, diagnostics)
+
+    try:
+        inspected = inspect_restart_attempt(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "The saved attempt or its current evidence could not be verified.",
+            "No selection changed. Review attempts and current policy manually.",
+        )
+        return
+    if not inspected.can_resume:
+        write_lines(
+            output,
+            "",
+            "The saved attempt is not eligible for exact restart selection.",
+            "No selection changed. Review current attempts and policy manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "The saved attempt, current source and eligibility were rechecked.",
+        "The original policy and current-selection baseline still match.",
+        "Type RESUME to select ONLY the previously saved attempt decision.",
+        "Any other input leaves it unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no attempt selection changed.")
+        return
+    try:
+        result = resume_restart_attempt(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact attempt selection was blocked or could not be verified.",
+            "Review current canonical attempt state before retrying.",
+        )
+
+
 def run_teacher_action_recovery_menu(
     *,
     session_context: TeacherSessionContext,
@@ -369,6 +449,15 @@ def run_teacher_action_recovery_menu(
                     )
                 elif entry.kind == "eligibility":
                     _offer_eligibility_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                elif entry.kind == "attempt_decision":
+                    _offer_attempt_resume(
                         root,
                         store,
                         entry,
