@@ -14,10 +14,12 @@ from meridian.guided_attempts import (
     GuidedAttemptPolicyPlan,
     GuidedAttemptPolicyPreset,
     GuidedAttemptReview,
-    apply_guided_attempt_policy,
     load_guided_attempt_review,
     plan_guided_attempt_policy,
     preview_guided_attempt_decision,
+)
+from meridian.guided_attempts import (
+    apply_guided_attempt_policy as apply_guided_attempt_policy,
 )
 from meridian.guided_eligibility import (
     GuidedEligibilityDependencies,
@@ -36,6 +38,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_action_attempt_policy import prepare_attempt_policy_action
 from meridian.teacher_action_attempt_standards import prepare_attempt_decision_action
 from meridian.teacher_action_guided import resolve_menu_actor
 from meridian.teacher_action_orchestration import TeacherActionConflictError
@@ -386,23 +389,34 @@ def run_guided_attempt_menu(
             preset=policy,
             dependencies=dependencies,
         )
-        if not _confirm_policy(
-            plan,
-            teacher,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        ):
-            return
-        apply_guided_attempt_policy(
-            workspace_root,
-            class_id=work.class_id,
-            grade_item_id=grade_item.grade_item_id,
-            work=work,
-            plan=plan,
-            teacher_attribution=teacher,
-            dependencies=dependencies,
-        )
+        if plan.action != "ready":
+            actor = resolve_menu_actor(teacher, input_fn)
+            action = prepare_attempt_policy_action(
+                workspace_root,
+                class_id=work.class_id,
+                grade_item_id=grade_item.grade_item_id,
+                work=work,
+                plan=plan,
+                actor=actor,
+                dependencies=dependencies,
+            )
+            clear_fn()
+            print_menu_header(output, "Review and Save Attempt Policy")
+            write_lines(
+                output,
+                f"Policy: {plan.preset.title}",
+                f"Teacher: {teacher}",
+                _policy_action_label(plan) + ".",
+                "",
+                "Save writes (if needed), selects and verifies this exact policy.",
+                "",
+                "1. Save and make current",
+                "2. Cancel",
+            )
+            if not _review_apply(
+                action, input_fn=input_fn, output=output, clear_fn=clear_fn
+            ):
+                return
         review = load_guided_attempt_review(
             workspace_root,
             prepared=prepared,
@@ -413,6 +427,20 @@ def run_guided_attempt_menu(
     except GuidedAttemptError as error:
         _show_error(
             error,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+        )
+        return
+    except (
+        TeacherActionConflictError,
+        TeacherActionReceiptError,
+        TeacherProfileError,
+        ValueError,
+        OSError,
+    ) as error:
+        _show_error(
+            GuidedAttemptActionError(str(error)),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,

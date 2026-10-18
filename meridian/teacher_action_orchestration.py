@@ -477,6 +477,93 @@ def apply_reviewed_teacher_action(
     return _finish_selection(preview, port, store, receipt, written)
 
 
+def apply_reviewed_existing_policy_selection(
+    preview: TeacherActionPreview,
+    port: TeacherActionDomainPort,
+    store: TeacherActionReceiptStore,
+    *,
+    confirmation: str,
+) -> TeacherActionResult:
+    """One explicit policy SELECT of a verified existing immutable revision.
+
+    Only the attempt-policy domain may use this path. An existing target is
+    intentional here, not evidence of an earlier Save by this action ID.
+    The caller must have reviewed its exact policy, authority, and CAS baseline.
+    No immutable authoring operation is ever invoked.
+    """
+    _check_request(preview, port, store)
+    if preview.kind != "attempt_policy":
+        raise TeacherActionOrchestrationError(
+            "Existing-only selection is restricted to attempt policies."
+        )
+    if confirmation != "APPLY":
+        return _outcome(preview, "blocked_before_write", reason="not_confirmed")
+    try:
+        port.revalidate_basis(preview)
+        initial = _inspect(preview, port)
+    except TeacherActionConflictError:
+        return _outcome(preview, "conflict_requires_review", reason="preflight_stale")
+    except Exception:
+        return _outcome(preview, "blocked_before_write", reason="preflight_blocked")
+    if initial.observation.current_basis != "current":
+        return _outcome(preview, "conflict_requires_review", reason="basis_not_current")
+    if initial.record is None:
+        return _outcome(
+            preview, "conflict_requires_review", reason="existing_target_missing"
+        )
+    if initial.pointer not in ("baseline", "target"):
+        return _outcome(preview, "conflict_requires_review", reason="baseline_changed")
+    try:
+        previous = store.load(preview.action_id)
+    except TeacherActionReceiptError:
+        return _outcome(preview, "recovery_required", reason="unsafe_receipt")
+    if previous is not None:
+        if previous.preview != preview:
+            return _outcome(
+                preview, "conflict_requires_review", reason="intent_changed"
+            )
+        return _recovery_outcome(preview, store, port)
+    # No receipt exists yet. Even an already-current target may not be claimed
+    # as applied without a matching attributable journal for this decision.
+    if initial.pointer != "baseline":
+        return _outcome(
+            preview, "recovery_required", reason="target_requires_reconciliation"
+        )
+    try:
+        receipt = store.prepare(preview)
+        receipt = _append(store, preview, receipt, "receipt_prepared")
+    except TeacherActionReceiptError:
+        return _outcome(preview, "blocked_before_write", reason="receipt_unavailable")
+    try:
+        port.revalidate_basis(preview)
+        truth = _inspect(preview, port)
+        if (
+            truth.record is None
+            or truth.pointer != "baseline"
+            or truth.observation.current_basis != "current"
+        ):
+            return _record_failure(
+                preview,
+                port,
+                store,
+                receipt,
+                "selection_preview",
+                "existing_selection_basis_changed",
+                attempted_mutation=False,
+            )
+    except Exception:
+        return _record_failure(
+            preview,
+            port,
+            store,
+            receipt,
+            "selection_preview",
+            "existing_selection_preflight_failed",
+            attempted_mutation=False,
+        )
+    return _finish_selection(preview, port, store, receipt, truth.record)
+
+
 def _finish_selection(
     preview: TeacherActionPreview,
     port: TeacherActionDomainPort,
@@ -632,6 +719,7 @@ __all__ = (
     "TeacherActionConflictError",
     "TeacherActionDomainPort",
     "TeacherActionOrchestrationError",
+    "apply_reviewed_existing_policy_selection",
     "apply_reviewed_teacher_action",
     "resume_exact_teacher_selection",
 )

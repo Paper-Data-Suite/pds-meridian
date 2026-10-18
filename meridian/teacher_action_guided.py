@@ -74,6 +74,7 @@ from meridian.teacher_action_contract import (
 )
 from meridian.teacher_action_orchestration import (
     TeacherActionConflictError,
+    apply_reviewed_existing_policy_selection,
     apply_reviewed_teacher_action,
     resume_exact_teacher_selection,
 )
@@ -237,8 +238,20 @@ class PreparedGuidedAction:
     preview: TeacherActionPreview
     port: _GuidedPort
     store: TeacherActionReceiptStore
+    existing_policy_selection: bool = False
 
     def apply(self, *, confirmed: bool) -> TeacherActionResult:
+        if self.existing_policy_selection:
+            if self.preview.kind != "attempt_policy":
+                raise TeacherActionConflictError(
+                    "Existing-only selection is not available for this family."
+                )
+            return apply_reviewed_existing_policy_selection(
+                self.preview,
+                self.port,
+                self.store,
+                confirmation="APPLY" if confirmed else "CANCEL",
+            )
         return apply_reviewed_teacher_action(
             self.preview,
             self.port,
@@ -269,6 +282,7 @@ def _prepare(
     identity: str,
     source_binding: str,
     port: _GuidedPort,
+    existing_policy_selection: bool = False,
     school_year: str | None = None,
     academic_period_id: str | None = None,
     calendar_sha256: str | None = None,
@@ -309,7 +323,10 @@ def _prepare(
     )
     port.bind(preview)
     return PreparedGuidedAction(
-        preview, port, TeacherActionReceiptStore(root, class_id)
+        preview,
+        port,
+        TeacherActionReceiptStore(root, class_id),
+        existing_policy_selection,
     )
 
 

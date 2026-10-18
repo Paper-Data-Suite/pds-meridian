@@ -253,11 +253,13 @@ def test_standard_exact_write_select_and_stale_scope(
 
 def test_menu_sources_have_single_ordinary_review() -> None:
     root = Path(__file__).resolve().parents[1] / "meridian"
-    for name, old_header in (
-        ("menu_teacher_attempts.py", "Make Attempt Decision Current"),
-        ("menu_teacher_standards.py", "Make Standard Association Current"),
+    for name, old_header, intentional_saves in (
+        ("menu_teacher_attempts.py", "Make Attempt Decision Current", 2),
+        ("menu_teacher_standards.py", "Make Standard Association Current", 1),
     ):
         content = (root / name).read_text(encoding="utf-8")
         assert old_header not in content
-        assert content.count("    if not _review_apply(") == 1
-        assert content.count('"1. Save and make current"') == 1
+        # Attempt-policy setup and student-attempt selection are two separate
+        # academic choices, each with one Save and no second currentness prompt.
+        assert content.count("    if not _review_apply(") == intentional_saves
+        assert content.count('"1. Save and make current"') == intentional_saves
