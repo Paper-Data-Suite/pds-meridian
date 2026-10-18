@@ -11,6 +11,8 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.routes import class_metadata_path
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
+from meridian.diagnostics import DiagnosticsDependencies
+from meridian.evidence_eligibility import EvidenceSourceReference
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -21,6 +23,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.projection_cache import AuthorizedProjectionSnapshot
 from meridian.teacher_action_contract import teacher_action_outcome_message
 from meridian.teacher_action_orchestration import TeacherActionConflictError
 from meridian.teacher_action_receipts import (
@@ -31,6 +34,11 @@ from meridian.teacher_action_recovery_inventory import (
     RecoveryInboxEntry,
     TeacherActionRecoveryInventoryError,
     read_recovery_inbox,
+)
+from meridian.teacher_action_restart_eligibility import (
+    inspect_restart_eligibility,
+    load_fresh_restart_authorization,
+    resume_restart_eligibility,
 )
 from meridian.teacher_action_restart_grade_item import (
     inspect_restart_grade_item,
@@ -183,9 +191,90 @@ def _offer_membership_resume(
         )
 
 
+def _offer_eligibility_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Fresh evidence authorization is mandatory; a receipt is NOT a grant."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Exact evidence access is not available in this session.",
+            "Use A. Set Up Evidence Access, then reopen recovery.",
+            "No eligibility selection was changed.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: EvidenceSourceReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_authorization(root, source, diagnostics)
+
+    try:
+        inspection = inspect_restart_eligibility(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            (
+                "The saved eligibility and its current authorization "
+                "could not be verified."
+            ),
+            "No selection changed. Review current evidence before retrying.",
+        )
+        return
+    if not inspection.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact eligibility resume is unavailable under current source state.",
+            "No selection changed. Review current evidence manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        (
+            "The exact saved eligibility decision and current evidence "
+            "access were rechecked."
+        ),
+        "The original current-selection baseline still matches.",
+        "Type RESUME to select ONLY this previously saved eligibility decision.",
+        "Any other input leaves it unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no selection changed.")
+        return
+    try:
+        result = resume_restart_eligibility(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact eligibility selection was blocked or could not be verified.",
+            "Refresh current authorized evidence before attempting recovery.",
+        )
+
+
 def run_teacher_action_recovery_menu(
     *,
     session_context: TeacherSessionContext,
+    diagnostics: DiagnosticsDependencies | None = None,
     workspace_resolver: Callable[[], Path] = resolve_workspace_root,
     class_validator: Callable[[Path, str], None] = _validate_class,
     input_fn: InputFunction = input,
@@ -277,6 +366,15 @@ def run_teacher_action_recovery_menu(
                 elif entry.kind == "grade_item_membership":
                     _offer_membership_resume(
                         root, store, entry, input_fn=input_fn, output=stream
+                    )
+                elif entry.kind == "eligibility":
+                    _offer_eligibility_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
                     )
                 write_lines(stream, "")
                 pause_for_user(input_fn)

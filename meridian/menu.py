@@ -251,6 +251,7 @@ def default_teacher_menu_dependencies(
         ),
         review_save_recovery=lambda: run_teacher_action_recovery_menu(
             session_context=session,
+            diagnostics=diagnostics,
             input_fn=input_fn,
             output=stream,
             clear_fn=clear_fn,
