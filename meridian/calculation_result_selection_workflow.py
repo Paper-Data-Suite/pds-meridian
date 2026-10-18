@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -196,6 +197,8 @@ def preview_calculation_result_selection(
 def commit_calculation_result_selection_preview(
     workspace_root: str | Path,
     preview: CalculationResultSelectionPreview,
+    *,
+    currentness_check: Callable[[], object] | None = None,
 ) -> CalculationResultSelectionWorkflowResult:
     """Live-revalidate exact target/history, then mutate only current selection."""
     if not isinstance(preview, CalculationResultSelectionPreview):
@@ -246,9 +249,8 @@ def commit_calculation_result_selection_preview(
             preview.student_id,
             preview.standard_id,
             preview.target_revision,
-            expected_current_result_revision=(
-                preview.expected_current_result_revision
-            ),
+            expected_current_result_revision=(preview.expected_current_result_revision),
+            currentness_check=currentness_check,
         )
     except StandardProficiencyStorageConflictError as error:
         raise CalculationResultSelectionStaleError(str(error)) from error
@@ -266,7 +268,5 @@ def commit_calculation_result_selection_preview(
     return CalculationResultSelectionWorkflowResult(
         preview=preview,
         selection_result=result,
-        previous_current_result_revision=(
-            preview.expected_current_result_revision
-        ),
+        previous_current_result_revision=(preview.expected_current_result_revision),
     )

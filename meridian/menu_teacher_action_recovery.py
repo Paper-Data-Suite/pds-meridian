@@ -54,6 +54,11 @@ from meridian.teacher_action_restart_membership import (
     inspect_restart_membership,
     resume_restart_membership,
 )
+from meridian.teacher_action_restart_proficiency import (
+    inspect_restart_proficiency,
+    load_fresh_restart_proficiency_authorization,
+    resume_restart_proficiency,
+)
 from meridian.teacher_action_restart_standard import (
     inspect_restart_standard,
     load_fresh_restart_standard_authorization,
@@ -430,6 +435,80 @@ def _offer_standard_resume(
         )
 
 
+def _offer_proficiency_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Offer only a current, exactly recalculated, selection-only restart."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Current evidence authorization is required for result recovery.",
+            "Use A. Set Up Evidence Access, then reopen recovery.",
+            "No proficiency selection was changed.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: EvidenceSourceReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_proficiency_authorization(root, source, diagnostics)
+
+    try:
+        checked = inspect_restart_proficiency(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "The saved result or its current calculation could not be verified.",
+            "No selection changed. Review current proficiency manually.",
+        )
+        return
+    if not checked.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact proficiency result recovery is unavailable.",
+            "No selection changed. Review its current source and policy.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "Saved result, evidence and pure calculation were verified exactly.",
+        "The original result-selection baseline still matches.",
+        "Type RESUME to select ONLY the previously saved result revision.",
+        "Any other input leaves the result unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no proficiency selection changed.")
+        return
+    try:
+        result = resume_restart_proficiency(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact proficiency selection was blocked or could not be verified.",
+            "Recheck current evidence and result dependencies before retrying.",
+        )
+
+
 def run_teacher_action_recovery_menu(
     *,
     session_context: TeacherSessionContext,
@@ -546,6 +625,15 @@ def run_teacher_action_recovery_menu(
                     )
                 elif entry.kind == "standards_association":
                     _offer_standard_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                elif entry.kind == "proficiency_result":
+                    _offer_proficiency_resume(
                         root,
                         store,
                         entry,
