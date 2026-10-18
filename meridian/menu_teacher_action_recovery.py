@@ -54,6 +54,11 @@ from meridian.teacher_action_restart_membership import (
     inspect_restart_membership,
     resume_restart_membership,
 )
+from meridian.teacher_action_restart_standard import (
+    inspect_restart_standard,
+    load_fresh_restart_standard_authorization,
+    resume_restart_standard,
+)
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -351,6 +356,80 @@ def _offer_attempt_resume(
         )
 
 
+def _offer_standard_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only offer selection after fresh authorization and canonical validation."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Current evidence access is required for Standard recovery.",
+            "Use A. Set Up Evidence Access, then return to recovery.",
+            "No Standard association was selected.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: EvidenceSourceReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_standard_authorization(root, source, diagnostics)
+
+    try:
+        inspected = inspect_restart_standard(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Saved Standard association or its evidence could not be verified.",
+            "No selection changed. Review current Standards manually.",
+        )
+        return
+    if not inspected.can_resume:
+        write_lines(
+            output,
+            "",
+            "This Standard association cannot be resumed under current conditions.",
+            "No selection changed. Review its current source and Standard.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "The saved Standard association and current source were verified.",
+        "The original current-selection baseline still matches.",
+        "Type RESUME to select ONLY this exact saved Standard association.",
+        "Any other input leaves the current association unchanged.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no Standard selection changed.")
+        return
+    try:
+        result = resume_restart_standard(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact Standard selection was blocked or could not be verified.",
+            "Review current canonical association state before retrying.",
+        )
+
+
 def run_teacher_action_recovery_menu(
     *,
     session_context: TeacherSessionContext,
@@ -458,6 +537,15 @@ def run_teacher_action_recovery_menu(
                     )
                 elif entry.kind == "attempt_decision":
                     _offer_attempt_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                elif entry.kind == "standards_association":
+                    _offer_standard_resume(
                         root,
                         store,
                         entry,
