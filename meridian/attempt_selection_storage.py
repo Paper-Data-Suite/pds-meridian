@@ -432,10 +432,7 @@ def attempt_selection_relative_directory(
         item,
         validated_work,
     )
-    return (
-        f"classes/{class_value}/modules/meridian/attempts/r/"
-        f"{marker_key}"
-    )
+    return f"classes/{class_value}/modules/meridian/attempts/r/{marker_key}"
 
 
 def attempt_selection_policies_directory(
@@ -452,10 +449,13 @@ def attempt_selection_policies_directory(
             "work.class_id must match class_id."
         )
     _ = item
-    return attempt_selection_storage_directory(
-        workspace_root,
-        class_value,
-    ) / "p"
+    return (
+        attempt_selection_storage_directory(
+            workspace_root,
+            class_value,
+        )
+        / "p"
+    )
 
 
 def attempt_selection_policy_path_key(
@@ -491,19 +491,16 @@ def attempt_selection_policy_directory(
     work: ModuleWorkRef,
     policy_id: str,
 ) -> Path:
-    return (
-        attempt_selection_policies_directory(
-            workspace_root,
-            class_id,
-            grade_item_id,
-            work,
-        )
-        / attempt_selection_policy_path_key(
-            class_id,
-            grade_item_id,
-            work,
-            policy_id,
-        )
+    return attempt_selection_policies_directory(
+        workspace_root,
+        class_id,
+        grade_item_id,
+        work,
+    ) / attempt_selection_policy_path_key(
+        class_id,
+        grade_item_id,
+        work,
+        policy_id,
     )
 
 
@@ -516,9 +513,12 @@ def attempt_selection_policy_revision_path(
     policy_revision: int,
 ) -> Path:
     revision = _positive_int(policy_revision, "policy_revision")
-    return attempt_selection_policy_directory(
-        workspace_root, class_id, grade_item_id, work, policy_id
-    ) / f"{revision}.json"
+    return (
+        attempt_selection_policy_directory(
+            workspace_root, class_id, grade_item_id, work, policy_id
+        )
+        / f"{revision}.json"
+    )
 
 
 def attempt_selection_policy_current_path(
@@ -528,9 +528,12 @@ def attempt_selection_policy_current_path(
     work: ModuleWorkRef,
     policy_id: str,
 ) -> Path:
-    return attempt_selection_policy_directory(
-        workspace_root, class_id, grade_item_id, work, policy_id
-    ) / "current.json"
+    return (
+        attempt_selection_policy_directory(
+            workspace_root, class_id, grade_item_id, work, policy_id
+        )
+        / "current.json"
+    )
 
 
 def attempt_selection_students_directory(
@@ -547,10 +550,13 @@ def attempt_selection_students_directory(
             "work.class_id must match class_id."
         )
     _ = item
-    return attempt_selection_storage_directory(
-        workspace_root,
-        class_value,
-    ) / "s"
+    return (
+        attempt_selection_storage_directory(
+            workspace_root,
+            class_value,
+        )
+        / "s"
+    )
 
 
 def attempt_selection_subject_directory(
@@ -562,9 +568,12 @@ def attempt_selection_subject_directory(
 ) -> Path:
     validated_work = _work(work)
     key = attempt_subject_key(class_id, grade_item_id, validated_work, student_id)
-    return attempt_selection_students_directory(
-        workspace_root, class_id, grade_item_id, validated_work
-    ) / key
+    return (
+        attempt_selection_students_directory(
+            workspace_root, class_id, grade_item_id, validated_work
+        )
+        / key
+    )
 
 
 def attempt_selection_decision_revision_path(
@@ -576,9 +585,12 @@ def attempt_selection_decision_revision_path(
     decision_revision: int,
 ) -> Path:
     revision = _positive_int(decision_revision, "decision_revision")
-    return attempt_selection_subject_directory(
-        workspace_root, class_id, grade_item_id, work, student_id
-    ) / f"{revision}.json"
+    return (
+        attempt_selection_subject_directory(
+            workspace_root, class_id, grade_item_id, work, student_id
+        )
+        / f"{revision}.json"
+    )
 
 
 def attempt_selection_decision_current_path(
@@ -588,9 +600,12 @@ def attempt_selection_decision_current_path(
     work: ModuleWorkRef,
     student_id: str,
 ) -> Path:
-    return attempt_selection_subject_directory(
-        workspace_root, class_id, grade_item_id, work, student_id
-    ) / "current.json"
+    return (
+        attempt_selection_subject_directory(
+            workspace_root, class_id, grade_item_id, work, student_id
+        )
+        / "current.json"
+    )
 
 
 def attempt_selection_policy_revision_relative_path(
@@ -638,10 +653,7 @@ def attempt_selection_decision_revision_relative_path(
     student = _identifier(student_id, "student_id")
     revision = _positive_int(decision_revision, "decision_revision")
     key = attempt_subject_key(class_value, item, validated_work, student)
-    return (
-        f"classes/{class_value}/modules/meridian/attempts/s/"
-        f"{key}/{revision}.json"
-    )
+    return f"classes/{class_value}/modules/meridian/attempts/s/{key}/{revision}.json"
 
 
 def derive_attempt_candidates(
@@ -852,7 +864,7 @@ def write_attempt_selection_policy_revision(
             if stored.content != content:
                 raise AttemptSelectionStorageConflictError(
                     "Attempt-selection policy revision already exists with "
-                "different content."
+                    "different content."
                 )
             return AttemptSelectionPolicyWriteResult("existing", stored)
         revisions = list_attempt_selection_policy_revisions(
@@ -912,9 +924,7 @@ def load_attempt_selection_policy_revision(
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
-    _validate_attempt_selection_collections(
-        root, class_value, item, validated_work
-    )
+    _validate_attempt_selection_collections(root, class_value, item, validated_work)
     policy_value = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
     path = attempt_selection_policy_revision_path(
@@ -961,20 +971,102 @@ def list_attempt_selection_policy_revisions(
     policy_id: str,
 ) -> tuple[int, ...]:
     root = _root(workspace_root)
-    _validate_attempt_selection_collections(
-        root, class_id, grade_item_id, work
-    )
+    _validate_attempt_selection_collections(root, class_id, grade_item_id, work)
     relation = attempt_selection_policy_directory(
         root, class_id, grade_item_id, work, policy_id
     )
     return _list_history_revisions(
         root,
         relation,
-        lambda number: load_attempt_selection_policy_revision(
-            root, class_id, grade_item_id, work, policy_id, number
-        ).policy,
+        lambda number: (
+            load_attempt_selection_policy_revision(
+                root, class_id, grade_item_id, work, policy_id, number
+            ).policy
+        ),
         validate_attempt_selection_policy_transition,
     )
+
+
+def list_attempt_selection_policy_identities(
+    workspace_root: str | Path,
+    class_id: str,
+    *,
+    maximum_families: int = 4096,
+) -> tuple[tuple[str, ModuleWorkRef, str], ...]:
+    """Read bounded, validated canonical policy identities for restart recovery.
+
+    Opaque directory keys are never inverted. The first immutable revision is
+    read through the existing size/digest/containment guards, then the entire
+    logical family is validated through the public revision-history loader.
+    """
+    if type(maximum_families) is not int or not 1 <= maximum_families <= 4096:
+        raise AttemptSelectionStorageValidationError(
+            "Invalid policy recovery enumeration bound."
+        )
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    base = attempt_selection_storage_directory(root, class_value)
+    collection = base / "p"
+    if not collection.exists():
+        return ()
+    _validate_existing_directory_chain(root, collection)
+    families = _directory_entries(collection, "attempt-policy recovery collection")
+    if len(families) > maximum_families:
+        raise AttemptSelectionStorageIntegrityError(
+            "Attempt-policy recovery enumeration exceeds its safe bound."
+        )
+    identities: list[tuple[str, ModuleWorkRef, str]] = []
+    for family in sorted(families, key=lambda item: item.name):
+        if family.is_symlink() or not family.is_dir():
+            raise AttemptSelectionStorageIntegrityError(
+                "Policy recovery found an unsafe family directory."
+            )
+        try:
+            validate_storage_path_key(family.name)
+        except StoragePathKeyError as error:
+            raise AttemptSelectionStorageIntegrityError(
+                "Policy recovery found an invalid family key."
+            ) from error
+        _validate_history_root(family)
+        first = family / "1.json"
+        content, _ = _read_revision_pair(
+            root, first, DEFAULT_MAXIMUM_ATTEMPT_SELECTION_POLICY_BYTES
+        )
+        try:
+            policy = attempt_selection_policy_from_json_bytes(content)
+        except (
+            AttemptSelectionSerializationError,
+            AttemptSelectionValidationError,
+        ) as error:
+            raise AttemptSelectionStorageIntegrityError(
+                "Policy recovery found invalid canonical policy metadata."
+            ) from error
+        if policy.class_id != class_value or policy.policy_revision != 1:
+            raise AttemptSelectionStorageIntegrityError(
+                "Policy recovery first revision does not match its class."
+            )
+        if (
+            attempt_selection_policy_path_key(
+                class_value, policy.grade_item_id, policy.work, policy.policy_id
+            )
+            != family.name
+        ):
+            raise AttemptSelectionStorageIntegrityError(
+                "Policy recovery family identity does not match its path."
+            )
+        history = list_attempt_selection_policy_revisions(
+            root, class_value, policy.grade_item_id, policy.work, policy.policy_id
+        )
+        if not history or history[0] != 1:
+            raise AttemptSelectionStorageIntegrityError(
+                "Policy recovery requires verified contiguous revisions."
+            )
+        identities.append((policy.grade_item_id, policy.work, policy.policy_id))
+    if len(set(identities)) != len(identities):
+        raise AttemptSelectionStorageIntegrityError(
+            "Policy recovery found duplicate logical identities."
+        )
+    return tuple(identities)
 
 
 def get_current_attempt_selection_policy_revision(
@@ -1026,6 +1118,7 @@ def select_attempt_selection_policy_revision(
     policy_revision: int,
     *,
     expected_current_policy_revision: int | None,
+    currentness_check: Callable[[], object] | None = None,
 ) -> AttemptSelectionPolicySelectionResult:
     root = _root(workspace_root)
     target = load_attempt_selection_policy_revision(
@@ -1047,6 +1140,10 @@ def select_attempt_selection_policy_revision(
             raise AttemptSelectionStorageConflictError(
                 "Expected current policy revision does not match stored selection."
             )
+        # Recovery revalidates academic/actor authority INSIDE the CAS lock.
+        # Ordinary callers preserve the established selector contract.
+        if currentness_check is not None:
+            currentness_check()
         pointer = _policy_pointer(target)
         if current == pointer:
             return AttemptSelectionPolicySelectionResult("existing", target)
@@ -1205,6 +1302,7 @@ def write_attempt_selection_decision_revision(
     finally:
         _remove_lock(lock)
 
+
 def load_attempt_selection_decision_revision(
     workspace_root: str | Path,
     class_id: str,
@@ -1217,9 +1315,7 @@ def load_attempt_selection_decision_revision(
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
-    _validate_attempt_selection_collections(
-        root, class_value, item, validated_work
-    )
+    _validate_attempt_selection_collections(root, class_value, item, validated_work)
     student = _identifier(student_id, "student_id")
     revision = _positive_int(decision_revision, "decision_revision")
     path = attempt_selection_decision_revision_path(
@@ -1267,18 +1363,18 @@ def list_attempt_selection_decision_revisions(
     student_id: str,
 ) -> tuple[int, ...]:
     root = _root(workspace_root)
-    _validate_attempt_selection_collections(
-        root, class_id, grade_item_id, work
-    )
+    _validate_attempt_selection_collections(root, class_id, grade_item_id, work)
     relation = attempt_selection_subject_directory(
         root, class_id, grade_item_id, work, student_id
     )
     return _list_history_revisions(
         root,
         relation,
-        lambda number: load_attempt_selection_decision_revision(
-            root, class_id, grade_item_id, work, student_id, number
-        ).decision,
+        lambda number: (
+            load_attempt_selection_decision_revision(
+                root, class_id, grade_item_id, work, student_id, number
+            ).decision
+        ),
         validate_attempt_selection_decision_transition,
     )
 
@@ -1379,11 +1475,10 @@ def select_attempt_selection_decision_revision(
         disposition: AttemptSelectionSelectDisposition = (
             "created" if current is None else "updated"
         )
-        return AttemptSelectionDecisionSelectionResult(
-            disposition, target, derivation
-        )
+        return AttemptSelectionDecisionSelectionResult(disposition, target, derivation)
     finally:
         _remove_lock(lock)
+
 
 def resolve_current_attempt_selection(
     workspace_root: str | Path,
@@ -1815,9 +1910,7 @@ def _directory_entries(path: Path, label: str) -> tuple[Path, ...]:
     try:
         return tuple(path.iterdir())
     except OSError as error:
-        raise AttemptSelectionStorageReadError(
-            f"Could not inspect {label}."
-        ) from error
+        raise AttemptSelectionStorageReadError(f"Could not inspect {label}.") from error
 
 
 def _validate_attempt_selection_collections(
@@ -2280,7 +2373,6 @@ def _sha256(value: object, field_name: str) -> str:
             f"{field_name} must contain 64 lowercase hexadecimal characters."
         )
     return value
-
 
 
 def _require_containment(root: Path, path: Path) -> None:

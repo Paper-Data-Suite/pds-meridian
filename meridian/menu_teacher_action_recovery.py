@@ -54,6 +54,10 @@ from meridian.teacher_action_restart_membership import (
     inspect_restart_membership,
     resume_restart_membership,
 )
+from meridian.teacher_action_restart_policy import (
+    inspect_restart_policy,
+    resume_restart_policy,
+)
 from meridian.teacher_action_restart_proficiency import (
     inspect_restart_proficiency,
     load_fresh_restart_proficiency_authorization,
@@ -435,6 +439,58 @@ def _offer_standard_resume(
         )
 
 
+def _offer_policy_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only the exact saved policy may be reselected after restart."""
+    try:
+        checked = inspect_restart_policy(root, store, entry.receipt)
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Saved policy or its current academic basis cannot be verified.",
+            "Nothing selected. Review current policy and work relationship.",
+        )
+        return
+    if not checked.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact policy recovery is unavailable or already current.",
+            "No selection changed. Review canonical policy state.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "The saved policy and current academic dependencies were rechecked.",
+        "The original policy-selection baseline still matches.",
+        "Type RESUME to select ONLY the previously saved policy revision.",
+        "Any other input leaves current policy unchanged.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no policy selection changed.")
+        return
+    try:
+        result = resume_restart_policy(
+            root, store, entry.receipt, confirmation="RESUME"
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact policy recovery was blocked or could not be verified.",
+            "Reopen the current policy decision and review changes.",
+        )
+
+
 def _offer_proficiency_resume(
     root: Path,
     store: TeacherActionReceiptStore,
@@ -613,6 +669,10 @@ def run_teacher_action_recovery_menu(
                         diagnostics=diagnostics,
                         input_fn=input_fn,
                         output=stream,
+                    )
+                elif entry.kind == "attempt_policy":
+                    _offer_policy_resume(
+                        root, store, entry, input_fn=input_fn, output=stream
                     )
                 elif entry.kind == "attempt_decision":
                     _offer_attempt_resume(
