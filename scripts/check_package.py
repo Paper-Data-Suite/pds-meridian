@@ -22,9 +22,7 @@ EXPECTED_CORE_REQUIREMENT = Requirement("pds-core>=0.6.5,<0.7")
 EXPECTED_SCOREFORM_EXTRA = Requirement("scoreform>=0.13.0; extra == 'scoreform'")
 EXPECTED_QUILLAN_EXTRA = Requirement("quillan>=0.10.6; extra == 'quillan'")
 EXPECTED_CONCORD_EXTRA = Requirement("pds-concord>=0.3.2; extra == 'concord'")
-EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = (
-    "paper_data_suite.module_operations"
-)
+EXPECTED_OPERATIONS_ENTRY_POINT_GROUP = "paper_data_suite.module_operations"
 EXPECTED_OPERATIONS_ENTRY_POINT = (
     "meridian.pds_operations:get_module_operations_profile"
 )
@@ -121,9 +119,7 @@ def _concord_requirements(metadata: Message) -> list[Requirement]:
         Requirement(item) for item in (metadata.get_all("Requires-Dist") or [])
     ]
     return [
-        requirement
-        for requirement in requirements
-        if requirement.name == "pds-concord"
+        requirement for requirement in requirements if requirement.name == "pds-concord"
     ]
 
 
@@ -171,9 +167,7 @@ def validate_wheel(path: str | Path) -> None:
             "The scoreform extra must require scoreform>=0.13.0."
         )
     if _quillan_requirements(metadata) != [EXPECTED_QUILLAN_EXTRA]:
-        raise PackageValidationError(
-            "The quillan extra must require quillan>=0.10.6."
-        )
+        raise PackageValidationError("The quillan extra must require quillan>=0.10.6.")
     if _concord_requirements(metadata) != [EXPECTED_CONCORD_EXTRA]:
         raise PackageValidationError(
             "The concord extra must require pds-concord>=0.3.2."
@@ -197,8 +191,7 @@ def validate_wheel(path: str | Path) -> None:
     )
     if operations_entry_point != EXPECTED_OPERATIONS_ENTRY_POINT:
         raise PackageValidationError(
-            "The Meridian Core module-operations entry point is missing "
-            "or incorrect."
+            "The Meridian Core module-operations entry point is missing or incorrect."
         )
 
     required = {
@@ -294,6 +287,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/teacher_profile.py",
         "meridian/teacher_session.py",
         "meridian/teacher_workflows.py",
+        "meridian/teacher_action_contract.py",
         "meridian/standards_review_workflow.py",
         "meridian/standards_association_authoring_workflow.py",
         "meridian/standards_association_selection_workflow.py",
