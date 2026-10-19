@@ -30,19 +30,14 @@ SCRIPT_ROOT = Path(__file__).resolve().parent
 SOURCE_ROOT = SCRIPT_ROOT.parent
 
 GENERATION_PROGRAM = SCRIPT_ROOT / "smoke_program_grouping_signal_generation.py"
-PREVIEW_REVIEW_PROGRAM = (
-    SCRIPT_ROOT / "smoke_program_grouping_signal_preview_review.py"
-)
+PREVIEW_REVIEW_PROGRAM = SCRIPT_ROOT / "smoke_program_grouping_signal_preview_review.py"
 EXPORT_PROGRAM = SCRIPT_ROOT / "smoke_program_grouping_signal_export.py"
 TEACHER_WORKFLOWS_PROGRAM = SCRIPT_ROOT / "smoke_program_teacher_workflows.py"
 ATTENTION_PROGRAM = SCRIPT_ROOT / "smoke_program_attention.py"
-ISSUE59_OPERATIONS_PROGRAM = (
-    SCRIPT_ROOT / "smoke_program_issue59_operations.py"
-)
-STORAGE_PATHS_PROGRAM = (
-    SCRIPT_ROOT / "smoke_program_storage_paths_issue102.py"
-)
+ISSUE59_OPERATIONS_PROGRAM = SCRIPT_ROOT / "smoke_program_issue59_operations.py"
+STORAGE_PATHS_PROGRAM = SCRIPT_ROOT / "smoke_program_storage_paths_issue102.py"
 
+ISSUE122_ACTION_PROGRAM = SCRIPT_ROOT / "smoke_program_issue122_multi_process.py"
 
 
 def _prepared_layout(
@@ -65,9 +60,7 @@ def _finish_inline_smoke(
 def run_core_inline_smokes(prepared: PreparedInstalledEnvironment) -> None:
     """Run migrated inline Core smoke logic inside the prepared environment."""
     if prepared.matrix.matrix_id is not DependencyMatrixId.CORE:
-        raise ValueError(
-            "Inline Core smoke batch requires the core dependency matrix."
-        )
+        raise ValueError("Inline Core smoke batch requires the core dependency matrix.")
 
     root, outside = _prepared_layout(prepared, "grade-items")
     run_grade_items_prepared(prepared.python, root, outside)
@@ -93,6 +86,7 @@ def run_core_inline_smokes(prepared: PreparedInstalledEnvironment) -> None:
         outside,
     )
     _finish_inline_smoke(prepared, "explanation-traces")
+
 
 def run_core_program_smokes(prepared: PreparedInstalledEnvironment) -> None:
     """Run the first migrated Core-only smoke batch in one prepared venv."""
@@ -160,6 +154,36 @@ def run_core_program_smokes(prepared: PreparedInstalledEnvironment) -> None:
         cwd=issue59_workspace,
         env=attention_environment,
     )
+
+    # Issue #122: separate installed interpreters, one bounded synthetic root
+    # per failure story, never a personal/district academic workspace.
+    for story, phases in (
+        ("normal", ("seed", "cancel", "one_save", "verify")),
+        (
+            "restart",
+            ("seed", "interrupt", "replay_blocked", "resume", "verify"),
+        ),
+        ("cas-race", ("seed", "interrupt", "supersede", "reject_superseded")),
+        (
+            "corrupt-receipt",
+            ("seed", "interrupt", "corrupt_receipt", "reject_corrupt_receipt"),
+        ),
+    ):
+        workspace = prepared.fresh_working_directory(f"issue122-{story}")
+        outside = workspace / "outside"
+        outside.mkdir()
+        synthetic = workspace / "synthetic-academic-workspace"
+        for phase in phases:
+            prepared.run_smoke(
+                f"issue122-{story}-{phase}",
+                [
+                    str(prepared.python),
+                    str(ISSUE122_ACTION_PROGRAM),
+                    phase,
+                    str(synthetic),
+                ],
+                cwd=outside,
+            )
 
 
 def main(argv: list[str] | None = None) -> int:
