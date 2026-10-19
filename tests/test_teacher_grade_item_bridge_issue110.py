@@ -1,3 +1,5 @@
+"""Issue #110 teacher-friendly Grade Item bridge, after #122 single Save."""
+
 from __future__ import annotations
 
 from io import StringIO
@@ -8,6 +10,7 @@ from pds_core.routing_models import ModuleWorkRef
 
 from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.menu_teacher_grade_items import run_grade_item_bridge
+from meridian.teacher_action_contract import TeacherActionActor
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -24,9 +27,7 @@ class ScriptedInput:
 WORK = ModuleWorkRef("scoreform", "english_12_pd2", "memory_snapshot")
 
 
-def test_bridge_existing_grade_item_uses_teacher_labels(
-    monkeypatch,
-) -> None:
+def test_bridge_existing_grade_item_uses_teacher_labels(monkeypatch) -> None:
     import meridian.menu_teacher_grade_items as menu
 
     context = SimpleNamespace(
@@ -46,12 +47,12 @@ def test_bridge_existing_grade_item_uses_teacher_labels(
             SimpleNamespace(
                 label="Marking Period 1",
                 display_label=(
-                    "Marking Period 1 · marking period · "
-                    "2026-09-01 to 2026-11-05"
+                    "Marking Period 1 · marking period · 2026-09-01 to 2026-11-05"
                 ),
             ),
         ),
     )
+    calls: list[str] = []
     monkeypatch.setattr(
         menu,
         "load_guided_grade_item_bridge_context",
@@ -59,18 +60,27 @@ def test_bridge_existing_grade_item_uses_teacher_labels(
     )
     monkeypatch.setattr(
         menu,
+        "resolve_menu_actor",
+        lambda *_args, **_kwargs: TeacherActionActor(
+            "teacher_synthetic", "a" * 64, "saved"
+        ),
+    )
+    monkeypatch.setattr(
+        menu,
         "preview_membership_link",
-        lambda *_args, **_kwargs: SimpleNamespace(),
+        lambda *_args, **_kwargs: calls.append("preview") or SimpleNamespace(),
     )
+
+    class SyntheticAction:
+        def apply(self, *, confirmed: bool) -> object:
+            assert confirmed
+            calls.append("apply")
+            return SimpleNamespace(succeeded=True, status="applied")
+
     monkeypatch.setattr(
         menu,
-        "commit_membership_link",
-        lambda *_args, **_kwargs: SimpleNamespace(),
-    )
-    monkeypatch.setattr(
-        menu,
-        "select_membership_link",
-        lambda *_args, **_kwargs: SimpleNamespace(),
+        "prepare_membership_action",
+        lambda *_args, **_kwargs: calls.append("prepare") or SyntheticAction(),
     )
     monkeypatch.setattr(
         menu,
@@ -79,15 +89,7 @@ def test_bridge_existing_grade_item_uses_teacher_labels(
     )
 
     output = StringIO()
-    scripted = ScriptedInput(
-        "1",
-        "Stephen Severino",
-        "1",
-        "",
-        "1",
-        "1",
-        "",
-    )
+    scripted = ScriptedInput("1", "teacher_synthetic", "1", "", "1", "")
     session = TeacherSessionContext(active_class_id="english_12_pd2")
     result = run_grade_item_bridge(
         workspace_root=Path("workspace"),
@@ -100,11 +102,14 @@ def test_bridge_existing_grade_item_uses_teacher_labels(
     )
 
     assert result is True
+    assert calls == ["preview", "prepare", "apply"]
     assert session.active_grade_item_id == "hidden_grade"
     rendered = output.getvalue()
     assert "Memory Snapshot" in rendered
     assert "Unit 1 Writing" in rendered
     assert "Marking Period 1" in rendered
+    assert "Save and make current" in rendered
+    assert "Make Relationship Current" not in rendered
     assert "hidden_grade" not in rendered
     for forbidden in (
         "Grade Item ID",

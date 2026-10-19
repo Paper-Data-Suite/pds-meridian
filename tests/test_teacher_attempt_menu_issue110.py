@@ -44,9 +44,7 @@ def _prepared() -> GuidedProjectionResult:
         GuidedProjectionResult,
         SimpleNamespace(
             authorized=SimpleNamespace(
-                current_context=SimpleNamespace(
-                    publication=SimpleNamespace(work=WORK)
-                )
+                current_context=SimpleNamespace(publication=SimpleNamespace(work=WORK))
             )
         ),
     )
@@ -70,9 +68,7 @@ def test_no_grade_item_relationship_blocks_without_ids() -> None:
         prepared=_prepared(),
         evidence=_evidence(),
         subject_label="Jane Smith",
-        session_context=TeacherSessionContext(
-            active_class_id="english_12_pd2"
-        ),
+        session_context=TeacherSessionContext(active_class_id="english_12_pd2"),
         dependencies=GuidedAttemptDependencies(policies=(POLICY,)),
         eligibility_dependencies=GuidedEligibilityDependencies(
             grade_items_loader=lambda *_args: SimpleNamespace(items=())
@@ -143,20 +139,18 @@ def test_attempt_menu_uses_teacher_labels_not_hidden_identity(
         "preview_guided_attempt_decision",
         lambda *_args, **_kwargs: SimpleNamespace(),
     )
+
+    # #122 single-save: prior split workflow stubs are intentionally unused.
+    monkeypatch.setattr(menu, "resolve_menu_actor", lambda *_args: object())
     monkeypatch.setattr(
         menu,
-        "commit_guided_attempt_decision",
-        lambda *_args, **_kwargs: SimpleNamespace(written_revision=1),
-    )
-    monkeypatch.setattr(
-        menu,
-        "preview_guided_attempt_selection",
-        lambda *_args, **_kwargs: SimpleNamespace(),
-    )
-    monkeypatch.setattr(
-        menu,
-        "commit_guided_attempt_selection",
-        lambda *_args, **_kwargs: SimpleNamespace(),
+        "prepare_attempt_decision_action",
+        lambda *_args: SimpleNamespace(
+            apply=lambda *, confirmed: SimpleNamespace(
+                succeeded=confirmed,
+                status="applied",
+            ),
+        ),
     )
 
     scripted = ScriptedInput(

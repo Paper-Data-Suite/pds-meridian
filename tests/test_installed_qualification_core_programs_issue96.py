@@ -68,7 +68,9 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
 
     run_core_program_smokes(prepared)  # type: ignore[arg-type]
 
-    assert [run.name for run in prepared.runs] == [
+    legacy_runs = prepared.runs[:10]
+    issue122_runs = prepared.runs[10:]
+    assert [run.name for run in legacy_runs] == [
         "storage-paths-issue102",
         "grouping-signal-generation",
         "grouping-signal-preview-review",
@@ -93,7 +95,7 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
         attention,
         issue59_seed,
         issue59_operations,
-    ) = prepared.runs
+    ) = legacy_runs
     independent = {
         storage_paths.cwd,
         generation.cwd,
@@ -111,12 +113,8 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
     assert attention.cwd not in independent
     assert issue59_operations.cwd not in independent
 
-    assert storage_paths.command[1].endswith(
-        "smoke_program_storage_paths_issue102.py"
-    )
-    assert teacher_seed.command[1].endswith(
-        "smoke_program_grouping_signal_export.py"
-    )
+    assert storage_paths.command[1].endswith("smoke_program_storage_paths_issue102.py")
+    assert teacher_seed.command[1].endswith("smoke_program_grouping_signal_export.py")
     assert teacher.command[1].endswith("smoke_program_teacher_workflows.py")
     assert attention_seed.command[1].endswith(
         "smoke_program_grouping_signal_preview_review.py"
@@ -125,15 +123,51 @@ def test_issue96_core_program_batch_preserves_process_and_workspace_boundaries(
     assert issue59_seed.command[1].endswith(
         "smoke_program_grouping_signal_preview_review.py"
     )
-    assert issue59_operations.command[1].endswith(
-        "smoke_program_issue59_operations.py"
-    )
+    assert issue59_operations.command[1].endswith("smoke_program_issue59_operations.py")
     assert attention_seed.env == {
         "PDS_MERIDIAN_SMOKE_SOURCE_ROOT": str(SOURCE_ROOT),
     }
     assert attention.env == attention_seed.env
     assert issue59_seed.env == attention_seed.env
     assert issue59_operations.env == attention_seed.env
+
+    # #122 extends the matrix but cannot change its older smoke boundaries.
+    stories = (
+        ("normal", ("seed", "cancel", "one_save", "verify")),
+        ("restart", ("seed", "interrupt", "replay_blocked", "resume", "verify")),
+        ("cas-race", ("seed", "interrupt", "supersede", "reject_superseded")),
+        (
+            "corrupt-receipt",
+            ("seed", "interrupt", "corrupt_receipt", "reject_corrupt_receipt"),
+        ),
+    )
+    expected_names = [
+        f"issue122-{story}-{phase}" for story, phases in stories for phase in phases
+    ]
+    assert [run.name for run in issue122_runs] == expected_names
+    assert len(issue122_runs) == 17
+    assert all(
+        run.command[1].endswith("smoke_program_issue122_multi_process.py")
+        for run in issue122_runs
+    )
+    assert all(run.env == {} for run in issue122_runs)
+    story_workspaces: set[str] = set()
+    index = 0
+    for story, phases in stories:
+        batch = issue122_runs[index : index + len(phases)]
+        index += len(phases)
+        assert [run.command[2] for run in batch] == list(phases)
+        assert len({run.cwd for run in batch}) == 1
+        outside = batch[0].cwd
+        assert outside.name == "outside"
+        assert len({run.command[3] for run in batch}) == 1
+        workspace = Path(batch[0].command[3])
+        assert workspace == outside.parent / "synthetic-academic-workspace"
+        assert story in str(workspace)
+        assert str(workspace) not in story_workspaces
+        story_workspaces.add(str(workspace))
+        assert outside not in independent
+        assert outside not in {teacher.cwd, attention.cwd, issue59_operations.cwd}
 
 
 def test_issue96_core_program_batch_rejects_wrong_matrix(tmp_path: Path) -> None:

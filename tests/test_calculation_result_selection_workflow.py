@@ -271,3 +271,32 @@ def test_commit_translates_cas_conflict_to_stale(
             "workspace",
             preview,
         )
+
+
+def test_optional_currentness_check_is_passed_only_when_supplied(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    exact = install_state(monkeypatch)
+    preview = workflow.preview_calculation_result_selection(
+        "workspace", CLASS_ID, GRADE_ITEM_ID, STUDENT_ID, STANDARD_ID, 2
+    )
+    observed: list[object] = []
+
+    def check() -> None:
+        observed.append("currentness")
+
+    def select(*args: object, **kwargs: object) -> object:
+        assert args[-1] == 2
+        assert kwargs == {
+            "expected_current_result_revision": 1,
+            "currentness_check": check,
+        }
+        kwargs["currentness_check"]()
+        return SimpleNamespace(disposition="updated", stored=exact)
+
+    monkeypatch.setattr(workflow, "select_standard_proficiency_result_revision", select)
+    result = workflow.commit_calculation_result_selection_preview(
+        "workspace", preview, currentness_check=check
+    )
+    assert result.selected_revision == 2
+    assert observed == ["currentness"]

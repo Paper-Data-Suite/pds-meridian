@@ -79,9 +79,7 @@ StandardProficiencySelectDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -149,9 +147,7 @@ class StandardProficiencyStorageConflictError(StandardProficiencyStorageError):
     code = "standards_proficiency.conflict"
 
 
-class StandardProficiencyStorageLockError(
-    StandardProficiencyStorageConflictError
-):
+class StandardProficiencyStorageLockError(StandardProficiencyStorageConflictError):
     "Raised when another writer owns one logical policy history."
 
     code = "standards_proficiency.locked"
@@ -163,25 +159,19 @@ class StandardProficiencyStorageIntegrityError(StandardProficiencyStorageError):
     code = "standards_proficiency.integrity_failed"
 
 
-class StandardProficiencyStorageTooLargeError(
-    StandardProficiencyStorageReadError
-):
+class StandardProficiencyStorageTooLargeError(StandardProficiencyStorageReadError):
     "Raised when persisted state exceeds configured read bounds."
 
     code = "standards_proficiency.too_large"
 
 
-class StandardProficiencyPolicyDependencyError(
-    StandardProficiencyStorageConflictError
-):
+class StandardProficiencyPolicyDependencyError(StandardProficiencyStorageConflictError):
     "Raised when a policy's exact target scale cannot be verified."
 
     code = "standards_proficiency.policy_dependency_invalid"
 
 
-class StandardProficiencyResultDependencyError(
-    StandardProficiencyStorageConflictError
-):
+class StandardProficiencyResultDependencyError(StandardProficiencyStorageConflictError):
     "Raised when an exact result dependency cannot be verified for a new write."
 
     code = "standards_proficiency.result_dependency_invalid"
@@ -270,10 +260,13 @@ def standard_proficiency_policies_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    return standards_proficiency_directory(
-        workspace_root,
-        class_id,
-    ) / "p"
+    return (
+        standards_proficiency_directory(
+            workspace_root,
+            class_id,
+        )
+        / "p"
+    )
 
 
 def standard_proficiency_policy_path_key(
@@ -311,13 +304,10 @@ def standard_proficiency_policy_directory(
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return (
-        standard_proficiency_policies_directory(
-            workspace_root,
-            class_id,
-        )
-        / standard_proficiency_policy_path_key(class_id, policy)
-    )
+    return standard_proficiency_policies_directory(
+        workspace_root,
+        class_id,
+    ) / standard_proficiency_policy_path_key(class_id, policy)
 
 
 def standard_proficiency_policy_revisions_directory(
@@ -339,11 +329,14 @@ def standard_proficiency_policy_revision_path(
     policy_revision: int,
 ) -> Path:
     revision = _positive_int(policy_revision, "policy_revision")
-    return standard_proficiency_policy_revisions_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / f"{revision}.json"
+    return (
+        standard_proficiency_policy_revisions_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def standard_proficiency_policy_current_path(
@@ -351,11 +344,14 @@ def standard_proficiency_policy_current_path(
     class_id: str,
     policy_id: str,
 ) -> Path:
-    return standard_proficiency_policy_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / "current.json"
+    return (
+        standard_proficiency_policy_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / "current.json"
+    )
 
 
 def standard_proficiency_policy_revision_relative_path(
@@ -398,9 +394,7 @@ def write_standard_proficiency_policy_revision(
     _acquire_lock(lock)
     try:
         _validate_policy_directory(relation)
-        content = standard_proficiency_calculation_policy_to_json_bytes(
-            candidate
-        )
+        content = standard_proficiency_calculation_policy_to_json_bytes(candidate)
         _check_write_size(
             content,
             DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_POLICY_BYTES,
@@ -413,8 +407,7 @@ def write_standard_proficiency_policy_revision(
             stored = _load_existing_policy_for_replay(root, candidate)
             if stored.content != content or stored.policy_sha256 != digest:
                 raise StandardProficiencyStorageConflictError(
-                    "Calculation-policy revision already exists with "
-                    "different content."
+                    "Calculation-policy revision already exists with different content."
                 )
             return StandardProficiencyPolicyWriteResult(
                 "existing",
@@ -450,9 +443,7 @@ def write_standard_proficiency_policy_revision(
                     candidate,
                 )
             except StandardProficiencyValidationError as error:
-                raise StandardProficiencyStorageConflictError(
-                    str(error)
-                ) from error
+                raise StandardProficiencyStorageConflictError(str(error)) from error
 
         _write_revision_pair(
             target,
@@ -503,16 +494,13 @@ def load_standard_proficiency_policy_revision(
         DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_POLICY_BYTES,
     )
     try:
-        model = standard_proficiency_calculation_policy_from_json_bytes(
-            content
-        )
+        model = standard_proficiency_calculation_policy_from_json_bytes(content)
     except (
         StandardProficiencySerializationError,
         StandardProficiencyValidationError,
     ) as error:
         raise StandardProficiencyStorageIntegrityError(
-            "Calculation-policy revision is invalid or noncanonical: "
-            f"{error}"
+            f"Calculation-policy revision is invalid or noncanonical: {error}"
         ) from error
 
     if (
@@ -521,16 +509,14 @@ def load_standard_proficiency_policy_revision(
         or model.policy_revision != revision
     ):
         raise StandardProficiencyStorageIntegrityError(
-            "Persisted calculation-policy identity does not match "
-            "canonical path."
+            "Persisted calculation-policy identity does not match canonical path."
         )
 
     try:
         _load_target_scale_for_write(root, model.target_scale)
     except StandardProficiencyPolicyDependencyError as error:
         raise StandardProficiencyStorageIntegrityError(
-            "Persisted calculation-policy target-scale dependency is "
-            "invalid."
+            "Persisted calculation-policy target-scale dependency is invalid."
         ) from error
 
     return StoredStandardProficiencyCalculationPolicy(
@@ -567,12 +553,14 @@ def list_standard_proficiency_policy_revisions(
     return _list_history_revisions(
         root,
         relation,
-        lambda revision: load_standard_proficiency_policy_revision(
-            root,
-            class_value,
-            policy_value,
-            revision,
-        ).policy,
+        lambda revision: (
+            load_standard_proficiency_policy_revision(
+                root,
+                class_value,
+                policy_value,
+                revision,
+            ).policy
+        ),
         validate_standard_proficiency_calculation_policy_transition,
     )
 
@@ -627,11 +615,7 @@ def get_current_standard_proficiency_policy_revision(
         policy_id,
         missing_ok=True,
     )
-    return (
-        None
-        if pointer is None
-        else cast(int, pointer["policy_revision"])
-    )
+    return None if pointer is None else cast(int, pointer["policy_revision"])
 
 
 def load_current_standard_proficiency_policy(
@@ -693,9 +677,7 @@ def select_standard_proficiency_policy_revision(
             missing_ok=True,
         )
         current_revision = (
-            None
-            if current is None
-            else cast(int, current["policy_revision"])
+            None if current is None else cast(int, current["policy_revision"])
         )
         if current_revision != expected_current_policy_revision:
             raise StandardProficiencyStorageConflictError(
@@ -730,26 +712,26 @@ def select_standard_proficiency_policy_revision(
         _remove_lock(lock)
 
 
-
 def standard_proficiency_results_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
     "Return the short class-local result collection root."
 
-    return standards_proficiency_directory(
-        workspace_root,
-        class_id,
-    ) / "r"
+    return (
+        standards_proficiency_directory(
+            workspace_root,
+            class_id,
+        )
+        / "r"
+    )
 
 
 def standard_proficiency_standard_key(standard_id: str) -> str:
     "Return a deterministic path-safe key for one durable Core standard ID."
 
     standard = _standard_id(standard_id)
-    return hashlib.sha256(
-        _canonical_json_bytes({"standard_id": standard})
-    ).hexdigest()
+    return hashlib.sha256(_canonical_json_bytes({"standard_id": standard})).hexdigest()
 
 
 def standard_proficiency_result_subject_key(
@@ -791,10 +773,7 @@ def standard_proficiency_result_family_directory(
         student,
         standard,
     )
-    path = (
-        standard_proficiency_results_directory(root, class_value)
-        / family_key
-    )
+    path = standard_proficiency_results_directory(root, class_value) / family_key
     _require_containment(root, path)
     return path
 
@@ -824,13 +803,16 @@ def standard_proficiency_result_revision_path(
     result_revision: int,
 ) -> Path:
     revision = _positive_int(result_revision, "result_revision")
-    return standard_proficiency_result_revisions_directory(
-        workspace_root,
-        class_id,
-        grade_item_id,
-        student_id,
-        standard_id,
-    ) / f"{revision}.json"
+    return (
+        standard_proficiency_result_revisions_directory(
+            workspace_root,
+            class_id,
+            grade_item_id,
+            student_id,
+            standard_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def standard_proficiency_result_current_path(
@@ -840,13 +822,16 @@ def standard_proficiency_result_current_path(
     student_id: str,
     standard_id: str,
 ) -> Path:
-    return standard_proficiency_result_family_directory(
-        workspace_root,
-        class_id,
-        grade_item_id,
-        student_id,
-        standard_id,
-    ) / "current.json"
+    return (
+        standard_proficiency_result_family_directory(
+            workspace_root,
+            class_id,
+            grade_item_id,
+            student_id,
+            standard_id,
+        )
+        / "current.json"
+    )
 
 
 def standard_proficiency_result_revision_relative_path(
@@ -868,10 +853,78 @@ def standard_proficiency_result_revision_relative_path(
         standard,
     )
     revision = _positive_int(result_revision, "result_revision")
-    return (
-        f"classes/{class_value}/modules/meridian/sp/r/"
-        f"{family_key}/{revision}.json"
+    return f"classes/{class_value}/modules/meridian/sp/r/{family_key}/{revision}.json"
+
+
+def list_standard_proficiency_result_identities(
+    workspace_root: str | Path,
+    class_id: str,
+    *,
+    maximum_families: int = 4096,
+) -> tuple[tuple[str, str, str], ...]:
+    """Recover bounded (Grade Item, student, Standard) identities safely.
+
+    Directory keys are not decoded or trusted. Every returned identity comes
+    from a digest-verified canonical revision 1 matching its hashed path.
+    No selected pointer or academic record is written.
+    """
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    if type(maximum_families) is not int or not 1 <= maximum_families <= 4096:
+        raise StandardProficiencyStorageValidationError("Invalid identity bound.")
+    directory = standard_proficiency_results_directory(root, class_value)
+    if directory.is_symlink():
+        raise StandardProficiencyStorageIntegrityError("Linked proficiency collection.")
+    if not directory.exists():
+        return ()
+    _validate_existing_directory_chain(root, directory)
+    _require_storage_key_directory_collection(
+        directory, "proficiency result collection"
     )
+    try:
+        families = tuple(directory.iterdir())
+    except OSError as error:
+        raise StandardProficiencyStorageReadError(
+            "Could not inspect proficiency result collection."
+        ) from error
+    if len(families) > maximum_families:
+        raise StandardProficiencyStorageIntegrityError(
+            "Proficiency result identity collection exceeds bound."
+        )
+    identities: list[tuple[str, str, str]] = []
+    for family in families:
+        # The existing hardened revision-pair reader enforces size and digest.
+        content, _ = _read_revision_pair(
+            root,
+            family / "1.json",
+            DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_RESULT_BYTES,
+        )
+        try:
+            result = standard_proficiency_result_snapshot_from_json_bytes(content)
+        except (
+            StandardProficiencySerializationError,
+            StandardProficiencyValidationError,
+        ) as error:
+            raise StandardProficiencyStorageIntegrityError(
+                "Cannot recover proficiency family from revision 1."
+            ) from error
+        if (
+            result.class_id != class_value
+            or result.result_revision != 1
+            or family.name
+            != storage_path_key(
+                "standard_proficiency_result",
+                class_value,
+                result.grade_item_id,
+                result.student_id,
+                result.standard_id,
+            )
+        ):
+            raise StandardProficiencyStorageIntegrityError(
+                "Proficiency family path differs from canonical identity."
+            )
+        identities.append((result.grade_item_id, result.student_id, result.standard_id))
+    return tuple(sorted(identities))
 
 
 def write_standard_proficiency_result_revision(
@@ -993,9 +1046,7 @@ def write_standard_proficiency_result_revision(
                     snapshot,
                 )
             except StandardProficiencyValidationError as error:
-                raise StandardProficiencyStorageConflictError(
-                    str(error)
-                ) from error
+                raise StandardProficiencyStorageConflictError(str(error)) from error
 
         _write_revision_pair(
             target,
@@ -1013,8 +1064,7 @@ def write_standard_proficiency_result_revision(
         )
         if stored.content != content or stored.result_sha256 != digest:
             raise StandardProficiencyStorageIntegrityError(
-                "Persisted standards-proficiency result differs from "
-                "candidate bytes."
+                "Persisted standards-proficiency result differs from candidate bytes."
             )
         return StandardProficiencyResultWriteResult(
             "created",
@@ -1075,16 +1125,13 @@ def load_standard_proficiency_result_revision(
         DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_RESULT_BYTES,
     )
     try:
-        snapshot = standard_proficiency_result_snapshot_from_json_bytes(
-            content
-        )
+        snapshot = standard_proficiency_result_snapshot_from_json_bytes(content)
     except (
         StandardProficiencySerializationError,
         StandardProficiencyValidationError,
     ) as error:
         raise StandardProficiencyStorageIntegrityError(
-            "Standards-proficiency result revision is invalid or "
-            f"noncanonical: {error}"
+            f"Standards-proficiency result revision is invalid or noncanonical: {error}"
         ) from error
 
     if (
@@ -1166,14 +1213,16 @@ def list_standard_proficiency_result_revisions(
     return _list_history_revisions(
         root,
         family,
-        lambda revision: load_standard_proficiency_result_revision(
-            root,
-            class_value,
-            grade_item,
-            student,
-            standard,
-            revision,
-        ).snapshot,
+        lambda revision: (
+            load_standard_proficiency_result_revision(
+                root,
+                class_value,
+                grade_item,
+                student,
+                standard,
+                revision,
+            ).snapshot
+        ),
         validate_standard_proficiency_result_transition,
     )
 
@@ -1193,11 +1242,7 @@ def get_current_standard_proficiency_result_revision(
         standard_id,
         missing_ok=True,
     )
-    return (
-        None
-        if pointer is None
-        else cast(int, pointer["result_revision"])
-    )
+    return None if pointer is None else cast(int, pointer["result_revision"])
 
 
 def load_current_standard_proficiency_result(
@@ -1242,6 +1287,7 @@ def select_standard_proficiency_result_revision(
     result_revision: int,
     *,
     expected_current_result_revision: int | None,
+    currentness_check: Callable[[], object] | None = None,
 ) -> StandardProficiencyResultSelectionResult:
     "Explicitly select one exact persisted result revision with CAS."
 
@@ -1273,9 +1319,7 @@ def select_standard_proficiency_result_revision(
             missing_ok=True,
         )
         current_revision = (
-            None
-            if current is None
-            else cast(int, current["result_revision"])
+            None if current is None else cast(int, current["result_revision"])
         )
         if current_revision != expected_current_result_revision:
             raise StandardProficiencyStorageConflictError(
@@ -1283,6 +1327,11 @@ def select_standard_proficiency_result_revision(
                 "does not match stored selection."
             )
 
+        # The restart-only callback rechecks the exact authorized calculation
+        # while holding the same selector lock. A revoked or changed basis
+        # fails before publishing a new current pointer.
+        if currentness_check is not None:
+            currentness_check()
         pointer = _result_pointer(target)
         if current == pointer:
             return StandardProficiencyResultSelectionResult(
@@ -1356,13 +1405,11 @@ def _validate_result_dependencies_for_write(
         )
     except StandardProficiencyStorageError as error:
         raise StandardProficiencyResultDependencyError(
-            "Exact calculation-policy revision is unavailable for result "
-            "write."
+            "Exact calculation-policy revision is unavailable for result write."
         ) from error
     if policy.policy_sha256 != policy_ref.policy_sha256:
         raise StandardProficiencyResultDependencyError(
-            "Exact calculation-policy digest does not match result "
-            "provenance."
+            "Exact calculation-policy digest does not match result provenance."
         )
 
     scale_ref = snapshot.target_scale
@@ -1375,13 +1422,11 @@ def _validate_result_dependencies_for_write(
         )
     except ProficiencyMappingStorageError as error:
         raise StandardProficiencyResultDependencyError(
-            "Exact proficiency-scale revision is unavailable for result "
-            "write."
+            "Exact proficiency-scale revision is unavailable for result write."
         ) from error
     if scale.scale_sha256 != scale_ref.scale_sha256:
         raise StandardProficiencyResultDependencyError(
-            "Exact proficiency-scale digest does not match result "
-            "provenance."
+            "Exact proficiency-scale digest does not match result provenance."
         )
 
 
@@ -1396,9 +1441,7 @@ def _result_pointer(
         "grade_item_id": snapshot.grade_item_id,
         "student_id": snapshot.student_id,
         "standard_id": snapshot.standard_id,
-        "standard_key": standard_proficiency_standard_key(
-            snapshot.standard_id
-        ),
+        "standard_key": standard_proficiency_standard_key(snapshot.standard_id),
         "result_revision": snapshot.result_revision,
         "result_sha256": stored.result_sha256,
     }
@@ -1449,8 +1492,7 @@ def _load_result_pointer(
         if missing_ok:
             return None
         raise StandardProficiencyStorageNotFoundError(
-            "Standards-proficiency result has no explicit current "
-            "selection."
+            "Standards-proficiency result has no explicit current selection."
         )
 
     content = _read_bounded_regular_file(
@@ -1477,10 +1519,7 @@ def _load_result_pointer(
             "Standards-proficiency current-result pointer JSON is invalid."
         ) from error
 
-    if (
-        not isinstance(decoded, dict)
-        or frozenset(decoded) != _RESULT_POINTER_KEYS
-    ):
+    if not isinstance(decoded, dict) or frozenset(decoded) != _RESULT_POINTER_KEYS:
         raise StandardProficiencyStorageIntegrityError(
             "Standards-proficiency current-result pointer does not use "
             "its exact schema."
@@ -1488,29 +1527,24 @@ def _load_result_pointer(
     pointer = cast(dict[str, object], decoded)
     if _canonical_json_bytes(pointer) != content:
         raise StandardProficiencyStorageIntegrityError(
-            "Standards-proficiency current-result pointer is not "
-            "canonically encoded."
+            "Standards-proficiency current-result pointer is not canonically encoded."
         )
 
     if (
-        pointer["schema_version"]
-        != STANDARD_PROFICIENCY_RESULT_CURRENT_SCHEMA_VERSION
-        or pointer["record_type"]
-        != STANDARD_PROFICIENCY_RESULT_CURRENT_RECORD_TYPE
+        pointer["schema_version"] != STANDARD_PROFICIENCY_RESULT_CURRENT_SCHEMA_VERSION
+        or pointer["record_type"] != STANDARD_PROFICIENCY_RESULT_CURRENT_RECORD_TYPE
         or pointer["class_id"] != class_value
         or pointer["grade_item_id"] != grade_item
         or pointer["student_id"] != student
         or pointer["standard_id"] != standard
     ):
         raise StandardProficiencyStorageIntegrityError(
-            "Standards-proficiency current-result pointer identity is "
-            "invalid."
+            "Standards-proficiency current-result pointer identity is invalid."
         )
     expected_key = standard_proficiency_standard_key(standard)
     if pointer["standard_key"] != expected_key:
         raise StandardProficiencyStorageIntegrityError(
-            "Standards-proficiency current-result pointer standard key "
-            "is invalid."
+            "Standards-proficiency current-result pointer standard key is invalid."
         )
     _positive_int(pointer["result_revision"], "result_revision")
     _sha256(pointer["result_sha256"], "result_sha256")
@@ -1622,11 +1656,7 @@ def _require_only_named_directory(
             f"Could not inspect {label}."
         ) from error
     for entry in entries:
-        if (
-            entry.name != expected_name
-            or entry.is_symlink()
-            or not entry.is_dir()
-        ):
+        if entry.name != expected_name or entry.is_symlink() or not entry.is_dir():
             raise StandardProficiencyStorageIntegrityError(
                 f"{label} contains an unexpected entry."
             )
@@ -1676,9 +1706,7 @@ def _policy_pointer(
     stored: StoredStandardProficiencyCalculationPolicy,
 ) -> dict[str, object]:
     return {
-        "schema_version": (
-            STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION
-        ),
+        "schema_version": (STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION),
         "record_type": STANDARD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE,
         "class_id": stored.policy.class_id,
         "policy_id": stored.policy.policy_id,
@@ -1715,10 +1743,8 @@ def _load_policy_pointer(
         _POINTER_KEYS,
     )
     if (
-        mapping["schema_version"]
-        != STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION
-        or mapping["record_type"]
-        != STANDARD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE
+        mapping["schema_version"] != STANDARD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION
+        or mapping["record_type"] != STANDARD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE
         or mapping["class_id"] != class_value
         or mapping["policy_id"] != policy_value
     ):
@@ -1738,9 +1764,7 @@ def _read_pointer(
     content = _read_bounded_regular_file(
         path,
         DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_POINTER_BYTES,
-        missing_message=(
-            "Calculation-policy current pointer does not exist."
-        ),
+        missing_message=("Calculation-policy current pointer does not exist."),
     )
     try:
         text = content.decode("utf-8")
@@ -1831,8 +1855,7 @@ def _list_history_revisions(
                 transition(previous, current)
             except StandardProficiencyValidationError as error:
                 raise StandardProficiencyStorageIntegrityError(
-                    "Persisted calculation-policy transition is invalid: "
-                    f"{error}"
+                    f"Persisted calculation-policy transition is invalid: {error}"
                 ) from error
         previous = current
     return revisions
@@ -1890,8 +1913,7 @@ def _validate_revision_directory_shape(path: Path) -> None:
         entries = tuple(path.iterdir())
     except OSError as error:
         raise StandardProficiencyStorageReadError(
-            "Could not inspect immutable calculation-policy revision "
-            "directory."
+            "Could not inspect immutable calculation-policy revision directory."
         ) from error
 
     json_numbers: set[int] = set()
@@ -1935,16 +1957,12 @@ def _read_revision_pair(
     content = _read_bounded_regular_file(
         path,
         maximum,
-        missing_message=(
-            "Immutable calculation-policy revision does not exist."
-        ),
+        missing_message=("Immutable calculation-policy revision does not exist."),
     )
     digest_bytes = _read_bounded_regular_file(
         digest_path,
         DEFAULT_MAXIMUM_STANDARD_PROFICIENCY_DIGEST_BYTES,
-        missing_message=(
-            "Immutable calculation-policy digest does not exist."
-        ),
+        missing_message=("Immutable calculation-policy digest does not exist."),
     )
     expected = _parse_digest_sidecar(digest_bytes)
     actual = hashlib.sha256(content).hexdigest()
@@ -1979,8 +1997,7 @@ def _write_revision_pair(
         if created_json:
             _remove_file(path)
         raise StandardProficiencyStorageConflictError(
-            "Immutable calculation-policy revision identity already "
-            "exists."
+            "Immutable calculation-policy revision identity already exists."
         ) from error
     except OSError as error:
         if created_digest:
@@ -2026,8 +2043,7 @@ def _atomic_write_pointer(
         raise
     except OSError as error:
         raise StandardProficiencyStorageWriteError(
-            "Could not publish calculation-policy current pointer "
-            "atomically."
+            "Could not publish calculation-policy current pointer atomically."
         ) from error
     finally:
         if descriptor is not None:
@@ -2093,8 +2109,7 @@ def _ensure_directory_chain(root: Path, target: Path) -> None:
     current = root
     if not current.exists():
         raise StandardProficiencyStorageNotFoundError(
-            "Workspace root must exist before calculation-policy storage "
-            "is used."
+            "Workspace root must exist before calculation-policy storage is used."
         )
     if current.is_symlink() or not current.is_dir():
         raise StandardProficiencyStorageIntegrityError(
@@ -2151,8 +2166,7 @@ def _read_bounded_regular_file(
         raise StandardProficiencyStorageNotFoundError(missing_message)
     if path.is_symlink() or not path.is_file():
         raise StandardProficiencyStorageIntegrityError(
-            "Canonical calculation-policy file is unsafe or not a regular "
-            "file."
+            "Canonical calculation-policy file is unsafe or not a regular file."
         )
     try:
         size = path.stat().st_size
@@ -2162,8 +2176,7 @@ def _read_bounded_regular_file(
         ) from error
     if size > maximum:
         raise StandardProficiencyStorageTooLargeError(
-            "Canonical calculation-policy file exceeds configured byte "
-            "limit."
+            "Canonical calculation-policy file exceeds configured byte limit."
         )
     try:
         with path.open("rb") as handle:
@@ -2174,8 +2187,7 @@ def _read_bounded_regular_file(
         ) from error
     if len(content) > maximum:
         raise StandardProficiencyStorageTooLargeError(
-            "Canonical calculation-policy file exceeds configured byte "
-            "limit."
+            "Canonical calculation-policy file exceeds configured byte limit."
         )
     return content
 
@@ -2225,8 +2237,7 @@ def _unique_json_object(
 
 def _reject_json_constant(value: str) -> object:
     raise StandardProficiencyStorageIntegrityError(
-        "Non-finite calculation-policy pointer value is invalid: "
-        f"{value}"
+        f"Non-finite calculation-policy pointer value is invalid: {value}"
     )
 
 
@@ -2234,8 +2245,7 @@ def _require_existing_core_class(root: Path, class_id: str) -> None:
     path = class_dir(root, class_id)
     if not path.exists():
         raise StandardProficiencyStorageNotFoundError(
-            "Core class workspace must exist before calculation-policy "
-            "creation."
+            "Core class workspace must exist before calculation-policy creation."
         )
     _validate_existing_directory_chain(root, path)
 
@@ -2264,9 +2274,7 @@ def _root(value: str | Path) -> Path:
 
 def _standard_id(value: object) -> str:
     if not isinstance(value, str):
-        raise StandardProficiencyStorageValidationError(
-            "standard_id must be a string."
-        )
+        raise StandardProficiencyStorageValidationError("standard_id must be a string.")
     normalized = value.strip()
     if not normalized:
         raise StandardProficiencyStorageValidationError(
@@ -2287,9 +2295,7 @@ def _identifier(value: object, field_name: str) -> str:
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
-        raise StandardProficiencyStorageValidationError(
-            str(error)
-        ) from error
+        raise StandardProficiencyStorageValidationError(str(error)) from error
 
 
 def _positive_int(value: object, field_name: str) -> int:

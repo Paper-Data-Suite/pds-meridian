@@ -12,16 +12,16 @@ from meridian.guided_eligibility import (
     GuidedEligibilityError,
     GuidedEligibilityGradeItemChoice,
     GuidedEligibilityPolicyChoice,
-    commit_guided_eligibility,
-    commit_guided_eligibility_selection,
     discover_guided_eligibility_grade_items,
     load_guided_eligibility_context,
     preview_guided_eligibility,
-    preview_guided_eligibility_selection,
 )
 from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.guided_projection import GuidedProjectionResult
-from meridian.menu_teacher_grade_items import run_grade_item_bridge
+from meridian.menu_teacher_grade_items import (
+    _review_apply,
+    run_grade_item_bridge,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -32,7 +32,14 @@ from meridian.menu_ui import (
     write_lines,
 )
 from meridian.new_evidence_eligibility_workflow import TeacherEligibilityDisposition
+from meridian.teacher_action_guided import (
+    prepare_eligibility_action,
+    resolve_menu_actor,
+)
+from meridian.teacher_action_orchestration import TeacherActionConflictError
+from meridian.teacher_action_receipts import TeacherActionReceiptError
 from meridian.teacher_evidence_review import TeacherEvidenceReviewItem
+from meridian.teacher_profile import TeacherProfileError
 from meridian.teacher_session import TeacherSessionContext
 
 
@@ -348,7 +355,7 @@ def run_guided_eligibility_menu(
         return
 
     clear_fn()
-    print_menu_header(output, "Review Eligibility Before Write")
+    print_menu_header(output, "Review and Save Eligibility")
     write_lines(
         output,
         f"Student: {subject_label}",
@@ -357,78 +364,34 @@ def run_guided_eligibility_menu(
         f"Current eligibility: {_humanize(context.current_status)}",
         f"New decision: {_humanize(disposition)}",
         f"Policy: {policy.title}",
-        f"Teacher: {teacher}",
-    )
-    if rationale is not None:
-        write_lines(output, f"Rationale: {rationale}")
-    write_lines(
-        output,
         "",
-        "Writing creates one immutable eligibility decision.",
-        "It does not make that decision current until you select it.",
+        "Save writes the exact eligibility decision and makes it current.",
         "",
-        "1. Write this decision",
+        "1. Save and make current",
         "2. Cancel",
     )
-    raw = read_choice(input_fn)
-    if raw != "1":
-        write_lines(output, "", "No eligibility decision was written.")
-        pause_for_user(input_fn)
-        return
-
     try:
-        written = commit_guided_eligibility(
-            workspace_root,
-            prepared,
-            preview,
-            dependencies=dependencies,
-        )
-        selection_preview = preview_guided_eligibility_selection(
+        actor = resolve_menu_actor(teacher, input_fn)
+        action = prepare_eligibility_action(
             workspace_root,
             prepared,
             context,
-            written.written_revision,
-            dependencies=dependencies,
+            preview,
+            actor,
+            dependencies,
         )
-    except GuidedEligibilityError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
-        return
-
-    clear_fn()
-    print_menu_header(output, "Make Eligibility Current")
-    write_lines(
-        output,
-        f"Student: {subject_label}",
-        f"Evidence: {evidence.evidence_label}",
-        f"Decision: {_humanize(disposition)}",
-        "",
-        "The decision was written but is not current yet.",
-        "",
-        "1. Make this decision current",
-        "2. Leave it unselected",
-    )
-    raw = read_choice(input_fn)
-    if raw != "1":
-        write_lines(
-            output,
-            "",
-            "The eligibility decision remains written but unselected.",
-        )
+    except (
+        TeacherActionConflictError,
+        TeacherProfileError,
+        TeacherActionReceiptError,
+        ValueError,
+    ) as error:
+        write_lines(output, "", f"Eligibility action unavailable: {error}")
         pause_for_user(input_fn)
         return
-
+    if not _review_apply(action, input_fn=input_fn, output=output, clear_fn=clear_fn):
+        return
     try:
-        commit_guided_eligibility_selection(
-            workspace_root,
-            prepared,
-            selection_preview,
-            dependencies=dependencies,
-        )
         refreshed = load_guided_eligibility_context(
             workspace_root,
             prepared,
@@ -437,14 +400,17 @@ def run_guided_eligibility_menu(
             dependencies=dependencies,
         )
     except GuidedEligibilityError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
+        _show_error(error, input_fn=input_fn, output=output, clear_fn=clear_fn)
         return
-
+    if refreshed.current_status != disposition:
+        write_lines(
+            output,
+            "",
+            "Current eligibility did not match the reviewed decision.",
+            "Refresh canonical state before further grading.",
+        )
+        pause_for_user(input_fn)
+        return
     clear_fn()
     print_menu_header(output, "Eligibility Updated")
     write_lines(

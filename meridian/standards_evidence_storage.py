@@ -349,9 +349,7 @@ class StandardEvidenceAssociationResolution:
                     "unselected resolution must not carry reference or basis."
                 )
         else:
-            if not isinstance(
-                self.selected, StoredStandardEvidenceAssociationDecision
-            ):
+            if not isinstance(self.selected, StoredStandardEvidenceAssociationDecision):
                 raise StandardsEvidenceStorageValidationError(
                     "selected has an invalid type."
                 )
@@ -760,6 +758,85 @@ def list_standard_evidence_association_revisions(
     return revisions
 
 
+def list_standard_evidence_association_identities(
+    workspace_root: str | Path,
+    class_id: str,
+    grade_item_id: str,
+    *,
+    maximum_relations: int = 4096,
+) -> tuple[tuple[EvidenceSourceReference, str], ...]:
+    """Read and verify exact canonical source/Standard identities, without writes.
+
+    Hashed directory names are never treated as authority. Each identity comes
+    from a valid digest-checked revision 1 and is compared with its storage key.
+    Unknown entries or an excessive collection fail the entire discovery.
+    """
+    root = _root(workspace_root)
+    class_value = _identifier(class_id, "class_id")
+    item = _identifier(grade_item_id, "grade_item_id")
+    if type(maximum_relations) is not int or not 1 <= maximum_relations <= 4096:
+        raise StandardsEvidenceStorageValidationError("Invalid discovery bound.")
+    collection = class_module_dir(root, class_value, "meridian") / "std_assoc"
+    if collection.is_symlink():
+        raise StandardsEvidenceStorageIntegrityError("Linked association collection.")
+    if not collection.exists():
+        return ()
+    # The collection is class-scoped even though this path helper accepts work.
+    _validate_existing_directory_chain(root, collection)
+    for entry in _directory_entries(collection, "association collection"):
+        if (
+            _SHA256.fullmatch(entry.name) is None
+            or entry.is_symlink()
+            or not entry.is_dir()
+        ):
+            raise StandardsEvidenceStorageIntegrityError("Invalid association entry.")
+        _validate_association_history_root(entry)
+    directories = _directory_entries(collection, "association identity collection")
+    if len(directories) > maximum_relations:
+        raise StandardsEvidenceStorageIntegrityError("Too many association identities.")
+    entries: list[tuple[EvidenceSourceReference, str]] = []
+    for relation in directories:
+        content, digest = _read_revision_pair(
+            root, relation / "1.json", DEFAULT_MAXIMUM_STANDARD_EVIDENCE_REVISION_BYTES
+        )
+        if hashlib.sha256(content).hexdigest() != digest:
+            raise StandardsEvidenceStorageIntegrityError("Invalid identity digest.")
+        try:
+            decision = standard_evidence_association_from_json_bytes(content)
+        except (
+            StandardsEvidenceSerializationError,
+            StandardsEvidenceValidationError,
+        ) as error:
+            raise StandardsEvidenceStorageIntegrityError(
+                "Cannot identify association from canonical revision 1."
+            ) from error
+        if (
+            decision.association_revision != 1
+            or decision.class_id != class_value
+            or decision.grade_item_id != item
+            or relation.name
+            != standard_evidence_association_key(
+                class_value, item, decision.source, decision.standard_id
+            )
+        ):
+            raise StandardsEvidenceStorageIntegrityError(
+                "Identity and association collection path disagree."
+            )
+        entries.append((decision.source, decision.standard_id))
+    return tuple(
+        sorted(
+            entries,
+            key=lambda value: (
+                value[0].work.module_id,
+                value[0].work.work_id,
+                value[0].publication_id,
+                value[0].item_id,
+                value[1],
+            ),
+        )
+    )
+
+
 def write_standard_evidence_association_revision(
     workspace_root: str | Path,
     decision: StandardEvidenceAssociationDecision,
@@ -928,8 +1005,9 @@ def select_standard_evidence_association_revision(
     association_revision: int,
     *,
     expected_current_association_revision: int | None,
+    authorized_snapshot: AuthorizedProjectionSnapshot | None = None,
 ) -> StandardEvidenceAssociationSelectionResult:
-    """Select any persisted historical revision with revision-based CAS."""
+    """CAS-select exact persisted revision; optional fresh authority under lock."""
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
     validated = validate_evidence_source_reference(source)
@@ -955,6 +1033,18 @@ def select_standard_evidence_association_revision(
         target = load_standard_evidence_association_revision(
             root, class_value, item, validated, standard, revision
         )
+        if authorized_snapshot is not None:
+            if not authorized_snapshot.assessment.reusable_for_current_use:
+                raise StandardsEvidenceStorageConflictError(
+                    "Evidence is not authorized for current Standard recovery."
+                )
+            verified = validate_standard_evidence_association_dependencies(
+                root, target.decision, authorized_snapshot
+            )
+            if not verified.standard_resolution.active:
+                raise StandardsEvidenceStorageConflictError(
+                    "Standard is no longer active for restart recovery."
+                )
         current = _load_current_selection(
             root, class_value, item, validated, standard, missing_ok=True
         )

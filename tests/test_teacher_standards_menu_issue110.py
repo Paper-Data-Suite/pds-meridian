@@ -40,9 +40,7 @@ def _prepared() -> GuidedProjectionResult:
         GuidedProjectionResult,
         SimpleNamespace(
             authorized=SimpleNamespace(
-                current_context=SimpleNamespace(
-                    publication=SimpleNamespace(work=WORK)
-                )
+                current_context=SimpleNamespace(publication=SimpleNamespace(work=WORK))
             )
         ),
     )
@@ -121,21 +119,6 @@ def test_associated_standard_offers_contextual_proficiency(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         menu,
-        "commit_guided_standard_association",
-        lambda *_args, **_kwargs: SimpleNamespace(written_revision=2),
-    )
-    monkeypatch.setattr(
-        menu,
-        "preview_guided_standard_selection",
-        lambda *_args, **_kwargs: SimpleNamespace(),
-    )
-    monkeypatch.setattr(
-        menu,
-        "commit_guided_standard_selection",
-        lambda *_args, **_kwargs: SimpleNamespace(),
-    )
-    monkeypatch.setattr(
-        menu,
         "reload_guided_standards_projection",
         lambda *_args, **_kwargs: SimpleNamespace(
             association_disposition="associated",
@@ -148,6 +131,19 @@ def test_associated_standard_offers_contextual_proficiency(monkeypatch) -> None:
     monkeypatch.setattr(menu, "run_guided_proficiency_menu", proficiency)
 
     output = StringIO()
+    # #122 single-save: prior split workflow stubs are intentionally unused.
+    monkeypatch.setattr(menu, "resolve_menu_actor", lambda *_args: object())
+    monkeypatch.setattr(
+        menu,
+        "prepare_standard_association_action",
+        lambda *_args: SimpleNamespace(
+            apply=lambda *, confirmed: SimpleNamespace(
+                succeeded=confirmed,
+                status="applied",
+            ),
+        ),
+    )
+
     scripted = ScriptedInput(
         "1",
         "1",
@@ -163,9 +159,7 @@ def test_associated_standard_offers_contextual_proficiency(monkeypatch) -> None:
         prepared=_prepared(),
         evidence=_evidence(),
         subject_label="Jane Smith",
-        session_context=TeacherSessionContext(
-            active_class_id="english_12_pd2"
-        ),
+        session_context=TeacherSessionContext(active_class_id="english_12_pd2"),
         dependencies=GuidedStandardsDependencies(),
         eligibility_dependencies=GuidedEligibilityDependencies(),
         proficiency_dependencies=GuidedProficiencyDependencies(),
@@ -201,8 +195,7 @@ def test_standard_menu_uses_code_label_and_scale_title_without_ids(
         title="English 4-Level Scale",
         context="Developing → Approaching → Meeting → Exceeding",
         display_label=(
-            "English 4-Level Scale · "
-            "Developing → Approaching → Meeting → Exceeding"
+            "English 4-Level Scale · Developing → Approaching → Meeting → Exceeding"
         ),
         reference=ProficiencyScaleReference(
             "english_12_pd2",
@@ -254,23 +247,21 @@ def test_standard_menu_uses_code_label_and_scale_title_without_ids(
     )
     monkeypatch.setattr(
         menu,
-        "commit_guided_standard_association",
-        lambda *_args, **_kwargs: SimpleNamespace(written_revision=2),
-    )
-    monkeypatch.setattr(
-        menu,
-        "preview_guided_standard_selection",
-        lambda *_args, **_kwargs: SimpleNamespace(),
-    )
-    monkeypatch.setattr(
-        menu,
-        "commit_guided_standard_selection",
-        lambda *_args, **_kwargs: SimpleNamespace(),
-    )
-    monkeypatch.setattr(
-        menu,
         "reload_guided_standards_projection",
         lambda *_args, **_kwargs: refreshed,
+    )
+
+    # #122 single-save: prior split workflow stubs are intentionally unused.
+    monkeypatch.setattr(menu, "resolve_menu_actor", lambda *_args: object())
+    monkeypatch.setattr(
+        menu,
+        "prepare_standard_association_action",
+        lambda *_args: SimpleNamespace(
+            apply=lambda *, confirmed: SimpleNamespace(
+                succeeded=confirmed,
+                status="applied",
+            ),
+        ),
     )
 
     scripted = ScriptedInput(

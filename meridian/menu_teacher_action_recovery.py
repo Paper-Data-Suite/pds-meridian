@@ -1,0 +1,718 @@
+"""Read-only class-local recovery inbox for teacher saves interrupted by restart."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Callable, TextIO
+
+from pds_core.class_metadata import ClassMetadataError, load_class_metadata
+from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
+from pds_core.routes import class_metadata_path
+from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
+
+from meridian.attempt_selection import AttemptProjectionReference
+from meridian.diagnostics import DiagnosticsDependencies
+from meridian.evidence_eligibility import EvidenceSourceReference
+from meridian.menu_ui import (
+    ClearFunction,
+    InputFunction,
+    clear_screen,
+    pause_for_user,
+    print_menu_header,
+    print_standard_navigation,
+    read_choice,
+    write_lines,
+)
+from meridian.projection_cache import AuthorizedProjectionSnapshot
+from meridian.teacher_action_contract import teacher_action_outcome_message
+from meridian.teacher_action_orchestration import TeacherActionConflictError
+from meridian.teacher_action_receipts import (
+    TeacherActionReceiptError,
+    TeacherActionReceiptStore,
+)
+from meridian.teacher_action_recovery_inventory import (
+    RecoveryInboxEntry,
+    TeacherActionRecoveryInventoryError,
+    read_recovery_inbox,
+)
+from meridian.teacher_action_restart_attempt import (
+    inspect_restart_attempt,
+    load_fresh_restart_attempt_authorization,
+    resume_restart_attempt,
+)
+from meridian.teacher_action_restart_eligibility import (
+    inspect_restart_eligibility,
+    load_fresh_restart_authorization,
+    resume_restart_eligibility,
+)
+from meridian.teacher_action_restart_grade_item import (
+    inspect_restart_grade_item,
+    resume_restart_grade_item,
+)
+from meridian.teacher_action_restart_membership import (
+    inspect_restart_membership,
+    resume_restart_membership,
+)
+from meridian.teacher_action_restart_policy import (
+    inspect_restart_policy,
+    resume_restart_policy,
+)
+from meridian.teacher_action_restart_proficiency import (
+    inspect_restart_proficiency,
+    load_fresh_restart_proficiency_authorization,
+    resume_restart_proficiency,
+)
+from meridian.teacher_action_restart_standard import (
+    inspect_restart_standard,
+    load_fresh_restart_standard_authorization,
+    resume_restart_standard,
+)
+from meridian.teacher_session import TeacherSessionContext
+
+
+def _validate_class(root: Path, class_id: str) -> None:
+    metadata = load_class_metadata(class_metadata_path(root, class_id))
+    if metadata.class_id != class_id:
+        raise ValueError("Class metadata does not match the requested class.")
+
+
+def _show_entry(output: TextIO, entry: RecoveryInboxEntry) -> None:
+    print_menu_header(output, "Review Saved Action Checkpoint")
+    write_lines(
+        output,
+        f"Action: {entry.title}",
+        f"Last journal stage: {entry.stage.replace('_', ' ')}",
+        f"Stage disposition: {entry.disposition}",
+        f"Journal updated: {entry.recorded_at}",
+        f"Review: {entry.description}",
+        "",
+        "This is a JOURNAL observation, not confirmation of current status.",
+        "No canonical academic state has been independently verified here.",
+        "Do not repeat Save based solely on this checkpoint.",
+        "Return to the relevant workflow and inspect the current decision.",
+        "No write, selection or permission change was requested.",
+    )
+
+
+def _offer_grade_item_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only verified, exact creation recovery may present an active control."""
+    try:
+        inspection = inspect_restart_grade_item(root, store, entry.receipt)
+    except (
+        TeacherActionConflictError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ):
+        write_lines(
+            output,
+            "",
+            "Exact Grade Item recovery could not be verified safely.",
+            "No selection changed. Review current Grade Item state manually.",
+        )
+        return
+    if not inspection.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact Grade Item resume is not authorized by current state.",
+            "No selection changed. Review current Grade Item state manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        f"Saved Grade Item: {inspection.title}",
+        "The exact immutable revision exists, and its original",
+        "unselected CAS baseline and teacher attribution were reverified.",
+        "Type RESUME to select ONLY this saved Grade Item revision.",
+        "Any other input leaves it unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no selection changed.")
+        return
+    try:
+        result = resume_restart_grade_item(
+            root, store, entry.receipt, confirmation="RESUME"
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (
+        TeacherActionConflictError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ):
+        write_lines(
+            output,
+            "",
+            "Exact selection was blocked or could not be verified.",
+            "Review current canonical Grade Item state before any retry.",
+        )
+
+
+def _offer_membership_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only an exact, current-dependency-verified relationship is selectable."""
+    try:
+        inspection = inspect_restart_membership(root, store, entry.receipt)
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact work relationship could not be verified safely.",
+            "No selection changed. Review current relationships manually.",
+        )
+        return
+    if not inspection.can_resume:
+        write_lines(
+            output,
+            "",
+            "The saved relationship cannot be resumed under current conditions.",
+            "No selection changed. Review current relationships manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "Saved work relationship: Verified exact included decision",
+        "Its Grade Item, work registration and academic period were rechecked.",
+        "The original current-selection baseline still matches.",
+        "Type RESUME to select ONLY this previously saved relationship.",
+        "Any other input leaves the current selection unchanged.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no selection changed.")
+        return
+    try:
+        result = resume_restart_membership(
+            root, store, entry.receipt, confirmation="RESUME"
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact relationship selection was blocked or could not be verified.",
+            "Review canonical Grade Item membership before retrying.",
+        )
+
+
+def _offer_eligibility_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Fresh evidence authorization is mandatory; a receipt is NOT a grant."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Exact evidence access is not available in this session.",
+            "Use A. Set Up Evidence Access, then reopen recovery.",
+            "No eligibility selection was changed.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: EvidenceSourceReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_authorization(root, source, diagnostics)
+
+    try:
+        inspection = inspect_restart_eligibility(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            (
+                "The saved eligibility and its current authorization "
+                "could not be verified."
+            ),
+            "No selection changed. Review current evidence before retrying.",
+        )
+        return
+    if not inspection.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact eligibility resume is unavailable under current source state.",
+            "No selection changed. Review current evidence manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        (
+            "The exact saved eligibility decision and current evidence "
+            "access were rechecked."
+        ),
+        "The original current-selection baseline still matches.",
+        "Type RESUME to select ONLY this previously saved eligibility decision.",
+        "Any other input leaves it unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no selection changed.")
+        return
+    try:
+        result = resume_restart_eligibility(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact eligibility selection was blocked or could not be verified.",
+            "Refresh current authorized evidence before attempting recovery.",
+        )
+
+
+def _offer_attempt_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Reauthorization and exact CAS revalidation precede any resume prompt."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Current evidence access is required for attempt recovery.",
+            "Use A. Set Up Evidence Access, then return to recovery.",
+            "No attempt selection was changed.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: AttemptProjectionReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_attempt_authorization(root, source, diagnostics)
+
+    try:
+        inspected = inspect_restart_attempt(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "The saved attempt or its current evidence could not be verified.",
+            "No selection changed. Review attempts and current policy manually.",
+        )
+        return
+    if not inspected.can_resume:
+        write_lines(
+            output,
+            "",
+            "The saved attempt is not eligible for exact restart selection.",
+            "No selection changed. Review current attempts and policy manually.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "The saved attempt, current source and eligibility were rechecked.",
+        "The original policy and current-selection baseline still match.",
+        "Type RESUME to select ONLY the previously saved attempt decision.",
+        "Any other input leaves it unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no attempt selection changed.")
+        return
+    try:
+        result = resume_restart_attempt(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact attempt selection was blocked or could not be verified.",
+            "Review current canonical attempt state before retrying.",
+        )
+
+
+def _offer_standard_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only offer selection after fresh authorization and canonical validation."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Current evidence access is required for Standard recovery.",
+            "Use A. Set Up Evidence Access, then return to recovery.",
+            "No Standard association was selected.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: EvidenceSourceReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_standard_authorization(root, source, diagnostics)
+
+    try:
+        inspected = inspect_restart_standard(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Saved Standard association or its evidence could not be verified.",
+            "No selection changed. Review current Standards manually.",
+        )
+        return
+    if not inspected.can_resume:
+        write_lines(
+            output,
+            "",
+            "This Standard association cannot be resumed under current conditions.",
+            "No selection changed. Review its current source and Standard.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "The saved Standard association and current source were verified.",
+        "The original current-selection baseline still matches.",
+        "Type RESUME to select ONLY this exact saved Standard association.",
+        "Any other input leaves the current association unchanged.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no Standard selection changed.")
+        return
+    try:
+        result = resume_restart_standard(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact Standard selection was blocked or could not be verified.",
+            "Review current canonical association state before retrying.",
+        )
+
+
+def _offer_policy_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Only the exact saved policy may be reselected after restart."""
+    try:
+        checked = inspect_restart_policy(root, store, entry.receipt)
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Saved policy or its current academic basis cannot be verified.",
+            "Nothing selected. Review current policy and work relationship.",
+        )
+        return
+    if not checked.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact policy recovery is unavailable or already current.",
+            "No selection changed. Review canonical policy state.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "The saved policy and current academic dependencies were rechecked.",
+        "The original policy-selection baseline still matches.",
+        "Type RESUME to select ONLY the previously saved policy revision.",
+        "Any other input leaves current policy unchanged.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no policy selection changed.")
+        return
+    try:
+        result = resume_restart_policy(
+            root, store, entry.receipt, confirmation="RESUME"
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact policy recovery was blocked or could not be verified.",
+            "Reopen the current policy decision and review changes.",
+        )
+
+
+def _offer_proficiency_resume(
+    root: Path,
+    store: TeacherActionReceiptStore,
+    entry: RecoveryInboxEntry,
+    *,
+    diagnostics: DiagnosticsDependencies | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> None:
+    """Offer only a current, exactly recalculated, selection-only restart."""
+    if diagnostics is None or diagnostics.authorizer is None:
+        write_lines(
+            output,
+            "",
+            "Current evidence authorization is required for result recovery.",
+            "Use A. Set Up Evidence Access, then reopen recovery.",
+            "No proficiency selection was changed.",
+        )
+        return
+
+    def authorized_loader(
+        root: Path, source: EvidenceSourceReference
+    ) -> AuthorizedProjectionSnapshot:
+        return load_fresh_restart_proficiency_authorization(root, source, diagnostics)
+
+    try:
+        checked = inspect_restart_proficiency(
+            root, store, entry.receipt, authorized_loader=authorized_loader
+        )
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "The saved result or its current calculation could not be verified.",
+            "No selection changed. Review current proficiency manually.",
+        )
+        return
+    if not checked.can_resume:
+        write_lines(
+            output,
+            "",
+            "Exact proficiency result recovery is unavailable.",
+            "No selection changed. Review its current source and policy.",
+        )
+        return
+    write_lines(
+        output,
+        "",
+        "Saved result, evidence and pure calculation were verified exactly.",
+        "The original result-selection baseline still matches.",
+        "Type RESUME to select ONLY the previously saved result revision.",
+        "Any other input leaves the result unselected.",
+    )
+    if read_choice(input_fn, "Confirmation: ") != "RESUME":
+        write_lines(output, "", "Canceled; no proficiency selection changed.")
+        return
+    try:
+        result = resume_restart_proficiency(
+            root,
+            store,
+            entry.receipt,
+            confirmation="RESUME",
+            authorized_loader=authorized_loader,
+        )
+        write_lines(output, "", teacher_action_outcome_message(result))
+    except (RuntimeError, ValueError, OSError):
+        write_lines(
+            output,
+            "",
+            "Exact proficiency selection was blocked or could not be verified.",
+            "Recheck current evidence and result dependencies before retrying.",
+        )
+
+
+def run_teacher_action_recovery_menu(
+    *,
+    session_context: TeacherSessionContext,
+    diagnostics: DiagnosticsDependencies | None = None,
+    workspace_resolver: Callable[[], Path] = resolve_workspace_root,
+    class_validator: Callable[[Path, str], None] = _validate_class,
+    input_fn: InputFunction = input,
+    output: TextIO | None = None,
+    clear_fn: ClearFunction = clear_screen,
+) -> None:
+    """Display exact journal records after restart, without replay authority."""
+    stream = sys.stdout if output is None else output
+    clear_fn()
+    print_menu_header(stream, "Review Interrupted Saves")
+    class_id = session_context.active_class_id
+    if class_id is None:
+        write_lines(
+            stream,
+            "",
+            "Select a class in Meridian before reviewing interrupted saves.",
+            "No academic state was changed.",
+        )
+        pause_for_user(input_fn)
+        return
+    try:
+        root = workspace_resolver()
+        class_validator(root, class_id)
+        store = TeacherActionReceiptStore(root, class_id)
+        inbox = read_recovery_inbox(store)
+    except (
+        WorkspaceRootError,
+        ClassMetadataError,
+        TeacherActionReceiptError,
+        TeacherActionRecoveryInventoryError,
+        ValueError,
+        OSError,
+    ) as error:
+        write_lines(
+            stream,
+            "",
+            "The recovery journal could not be reviewed completely or safely.",
+            "No academic record was changed. Inspect the journal before retrying.",
+            f"Details: {error}",
+        )
+        pause_for_user(input_fn)
+        return
+    page = 0
+    page_size = 10
+    while True:
+        clear_fn()
+        print_menu_header(stream, "Review Interrupted Saves")
+        write_lines(
+            stream,
+            f"Class: {inbox.class_id}",
+            f"Checkpoints needing review: {inbox.review_count}",
+            f"Finalized receipts: {inbox.completed_receipt_count}",
+            "",
+            "This screen reads journal metadata only; it does not verify",
+            "canonical academic state or authorize another write.",
+            "",
+        )
+        if not inbox.entries:
+            write_lines(stream, "No action receipts were found for this class.")
+        start = page * page_size
+        visible = inbox.entries[start : start + page_size]
+        if inbox.entries:
+            write_lines(
+                stream,
+                f"Showing {start + 1}-{start + len(visible)} of {len(inbox.entries)}",
+            )
+        for index, entry in enumerate(visible, 1):
+            print(f"{index}. {entry.title} — {entry.description}", file=stream)
+        write_lines(stream, "", "N. Next page    P. Previous page")
+        print_standard_navigation(stream)
+        choice = read_choice(input_fn)
+        navigation = parse_navigation_choice(choice)
+        if navigation is NavigationChoice.BACK or choice == "":
+            return
+        if choice.casefold() == "n":
+            if (page + 1) * page_size < len(inbox.entries):
+                page += 1
+            continue
+        if choice.casefold() == "p":
+            page = max(0, page - 1)
+            continue
+        if choice.isascii() and choice.isdigit():
+            ordinal = int(choice)
+            if 1 <= ordinal <= len(visible):
+                clear_fn()
+                entry = visible[ordinal - 1]
+                _show_entry(stream, entry)
+                if entry.kind == "grade_item":
+                    _offer_grade_item_resume(
+                        root, store, entry, input_fn=input_fn, output=stream
+                    )
+                elif entry.kind == "grade_item_membership":
+                    _offer_membership_resume(
+                        root, store, entry, input_fn=input_fn, output=stream
+                    )
+                elif entry.kind == "eligibility":
+                    _offer_eligibility_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                elif entry.kind == "attempt_policy":
+                    _offer_policy_resume(
+                        root, store, entry, input_fn=input_fn, output=stream
+                    )
+                elif entry.kind == "attempt_decision":
+                    _offer_attempt_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                elif entry.kind == "standards_association":
+                    _offer_standard_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                elif entry.kind == "proficiency_result":
+                    _offer_proficiency_resume(
+                        root,
+                        store,
+                        entry,
+                        diagnostics=diagnostics,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
+                write_lines(stream, "")
+                pause_for_user(input_fn)
+                continue
+        write_lines(
+            stream,
+            "",
+            f"Choose 1-{len(visible)}, N, P, or B to return.",
+        )
+        pause_for_user(input_fn)
+
+
+__all__ = ("run_teacher_action_recovery_menu",)

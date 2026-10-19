@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,9 +24,7 @@ class AttemptPolicySelectionWorkflowError(RuntimeError):
     code = "teacher_workflow.attempt_decisions.policy_selection_error"
 
 
-class AttemptPolicySelectionScopeError(
-    AttemptPolicySelectionWorkflowError, ValueError
-):
+class AttemptPolicySelectionScopeError(AttemptPolicySelectionWorkflowError, ValueError):
     """Raised when an attempt-policy selection request is invalid."""
 
     code = "teacher_workflow.attempt_decisions.policy_selection_invalid"
@@ -51,13 +50,9 @@ class AttemptPolicySelectionPreview:
 
     def __post_init__(self) -> None:
         if not isinstance(self.work, ModuleWorkRef):
-            raise AttemptPolicySelectionScopeError(
-                "work must be a ModuleWorkRef."
-            )
+            raise AttemptPolicySelectionScopeError("work must be a ModuleWorkRef.")
         if self.work.class_id != self.class_id:
-            raise AttemptPolicySelectionScopeError(
-                "work.class_id must match class_id."
-            )
+            raise AttemptPolicySelectionScopeError("work.class_id must match class_id.")
         if not isinstance(self.target, StoredAttemptSelectionPolicy):
             raise AttemptPolicySelectionScopeError(
                 "target must be a StoredAttemptSelectionPolicy."
@@ -181,6 +176,8 @@ def preview_attempt_policy_selection(
 def commit_attempt_policy_selection_preview(
     workspace_root: str | Path,
     preview: AttemptPolicySelectionPreview,
+    *,
+    currentness_check: Callable[[], object] | None = None,
 ) -> AttemptPolicySelectionWorkflowResult:
     """Revalidate exact policy history/target/current pointer and CAS-select it."""
     if not isinstance(preview, AttemptPolicySelectionPreview):
@@ -229,17 +226,28 @@ def commit_attempt_policy_selection_preview(
             "Current attempt-policy selector changed after preview."
         )
 
-    selection = select_attempt_selection_policy_revision(
-        workspace_root,
-        preview.class_id,
-        preview.grade_item_id,
-        preview.work,
-        preview.policy_id,
-        preview.target_revision,
-        expected_current_policy_revision=(
-            preview.expected_current_policy_revision
-        ),
-    )
+    # Preserve exact legacy selector signatures when no callback is requested.
+    if currentness_check is None:
+        selection = select_attempt_selection_policy_revision(
+            workspace_root,
+            preview.class_id,
+            preview.grade_item_id,
+            preview.work,
+            preview.policy_id,
+            preview.target_revision,
+            expected_current_policy_revision=(preview.expected_current_policy_revision),
+        )
+    else:
+        selection = select_attempt_selection_policy_revision(
+            workspace_root,
+            preview.class_id,
+            preview.grade_item_id,
+            preview.work,
+            preview.policy_id,
+            preview.target_revision,
+            expected_current_policy_revision=(preview.expected_current_policy_revision),
+            currentness_check=currentness_check,
+        )
     return AttemptPolicySelectionWorkflowResult(
         selection_result=selection,
         previous_current_policy_revision=preview.expected_current_policy_revision,

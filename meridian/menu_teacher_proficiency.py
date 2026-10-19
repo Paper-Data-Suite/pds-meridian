@@ -9,21 +9,20 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 
 from meridian.guided_proficiency import (
     GuidedMappingProfileChoice,
+    GuidedProficiencyActionError,
     GuidedProficiencyContext,
     GuidedProficiencyDependencies,
     GuidedProficiencyError,
     GuidedProficiencyPolicyChoice,
     build_guided_proficiency_preview,
-    commit_guided_proficiency_result,
-    commit_guided_proficiency_selection,
     load_guided_proficiency_context,
     preview_guided_proficiency_result,
-    preview_guided_proficiency_selection,
     proficiency_level_label,
     reload_current_guided_proficiency_result,
 )
 from meridian.guided_projection import GuidedProjectionResult
 from meridian.guided_standards import GuidedScaleChoice, GuidedStandardChoice
+from meridian.menu_teacher_grade_items import _review_apply
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -33,7 +32,12 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_action_guided import resolve_menu_actor
+from meridian.teacher_action_orchestration import TeacherActionConflictError
+from meridian.teacher_action_proficiency import prepare_proficiency_result_action
+from meridian.teacher_action_receipts import TeacherActionReceiptError
 from meridian.teacher_evidence_review import TeacherEvidenceReviewItem
+from meridian.teacher_profile import TeacherProfileError
 
 
 def _humanize(value: str) -> str:
@@ -52,7 +56,7 @@ def _show_error(
     write_lines(
         output,
         "The selected evidence could not continue to proficiency safely.",
-        "No proficiency result was written or selected.",
+        "Current result status must be independently verified before retrying.",
         "",
         f"Details: {error}",
     )
@@ -313,7 +317,7 @@ def run_guided_proficiency_menu(
     write_lines(
         output,
         "",
-        "1. Write this proficiency result",
+        "1. Continue to reviewed Save",
         "2. Finish for now",
     )
     if read_choice(input_fn) != "1":
@@ -347,7 +351,7 @@ def run_guided_proficiency_menu(
         return
 
     clear_fn()
-    print_menu_header(output, "Review Proficiency Result Before Write")
+    print_menu_header(output, "Review and Save Proficiency Result")
     _show_preview(
         context=context,
         reviewed=reviewed,
@@ -363,73 +367,58 @@ def run_guided_proficiency_menu(
     write_lines(
         output,
         "",
-        "Writing creates one immutable calculated result.",
-        "It does not make that result current until you select it.",
+        "Save writes and makes current the exact reviewed calculated result.",
+        "A verified current selection is required for success.",
         "",
-        "1. Write this result",
+        "1. Save and make current",
         "2. Cancel",
     )
-    if read_choice(input_fn) != "1":
-        return
-
     try:
-        written = commit_guided_proficiency_result(
+        actor = resolve_menu_actor(teacher, input_fn)
+        action = prepare_proficiency_result_action(
             workspace_root,
             write_preview,
-            dependencies=dependencies,
+            actor,
+            dependencies,
         )
-        selection_preview = preview_guided_proficiency_selection(
-            workspace_root,
-            reviewed,
-            written.written_revision,
-            dependencies=dependencies,
-        )
-    except GuidedProficiencyError as error:
+    except (
+        TeacherActionConflictError,
+        TeacherProfileError,
+        TeacherActionReceiptError,
+        ValueError,
+        OSError,
+    ) as error:
         _show_error(
-            error,
+            GuidedProficiencyActionError(str(error)),
             input_fn=input_fn,
             output=output,
             clear_fn=clear_fn,
         )
         return
-
-    clear_fn()
-    print_menu_header(output, "Make Proficiency Result Current")
-    write_lines(
-        output,
-        f"Student: {subject_label}",
-        f"Standard: {standard.label}",
-        "",
-        "The calculated result was written but is not current yet.",
-        "",
-        "1. Make this result current",
-        "2. Leave it unselected",
-    )
-    if read_choice(input_fn) != "1":
+    if not _review_apply(
+        action,
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+    ):
         return
 
     try:
-        commit_guided_proficiency_selection(
-            workspace_root,
-            selection_preview,
-            dependencies=dependencies,
-        )
         current = reload_current_guided_proficiency_result(
             workspace_root,
             reviewed,
             dependencies=dependencies,
         )
+        if current.snapshot != write_preview.candidate:
+            raise GuidedProficiencyActionError(
+                "Current proficiency result differs from the reviewed calculation."
+            )
         current_label = proficiency_level_label(
             context,
             current.snapshot.outcome.proficiency_level_id,
         )
     except GuidedProficiencyError as error:
-        _show_error(
-            error,
-            input_fn=input_fn,
-            output=output,
-            clear_fn=clear_fn,
-        )
+        _show_error(error, input_fn=input_fn, output=output, clear_fn=clear_fn)
         return
 
     clear_fn()

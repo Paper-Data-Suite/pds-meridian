@@ -31,6 +31,9 @@ from meridian.menu_snapshots import (
     default_snapshot_freeze_dependencies,
     run_snapshots_menu,
 )
+from meridian.menu_teacher_action_recovery import (
+    run_teacher_action_recovery_menu,
+)
 from meridian.menu_teacher_authorization import (
     run_teacher_evidence_authorization_menu,
 )
@@ -120,6 +123,7 @@ class TeacherMenuDependencies:
     setup_evidence_access: (
         Callable[[], TeacherLocalPublicationAuthorizer | None] | None
     ) = None
+    review_save_recovery: MenuTaskHandler | None = None
 
     def handler_for(self, task_id: TeacherMenuTaskId) -> MenuTaskHandler:
         """Resolve one stable symbolic task to its injected application route."""
@@ -245,6 +249,13 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
+        review_save_recovery=lambda: run_teacher_action_recovery_menu(
+            session_context=session,
+            diagnostics=diagnostics,
+            input_fn=input_fn,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
     )
 
 
@@ -259,6 +270,7 @@ def _render_main_menu(
     output: TextIO,
     *,
     setup_available: bool = False,
+    recovery_available: bool = False,
     pending_override: OneActionAttributionOverride | None = None,
 ) -> None:
     print_menu_header(output)
@@ -267,6 +279,8 @@ def _render_main_menu(
     print(file=output)
     if setup_available:
         print("A. Set Up Evidence Access", file=output)
+    if recovery_available:
+        print("R. Review Interrupted Saves", file=output)
     print("S. Teacher Settings / First-Time Setup", file=output)
     if pending_override is not None and pending_override.pending:
         print(
@@ -291,6 +305,7 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
         "Meridian Grade and report outputs are teacher-controlled local PDS results.",
         "They do not prove that an SIS, LMS, or district gradebook was updated.",
         "",
+        "R reviews interrupted Save checkpoints without replaying academic writes.",
         "S opens teacher identity and classroom navigation settings.",
         "Inside a task, use B for Back, M for Main Menu, and Q to Quit.",
         "For exact noninteractive commands, use: meridian --help",
@@ -327,6 +342,7 @@ def run_menu(
             _render_main_menu(
                 stream,
                 setup_available=active.setup_evidence_access is not None,
+                recovery_available=active.review_save_recovery is not None,
                 pending_override=active.attribution_override,
             )
             choice = read_choice(input_fn)
@@ -347,6 +363,10 @@ def run_menu(
                         output=stream,
                         clear_fn=clear_fn,
                     )
+                continue
+
+            if choice.casefold() == "r" and active.review_save_recovery is not None:
+                active.review_save_recovery()
                 continue
 
             if choice.casefold() == "s":
@@ -381,11 +401,11 @@ def run_menu(
                 active.handler_for(task.task_id)()
                 continue
 
-            options = (
-                "1-9, A, S, H, or Q"
-                if (active.setup_evidence_access is not None)
-                else "1-9, S, H, or Q"
-            )
+            letters = ["R"] if active.review_save_recovery is not None else []
+            if active.setup_evidence_access is not None:
+                letters.insert(0, "A")
+            letters.extend(("S", "H", "Q"))
+            options = "1-9, " + ", ".join(letters[:-1]) + ", or Q"
             write_lines(stream, "", f"Please choose {options}.")
             pause_for_user(input_fn)
         except ReturnToMainMenu:
