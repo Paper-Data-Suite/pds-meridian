@@ -581,11 +581,14 @@ def run_teacher_action_recovery_menu(
     print_menu_header(stream, "Review Interrupted Saves")
     class_id = session_context.active_class_id
     if class_id is None:
-        class_id = read_choice(input_fn, "Class ID (blank to cancel): ").strip()
-        if not class_id:
-            return
-        if parse_navigation_choice(class_id) is NavigationChoice.BACK:
-            return
+        write_lines(
+            stream,
+            "",
+            "Select a class in Meridian before reviewing interrupted saves.",
+            "No academic state was changed.",
+        )
+        pause_for_user(input_fn)
+        return
     try:
         root = workspace_resolver()
         class_validator(root, class_id)

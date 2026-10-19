@@ -242,16 +242,33 @@ def commit_calculation_result_selection_preview(
         )
 
     try:
-        result = select_standard_proficiency_result_revision(
-            workspace_root,
-            preview.class_id,
-            preview.grade_item_id,
-            preview.student_id,
-            preview.standard_id,
-            preview.target_revision,
-            expected_current_result_revision=(preview.expected_current_result_revision),
-            currentness_check=currentness_check,
-        )
+        if currentness_check is None:
+            # Preserve the original selector invocation for ordinary callers.
+            result = select_standard_proficiency_result_revision(
+                workspace_root,
+                preview.class_id,
+                preview.grade_item_id,
+                preview.student_id,
+                preview.standard_id,
+                preview.target_revision,
+                expected_current_result_revision=(
+                    preview.expected_current_result_revision
+                ),
+            )
+        else:
+            # Restart recovery rechecks source currentness under the CAS lock.
+            result = select_standard_proficiency_result_revision(
+                workspace_root,
+                preview.class_id,
+                preview.grade_item_id,
+                preview.student_id,
+                preview.standard_id,
+                preview.target_revision,
+                expected_current_result_revision=(
+                    preview.expected_current_result_revision
+                ),
+                currentness_check=currentness_check,
+            )
     except StandardProficiencyStorageConflictError as error:
         raise CalculationResultSelectionStaleError(str(error)) from error
     except StandardProficiencyStorageError as error:

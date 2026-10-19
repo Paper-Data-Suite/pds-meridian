@@ -219,11 +219,14 @@ def test_inbox_missing_active_class_can_cancel_without_touching_disk(
     output = StringIO()
     run_teacher_action_recovery_menu(
         session_context=TeacherSessionContext(),
-        workspace_resolver=lambda: root,
+        workspace_resolver=lambda: (_ for _ in ()).throw(
+            AssertionError("No workspace read without a selected class")
+        ),
         input_fn=Inputs(""),
         output=output,
         clear_fn=lambda: None,
     )
+    assert "Select a class in Meridian" in output.getvalue()
     assert "Class ID" not in output.getvalue()
     assert not _store(root).directory.exists()
 
