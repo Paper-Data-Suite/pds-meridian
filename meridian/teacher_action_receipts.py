@@ -442,12 +442,18 @@ def _flush_dir(path: Path) -> None:
         os.close(fd)
 
 
+def _windows_file_lock(fd: int, *, unlock: bool) -> None:
+    """Use the nonblocking Windows CRT lock without platform-specific type stubs."""
+    import msvcrt
+
+    locking = cast(Callable[[int, int, int], None], getattr(msvcrt, "locking"))
+    operation = cast(int, getattr(msvcrt, "LK_UNLCK" if unlock else "LK_NBLCK"))
+    locking(fd, operation, 1)
+
+
 def _file_lock(fd: int, *, unlock: bool) -> None:
     if os.name == "nt":
-        import msvcrt
-
-        operation = msvcrt.LK_UNLCK if unlock else msvcrt.LK_NBLCK
-        msvcrt.locking(fd, operation, 1)
+        _windows_file_lock(fd, unlock=unlock)
     else:
         import fcntl
 
