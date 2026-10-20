@@ -57,6 +57,7 @@ from meridian.grade_items_workflow import (
     GradeItemsWorkflowError,
     project_grade_items_review,
 )
+from meridian.menu_teacher_named_review import run_named_grade_item_review
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -68,6 +69,7 @@ from meridian.menu_ui import (
     write_lines,
 )
 from meridian.teacher_navigation_context import TeacherNavigationContext
+from meridian.teacher_navigation_domain import TeacherAcademicChoiceCatalog
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 GradeItemsReviewLoader: TypeAlias = Callable[[Path, str], GradeItemsReview]
@@ -968,22 +970,44 @@ def run_grade_items_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Manage Grade Items")
-        write_lines(
-            stream,
-            "1. Review Grade Items",
-            "2. Review one Grade Item and work relationships",
-            "3. Author Grade Item revision",
-            "4. Select Grade Item revision",
-            "5. Author work membership revision",
-            "6. Select work membership revision",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review Grade Items by name",
+                "2. Review Grade Item and relationships by name",
+                "3. Advanced: Author Grade Item revision (exact records)",
+                "4. Advanced: Select Grade Item revision",
+                "5. Advanced: Author work membership revision",
+                "6. Advanced: Select work membership revision",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review Grade Items",
+                "2. Review one Grade Item and work relationships",
+                "3. Author Grade Item revision",
+                "4. Select Grade Item revision",
+                "5. Author work membership revision",
+                "6. Select work membership revision",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_grade_item_review(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    review_loader=active.review_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_grade_items(
                 dependencies=active,
                 input_fn=input_fn,
@@ -992,6 +1016,16 @@ def run_grade_items_menu(
             )
             continue
         if choice == "2":
+            if navigation_context is not None:
+                run_named_grade_item_review(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    review_loader=active.review_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_one_grade_item(
                 dependencies=active,
                 input_fn=input_fn,

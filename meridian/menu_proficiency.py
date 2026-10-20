@@ -85,6 +85,7 @@ from meridian.menu_planning_signal import (
     PlanningSignalMenuDependencies,
     run_planning_signal_menu,
 )
+from meridian.menu_teacher_named_review import run_named_grade_item_proficiency
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -111,6 +112,7 @@ from meridian.standards_proficiency import (
     StandardProficiencyCalculationPolicyReference,
 )
 from meridian.teacher_navigation_context import TeacherNavigationContext
+from meridian.teacher_navigation_domain import TeacherAcademicChoiceCatalog
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 
@@ -1827,26 +1829,52 @@ def run_proficiency_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Review Proficiency")
-        write_lines(
-            stream,
-            "1. Review current Grade Item proficiency",
-            "2. Review current Academic Period proficiency",
-            "3. Review planning-signal readiness",
-            "4. Preview Grade Item proficiency calculation",
-            "5. Write Grade Item proficiency result",
-            "6. Select Grade Item proficiency result",
-            "7. Preview Academic Period proficiency calculation",
-            "8. Write Academic Period proficiency result",
-            "9. Select Academic Period proficiency result",
-            "10. Create Planning Signal",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review current Grade Item proficiency by name",
+                "2. Advanced: Academic Period proficiency review",
+                "3. Advanced: Planning-signal readiness",
+                "4. Advanced: Preview Grade Item calculation",
+                "5. Advanced: Write Grade Item result",
+                "6. Advanced: Select Grade Item result",
+                "7. Advanced: Preview Academic Period calculation",
+                "8. Advanced: Write Academic Period result",
+                "9. Advanced: Select Academic Period result",
+                "10. Advanced: Create Planning Signal",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review current Grade Item proficiency",
+                "2. Review current Academic Period proficiency",
+                "3. Review planning-signal readiness",
+                "4. Preview Grade Item proficiency calculation",
+                "5. Write Grade Item proficiency result",
+                "6. Select Grade Item proficiency result",
+                "7. Preview Academic Period proficiency calculation",
+                "8. Write Academic Period proficiency result",
+                "9. Select Academic Period proficiency result",
+                "10. Create Planning Signal",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_grade_item_proficiency(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    load_proficiency=deps.grade_item_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_grade_item(
                 deps=deps,
                 input_fn=input_fn,
