@@ -62,6 +62,7 @@ from meridian.report_export_receipt import (
     load_export_receipt,
 )
 from meridian.reporting_snapshot import ReportingSnapshotReference
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -235,8 +236,7 @@ def _profile_presentation(stored: object) -> ExportProfilePresentation:
         revision=profile.profile_revision,
         profile_sha256=stored.profile_sha256,  # type: ignore[attr-defined]
         columns=tuple(
-            (column.source_field, column.output_name)
-            for column in profile.columns
+            (column.source_field, column.output_name) for column in profile.columns
         ),
         format=profile.representation.format,
         include_header=profile.representation.include_header,
@@ -988,6 +988,7 @@ def _receipts(
 def run_export_menu(
     *,
     dependencies: ExportMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,

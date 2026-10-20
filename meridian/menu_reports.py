@@ -34,6 +34,7 @@ from meridian.report_menu_execution import (
     LiveReportMenuExecutor,
     ReportMenuExecutionError,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 from meridian.teacher_report import TeacherReportPreview
 from meridian.teacher_report_render import render_teacher_report
 
@@ -57,9 +58,7 @@ def _show_preview(
     preview: TeacherReportPreview,
     *,
     prepared: ReportPreparedSelection,
-    revalidate: Callable[
-        [ReportPreparedSelection, TeacherReportPreview | None], None
-    ]
+    revalidate: Callable[[ReportPreparedSelection, TeacherReportPreview | None], None]
     | None,
     input_fn: InputFunction,
     output: TextIO,
@@ -173,16 +172,14 @@ def _save_copy(
     preview: TeacherReportPreview,
     *,
     prepared: ReportPreparedSelection,
-    revalidate: Callable[
-        [ReportPreparedSelection, TeacherReportPreview | None], None
-    ]
+    revalidate: Callable[[ReportPreparedSelection, TeacherReportPreview | None], None]
     | None,
     input_fn: InputFunction,
     output: TextIO,
 ) -> None:
-    format_choice = input_fn(
-        "Format (markdown/csv/tsv/json, or B): "
-    ).strip().casefold()
+    format_choice = (
+        input_fn("Format (markdown/csv/tsv/json, or B): ").strip().casefold()
+    )
     navigation = parse_navigation_choice(format_choice)
     if navigation is NavigationChoice.BACK or not format_choice:
         return
@@ -225,9 +222,7 @@ def _report_detail(
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
-    revalidate: Callable[
-        [ReportPreparedSelection, TeacherReportPreview | None], None
-    ]
+    revalidate: Callable[[ReportPreparedSelection, TeacherReportPreview | None], None]
     | None = None,
 ) -> None:
     guide = REPORT_GUIDES[index]
@@ -348,6 +343,7 @@ def _report_detail(
 
 def run_reports_menu(
     *,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,

@@ -78,6 +78,7 @@ from meridian.planning_signal_workflow import (
     PlanningSignalWorkflowError,
     project_planning_signal_readiness,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -318,9 +319,7 @@ def _review_readiness(
         return
     class_id, policy_id = scope
     try:
-        value = deps.readiness_projector(
-            deps.workspace_resolver(), class_id, policy_id
-        )
+        value = deps.readiness_projector(deps.workspace_resolver(), class_id, policy_id)
     except (WorkspaceRootError, PlanningSignalWorkflowError, ValueError) as error:
         write_lines(output, "", "Planning readiness could not be reviewed safely.")
         write_lines(output, f"Details: {error}")
@@ -600,10 +599,14 @@ def _write_review(
                 "",
                 "Acceptance requires explicit acknowledgment of every warning above.",
             )
-            ack = read_choice(
-                input_fn,
-                "Acknowledge all listed warnings? (yes/no): ",
-            ).strip().casefold()
+            ack = (
+                read_choice(
+                    input_fn,
+                    "Acknowledge all listed warnings? (yes/no): ",
+                )
+                .strip()
+                .casefold()
+            )
             if ack not in {"yes", "y"}:
                 write_lines(output, "", "Teacher review was not authored.")
                 pause_for_user(input_fn)
@@ -751,10 +754,7 @@ def _select_review(
         write_lines(
             output,
             "",
-            (
-                "The reviewed teacher-review selection could not be "
-                "committed safely."
-            ),
+            ("The reviewed teacher-review selection could not be committed safely."),
         )
         write_lines(output, f"Details: {error}")
         pause_for_user(input_fn)
@@ -843,9 +843,7 @@ def _export_signal(
         pause_for_user(input_fn)
         return
     core = (
-        result.core
-        if isinstance(result, PlanningSignalExportCommitResult)
-        else result
+        result.core if isinstance(result, PlanningSignalExportCommitResult) else result
     )
     write_lines(
         output,
@@ -869,6 +867,7 @@ def _export_signal(
 def run_planning_signal_menu(
     *,
     dependencies: PlanningSignalMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,

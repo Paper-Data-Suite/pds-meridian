@@ -63,6 +63,7 @@ from meridian.teacher_attribution_input import (
     OneActionAttributionOverride,
     TeacherAttributionInput,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 from meridian.teacher_profile import TeacherIdentityProvider, TeacherProfileStore
 from meridian.teacher_session import TeacherSessionContext
 
@@ -118,6 +119,7 @@ class TeacherMenuDependencies:
     session_context: TeacherSessionContext = field(
         default_factory=TeacherSessionContext
     )
+    navigation_context: TeacherNavigationContext | None = None
     attribution_provider: TeacherIdentityProvider | None = None
     attribution_override: OneActionAttributionOverride | None = None
     setup_evidence_access: (
@@ -177,6 +179,7 @@ def default_teacher_menu_dependencies(
     if diagnostics is None:
         diagnostics = default_diagnostics_dependencies()
     session = TeacherSessionContext() if session_context is None else session_context
+    navigation = TeacherNavigationContext(session=session)
     inbox_dependencies = default_teacher_evidence_inbox_menu_dependencies(
         diagnostics=diagnostics,
     )
@@ -196,43 +199,51 @@ def default_teacher_menu_dependencies(
             clear_fn=clear_fn,
         ),
         manage_grade_items=lambda: run_grade_items_menu(
+            navigation_context=navigation,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         review_proficiency=lambda: run_proficiency_menu(
+            navigation_context=navigation,
             action_dependencies=proficiency_actions,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         preview_grades=lambda: run_grade_preview_menu(
+            navigation_context=navigation,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         overrides=lambda: run_overrides_menu(
+            navigation_context=navigation,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         snapshots=lambda: run_snapshots_menu(
+            navigation_context=navigation,
             freeze_dependencies=freeze_dependencies,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         export=lambda: run_export_menu(
+            navigation_context=navigation,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         explain=lambda: run_explain_menu(
+            navigation_context=navigation,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
         reports=lambda: run_reports_menu(
+            navigation_context=navigation,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
@@ -241,6 +252,7 @@ def default_teacher_menu_dependencies(
             ),
         ),
         session_context=session,
+        navigation_context=navigation,
         attribution_provider=attribution_provider,
         attribution_override=next_attribution,
         setup_evidence_access=lambda: run_teacher_evidence_authorization_menu(

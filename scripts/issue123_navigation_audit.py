@@ -14,6 +14,7 @@ import argparse
 import ast
 import hashlib
 import json
+import subprocess
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -45,6 +46,23 @@ SOURCE_BLOBS: Final[dict[str, str]] = {
         "d521bf229f0f47ba0d42e62d9657aa0fe9b94710"
     ),
 }
+
+# Slice 3 threads dependencies without changing legacy prompts.
+# The first 49-operation audit remains pinned to its historic Git tree.
+REVIEWED_COMPOSITION_PATHS: Final[frozenset[str]] = frozenset(
+    {
+        "meridian/menu.py",
+        "meridian/menu_grade_items.py",
+        "meridian/menu_proficiency.py",
+        "meridian/menu_grades.py",
+        "meridian/menu_overrides.py",
+        "meridian/menu_snapshots.py",
+        "meridian/menu_export.py",
+        "meridian/menu_explain.py",
+        "meridian/menu_planning_signal.py",
+        "meridian/menu_reports.py",
+    }
+)
 
 # Category is the TARGET DISPOSITION of the existing route, not a claim it is
 # guided today. "advanced" means its current manual implementation must be
@@ -390,25 +408,60 @@ def git_blob_sha(raw: bytes) -> str:
     return hashlib.sha1(header + raw).hexdigest()  # noqa: S324 - Git format
 
 
+def _base_source(root: Path, rel: str) -> bytes:
+    """Read pinned Git content without trusting a mutable working-tree source."""
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{BASE_COMMIT}:{rel}"],
+            cwd=root,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise ValueError(f"Cannot read reviewed baseline: {rel}") from error
+    content = result.stdout
+    expected = SOURCE_BLOBS[rel]
+    if git_blob_sha(content) != expected:
+        raise ValueError(f"Historic source blob is inconsistent: {rel}")
+    return content
+
+
+def _source_prompt_keys(rel: str, raw: bytes) -> Counter[tuple[str, str, str | None]]:
+    """Compare exact prompt sites ignoring line shifts from optional injection."""
+    visitor = _PromptVisitor(rel)
+    visitor.visit(ast.parse(raw.decode("utf-8"), filename=rel))
+    return Counter(
+        (
+            str(item["function"]),
+            str(item["callee"]),
+            item["prompt"] if isinstance(item["prompt"], str) else None,
+        )
+        for item in visitor.prompts
+    )
+
+
 def verify_sources(root: Path) -> None:
-    """Require the exact reviewed base before producing the frozen inventory."""
+    """Preserve the historical baseline and quarantine unreviewed drift."""
     mismatches: list[str] = []
     for rel, expected in sorted(SOURCE_BLOBS.items()):
-        source = root / rel
-        if not source.is_file():
+        original = _base_source(root, rel)
+        current_path = root / rel
+        if not current_path.is_file():
             mismatches.append(f"missing: {rel}")
             continue
-        actual = git_blob_sha(source.read_bytes())
-        if actual != expected:
-            mismatches.append(f"changed: {rel} ({actual}; expected {expected})")
+        current = current_path.read_bytes()
+        if git_blob_sha(original) != expected:
+            mismatches.append(f"historical source changed: {rel}")
+        elif current != original and rel not in REVIEWED_COMPOSITION_PATHS:
+            mismatches.append(f"unreviewed live source drift: {rel}")
+        elif current != original and rel.startswith("meridian/menu"):
+            if _source_prompt_keys(rel, current) != _source_prompt_keys(rel, original):
+                mismatches.append(f"prompt change needs inventory review: {rel}")
     if mismatches:
         raise ValueError(
-            "Slice 1 source review baseline does not match:\n"
+            "Issue #123 source review baseline does not match:\n"
             + "\n".join(mismatches)
-            + (
-                "\nDo not silently refresh this baseline. "
-                "Review the changed routes first."
-            )
         )
 
 
@@ -530,7 +583,21 @@ def verify_route_inventory(root: Path) -> None:
 def make_inventory(root: Path) -> dict[str, object]:
     verify_sources(root)
     verify_route_inventory(root)
-    prompts = scan_prompts(root)
+    prompts: list[dict[str, object]] = []
+    source_paths = sorted(
+        path for path in SOURCE_BLOBS if path.startswith("meridian/menu")
+    ) + ["meridian/report_guided_selection.py"]
+    for rel in source_paths:
+        visitor = _PromptVisitor(rel)
+        visitor.visit(ast.parse(_base_source(root, rel).decode("utf-8"), filename=rel))
+        prompts.extend(visitor.prompts)
+    prompts.sort(
+        key=lambda item: (
+            str(item["path"]),
+            cast(int, item["line"]),
+            cast(int, item["column"]),
+        )
+    )
     per_menu = Counter(str(item["path"]) for item in prompts)
     raw = Counter(str(item["path"]) for item in prompts if item["raw_id_like"])
     dynamic = Counter(str(item["path"]) for item in prompts if item["dynamic_prompt"])

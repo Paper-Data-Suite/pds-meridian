@@ -34,6 +34,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 WorkEvidenceProvider: TypeAlias = Callable[
@@ -172,14 +173,10 @@ def _presentation(common: GradePreviewExplanation) -> GradePreviewPresentation:
         activation_revision=activation.activation_revision,
         activation_sha256=activation.activation_sha256,
         override_revision=(
-            override.reference.override_revision
-            if override is not None
-            else None
+            override.reference.override_revision if override is not None else None
         ),
         override_sha256=(
-            override.reference.override_sha256
-            if override is not None
-            else None
+            override.reference.override_sha256 if override is not None else None
         ),
     )
 
@@ -288,9 +285,7 @@ def _load_report(
                 student_id=row.target.student_id,
                 status=row.status,
                 unavailable_reason=row.unavailable_reason,
-                base_status=(
-                    common.base_result_status if common is not None else None
-                ),
+                base_status=(common.base_result_status if common is not None else None),
                 freshness_status=(
                     common.base_freshness_status if common is not None else None
                 ),
@@ -462,8 +457,7 @@ def _render_report(output: TextIO, value: GradeReportPresentation) -> None:
             detail = (row.unavailable_reason or "unavailable").replace("_", " ")
         else:
             detail = (
-                f"{_grade_text(row.effective_grade)} "
-                f"({row.effective_source or 'none'})"
+                f"{_grade_text(row.effective_grade)} ({row.effective_source or 'none'})"
             )
             if row.freshness_status == "stale":
                 detail += " — stale"
@@ -504,9 +498,7 @@ def _period_scope(
     class_id = read_choice(input_fn, "Class ID: ")
     school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
     period_id = read_choice(input_fn, "Academic Period ID: ")
-    calendar_revision = _positive_int(
-        read_choice(input_fn, "Calendar revision: ")
-    )
+    calendar_revision = _positive_int(read_choice(input_fn, "Calendar revision: "))
     print("1. Conventional")
     print("2. Standards based")
     print("3. Hybrid")
@@ -532,9 +524,7 @@ def _show_current(
     clear_fn()
     print_menu_header(output, "Preview Current Grade")
     try:
-        class_id, _year, period, calendar_revision, family = _period_scope(
-            input_fn
-        )
+        class_id, _year, period, calendar_revision, family = _period_scope(input_fn)
         student_id = read_choice(input_fn, "Student ID: ")
         value = deps.current_grade_loader(
             deps.workspace_resolver(),
@@ -592,9 +582,7 @@ def _show_report(
     clear_fn()
     print_menu_header(output, "Preview Grade Report")
     try:
-        class_id, _year, period, calendar_revision, family = _period_scope(
-            input_fn
-        )
+        class_id, _year, period, calendar_revision, family = _period_scope(input_fn)
         student_ids = _student_ids(
             read_choice(input_fn, "Student IDs, comma-separated: ")
         )
@@ -647,6 +635,7 @@ def _show_report(
 def run_grade_preview_menu(
     *,
     dependencies: GradeMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,

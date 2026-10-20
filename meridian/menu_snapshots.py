@@ -60,6 +60,7 @@ from meridian.reporting_snapshot_workflow import (
     prepare_reporting_snapshot_freeze,
     required_projection_authorizations,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -128,9 +129,7 @@ class SnapshotSelectionPlan:
     current_snapshot_id: str | None
     current_selection_revision: int | None
     target_reference: ReportingSnapshotReference = field(repr=False)
-    expected_current: ReportingSnapshotSelectionReference | None = field(
-        repr=False
-    )
+    expected_current: ReportingSnapshotSelectionReference | None = field(repr=False)
 
 
 SnapshotLister: TypeAlias = Callable[
@@ -689,9 +688,7 @@ def _show_current(
     school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
     period_id = read_choice(input_fn, "Academic Period ID: ")
     try:
-        calendar_revision = _positive_int(
-            read_choice(input_fn, "Calendar revision: ")
-        )
+        calendar_revision = _positive_int(read_choice(input_fn, "Calendar revision: "))
         value = deps.selection_loader(
             deps.workspace_resolver(),
             class_id,
@@ -782,10 +779,7 @@ def _select(
         f"Academic Period: {plan.school_year} / {plan.period_id}",
         f"Rows: {plan.row_count}",
         f"Teacher: {plan.actor_id}",
-        (
-            "Currently selected snapshot: "
-            f"{plan.current_snapshot_id or 'none'}"
-        ),
+        (f"Currently selected snapshot: {plan.current_snapshot_id or 'none'}"),
         "",
         "Type SELECT to make this exact snapshot current for reporting use.",
     )
@@ -1035,15 +1029,14 @@ def run_snapshots_menu(
     *,
     dependencies: SnapshotMenuDependencies | None = None,
     freeze_dependencies: SnapshotFreezeDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> None:
     stream = sys.stdout if output is None else output
     deps = dependencies or default_snapshot_menu_dependencies()
-    freeze_deps = (
-        freeze_dependencies or default_snapshot_freeze_dependencies()
-    )
+    freeze_deps = freeze_dependencies or default_snapshot_freeze_dependencies()
     while True:
         clear_fn()
         print_menu_header(stream, "Snapshots")

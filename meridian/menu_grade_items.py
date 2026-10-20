@@ -67,6 +67,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 GradeItemsReviewLoader: TypeAlias = Callable[[Path, str], GradeItemsReview]
@@ -290,9 +291,7 @@ def _render_technical(output: TextIO, review: GradeItemsReview) -> None:
         return
     for row in review.items:
         selected = (
-            row.selected_revision
-            if row.selected_revision is not None
-            else "none"
+            row.selected_revision if row.selected_revision is not None else "none"
         )
         print(
             f"{row.grade_item_id}: selected={selected}; "
@@ -387,7 +386,6 @@ def _review_grade_items(
         output=output,
         clear_fn=clear_fn,
     )
-
 
 
 def _positive_int(value: str, label: str) -> int:
@@ -511,9 +509,7 @@ def _review_one_grade_item(
             dependencies.workspace_resolver(),
             class_id,
         )
-        row = next(
-            item for item in review.items if item.grade_item_id == grade_item_id
-        )
+        row = next(item for item in review.items if item.grade_item_id == grade_item_id)
     except StopIteration:
         write_lines(output, "", "That Grade Item is not present in the class review.")
         pause_for_user(input_fn)
@@ -959,6 +955,7 @@ def run_grade_items_menu(
     *,
     dependencies: GradeItemsMenuDependencies | None = None,
     write_dependencies: GradeItemsWriteDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,

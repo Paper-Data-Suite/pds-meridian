@@ -47,6 +47,7 @@ from meridian.teacher_grade_override_workflow import (
     commit_teacher_grade_override_authoring_preview,
     preview_teacher_grade_override_authoring,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -314,15 +315,9 @@ def _preview_selection(
         target_revision=preview.target_reference.override_revision,
         target_sha256=preview.target_reference.override_sha256,
         target_decision=preview.target_decision.decision,
-        replacement_grade=_decimal_text(
-            preview.target_decision.replacement_grade
-        ),
-        current_revision=(
-            None if current is None else current.override_revision
-        ),
-        current_sha256=(
-            None if current is None else current.override_sha256
-        ),
+        replacement_grade=_decimal_text(preview.target_decision.replacement_grade),
+        current_revision=(None if current is None else current.override_revision),
+        current_sha256=(None if current is None else current.override_sha256),
         preview=preview,
     )
 
@@ -438,9 +433,7 @@ def _scope(input_fn: InputFunction, output: TextIO) -> OverrideScope:
     student_id = read_choice(input_fn, "Student ID: ")
     school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
     period_id = read_choice(input_fn, "Academic Period ID: ")
-    calendar_revision = _positive_int(
-        read_choice(input_fn, "Calendar revision: ")
-    )
+    calendar_revision = _positive_int(read_choice(input_fn, "Calendar revision: "))
     write_lines(
         output,
         "",
@@ -563,9 +556,7 @@ def _author_override(
     print_menu_header(output, "Author Grade Override")
     try:
         scope = _scope(input_fn, output)
-        replacement = Decimal(
-            read_choice(input_fn, "Replacement Grade: ")
-        )
+        replacement = Decimal(read_choice(input_fn, "Replacement Grade: "))
         actor_id = read_choice(input_fn, "Teacher actor ID: ")
         rationale = read_choice(input_fn, "Rationale: ")
         plan = deps.authoring_previewer(
@@ -673,14 +664,8 @@ def _select_latest(
         f"Decision: {plan.target_decision}",
         f"Target revision: {plan.target_revision}",
         f"Target sha256: {plan.target_sha256}",
-        (
-            "Replacement Grade: "
-            f"{plan.replacement_grade or 'not applicable'}"
-        ),
-        (
-            "Currently selected revision: "
-            f"{plan.current_revision or 'none'}"
-        ),
+        (f"Replacement Grade: {plan.replacement_grade or 'not applicable'}"),
+        (f"Currently selected revision: {plan.current_revision or 'none'}"),
         "",
         "Type SELECT to make this exact revision current.",
     )
@@ -846,6 +831,7 @@ def _withdraw_override(
 def run_overrides_menu(
     *,
     dependencies: OverrideMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,

@@ -78,6 +78,7 @@ from meridian.standards_grade_explanation import (
     StandardsGradePreviewExplanation,
     standards_grade_observation,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 WorkEvidenceProvider: TypeAlias = Callable[
@@ -330,10 +331,7 @@ def _current_grade_presentation(explanation: object) -> ExplanationPresentation:
         f"policy_sha256: {policy_ref.policy_sha256}",
         f"activation_revision: {activation.activation_revision}",
         f"activation_sha256: {activation.activation_sha256}",
-        (
-            "calculation_fingerprint: "
-            f"{common.base_result.calculation_fingerprint}"
-        ),
+        (f"calculation_fingerprint: {common.base_result.calculation_fingerprint}"),
         f"inputs_sha256: {common.base_result.inputs_sha256}",
     )
     return ExplanationPresentation(
@@ -580,17 +578,12 @@ def _planning_derivation(
             derivation_id=derivation_id,
         ),
     )
-    contributing = sum(
-        item.disposition == "contributing" for item in value.students
-    )
+    contributing = sum(item.disposition == "contributing" for item in value.students)
     return ExplanationPresentation(
         title="Planning Derivation Explanation",
         lines=(
             f"Policy: {value.policy.title}",
-            (
-                "Academic Period: "
-                f"{value.policy.target_period.label}"
-            ),
+            (f"Academic Period: {value.policy.target_period.label}"),
             f"Standard: {value.policy.standard_id}",
             f"Dimension: {value.dimension_id}",
             f"Bands: {value.band_count}",
@@ -625,9 +618,7 @@ def _planning_preview(
         ),
     )
     review_text = (
-        "none selected"
-        if value.review is None
-        else _human(value.review.decision)
+        "none selected" if value.review is None else _human(value.review.decision)
     )
     coverage = value.coverage
     return ExplanationPresentation(
@@ -654,14 +645,8 @@ def _planning_preview(
             f"class_id: {value.class_id}",
             f"preview_id: {value.preview_id}",
             f"preview_sha256: {value.preview_sha256}",
-            (
-                "derivation_id: "
-                f"{value.derivation_reference.derivation_id}"
-            ),
-            (
-                "derivation_sha256: "
-                f"{value.derivation_reference.derivation_sha256}"
-            ),
+            (f"derivation_id: {value.derivation_reference.derivation_id}"),
+            (f"derivation_sha256: {value.derivation_reference.derivation_sha256}"),
             f"policy_id: {value.policy_id}",
             f"policy_revision: {value.policy_revision}",
             f"policy_sha256: {value.policy_sha256}",
@@ -699,10 +684,7 @@ def _planning_export(
             f"Students exported: {exported}",
             f"Students omitted: {len(value.students) - exported}",
             f"Review decision: {_human(value.review_decision)}",
-            (
-                "Preview currentness: "
-                f"{_human(value.preview_currentness_state)}"
-            ),
+            (f"Preview currentness: {_human(value.preview_currentness_state)}"),
         ),
         technical_lines=(
             f"class_id: {value.class_id}",
@@ -738,10 +720,7 @@ def _export_receipt(
             ),
             f"Rows: {value.row_count}",
             f"Destination kind: {_human(value.destination.kind)}",
-            (
-                "Destination file: "
-                f"{value.destination.basename or 'none'}"
-            ),
+            (f"Destination file: {value.destination.basename or 'none'}"),
             f"Teacher: {value.actor.actor_id}",
             (
                 "Scope: local Meridian export provenance; "
@@ -990,6 +969,7 @@ def _run_two_id(
 def run_explain_menu(
     *,
     dependencies: ExplainMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
