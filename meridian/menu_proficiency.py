@@ -85,6 +85,7 @@ from meridian.menu_planning_signal import (
     PlanningSignalMenuDependencies,
     run_planning_signal_menu,
 )
+from meridian.menu_teacher_named_period import run_named_period_proficiency
 from meridian.menu_teacher_named_review import run_named_grade_item_proficiency
 from meridian.menu_ui import (
     ClearFunction,
@@ -113,6 +114,7 @@ from meridian.standards_proficiency import (
 )
 from meridian.teacher_navigation_context import TeacherNavigationContext
 from meridian.teacher_navigation_domain import TeacherAcademicChoiceCatalog
+from meridian.teacher_navigation_period import PeriodProficiencyChoiceCatalog
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 
@@ -1833,7 +1835,7 @@ def run_proficiency_menu(
             write_lines(
                 stream,
                 "1. Review current Grade Item proficiency by name",
-                "2. Advanced: Academic Period proficiency review",
+                "2. Review current Academic Period proficiency by name",
                 "3. Advanced: Planning-signal readiness",
                 "4. Advanced: Preview Grade Item calculation",
                 "5. Advanced: Write Grade Item result",
@@ -1883,6 +1885,17 @@ def run_proficiency_menu(
             )
             continue
         if choice == "2":
+            if navigation_context is not None:
+                run_named_period_proficiency(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    period_catalog=PeriodProficiencyChoiceCatalog(navigation_context),
+                    load_proficiency=deps.academic_period_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_academic_period(
                 deps=deps,
                 input_fn=input_fn,
