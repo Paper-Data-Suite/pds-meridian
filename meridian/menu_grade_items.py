@@ -57,6 +57,9 @@ from meridian.grade_items_workflow import (
     GradeItemsWorkflowError,
     project_grade_items_review,
 )
+from meridian.menu_teacher_named_membership_selection import (
+    run_named_membership_revision_selection,
+)
 from meridian.menu_teacher_named_review import run_named_grade_item_review
 from meridian.menu_teacher_named_revision import (
     run_named_grade_item_revision_selection,
@@ -985,6 +988,7 @@ def run_grade_items_menu(
                 "6. Advanced: Select work membership revision",
                 "7. Explore registered work and Grade Item relationships",
                 "8. Use an existing Grade Item version",
+                "9. Use an existing work membership decision",
                 "",
             )
         else:
@@ -1095,8 +1099,19 @@ def run_grade_items_menu(
                 clear_fn=clear_fn,
             )
             continue
+        if choice == "9" and navigation_context is not None:
+            run_named_membership_revision_selection(
+                navigation=navigation_context,
+                review_loader=active.review_loader,
+                previewer=writes.membership_selection_previewer,
+                committer=writes.membership_selection_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)
