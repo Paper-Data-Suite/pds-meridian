@@ -24,6 +24,7 @@ from meridian.grade_report_preview import (
     GradeReportPreviewRequest,
     explain_grade_report_preview,
 )
+from meridian.menu_teacher_named_grades import run_named_current_grade_review
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -645,18 +646,36 @@ def run_grade_preview_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Preview Grades")
-        write_lines(
-            stream,
-            "1. Preview one current Grade",
-            "2. Preview a bounded Grade report",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review a current Grade by student and marking period",
+                "2. Advanced: Preview a bounded Grade report",
+                "3. Advanced: Preview one current Grade (exact records)",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Preview one current Grade",
+                "2. Preview a bounded Grade report",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_current_grade_review(
+                    navigation=navigation_context,
+                    current_grade_loader=deps.current_grade_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _show_current(
                 deps=deps,
                 input_fn=input_fn,
@@ -672,5 +691,16 @@ def run_grade_preview_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1, 2, B, M, or Q.")
+        if choice == "3" and navigation_context is not None:
+            _show_current(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-3, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-2, B, M, or Q.")
         pause_for_user(input_fn)
