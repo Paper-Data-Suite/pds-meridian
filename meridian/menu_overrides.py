@@ -17,6 +17,9 @@ from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 from meridian.conventional_grade_assembly import ConventionalGradeWorkEvidenceSpec
 from meridian.grade_policy import GradeCalculationFamily
 from meridian.menu_grades import WorkEvidenceProvider
+from meridian.menu_teacher_named_override_review import (
+    run_named_current_override_review,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -841,20 +844,48 @@ def run_overrides_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Overrides")
-        write_lines(
-            stream,
-            "1. Review current override",
-            "2. Author a new override revision",
-            "3. Select the latest authored override",
-            "4. Withdraw the current override",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review current override by student and marking period",
+                "2. Advanced: Author a new override revision",
+                "3. Advanced: Select the latest authored override",
+                "4. Advanced: Withdraw the current override",
+                "5. Advanced: Review current override (exact records)",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review current override",
+                "2. Author a new override revision",
+                "3. Select the latest authored override",
+                "4. Withdraw the current override",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_current_override_review(
+                    navigation=navigation_context,
+                    review_loader=deps.review_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
+            _review_current(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "5" and navigation_context is not None:
             _review_current(
                 deps=deps,
                 input_fn=input_fn,
@@ -886,5 +917,8 @@ def run_overrides_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-5, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
         pause_for_user(input_fn)
