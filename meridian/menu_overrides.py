@@ -26,6 +26,9 @@ from meridian.menu_teacher_named_override_review import (
 from meridian.menu_teacher_named_override_selection import (
     run_named_latest_override_selection,
 )
+from meridian.menu_teacher_named_override_withdrawal import (
+    run_named_override_withdrawal,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -860,6 +863,7 @@ def run_overrides_menu(
                 "5. Advanced: Review current override (exact records)",
                 "6. Use the latest authored override decision by student",
                 "7. Record a replacement Grade decision by student",
+                "8. Record withdrawal of a selected replacement by student",
                 "",
             )
         else:
@@ -888,6 +892,17 @@ def run_overrides_menu(
                 continue
             _review_current(
                 deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "8" and navigation_context is not None:
+            run_named_override_withdrawal(
+                navigation=navigation_context,
+                withdrawal_previewer=deps.withdrawal_previewer,
+                withdrawal_committer=deps.withdrawal_committer,
+                clock=deps.clock,
                 input_fn=input_fn,
                 output=stream,
                 clear_fn=clear_fn,
@@ -947,7 +962,7 @@ def run_overrides_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
         pause_for_user(input_fn)
