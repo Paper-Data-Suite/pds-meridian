@@ -14,6 +14,9 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.menu_teacher_named_snapshot_selection import (
+    run_named_snapshot_selection,
+)
 from meridian.menu_teacher_named_snapshots import run_named_snapshot_browse
 from meridian.menu_ui import (
     ClearFunction,
@@ -1051,6 +1054,7 @@ def run_snapshots_menu(
                 "5. Advanced: Author a Reporting Definition revision",
                 "6. Advanced: Freeze a ReportingSnapshot (build-request JSON)",
                 "7. Browse frozen reporting checkpoints by name",
+                "8. Use a frozen reporting checkpoint by name",
                 "",
             )
         else:
@@ -1069,6 +1073,19 @@ def run_snapshots_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "8" and navigation_context is not None:
+            run_named_snapshot_selection(
+                navigation=navigation_context,
+                lister=deps.lister,
+                inspector=deps.inspector,
+                selection_previewer=deps.selection_previewer,
+                selection_committer=deps.selection_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "7" and navigation_context is not None:
             run_named_snapshot_browse(
                 navigation=navigation_context,
@@ -1129,7 +1146,7 @@ def run_snapshots_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)
