@@ -17,6 +17,9 @@ from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 from meridian.conventional_grade_assembly import ConventionalGradeWorkEvidenceSpec
 from meridian.grade_policy import GradeCalculationFamily
 from meridian.menu_grades import WorkEvidenceProvider
+from meridian.menu_teacher_named_override_authoring import (
+    run_named_override_authoring,
+)
 from meridian.menu_teacher_named_override_review import (
     run_named_current_override_review,
 )
@@ -856,6 +859,7 @@ def run_overrides_menu(
                 "4. Advanced: Withdraw the current override",
                 "5. Advanced: Review current override (exact records)",
                 "6. Use the latest authored override decision by student",
+                "7. Record a replacement Grade decision by student",
                 "",
             )
         else:
@@ -884,6 +888,17 @@ def run_overrides_menu(
                 continue
             _review_current(
                 deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "7" and navigation_context is not None:
+            run_named_override_authoring(
+                navigation=navigation_context,
+                authoring_previewer=deps.authoring_previewer,
+                authoring_committer=deps.authoring_committer,
+                clock=deps.clock,
                 input_fn=input_fn,
                 output=stream,
                 clear_fn=clear_fn,
@@ -932,7 +947,7 @@ def run_overrides_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
         pause_for_user(input_fn)
