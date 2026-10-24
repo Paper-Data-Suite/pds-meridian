@@ -14,6 +14,7 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.menu_teacher_named_snapshots import run_named_snapshot_browse
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -1040,21 +1041,44 @@ def run_snapshots_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Snapshots")
-        write_lines(
-            stream,
-            "1. List frozen ReportingSnapshots",
-            "2. Inspect a ReportingSnapshot",
-            "3. Show current reporting-use selection",
-            "4. Select an existing ReportingSnapshot",
-            "5. Author a Reporting Definition revision",
-            "6. Freeze a ReportingSnapshot",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: List frozen ReportingSnapshots (exact IDs)",
+                "2. Advanced: Inspect a ReportingSnapshot (exact ID)",
+                "3. Advanced: Show current reporting-use selection",
+                "4. Advanced: Select an existing ReportingSnapshot",
+                "5. Advanced: Author a Reporting Definition revision",
+                "6. Advanced: Freeze a ReportingSnapshot (build-request JSON)",
+                "7. Browse frozen reporting checkpoints by name",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. List frozen ReportingSnapshots",
+                "2. Inspect a ReportingSnapshot",
+                "3. Show current reporting-use selection",
+                "4. Select an existing ReportingSnapshot",
+                "5. Author a Reporting Definition revision",
+                "6. Freeze a ReportingSnapshot",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "7" and navigation_context is not None:
+            run_named_snapshot_browse(
+                navigation=navigation_context,
+                lister=deps.lister,
+                inspector=deps.inspector,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "1":
             _list(
                 deps=deps,
@@ -1104,5 +1128,8 @@ def run_snapshots_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)
