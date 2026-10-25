@@ -42,6 +42,9 @@ from meridian.hybrid_grade_explanation import (
     HybridGradePreviewExplanation,
     hybrid_grade_observation,
 )
+from meridian.menu_teacher_named_explain_grade import (
+    run_named_current_grade_explanation,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -979,23 +982,47 @@ def run_explain_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Explain")
-        write_lines(
-            stream,
-            "1. Current Grade",
-            "2. Prior / current Grade comparison",
-            "3. Grade Item proficiency",
-            "4. Academic Period proficiency",
-            "5. Planning derivation",
-            "6. Planning preview / review",
-            "7. Planning export",
-            "8. ExportReceipt provenance",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: Current Grade (exact IDs)",
+                "2. Advanced: Prior / current Grade comparison",
+                "3. Advanced: Grade Item proficiency",
+                "4. Advanced: Academic Period proficiency",
+                "5. Advanced: Planning derivation",
+                "6. Advanced: Planning preview / review",
+                "7. Advanced: Planning export",
+                "8. Advanced: ExportReceipt provenance",
+                "9. Explain a current Grade by name",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Current Grade",
+                "2. Prior / current Grade comparison",
+                "3. Grade Item proficiency",
+                "4. Academic Period proficiency",
+                "5. Planning derivation",
+                "6. Planning preview / review",
+                "7. Planning export",
+                "8. ExportReceipt provenance",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "9" and navigation_context is not None:
+            run_named_current_grade_explanation(
+                navigation=navigation_context,
+                current_grade_explainer=deps.current_grade,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "1":
             _run_current(deps, input_fn, stream, clear_fn)
             continue
@@ -1032,7 +1059,10 @@ def run_explain_menu(
         }
         route = routes.get(choice)
         if route is None:
-            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+            if navigation_context is not None:
+                write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+            else:
+                write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
             continue
         _run_two_id(
