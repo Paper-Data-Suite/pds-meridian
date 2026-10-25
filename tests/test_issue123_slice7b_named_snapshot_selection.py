@@ -376,5 +376,5 @@ def test_menu_keeps_advanced_and_new_route() -> None:
     assert "8. Use a frozen reporting checkpoint by name" in text
     assert "run_named_snapshot_selection(" in text
     assert "Advanced: Freeze a ReportingSnapshot (build-request JSON)" in text
-    assert "Please choose 1-8, B, M, or Q." in text
+    assert "Please choose 1-9, B, M, or Q." in text
     assert "Please choose 1-6, B, M, or Q." in text
