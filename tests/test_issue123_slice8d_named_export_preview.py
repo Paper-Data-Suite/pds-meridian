@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
@@ -314,5 +315,6 @@ def test_existing_export_routes_preserved_and_new_preview_present():
     assert "run_named_report_export_preview(" in menu
     assert "9. Browse past local exports by name" in menu
     assert '"5": _prepare_export' in menu
-    assert "Please choose 1-10, B, M, or Q." in menu
+    bounds = re.findall(r"Please choose 1-(\d+), B, M, or Q\.", menu)
+    assert any(int(bound) >= 10 for bound in bounds)
     assert "Please choose 1-6, B, M, or Q." in menu

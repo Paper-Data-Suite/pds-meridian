@@ -35,6 +35,9 @@ from meridian.export_profile_storage import (
     write_export_profile_revision,
 )
 from meridian.menu_snapshots import _list_snapshots
+from meridian.menu_teacher_named_export_delivery import (
+    run_named_report_export_delivery,
+)
 from meridian.menu_teacher_named_export_preview import (
     run_named_report_export_preview,
 )
@@ -1024,6 +1027,7 @@ def run_export_menu(
                 "8. Use latest Export Profile version by name",
                 "9. Browse past local exports by name",
                 "10. Preview a local report export by name",
+                "11. Deliver a local report export by name",
                 "",
             )
         else:
@@ -1042,6 +1046,21 @@ def run_export_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "11" and navigation_context is not None:
+            run_named_report_export_delivery(
+                navigation=navigation_context,
+                snapshot_lister=_list_snapshots,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                preview_builder=deps.preview_builder,
+                export_committer=deps.export_committer,
+                receipt_loader=deps.receipt_loader,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "10" and navigation_context is not None:
             run_named_report_export_preview(
                 navigation=navigation_context,
@@ -1098,7 +1117,7 @@ def run_export_menu(
         action = actions.get(choice)
         if action is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-10, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-11, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
             pause_for_user(input_fn)
