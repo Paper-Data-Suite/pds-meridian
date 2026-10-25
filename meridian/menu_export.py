@@ -40,6 +40,9 @@ from meridian.menu_teacher_named_export_profile_selection import (
 from meridian.menu_teacher_named_export_profiles import (
     run_named_export_profile_browse,
 )
+from meridian.menu_teacher_named_export_receipts import (
+    run_named_export_receipt_browse,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -1015,6 +1018,7 @@ def run_export_menu(
                 "6. Advanced: Review ExportReceipts",
                 "7. Browse Export Profiles by name",
                 "8. Use latest Export Profile version by name",
+                "9. Browse past local exports by name",
                 "",
             )
         else:
@@ -1033,6 +1037,16 @@ def run_export_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "9" and navigation_context is not None:
+            run_named_export_receipt_browse(
+                navigation=navigation_context,
+                receipt_lister=deps.receipt_lister,
+                receipt_loader=deps.receipt_loader,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "8" and navigation_context is not None:
             run_named_export_profile_selection(
                 navigation=navigation_context,
@@ -1067,7 +1081,7 @@ def run_export_menu(
         action = actions.get(choice)
         if action is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
             pause_for_user(input_fn)
