@@ -34,6 +34,9 @@ from meridian.export_profile_storage import (
     select_export_profile,
     write_export_profile_revision,
 )
+from meridian.menu_teacher_named_export_profile_selection import (
+    run_named_export_profile_selection,
+)
 from meridian.menu_teacher_named_export_profiles import (
     run_named_export_profile_browse,
 )
@@ -1011,6 +1014,7 @@ def run_export_menu(
                 "5. Advanced: Preview and export a ReportingSnapshot",
                 "6. Advanced: Review ExportReceipts",
                 "7. Browse Export Profiles by name",
+                "8. Use latest Export Profile version by name",
                 "",
             )
         else:
@@ -1029,6 +1033,19 @@ def run_export_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "8" and navigation_context is not None:
+            run_named_export_profile_selection(
+                navigation=navigation_context,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                selection_previewer=deps.profile_selection_previewer,
+                selection_committer=deps.profile_selector,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "7" and navigation_context is not None:
             run_named_export_profile_browse(
                 navigation=navigation_context,
@@ -1050,7 +1067,7 @@ def run_export_menu(
         action = actions.get(choice)
         if action is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
             pause_for_user(input_fn)
