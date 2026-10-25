@@ -42,6 +42,9 @@ from meridian.hybrid_grade_explanation import (
     HybridGradePreviewExplanation,
     hybrid_grade_observation,
 )
+from meridian.menu_teacher_named_explain_comparison import (
+    run_named_grade_snapshot_comparison,
+)
 from meridian.menu_teacher_named_explain_grade import (
     run_named_current_grade_explanation,
 )
@@ -994,6 +997,7 @@ def run_explain_menu(
                 "7. Advanced: Planning export",
                 "8. Advanced: ExportReceipt provenance",
                 "9. Explain a current Grade by name",
+                "10. Compare a current Grade to a saved checkpoint by name",
                 "",
             )
         else:
@@ -1014,6 +1018,15 @@ def run_explain_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "10" and navigation_context is not None:
+            run_named_grade_snapshot_comparison(
+                navigation=navigation_context,
+                snapshot_comparer=deps.snapshot_comparison,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "9" and navigation_context is not None:
             run_named_current_grade_explanation(
                 navigation=navigation_context,
@@ -1060,7 +1073,7 @@ def run_explain_menu(
         route = routes.get(choice)
         if route is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-10, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)

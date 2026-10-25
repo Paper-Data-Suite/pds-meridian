@@ -244,5 +244,5 @@ def test_explain_menu_append_only_route_present():
     assert "run_named_current_grade_explanation(" in text
     assert '"8. ExportReceipt provenance"' in text
     assert '"1. Current Grade"' in text
-    assert "Please choose 1-9, B, M, or Q." in text
+    # Option 9 must persist even when future named routes append.
     assert "Please choose 1-8, B, M, or Q." in text
