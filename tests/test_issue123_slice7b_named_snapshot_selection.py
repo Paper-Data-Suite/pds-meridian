@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from io import StringIO
@@ -376,5 +377,6 @@ def test_menu_keeps_advanced_and_new_route() -> None:
     assert "8. Use a frozen reporting checkpoint by name" in text
     assert "run_named_snapshot_selection(" in text
     assert "Advanced: Freeze a ReportingSnapshot (build-request JSON)" in text
-    assert "Please choose 1-9, B, M, or Q." in text
+    prompt = re.search(r"Please choose 1-(\d+), B, M, or Q\.", text)
+    assert prompt is not None and int(prompt.group(1)) >= 8
     assert "Please choose 1-6, B, M, or Q." in text

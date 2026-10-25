@@ -14,6 +14,9 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.menu_teacher_named_definition_revision import (
+    run_named_definition_revision,
+)
 from meridian.menu_teacher_named_definitions import run_named_definition_browse
 from meridian.menu_teacher_named_snapshot_selection import (
     run_named_snapshot_selection,
@@ -1057,6 +1060,7 @@ def run_snapshots_menu(
                 "7. Browse frozen reporting checkpoints by name",
                 "8. Use a frozen reporting checkpoint by name",
                 "9. Browse reporting definitions by name",
+                "10. Revise an existing reporting definition by name",
                 "",
             )
         else:
@@ -1075,6 +1079,17 @@ def run_snapshots_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "10" and navigation_context is not None:
+            run_named_definition_revision(
+                navigation=navigation_context,
+                definition_previewer=deps.definition_previewer,
+                definition_committer=deps.definition_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "9" and navigation_context is not None:
             run_named_definition_browse(
                 navigation=navigation_context,
@@ -1156,7 +1171,7 @@ def run_snapshots_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-10, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)
