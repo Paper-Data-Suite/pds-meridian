@@ -34,6 +34,9 @@ from meridian.export_profile_storage import (
     select_export_profile,
     write_export_profile_revision,
 )
+from meridian.menu_teacher_named_export_profiles import (
+    run_named_export_profile_browse,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -998,21 +1001,44 @@ def run_export_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Export")
-        write_lines(
-            stream,
-            "1. List Export Profiles",
-            "2. Inspect current Export Profile",
-            "3. Author Export Profile revision",
-            "4. Select latest Export Profile revision",
-            "5. Preview and export a ReportingSnapshot",
-            "6. Review ExportReceipts",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: List Export Profiles (exact IDs)",
+                "2. Advanced: Inspect current Export Profile (exact ID)",
+                "3. Advanced: Author Export Profile revision",
+                "4. Advanced: Select latest Export Profile revision",
+                "5. Advanced: Preview and export a ReportingSnapshot",
+                "6. Advanced: Review ExportReceipts",
+                "7. Browse Export Profiles by name",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. List Export Profiles",
+                "2. Inspect current Export Profile",
+                "3. Author Export Profile revision",
+                "4. Select latest Export Profile revision",
+                "5. Preview and export a ReportingSnapshot",
+                "6. Review ExportReceipts",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "7" and navigation_context is not None:
+            run_named_export_profile_browse(
+                navigation=navigation_context,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         actions = {
             "1": _profiles,
             "2": _inspect_profile,
@@ -1023,7 +1049,10 @@ def run_export_menu(
         }
         action = actions.get(choice)
         if action is None:
-            write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
+            if navigation_context is not None:
+                write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+            else:
+                write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
             pause_for_user(input_fn)
             continue
         action(deps, input_fn, stream, clear_fn)
