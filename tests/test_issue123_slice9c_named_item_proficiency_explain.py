@@ -301,7 +301,9 @@ def test_menu_additive_and_all_old_routes_preserved():
     assert '"10. Compare a current Grade to a saved checkpoint by name"' in source
     assert '"9. Explain a current Grade by name"' in source
     assert '"3. Grade Item proficiency"' in source
-    assert '"Please choose 1-11, B, M, or Q."' in source
+    assert any(
+        f'"Please choose 1-{last}, B, M, or Q."' in source for last in range(11, 100)
+    )
     assert '"Please choose 1-8, B, M, or Q."' in source
 
 

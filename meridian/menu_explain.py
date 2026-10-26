@@ -51,6 +51,9 @@ from meridian.menu_teacher_named_explain_grade import (
 from meridian.menu_teacher_named_explain_item_proficiency import (
     run_named_grade_item_proficiency_explanation,
 )
+from meridian.menu_teacher_named_explain_period_proficiency import (
+    run_named_academic_period_proficiency_explanation,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -563,6 +566,11 @@ def _academic_period(
         ),
         technical_lines=(
             f"class_id: {value.class_id}",
+            f"school_year: {value.target_period.school_year}",
+            f"period_id: {value.target_period.period_id}",
+            f"calendar_revision: {value.target_period.calendar_revision}",
+            f"student_id: {value.student_id}",
+            f"standard_id: {value.standard_id}",
             f"result_revision: {value.result_revision}",
             f"result_sha256: {value.result_sha256}",
             f"inputs_sha256: {value.inputs_sha256}",
@@ -1002,6 +1010,7 @@ def run_explain_menu(
                 "9. Explain a current Grade by name",
                 "10. Compare a current Grade to a saved checkpoint by name",
                 "11. Explain Grade Item proficiency by name",
+                "12. Explain Academic Period proficiency by name",
                 "",
             )
         else:
@@ -1022,6 +1031,15 @@ def run_explain_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "12" and navigation_context is not None:
+            run_named_academic_period_proficiency_explanation(
+                navigation=navigation_context,
+                academic_period_explainer=deps.academic_period_proficiency,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "11" and navigation_context is not None:
             run_named_grade_item_proficiency_explanation(
                 navigation=navigation_context,
@@ -1086,7 +1104,7 @@ def run_explain_menu(
         route = routes.get(choice)
         if route is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-11, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-12, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
