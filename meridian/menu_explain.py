@@ -45,6 +45,9 @@ from meridian.hybrid_grade_explanation import (
 from meridian.menu_teacher_named_explain_comparison import (
     run_named_grade_snapshot_comparison,
 )
+from meridian.menu_teacher_named_explain_derivation import (
+    run_named_planning_derivation_explanation,
+)
 from meridian.menu_teacher_named_explain_grade import (
     run_named_current_grade_explanation,
 )
@@ -1011,6 +1014,7 @@ def run_explain_menu(
                 "10. Compare a current Grade to a saved checkpoint by name",
                 "11. Explain Grade Item proficiency by name",
                 "12. Explain Academic Period proficiency by name",
+                "13. Explain a saved Planning Derivation by name",
                 "",
             )
         else:
@@ -1031,6 +1035,15 @@ def run_explain_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "13" and navigation_context is not None:
+            run_named_planning_derivation_explanation(
+                navigation=navigation_context,
+                planning_derivation_explainer=deps.planning_derivation,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "12" and navigation_context is not None:
             run_named_academic_period_proficiency_explanation(
                 navigation=navigation_context,
@@ -1104,7 +1117,7 @@ def run_explain_menu(
         route = routes.get(choice)
         if route is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-12, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-13, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
