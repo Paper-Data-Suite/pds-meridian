@@ -57,6 +57,9 @@ from meridian.menu_teacher_named_explain_item_proficiency import (
 from meridian.menu_teacher_named_explain_period_proficiency import (
     run_named_academic_period_proficiency_explanation,
 )
+from meridian.menu_teacher_named_explain_preview_review import (
+    run_named_planning_preview_review_explanation,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -671,6 +674,18 @@ def _planning_preview(
             f"policy_revision: {value.policy_revision}",
             f"policy_sha256: {value.policy_sha256}",
             (
+                "selected_review_revision: "
+                + (
+                    str(value.review.review_revision)
+                    if value.review is not None
+                    else "none"
+                )
+            ),
+            (
+                "selected_review_sha256: "
+                f"{value.review.review_sha256 if value.review is not None else 'none'}"
+            ),
+            (
                 "live_currentness_reasons: "
                 + (
                     ", ".join(value.live_currentness.reason_codes)
@@ -1015,6 +1030,7 @@ def run_explain_menu(
                 "11. Explain Grade Item proficiency by name",
                 "12. Explain Academic Period proficiency by name",
                 "13. Explain a saved Planning Derivation by name",
+                "14. Explain a saved Planning Preview / Review by name",
                 "",
             )
         else:
@@ -1035,6 +1051,15 @@ def run_explain_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "14" and navigation_context is not None:
+            run_named_planning_preview_review_explanation(
+                navigation=navigation_context,
+                planning_preview_explainer=deps.planning_preview_review,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "13" and navigation_context is not None:
             run_named_planning_derivation_explanation(
                 navigation=navigation_context,
@@ -1117,7 +1142,7 @@ def run_explain_menu(
         route = routes.get(choice)
         if route is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-13, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-14, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
