@@ -48,6 +48,9 @@ from meridian.menu_teacher_named_explain_comparison import (
 from meridian.menu_teacher_named_explain_grade import (
     run_named_current_grade_explanation,
 )
+from meridian.menu_teacher_named_explain_item_proficiency import (
+    run_named_grade_item_proficiency_explanation,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -998,6 +1001,7 @@ def run_explain_menu(
                 "8. Advanced: ExportReceipt provenance",
                 "9. Explain a current Grade by name",
                 "10. Compare a current Grade to a saved checkpoint by name",
+                "11. Explain Grade Item proficiency by name",
                 "",
             )
         else:
@@ -1018,6 +1022,15 @@ def run_explain_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "11" and navigation_context is not None:
+            run_named_grade_item_proficiency_explanation(
+                navigation=navigation_context,
+                grade_item_explainer=deps.grade_item_proficiency,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "10" and navigation_context is not None:
             run_named_grade_snapshot_comparison(
                 navigation=navigation_context,
@@ -1073,7 +1086,7 @@ def run_explain_menu(
         route = routes.get(choice)
         if route is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-10, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-11, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
