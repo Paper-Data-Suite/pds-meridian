@@ -19,6 +19,9 @@ from meridian.grouping_signal_review import GroupingSignalReviewDecisionValue
 from meridian.menu_teacher_named_planning_derivation_write import (
     run_named_planning_derivation_write,
 )
+from meridian.menu_teacher_named_planning_preview_write import (
+    run_named_planning_preview_write,
+)
 from meridian.menu_teacher_named_planning_readiness import (
     run_named_planning_readiness,
 )
@@ -895,6 +898,7 @@ def run_planning_signal_menu(
                 "7. Advanced: Export accepted signal to Core",
                 "8. Review Planning Signal readiness by policy name",
                 "9. Save Planning Derivation by policy name",
+                "10. Save Planning Preview by derivation name",
                 "",
                 "Each write, selection, and export is a separate confirmation.",
                 "No step creates Concord grouping state.",
@@ -920,6 +924,16 @@ def run_planning_signal_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "10" and navigation_context is not None:
+            run_named_planning_preview_write(
+                navigation=navigation_context,
+                preview_preparer=deps.preview_write_previewer,
+                preview_committer=deps.preview_write_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "9" and navigation_context is not None:
             run_named_planning_derivation_write(
                 navigation=navigation_context,
@@ -976,7 +990,7 @@ def run_planning_signal_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-10, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         pause_for_user(input_fn)
