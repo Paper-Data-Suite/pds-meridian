@@ -16,6 +16,9 @@ from meridian.grouping_signal_preview_projection import (
     GroupingSignalTeacherPreviewProjection,
 )
 from meridian.grouping_signal_review import GroupingSignalReviewDecisionValue
+from meridian.menu_teacher_named_planning_readiness import (
+    run_named_planning_readiness,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -877,25 +880,51 @@ def run_planning_signal_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Create Planning Signal")
-        write_lines(
-            stream,
-            "1. Review readiness",
-            "2. Write exact derivation",
-            "3. Write planning preview",
-            "4. Review preview and diagnostics",
-            "5. Write teacher review",
-            "6. Select teacher review",
-            "7. Export accepted signal to Core",
-            "",
-            "Each write, selection, and export is a separate confirmation.",
-            "No step creates Concord grouping state.",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: Review readiness (exact policy ID)",
+                "2. Advanced: Write exact derivation",
+                "3. Advanced: Write planning preview",
+                "4. Advanced: Review preview and diagnostics",
+                "5. Advanced: Write teacher review",
+                "6. Advanced: Select teacher review",
+                "7. Advanced: Export accepted signal to Core",
+                "8. Review Planning Signal readiness by policy name",
+                "",
+                "Each write, selection, and export is a separate confirmation.",
+                "No step creates Concord grouping state.",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review readiness",
+                "2. Write exact derivation",
+                "3. Write planning preview",
+                "4. Review preview and diagnostics",
+                "5. Write teacher review",
+                "6. Select teacher review",
+                "7. Export accepted signal to Core",
+                "",
+                "Each write, selection, and export is a separate confirmation.",
+                "No step creates Concord grouping state.",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "8" and navigation_context is not None:
+            run_named_planning_readiness(
+                navigation=navigation_context,
+                readiness_projector=deps.readiness_projector,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "1":
             _review_readiness(
                 deps=deps, input_fn=input_fn, output=stream, clear_fn=clear_fn
@@ -931,5 +960,8 @@ def run_planning_signal_menu(
                 deps=deps, input_fn=input_fn, output=stream, clear_fn=clear_fn
             )
             continue
-        write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         pause_for_user(input_fn)
