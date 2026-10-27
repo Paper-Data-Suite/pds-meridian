@@ -31,6 +31,9 @@ from meridian.menu_teacher_named_planning_readiness import (
 from meridian.menu_teacher_named_planning_review_authoring import (
     run_named_planning_review_authoring,
 )
+from meridian.menu_teacher_named_planning_review_selection import (
+    run_named_planning_review_selection,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -907,6 +910,7 @@ def run_planning_signal_menu(
                 "10. Save Planning Preview by derivation name",
                 "11. Review Planning Preview diagnostics by name",
                 "12. Author Planning Review by preview name",
+                "13. Select a saved Planning Review by name",
                 "",
                 "Each write, selection, and export is a separate confirmation.",
                 "No step creates Concord grouping state.",
@@ -932,6 +936,16 @@ def run_planning_signal_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "13" and navigation_context is not None:
+            run_named_planning_review_selection(
+                navigation=navigation_context,
+                selection_preparer=deps.review_selection_previewer,
+                selection_committer=deps.review_selection_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "12" and navigation_context is not None:
             run_named_planning_review_authoring(
                 navigation=navigation_context,
@@ -1019,7 +1033,7 @@ def run_planning_signal_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-12, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-13, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         pause_for_user(input_fn)
