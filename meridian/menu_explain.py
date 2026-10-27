@@ -63,6 +63,9 @@ from meridian.menu_teacher_named_explain_period_proficiency import (
 from meridian.menu_teacher_named_explain_preview_review import (
     run_named_planning_preview_review_explanation,
 )
+from meridian.menu_teacher_named_explain_report_receipt import (
+    run_named_report_receipt_explanation,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -1035,6 +1038,7 @@ def run_explain_menu(
                 "13. Explain a saved Planning Derivation by name",
                 "14. Explain a saved Planning Preview / Review by name",
                 "15. Explain a saved Planning Export by name",
+                "16. Explain a saved local Report ExportReceipt by name",
                 "",
             )
         else:
@@ -1055,6 +1059,15 @@ def run_explain_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "16" and navigation_context is not None:
+            run_named_report_receipt_explanation(
+                navigation=navigation_context,
+                report_receipt_explainer=deps.export_receipt,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "15" and navigation_context is not None:
             run_named_planning_export_explanation(
                 navigation=navigation_context,
@@ -1155,7 +1168,7 @@ def run_explain_menu(
         route = routes.get(choice)
         if route is None:
             if navigation_context is not None:
-                write_lines(stream, "", "Please choose 1-15, B, M, or Q.")
+                write_lines(stream, "", "Please choose 1-16, B, M, or Q.")
             else:
                 write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
