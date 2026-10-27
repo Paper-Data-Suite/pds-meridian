@@ -1,0 +1,464 @@
+{
+  "schema": "pds.meridian.issue123.live_adoption.v1",
+  "reviewed_head": "cf1709ba3c97b0ad51e298cbee4973ab1557b440",
+  "counts": {
+    "original_routes": 49,
+    "guided_live_routes": 38,
+    "advanced_live_routes": 45,
+    "teacher_mode_live_routes": 83,
+    "guided_report_kinds_preserved": 9
+  },
+  "classification_note": "An available named alternative is not proof of semantic equivalence; acceptance needs behavior, installed-wheel, and performance evidence. Legacy raw-input options are explicitly Advanced.",
+  "teacher_menus": {
+    "grade_items": {
+      "file": "meridian/menu_grade_items.py",
+      "function": "run_grade_items_menu",
+      "guided": {
+        "1": [
+          "Review Grade Items by name",
+          "run_named_grade_item_review"
+        ],
+        "2": [
+          "Review Grade Item and relationships by name",
+          "run_named_grade_item_review"
+        ],
+        "7": [
+          "Explore registered work and Grade Item relationships",
+          "run_named_work_membership_review"
+        ],
+        "8": [
+          "Use an existing Grade Item version",
+          "run_named_grade_item_revision_selection"
+        ],
+        "9": [
+          "Use an existing work membership decision",
+          "run_named_membership_revision_selection"
+        ]
+      },
+      "advanced": {
+        "3": "Author Grade Item revision (exact records)",
+        "4": "Select Grade Item revision",
+        "5": "Author work membership revision",
+        "6": "Select work membership revision"
+      }
+    },
+    "proficiency": {
+      "file": "meridian/menu_proficiency.py",
+      "function": "run_proficiency_menu",
+      "guided": {
+        "1": [
+          "Review current Grade Item proficiency by name",
+          "run_named_grade_item_proficiency"
+        ],
+        "2": [
+          "Review current Academic Period proficiency by name",
+          "run_named_period_proficiency"
+        ]
+      },
+      "advanced": {
+        "3": "Planning-signal readiness",
+        "4": "Preview Grade Item calculation",
+        "5": "Write Grade Item result",
+        "6": "Select Grade Item result",
+        "7": "Preview Academic Period calculation",
+        "8": "Write Academic Period result",
+        "9": "Select Academic Period result",
+        "10": "Create Planning Signal"
+      }
+    },
+    "grades": {
+      "file": "meridian/menu_grades.py",
+      "function": "run_grade_preview_menu",
+      "guided": {
+        "1": [
+          "Review a current Grade by student and marking period",
+          "run_named_current_grade_review"
+        ],
+        "2": [
+          "Review a Grade report for named roster students",
+          "run_named_grade_report_review"
+        ]
+      },
+      "advanced": {
+        "3": "Preview a bounded Grade report",
+        "4": "Preview one current Grade (exact records)"
+      }
+    },
+    "overrides": {
+      "file": "meridian/menu_overrides.py",
+      "function": "run_overrides_menu",
+      "guided": {
+        "1": [
+          "Review current override by student and marking period",
+          "run_named_current_override_review"
+        ],
+        "6": [
+          "Use the latest authored override decision by student",
+          "run_named_latest_override_selection"
+        ],
+        "7": [
+          "Record a replacement Grade decision by student",
+          "run_named_override_authoring"
+        ],
+        "8": [
+          "Record withdrawal of a selected replacement by student",
+          "run_named_override_withdrawal"
+        ]
+      },
+      "advanced": {
+        "2": "Author a new override revision",
+        "3": "Select the latest authored override",
+        "4": "Withdraw the current override",
+        "5": "Review current override (exact records)"
+      }
+    },
+    "snapshots": {
+      "file": "meridian/menu_snapshots.py",
+      "function": "run_snapshots_menu",
+      "guided": {
+        "7": [
+          "Browse frozen reporting checkpoints by name",
+          "run_named_snapshot_browse"
+        ],
+        "8": [
+          "Use a frozen reporting checkpoint by name",
+          "run_named_snapshot_selection"
+        ],
+        "9": [
+          "Browse reporting definitions by name",
+          "run_named_definition_browse"
+        ],
+        "10": [
+          "Revise an existing reporting definition by name",
+          "run_named_definition_revision"
+        ],
+        "11": [
+          "Create a new reporting definition",
+          "run_named_definition_creation"
+        ]
+      },
+      "advanced": {
+        "1": "List frozen ReportingSnapshots (exact IDs)",
+        "2": "Inspect a ReportingSnapshot (exact ID)",
+        "3": "Show current reporting-use selection",
+        "4": "Select an existing ReportingSnapshot",
+        "5": "Author a Reporting Definition revision",
+        "6": "Freeze a ReportingSnapshot (build-request JSON)"
+      }
+    },
+    "export": {
+      "file": "meridian/menu_export.py",
+      "function": "run_export_menu",
+      "guided": {
+        "7": [
+          "Browse Export Profiles by name",
+          "run_named_export_profile_browse"
+        ],
+        "8": [
+          "Use latest Export Profile version by name",
+          "run_named_export_profile_selection"
+        ],
+        "9": [
+          "Browse past local exports by name",
+          "run_named_export_receipt_browse"
+        ],
+        "10": [
+          "Preview a local report export by name",
+          "run_named_report_export_preview"
+        ],
+        "11": [
+          "Deliver a local report export by name",
+          "run_named_report_export_delivery"
+        ]
+      },
+      "advanced": {
+        "1": "List Export Profiles (exact IDs)",
+        "2": "Inspect current Export Profile (exact ID)",
+        "3": "Author Export Profile revision",
+        "4": "Select latest Export Profile revision",
+        "5": "Preview and export a ReportingSnapshot",
+        "6": "Review ExportReceipts"
+      }
+    },
+    "explain": {
+      "file": "meridian/menu_explain.py",
+      "function": "run_explain_menu",
+      "guided": {
+        "9": [
+          "Explain a current Grade by name",
+          "run_named_current_grade_explanation"
+        ],
+        "10": [
+          "Compare a current Grade to a saved checkpoint by name",
+          "run_named_grade_snapshot_comparison"
+        ],
+        "11": [
+          "Explain Grade Item proficiency by name",
+          "run_named_grade_item_proficiency_explanation"
+        ],
+        "12": [
+          "Explain Academic Period proficiency by name",
+          "run_named_academic_period_proficiency_explanation"
+        ],
+        "13": [
+          "Explain a saved Planning Derivation by name",
+          "run_named_planning_derivation_explanation"
+        ],
+        "14": [
+          "Explain a saved Planning Preview / Review by name",
+          "run_named_planning_preview_review_explanation"
+        ],
+        "15": [
+          "Explain a saved Planning Export by name",
+          "run_named_planning_export_explanation"
+        ],
+        "16": [
+          "Explain a saved local Report ExportReceipt by name",
+          "run_named_report_receipt_explanation"
+        ]
+      },
+      "advanced": {
+        "1": "Current Grade (exact IDs)",
+        "2": "Prior / current Grade comparison",
+        "3": "Grade Item proficiency",
+        "4": "Academic Period proficiency",
+        "5": "Planning derivation",
+        "6": "Planning preview / review",
+        "7": "Planning export",
+        "8": "ExportReceipt provenance"
+      }
+    },
+    "planning_signal": {
+      "file": "meridian/menu_planning_signal.py",
+      "function": "run_planning_signal_menu",
+      "guided": {
+        "8": [
+          "Review Planning Signal readiness by policy name",
+          "run_named_planning_readiness"
+        ],
+        "9": [
+          "Save Planning Derivation by policy name",
+          "run_named_planning_derivation_write"
+        ],
+        "10": [
+          "Save Planning Preview by derivation name",
+          "run_named_planning_preview_write"
+        ],
+        "11": [
+          "Review Planning Preview diagnostics by name",
+          "run_named_planning_preview_diagnostics"
+        ],
+        "12": [
+          "Author Planning Review by preview name",
+          "run_named_planning_review_authoring"
+        ],
+        "13": [
+          "Select a saved Planning Review by name",
+          "run_named_planning_review_selection"
+        ],
+        "14": [
+          "Export accepted Planning Signal to Core by name",
+          "run_named_planning_core_export"
+        ]
+      },
+      "advanced": {
+        "1": "Review readiness (exact policy ID)",
+        "2": "Write exact derivation",
+        "3": "Write planning preview",
+        "4": "Review preview and diagnostics",
+        "5": "Write teacher review",
+        "6": "Select teacher review",
+        "7": "Export accepted signal to Core"
+      }
+    }
+  },
+  "original_route_crosswalk": {
+    "grade_items": {
+      "1": [
+        "1"
+      ],
+      "2": [
+        "2"
+      ],
+      "3": [],
+      "4": [
+        "8"
+      ],
+      "5": [],
+      "6": [
+        "9"
+      ]
+    },
+    "proficiency": {
+      "1": [
+        "1"
+      ],
+      "2": [
+        "2"
+      ],
+      "3": [
+        "planning_signal/8"
+      ],
+      "4": [],
+      "5": [],
+      "6": [],
+      "7": [],
+      "8": [],
+      "9": [],
+      "10": [
+        "planning_signal/8",
+        "planning_signal/9",
+        "planning_signal/10",
+        "planning_signal/11",
+        "planning_signal/12",
+        "planning_signal/13",
+        "planning_signal/14"
+      ]
+    },
+    "grades": {
+      "1": [
+        "1"
+      ],
+      "2": [
+        "2"
+      ]
+    },
+    "overrides": {
+      "1": [
+        "1"
+      ],
+      "2": [
+        "7"
+      ],
+      "3": [
+        "6"
+      ],
+      "4": [
+        "8"
+      ]
+    },
+    "snapshots": {
+      "1": [
+        "7"
+      ],
+      "2": [
+        "7"
+      ],
+      "3": [
+        "8"
+      ],
+      "4": [
+        "8"
+      ],
+      "5": [
+        "10",
+        "11"
+      ],
+      "6": []
+    },
+    "export": {
+      "1": [
+        "7"
+      ],
+      "2": [
+        "7"
+      ],
+      "3": [],
+      "4": [
+        "8"
+      ],
+      "5": [
+        "10",
+        "11"
+      ],
+      "6": [
+        "9"
+      ]
+    },
+    "explain": {
+      "1": [
+        "9"
+      ],
+      "2": [
+        "10"
+      ],
+      "3": [
+        "11"
+      ],
+      "4": [
+        "12"
+      ],
+      "5": [
+        "13"
+      ],
+      "6": [
+        "14"
+      ],
+      "7": [
+        "15"
+      ],
+      "8": [
+        "16"
+      ]
+    },
+    "planning_signal": {
+      "1": [
+        "8"
+      ],
+      "2": [
+        "9"
+      ],
+      "3": [
+        "10"
+      ],
+      "4": [
+        "11"
+      ],
+      "5": [
+        "12"
+      ],
+      "6": [
+        "13"
+      ],
+      "7": [
+        "14"
+      ]
+    }
+  },
+  "exceptions_requiring_followup": [
+    {
+      "area": "proficiency",
+      "legacy_options": [
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "reason": "Legacy calculation/author/select flows intentionally Advanced; verify supported guided outcomes against #123 primary acceptance."
+    },
+    {
+      "area": "snapshots",
+      "legacy_options": [
+        "6"
+      ],
+      "reason": "Frozen ReportingSnapshot build-request JSON remains deliberately Advanced; no canonical guided builder is asserted."
+    },
+    {
+      "area": "grade_items",
+      "legacy_options": [
+        "3",
+        "5"
+      ],
+      "reason": "Low-level revision and membership authoring remain Advanced; named select and browse are available."
+    },
+    {
+      "area": "export",
+      "legacy_options": [
+        "3"
+      ],
+      "reason": "Manual exact Export Profile authoring remains Advanced; existing profiles can be browsed and selected by name."
+    }
+  ]
+}
