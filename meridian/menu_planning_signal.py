@@ -28,6 +28,9 @@ from meridian.menu_teacher_named_planning_preview_write import (
 from meridian.menu_teacher_named_planning_readiness import (
     run_named_planning_readiness,
 )
+from meridian.menu_teacher_named_planning_review_authoring import (
+    run_named_planning_review_authoring,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -903,6 +906,7 @@ def run_planning_signal_menu(
                 "9. Save Planning Derivation by policy name",
                 "10. Save Planning Preview by derivation name",
                 "11. Review Planning Preview diagnostics by name",
+                "12. Author Planning Review by preview name",
                 "",
                 "Each write, selection, and export is a separate confirmation.",
                 "No step creates Concord grouping state.",
@@ -928,6 +932,18 @@ def run_planning_signal_menu(
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "12" and navigation_context is not None:
+            run_named_planning_review_authoring(
+                navigation=navigation_context,
+                diagnostics_projector=deps.diagnostics_projector,
+                authoring_previewer=deps.review_authoring_previewer,
+                authoring_committer=deps.review_authoring_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "11" and navigation_context is not None:
             run_named_planning_preview_diagnostics(
                 navigation=navigation_context,
@@ -1003,7 +1019,7 @@ def run_planning_signal_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-11, B, M, or Q.")
+            write_lines(stream, "", "Please choose 1-12, B, M, or Q.")
         else:
             write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         pause_for_user(input_fn)
