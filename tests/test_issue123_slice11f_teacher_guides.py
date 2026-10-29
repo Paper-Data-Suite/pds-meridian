@@ -51,8 +51,8 @@ def test_advanced_table_covers_all_eight_inventory_menus() -> None:
         "explain",
         "planning_signal",
     }
-    assert sum(len(menu["advanced"]) for menu in census["teacher_menus"].values()) == 45
-    assert sum(len(menu["guided"]) for menu in census["teacher_menus"].values()) == 38
+    assert sum(len(menu["advanced"]) for menu in census["teacher_menus"].values()) == 44
+    assert sum(len(menu["guided"]) for menu in census["teacher_menus"].values()) == 39
     for label in (
         "Grade Items",
         "Proficiency",
@@ -69,9 +69,9 @@ def test_advanced_table_covers_all_eight_inventory_menus() -> None:
 
 def test_planning_signal_entry_is_not_misrepresented() -> None:
     guide = TEACHER.read_text(encoding="utf-8")
-    assert "10. Advanced: Create Planning Signal" in guide
+    assert "10. Create Planning Signal (named workflows)" in guide
     assert "choices 8–14" in guide
-    assert "not imply a separate main-menu" in guide
+    assert "not a separate main-menu item" in guide
 
 
 def test_acceptance_ledger_does_not_invent_legacy_metrics_or_ci() -> None:

@@ -15,7 +15,7 @@ This table describes the **teacher-context** menu as inventoried in `issue123-sl
 | Menu | Advanced choice numbers | Exact/technical purposes |
 | --- | --- | --- |
 | Grade Items | 3–6 | Author Grade Item revision, select Grade Item revision, author work-membership revision, select membership revision |
-| Proficiency | 3–10 | Planning readiness, Grade Item calculation preview/write/select, Academic Period calculation preview/write/select, and the nested Create Planning Signal entry |
+| Proficiency | 3–9 | Planning readiness, Grade Item calculation preview/write/select, and Academic Period calculation preview/write/select |
 | Grades | 3–4 | Bounded Grade-report preview; current Grade preview with exact records |
 | Overrides | 2–5 | Author, select, withdraw, or inspect current override using exact records |
 | Snapshots | 1–6 | List/inspect/select frozen checkpoints, current reporting-use selection, reporting-definition revision, build-request-JSON freeze |
@@ -23,7 +23,7 @@ This table describes the **teacher-context** menu as inventoried in `issue123-sl
 | Explain | 1–8 | Exact-identity Grade, comparison, Grade Item/period proficiency, planning derivation/preview/export, and ExportReceipt explanations |
 | Planning Signal (nested under Proficiency 10) | 1–7 | Exact policy readiness, derivation/preview writes, preview diagnostics, review author/select, accepted Core export |
 
-The eight historical menus expose **45 explicitly Advanced choices** and **38 named choices** in teacher context, not counting the nine separately guided Reports. The nested Planning Signal menu is not a new top-level main-menu task. `Proficiency 10` is currently Advanced-labeled but leads to named Planning Signal choices 8–14; this limitation is documented rather than hidden.
+The eight historical menus now expose **44 explicitly Advanced choices** and **39 named choices** in teacher context, not counting the nine separately guided Reports. The nested Planning Signal menu is not a new top-level main-menu task. `Proficiency 10` is a named gateway to Planning Signal; nested choices 8–14 remain named and nested choices 1–7 remain explicitly Advanced. No direct calculation, authoring or selection tool has been promoted.
 
 ## Academic operation boundaries
 

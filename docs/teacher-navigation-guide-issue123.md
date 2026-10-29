@@ -29,7 +29,7 @@ Selections are checked against the latest canonical record. If a record changes 
 
 ### Planning Signal
 
-Within **3. Review Proficiency**, choose **10. Advanced: Create Planning Signal** to enter its currently implemented submenu. Despite that entry's *Advanced* label, the nested menu contains seven **named** teacher actions (choices 8–14): readiness; save derivation; save preview; inspect diagnostics; author review; select review; and export the accepted Planning Signal to Core. Choices 1–7 in that submenu remain exact-record Advanced operations. This labeling is a known discoverability issue; the current guide must not imply a separate main-menu Planning Signal item or a non-Advanced entry that does not exist.
+Within **3. Review Proficiency**, choose **10. Create Planning Signal (named workflows)**. This ordinary, discoverable entry opens the existing nested Planning Signal menu; it is not a separate main-menu item. The nested menu offers seven **named** teacher actions (choices 8–14): readiness; save derivation; save preview; inspect diagnostics; author review; select review; and export the accepted Planning Signal to Core. Choices 1–7 in that submenu remain exact-record Advanced operations. Selecting the gateway makes no academic decision.
 
 An accepted Planning Signal exported to Core is not automatically a Concord group, a Grade, or a student outcome. Core export and optional Core-native CSV remain deliberate actions with exact preview/review/currentness checks.
 

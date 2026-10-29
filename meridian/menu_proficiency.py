@@ -1843,7 +1843,7 @@ def run_proficiency_menu(
                 "7. Advanced: Preview Academic Period calculation",
                 "8. Advanced: Write Academic Period result",
                 "9. Advanced: Select Academic Period result",
-                "10. Advanced: Create Planning Signal",
+                "10. Create Planning Signal (named workflows)",
                 "",
             )
         else:

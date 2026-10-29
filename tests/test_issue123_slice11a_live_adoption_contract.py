@@ -127,12 +127,12 @@ def test_live_inventory_is_exact_and_covers_all_original_routes() -> None:
     }
     assert len(actual_routes) == 49 and actual_routes == mapped_routes
     assert len(REPORT_SCOPES) == 9
-    assert sum(len(row["guided"]) for row in menus.values()) == 38
-    assert sum(len(row["advanced"]) for row in menus.values()) == 45
+    assert sum(len(row["guided"]) for row in menus.values()) == 39
+    assert sum(len(row["advanced"]) for row in menus.values()) == 44
     assert data["counts"] == {
         "original_routes": 49,
-        "guided_live_routes": 38,
-        "advanced_live_routes": 45,
+        "guided_live_routes": 39,
+        "advanced_live_routes": 44,
         "teacher_mode_live_routes": 83,
         "guided_report_kinds_preserved": 9,
     }
@@ -225,3 +225,43 @@ def test_original_technical_prompt_quarantine_and_reports_remain_present() -> No
     )
     assert (ROOT / "tests/test_report_guided_selection_issue111.py").is_file()
     assert (ROOT / "tests/test_issue123_slice3_navigation_context.py").is_file()
+
+
+def test_planning_gateway_forwards_verified_context_without_raw_id_prompt(
+    monkeypatch: object,
+) -> None:
+    """Option 10 stays in place and delegates to the named/Advanced submenu."""
+    from io import StringIO
+    from unittest.mock import MagicMock
+
+    import meridian.menu_proficiency as menu
+
+    context = MagicMock()
+    seen: list[dict[str, object]] = []
+
+    def nested(**kwargs: object) -> None:
+        seen.append(kwargs)
+
+    monkeypatch.setattr(menu, "run_planning_signal_menu", nested)
+    choices = iter(("10", "B"))
+    output = StringIO()
+    menu.run_proficiency_menu(
+        dependencies=MagicMock(),
+        action_dependencies=MagicMock(),
+        period_action_dependencies=MagicMock(),
+        navigation_context=context,
+        input_fn=lambda prompt="": next(choices),
+        output=output,
+        clear_fn=lambda: None,
+    )
+    assert len(seen) == 1
+    assert seen[0]["navigation_context"] is context
+    assert "10. Create Planning Signal (named workflows)" in output.getvalue()
+    assert "10. Advanced: Create Planning Signal" not in output.getvalue()
+    nested_source = (ROOT / "meridian/menu_planning_signal.py").read_text(
+        encoding="utf-8"
+    )
+    assert '"8. Review Planning Signal readiness by policy name"' in nested_source
+    assert '"14. Export accepted Planning Signal to Core by name"' in nested_source
+    assert '"1. Advanced: Review readiness (exact policy ID)"' in nested_source
+    assert '"7. Advanced: Export accepted signal to Core"' in nested_source

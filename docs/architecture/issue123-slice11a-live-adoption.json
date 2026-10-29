@@ -3,8 +3,8 @@
   "reviewed_head": "cf1709ba3c97b0ad51e298cbee4973ab1557b440",
   "counts": {
     "original_routes": 49,
-    "guided_live_routes": 38,
-    "advanced_live_routes": 45,
+    "guided_live_routes": 39,
+    "advanced_live_routes": 44,
     "teacher_mode_live_routes": 83,
     "guided_report_kinds_preserved": 9
   },
@@ -53,6 +53,10 @@
         "2": [
           "Review current Academic Period proficiency by name",
           "run_named_period_proficiency"
+        ],
+        "10": [
+          "Create Planning Signal (named workflows)",
+          "run_planning_signal_menu"
         ]
       },
       "advanced": {
@@ -62,8 +66,7 @@
         "6": "Select Grade Item result",
         "7": "Preview Academic Period calculation",
         "8": "Write Academic Period result",
-        "9": "Select Academic Period result",
-        "10": "Create Planning Signal"
+        "9": "Select Academic Period result"
       }
     },
     "grades": {
