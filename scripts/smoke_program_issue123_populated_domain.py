@@ -15,9 +15,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from io import StringIO
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
-import smoke_program_explanation_traces as trace_fixture
 from pds_core.academic_catalog import rebuild_academic_catalog
 from pds_core.academic_period_storage import write_academic_period_calendar
 from pds_core.academic_periods import AcademicPeriod, AcademicPeriodCalendar
@@ -65,6 +64,12 @@ from meridian.teacher_navigation_context import (
 from meridian.teacher_navigation_domain import TeacherAcademicChoiceCatalog
 from meridian.teacher_navigation_period import PeriodProficiencyChoiceCatalog
 from meridian.teacher_session import TeacherSessionContext
+
+if TYPE_CHECKING:
+    from scripts import smoke_program_explanation_traces as trace_fixture
+else:
+    import smoke_program_explanation_traces as trace_fixture
+
 
 YEAR = "2026-2027"
 PRIMARY = "synthetic_class_2026"
