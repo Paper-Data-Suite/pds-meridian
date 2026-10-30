@@ -84,7 +84,8 @@ def test_acceptance_ledger_does_not_invent_legacy_metrics_or_ci() -> None:
     assert "1,752 passed, 8 skipped" in ledger
     assert "latency_ms" in ledger and "remains null" in ledger
     assert "No numeric improvement percentage" in ledger
-    assert "No PR/CI pass" in ledger
+    assert "CI #139" in ledger
+    assert "11L CI pending" in ledger
     assert "Richer end-to-end installed-domain journey" in ledger
     assert "Measured before/after interaction baseline" in ledger
 

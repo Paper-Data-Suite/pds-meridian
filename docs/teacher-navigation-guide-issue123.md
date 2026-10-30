@@ -1,6 +1,6 @@
 # Meridian teacher navigation guide — Issue #123
 
-**Applies to:** development branch `123-teacher-first-navigation-existing-menus`, after Slice 11E (`941f268`). **Release status:** candidate, not a published release or district gradebook integration.
+**Applies to:** development branch `123-teacher-first-navigation-existing-menus`, through Slice 11K (`106c5bf`). **Release status:** candidate, not a published release or district gradebook integration.
 
 ## Open Meridian and choose a class
 
@@ -41,4 +41,4 @@ Meridian's local outputs are advisory teacher-controlled PDS results. No ordinar
 
 ## Support and limitations
 
-`T` on a selector is read-only technical detail. For established exact-record CLI commands use `meridian --help`; do not substitute teacher-facing labels for canonical IDs in automation. If current labels or supported public producer metadata are unavailable, use the displayed blocker and consult the Advanced guide rather than guessing. This guide describes the **implemented feature-branch behavior**; full Linux/Python CI, richer installed-domain journey acceptance, and final before/after interaction measurements are tracked separately in `docs/architecture/issue123-slice11f-acceptance-ledger.md`.
+`T` on a selector is read-only technical detail. For established exact-record CLI commands use `meridian --help`; do not substitute teacher-facing labels for canonical IDs in automation. If current labels or supported public producer metadata are unavailable, use the displayed blocker and consult the Advanced guide rather than guessing. This guide describes **implemented feature-branch behavior**, not evidence of complete Grade/ReportingSnapshot/export execution. The installed read-only joined journey, representative paired interaction measurements, historical Windows/Linux CI results, and open owner-acceptance conditions are distinguished in `docs/architecture/issue123-slice11f-acceptance-ledger.md`.
