@@ -1,0 +1,3430 @@
+{
+  "schema": "pds.meridian.issue123.navigation_audit.v1",
+  "baseline_commit": "0e9afa0eeb879de1741c57bff3cd9b94f79f772f",
+  "source_git_blob_shas": {
+    "meridian/menu.py": "f7e7a868fe02608c2c1f3230d3af9efc5c77922b",
+    "meridian/menu_explain.py": "ee7b28f772f14752cf10ccd295937708afbd6b36",
+    "meridian/menu_export.py": "f452c2301a05d3f99bb9738b969863dc75c08e32",
+    "meridian/menu_grade_items.py": "e3d35ba10afde2ed6ee04a2a9c9eb937f6ca60a8",
+    "meridian/menu_grades.py": "f418424434d1ec3805f32f144108cbb19817c4af",
+    "meridian/menu_overrides.py": "fb7a386e57f5e5ed2c804f66d08c0c2a5ab63edb",
+    "meridian/menu_planning_signal.py": "3db5af865984a0a57e02ce497c4c3f36e02b59d9",
+    "meridian/menu_proficiency.py": "28199e1ff30c3aa3c092f452a3385199db54cb05",
+    "meridian/menu_reports.py": "54873620cba04f8dce3a7dc1372bb65e61618844",
+    "meridian/menu_snapshots.py": "30bb5085843db26a410815e70f88d9e5216a43ad",
+    "meridian/menu_teacher_evidence.py": "ca748f6fad64a27818612b4be4e10764b990ca19",
+    "meridian/menu_teacher_grade_items.py": "36e732da0d6bb6d5eb594e0057aade5df760fd91",
+    "meridian/menu_teacher_proficiency.py": "fb02a8f47d72cda29c460b2fa2c63a29eb95544e",
+    "meridian/report_guided_selection.py": "5e01c2f2731578860e16e254e207a1998c48abc1",
+    "meridian/report_live_catalog.py": "b8dd2fb202a61fb5373b4a55c92c424753b74ce0",
+    "meridian/teacher_session.py": "531d93883de44b0ed7bf5cb7aad22040ec6dcb64",
+    "tests/test_issue110_teacher_interface_contract.py": "d521bf229f0f47ba0d42e62d9657aa0fe9b94710"
+  },
+  "route_count": 49,
+  "routes": [
+    {
+      "area": "grade_items",
+      "option": "1",
+      "title": "Review Grade Items",
+      "handler": "_review_grade_items",
+      "disposition": "routine",
+      "slice": 4
+    },
+    {
+      "area": "grade_items",
+      "option": "2",
+      "title": "Review one Grade Item and work relationships",
+      "handler": "_review_one_grade_item",
+      "disposition": "routine",
+      "slice": 4
+    },
+    {
+      "area": "grade_items",
+      "option": "3",
+      "title": "Author Grade Item revision",
+      "handler": "_author_grade_item",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "grade_items",
+      "option": "4",
+      "title": "Select Grade Item revision",
+      "handler": "_select_grade_item",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "grade_items",
+      "option": "5",
+      "title": "Author work membership revision",
+      "handler": "_author_membership",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "grade_items",
+      "option": "6",
+      "title": "Select work membership revision",
+      "handler": "_select_membership",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "1",
+      "title": "Review current Grade Item proficiency",
+      "handler": "_review_grade_item",
+      "disposition": "routine",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "2",
+      "title": "Review current Academic Period proficiency",
+      "handler": "_review_academic_period",
+      "disposition": "routine",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "3",
+      "title": "Review planning-signal readiness",
+      "handler": "_review_planning",
+      "disposition": "routine",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "4",
+      "title": "Preview Grade Item proficiency calculation",
+      "handler": "_preview_grade_item_calculation",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "5",
+      "title": "Write Grade Item proficiency result",
+      "handler": "_write_grade_item_result",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "6",
+      "title": "Select Grade Item proficiency result",
+      "handler": "_select_grade_item_result",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "7",
+      "title": "Preview Academic Period proficiency calculation",
+      "handler": "_preview_academic_period_calculation",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "8",
+      "title": "Write Academic Period proficiency result",
+      "handler": "_write_academic_period_result",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "9",
+      "title": "Select Academic Period proficiency result",
+      "handler": "_select_academic_period_result",
+      "disposition": "advanced",
+      "slice": 4
+    },
+    {
+      "area": "proficiency",
+      "option": "10",
+      "title": "Create Planning Signal (nested submenu)",
+      "handler": "run_planning_signal_menu",
+      "disposition": "routine",
+      "slice": 7
+    },
+    {
+      "area": "grades",
+      "option": "1",
+      "title": "Preview one current Grade",
+      "handler": "_show_current",
+      "disposition": "routine",
+      "slice": 5
+    },
+    {
+      "area": "grades",
+      "option": "2",
+      "title": "Preview a bounded Grade report",
+      "handler": "_show_report",
+      "disposition": "routine",
+      "slice": 5
+    },
+    {
+      "area": "overrides",
+      "option": "1",
+      "title": "Review current override",
+      "handler": "_review_current",
+      "disposition": "routine",
+      "slice": 5
+    },
+    {
+      "area": "overrides",
+      "option": "2",
+      "title": "Author a new override revision",
+      "handler": "_author_override",
+      "disposition": "routine",
+      "slice": 5
+    },
+    {
+      "area": "overrides",
+      "option": "3",
+      "title": "Select the latest authored override",
+      "handler": "_select_latest",
+      "disposition": "routine",
+      "slice": 5
+    },
+    {
+      "area": "overrides",
+      "option": "4",
+      "title": "Withdraw the current override",
+      "handler": "_withdraw_override",
+      "disposition": "routine",
+      "slice": 5
+    },
+    {
+      "area": "snapshots",
+      "option": "1",
+      "title": "List frozen ReportingSnapshots",
+      "handler": "_list",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "snapshots",
+      "option": "2",
+      "title": "Inspect a ReportingSnapshot",
+      "handler": "_inspect",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "snapshots",
+      "option": "3",
+      "title": "Show current reporting-use selection",
+      "handler": "_show_current",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "snapshots",
+      "option": "4",
+      "title": "Select an existing ReportingSnapshot",
+      "handler": "_select",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "snapshots",
+      "option": "5",
+      "title": "Author a Reporting Definition revision",
+      "handler": "_author_definition",
+      "disposition": "advanced",
+      "slice": 6
+    },
+    {
+      "area": "snapshots",
+      "option": "6",
+      "title": "Freeze a ReportingSnapshot",
+      "handler": "_freeze_snapshot",
+      "disposition": "advanced-json",
+      "slice": 6
+    },
+    {
+      "area": "export",
+      "option": "1",
+      "title": "List Export Profiles",
+      "handler": "_profiles",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "export",
+      "option": "2",
+      "title": "Inspect current Export Profile",
+      "handler": "_inspect_profile",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "export",
+      "option": "3",
+      "title": "Author Export Profile revision",
+      "handler": "_author_profile",
+      "disposition": "advanced",
+      "slice": 6
+    },
+    {
+      "area": "export",
+      "option": "4",
+      "title": "Select latest Export Profile revision",
+      "handler": "_select_profile_latest",
+      "disposition": "advanced",
+      "slice": 6
+    },
+    {
+      "area": "export",
+      "option": "5",
+      "title": "Preview and export a ReportingSnapshot",
+      "handler": "_prepare_export",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "export",
+      "option": "6",
+      "title": "Review ExportReceipts",
+      "handler": "_receipts",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "1",
+      "title": "Current Grade",
+      "handler": "_run_current",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "2",
+      "title": "Prior / current Grade comparison",
+      "handler": "_run_comparison",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "3",
+      "title": "Grade Item proficiency",
+      "handler": "_run_grade_item",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "4",
+      "title": "Academic Period proficiency",
+      "handler": "_run_academic_period",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "5",
+      "title": "Planning derivation",
+      "handler": "_run_two_id",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "6",
+      "title": "Planning preview / review",
+      "handler": "_run_two_id",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "7",
+      "title": "Planning export",
+      "handler": "_run_two_id",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "explain",
+      "option": "8",
+      "title": "ExportReceipt provenance",
+      "handler": "_run_two_id",
+      "disposition": "routine",
+      "slice": 6
+    },
+    {
+      "area": "planning_signal",
+      "option": "1",
+      "title": "Review readiness",
+      "handler": "_review_readiness",
+      "disposition": "routine",
+      "slice": 7
+    },
+    {
+      "area": "planning_signal",
+      "option": "2",
+      "title": "Write exact derivation",
+      "handler": "_write_derivation",
+      "disposition": "advanced",
+      "slice": 7
+    },
+    {
+      "area": "planning_signal",
+      "option": "3",
+      "title": "Write planning preview",
+      "handler": "_write_preview",
+      "disposition": "advanced",
+      "slice": 7
+    },
+    {
+      "area": "planning_signal",
+      "option": "4",
+      "title": "Review preview and diagnostics",
+      "handler": "_review_diagnostics",
+      "disposition": "routine",
+      "slice": 7
+    },
+    {
+      "area": "planning_signal",
+      "option": "5",
+      "title": "Write teacher review",
+      "handler": "_write_review",
+      "disposition": "routine",
+      "slice": 7
+    },
+    {
+      "area": "planning_signal",
+      "option": "6",
+      "title": "Select teacher review",
+      "handler": "_select_review",
+      "disposition": "routine",
+      "slice": 7
+    },
+    {
+      "area": "planning_signal",
+      "option": "7",
+      "title": "Export accepted signal to Core",
+      "handler": "_export_signal",
+      "disposition": "routine",
+      "slice": 7
+    }
+  ],
+  "guided_report_kinds": [
+    "sis_gradebook_reconciliation",
+    "student_current_grade_justification",
+    "class_standards_profile",
+    "student_proficiency_growth",
+    "evidence_coverage",
+    "grade_checkpoint_comparison",
+    "marking_period_readiness",
+    "assessment_impact",
+    "benchmark_analysis_instructional_response"
+  ],
+  "main_menu_task_count": 9,
+  "planning_signal_entry": "Review Proficiency > 10. Create Planning Signal",
+  "prompt_scan": {
+    "rules": "AST Call nodes of read_choice or input_fn; includes dynamic prompts and branch alternatives; excludes runtime repetition",
+    "per_legacy_controller": {
+      "grade_items": {
+        "operations": 6,
+        "prompt_call_sites": 38,
+        "literal_raw_identifier_sites": 22,
+        "dynamic_prompt_sites": 2
+      },
+      "proficiency": {
+        "operations": 10,
+        "prompt_call_sites": 74,
+        "literal_raw_identifier_sites": 58,
+        "dynamic_prompt_sites": 4
+      },
+      "grades": {
+        "operations": 2,
+        "prompt_call_sites": 10,
+        "literal_raw_identifier_sites": 5,
+        "dynamic_prompt_sites": 3
+      },
+      "overrides": {
+        "operations": 4,
+        "prompt_call_sites": 17,
+        "literal_raw_identifier_sites": 6,
+        "dynamic_prompt_sites": 2
+      },
+      "snapshots": {
+        "operations": 6,
+        "prompt_call_sites": 29,
+        "literal_raw_identifier_sites": 17,
+        "dynamic_prompt_sites": 2
+      },
+      "export": {
+        "operations": 6,
+        "prompt_call_sites": 35,
+        "literal_raw_identifier_sites": 17,
+        "dynamic_prompt_sites": 4
+      },
+      "explain": {
+        "operations": 8,
+        "prompt_call_sites": 22,
+        "literal_raw_identifier_sites": 16,
+        "dynamic_prompt_sites": 3
+      },
+      "planning_signal": {
+        "operations": 7,
+        "prompt_call_sites": 19,
+        "literal_raw_identifier_sites": 10,
+        "dynamic_prompt_sites": 1
+      }
+    },
+    "all_scanned_sites": 293,
+    "all_literal_raw_identifier_sites": 151,
+    "all_dynamic_prompt_sites": 44,
+    "sites": [
+      {
+        "path": "meridian/menu.py",
+        "function": "run_menu",
+        "line": 348,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_show",
+        "line": 798,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_grade_scope",
+        "line": 818,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_grade_scope",
+        "line": 819,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_grade_scope",
+        "line": 820,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_grade_scope",
+        "line": 822,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Calendar revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_grade_scope",
+        "line": 828,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Calculation family: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_current",
+        "line": 848,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_comparison",
+        "line": 879,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_comparison",
+        "line": 880,
+        "column": 22,
+        "callee": "read_choice",
+        "prompt": "ReportingSnapshot ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_comparison",
+        "line": 881,
+        "column": 26,
+        "callee": "read_choice",
+        "prompt": "ReportingSnapshot sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_grade_item",
+        "line": 914,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_grade_item",
+        "line": 915,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_grade_item",
+        "line": 916,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_grade_item",
+        "line": 917,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_academic_period",
+        "line": 941,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_academic_period",
+        "line": 942,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_academic_period",
+        "line": 943,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_academic_period",
+        "line": 944,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_academic_period",
+        "line": 945,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_two_id",
+        "line": 973,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "_run_two_id",
+        "line": 974,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_explain.py",
+        "function": "run_explain_menu",
+        "line": 1015,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_profiles",
+        "line": 569,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_inspect_profile",
+        "line": 602,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_inspect_profile",
+        "line": 603,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Export Profile ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_inspect_profile",
+        "line": 622,
+        "column": 13,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 642,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 643,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Profile ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 644,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Profile title: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 645,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": "Purpose: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 652,
+        "column": 27,
+        "callee": "read_choice",
+        "prompt": "Columns: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 653,
+        "column": 22,
+        "callee": "read_choice",
+        "prompt": "Format (csv/tsv): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 655,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Include header? (yes/no): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 658,
+        "column": 22,
+        "callee": "read_choice",
+        "prompt": "Line ending (lf/crlf): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 660,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "UTF-8 BOM? (yes/no): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 663,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 664,
+        "column": 25,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_author_profile",
+        "line": 703,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_select_profile_latest",
+        "line": 730,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_select_profile_latest",
+        "line": 731,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Export Profile ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_select_profile_latest",
+        "line": 732,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_select_profile_latest",
+        "line": 733,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_select_profile_latest",
+        "line": 762,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 790,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 791,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Selected Export Profile ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 792,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "ReportingSnapshot ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 793,
+        "column": 22,
+        "callee": "read_choice",
+        "prompt": "ReportingSnapshot sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 843,
+        "column": 13,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 852,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Export ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 853,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 854,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 857,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Destination file path: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_prepare_export",
+        "line": 867,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_receipts",
+        "line": 926,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_receipts",
+        "line": 940,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Export ID to inspect (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "_receipts",
+        "line": 978,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_export.py",
+        "function": "run_export_menu",
+        "line": 1011,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_show_review",
+        "line": 332,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_review_grade_items",
+        "line": 355,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (leave blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_weighting",
+        "line": 440,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Add reserved weighting metadata? (yes/no): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_weighting",
+        "line": 453,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Weighting action: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_weighting",
+        "line": 465,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Weighting category ID (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_weighting",
+        "line": 466,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Relative weight (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_review_one_grade_item",
+        "line": 507,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_review_one_grade_item",
+        "line": 508,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 585,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 586,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 592,
+        "column": 31,
+        "callee": "read_choice",
+        "prompt": "Operation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 593,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 597,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Title: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 602,
+        "column": 31,
+        "callee": "read_choice",
+        "prompt": "Purpose: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_grade_item",
+        "line": 645,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_grade_item",
+        "line": 683,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_grade_item",
+        "line": 684,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_grade_item",
+        "line": 687,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Revision to select: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_grade_item",
+        "line": 722,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_work_ref",
+        "line": 749,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Producer module ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_work_ref",
+        "line": 750,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": "Work ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 768,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 769,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 774,
+        "column": 42,
+        "callee": "read_choice",
+        "prompt": "Operation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 776,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Current Grade Item revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 780,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Core registration revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 785,
+        "column": 40,
+        "callee": "read_choice",
+        "prompt": "Decision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 788,
+        "column": 26,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 789,
+        "column": 24,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 791,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Calendar revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 798,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 799,
+        "column": 25,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_author_membership",
+        "line": 852,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_membership",
+        "line": 886,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_membership",
+        "line": 887,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_membership",
+        "line": 891,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Membership revision to select: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "_select_membership",
+        "line": 931,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grade_items.py",
+        "function": "run_grade_items_menu",
+        "line": 985,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_period_scope",
+        "line": 504,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_period_scope",
+        "line": 505,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_period_scope",
+        "line": 506,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_period_scope",
+        "line": 508,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Calendar revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_period_scope",
+        "line": 513,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Calculation family: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_show_current",
+        "line": 538,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_show_current",
+        "line": 571,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_show_report",
+        "line": 599,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Student IDs, comma-separated: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "_show_report",
+        "line": 633,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_grades.py",
+        "function": "run_grade_preview_menu",
+        "line": 666,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_scope",
+        "line": 437,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_scope",
+        "line": 438,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_scope",
+        "line": 439,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_scope",
+        "line": 440,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_scope",
+        "line": 442,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Calendar revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_scope",
+        "line": 451,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Calculation family: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_review_current",
+        "line": 541,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_author_override",
+        "line": 567,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Replacement Grade: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_author_override",
+        "line": 569,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_author_override",
+        "line": 570,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Rationale: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_author_override",
+        "line": 610,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_select_latest",
+        "line": 687,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_withdraw_override",
+        "line": 725,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_withdraw_override",
+        "line": 726,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Withdrawal rationale: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_withdraw_override",
+        "line": 765,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "_withdraw_override",
+        "line": 815,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_overrides.py",
+        "function": "run_overrides_menu",
+        "line": 867,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_scope",
+        "line": 244,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_scope",
+        "line": 249,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Grouping-signal policy ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_preview_scope",
+        "line": 262,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Planning preview ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_preview_scope",
+        "line": 263,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Planning preview sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_derivation",
+        "line": 374,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_preview",
+        "line": 409,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Persisted derivation ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_preview",
+        "line": 410,
+        "column": 24,
+        "callee": "read_choice",
+        "prompt": "Persisted derivation sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_preview",
+        "line": 441,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_review",
+        "line": 587,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Review decision (accept/reject): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_review",
+        "line": 603,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Acknowledge all listed warnings? (yes/no): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_review",
+        "line": 612,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_write_review",
+        "line": 657,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_select_review",
+        "line": 698,
+        "column": 23,
+        "callee": "read_choice",
+        "prompt": "Review revision to select: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_select_review",
+        "line": 701,
+        "column": 24,
+        "callee": "read_choice",
+        "prompt": "Review sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_select_review",
+        "line": 744,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_export_signal",
+        "line": 786,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Core signal-set ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_export_signal",
+        "line": 787,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Optional CSV destination (blank for no CSV): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "_export_signal",
+        "line": 831,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_planning_signal.py",
+        "function": "run_planning_signal_menu",
+        "line": 896,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_grade_item",
+        "line": 772,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_grade_item",
+        "line": 777,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_grade_item",
+        "line": 778,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_grade_item",
+        "line": 779,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_grade_item",
+        "line": 802,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_academic_period",
+        "line": 825,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_academic_period",
+        "line": 830,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_academic_period",
+        "line": 831,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_academic_period",
+        "line": 832,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_academic_period",
+        "line": 833,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_academic_period",
+        "line": 857,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_planning",
+        "line": 880,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_planning",
+        "line": 885,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Grouping-signal policy ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_review_planning",
+        "line": 906,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_mapping_profile",
+        "line": 955,
+        "column": 13,
+        "callee": "read_choice",
+        "prompt": "Use an exact mapping profile for this binding? (yes/no): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_mapping_profile",
+        "line": 963,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Mapping-profile scale ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_mapping_profile",
+        "line": 964,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Mapping-profile ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_mapping_profile",
+        "line": 966,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Mapping-profile revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_mapping_profile",
+        "line": 969,
+        "column": 13,
+        "callee": "read_choice",
+        "prompt": "Mapping-profile sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 990,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 995,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 996,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 997,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 999,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Target proficiency scale ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1001,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Target scale revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1004,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Target scale sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1012,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Calculation policy ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1014,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Calculation policy revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1017,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Calculation policy sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1025,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Authorization purpose ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1027,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Authorization Student IDs, comma-separated (blank for target student): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1036,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Number of explicit evidence bindings: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1042,
+        "column": 25,
+        "callee": "read_choice",
+        "prompt": "Publication ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1043,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Projection cache key: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_calculation_request",
+        "line": 1044,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Evidence item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_write_grade_item_result",
+        "line": 1196,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_write_grade_item_result",
+        "line": 1258,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_grade_item_result",
+        "line": 1296,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_grade_item_result",
+        "line": 1301,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_grade_item_result",
+        "line": 1302,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_grade_item_result",
+        "line": 1303,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_grade_item_result",
+        "line": 1306,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Result revision to select: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_grade_item_result",
+        "line": 1359,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1404,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1409,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1410,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1412,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Academic Period calendar revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1415,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1416,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1418,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period proficiency policy ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1420,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Policy revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1423,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Policy sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1440,
+        "column": 8,
+        "callee": "read_choice",
+        "prompt": "Number of explicit Grade Item candidates: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1446,
+        "column": 24,
+        "callee": "read_choice",
+        "prompt": "Grade Item ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1448,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Grade Item revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1451,
+        "column": 28,
+        "callee": "read_choice",
+        "prompt": "Grade Item revision sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1454,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Number of exact membership bindings: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1467,
+        "column": 24,
+        "callee": "read_choice",
+        "prompt": "Work module ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1468,
+        "column": 22,
+        "callee": "read_choice",
+        "prompt": "Work ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1470,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Membership revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1473,
+        "column": 32,
+        "callee": "read_choice",
+        "prompt": "Membership revision sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1490,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Bind an exact Grade Item proficiency result? (yes/no): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1500,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Grade Item proficiency result revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_academic_period_calculation_request",
+        "line": 1503,
+        "column": 28,
+        "callee": "read_choice",
+        "prompt": "Grade Item proficiency result sha256: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_write_academic_period_result",
+        "line": 1644,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_write_academic_period_result",
+        "line": 1696,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1738,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID (blank to cancel): ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1743,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1744,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1745,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": "Student ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1746,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Standard ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1749,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Result revision to select: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "_select_academic_period_result",
+        "line": 1803,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_proficiency.py",
+        "function": "run_proficiency_menu",
+        "line": 1873,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_show_preview",
+        "line": 116,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_show_preview",
+        "line": 162,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to the preview...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_save_copy",
+        "line": 183,
+        "column": 20,
+        "callee": "input_fn",
+        "prompt": "Format (markdown/csv/tsv/json, or B): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_save_copy",
+        "line": 193,
+        "column": 8,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to the preview...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_save_copy",
+        "line": 195,
+        "column": 18,
+        "callee": "input_fn",
+        "prompt": "Full path for this local teacher copy (existing files are not replaced): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_save_copy",
+        "line": 211,
+        "column": 8,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to the preview...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_save_copy",
+        "line": 217,
+        "column": 4,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to the preview...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_report_detail",
+        "line": 263,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_report_detail",
+        "line": 276,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_report_detail",
+        "line": 288,
+        "column": 16,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_report_detail",
+        "line": 313,
+        "column": 27,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_report_detail",
+        "line": 319,
+        "column": 16,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "_report_detail",
+        "line": 331,
+        "column": 16,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_reports.py",
+        "function": "run_reports_menu",
+        "line": 386,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_list",
+        "line": 566,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_inspect",
+        "line": 611,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_inspect",
+        "line": 612,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Snapshot ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_inspect",
+        "line": 654,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_show_current",
+        "line": 687,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_show_current",
+        "line": 688,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Reporting definition ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_show_current",
+        "line": 689,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_show_current",
+        "line": 690,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_show_current",
+        "line": 693,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Calendar revision: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_select",
+        "line": 746,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_select",
+        "line": 747,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Snapshot ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_select",
+        "line": 748,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_select",
+        "line": 749,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_select",
+        "line": 792,
+        "column": 19,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 836,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Class ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 837,
+        "column": 20,
+        "callee": "read_choice",
+        "prompt": "Reporting definition ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 838,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Report title: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 839,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": "Report purpose: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 840,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "School year (YYYY-YYYY): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 841,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Academic Period ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 842,
+        "column": 15,
+        "callee": "read_choice",
+        "prompt": "Teacher actor ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 843,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_author_definition",
+        "line": 883,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_freeze_snapshot",
+        "line": 927,
+        "column": 24,
+        "callee": "read_choice",
+        "prompt": "Build-request JSON path: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_freeze_snapshot",
+        "line": 928,
+        "column": 18,
+        "callee": "read_choice",
+        "prompt": "Snapshot ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_freeze_snapshot",
+        "line": 944,
+        "column": 25,
+        "callee": "read_choice",
+        "prompt": "Authorization purpose ID: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_freeze_snapshot",
+        "line": 949,
+        "column": 16,
+        "callee": "read_choice",
+        "prompt": "Authorized Student IDs, comma-separated: ",
+        "dynamic_prompt": false,
+        "raw_id_like": true
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "_freeze_snapshot",
+        "line": 1002,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": "Confirmation: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_snapshots.py",
+        "function": "run_snapshots_menu",
+        "line": 1061,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_run_catalog_recovery",
+        "line": 181,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_show_blocked_item",
+        "line": 576,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_show_review_item",
+        "line": 797,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_run_evidence_rows",
+        "line": 910,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_run_student_review",
+        "line": 961,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_run_teacher_evidence_review",
+        "line": 1030,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_show_projection_failure",
+        "line": 1121,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "_run_class_evidence_menu",
+        "line": 1156,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "run_teacher_evidence_inbox_menu",
+        "line": 1281,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_evidence.py",
+        "function": "run_teacher_evidence_inbox_menu",
+        "line": 1299,
+        "column": 17,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "_choose_period",
+        "line": 92,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "_choose_purpose",
+        "line": 126,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "_choose_existing_or_new",
+        "line": 161,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "_create_grade_item",
+        "line": 192,
+        "column": 12,
+        "callee": "read_choice",
+        "prompt": "Grade Item title: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "_review_apply",
+        "line": 346,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "_review_apply",
+        "line": 362,
+        "column": 11,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "run_grade_item_bridge",
+        "line": 418,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": "Teacher name for attribution: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_grade_items.py",
+        "function": "run_grade_item_bridge",
+        "line": 464,
+        "column": 21,
+        "callee": "read_choice",
+        "prompt": "Rationale (optional): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_proficiency.py",
+        "function": "_choose_policy",
+        "line": 99,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_proficiency.py",
+        "function": "_choose_mapping",
+        "line": 135,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_proficiency.py",
+        "function": "run_guided_proficiency_menu",
+        "line": 323,
+        "column": 7,
+        "callee": "read_choice",
+        "prompt": null,
+        "dynamic_prompt": true,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/menu_teacher_proficiency.py",
+        "function": "run_guided_proficiency_menu",
+        "line": 326,
+        "column": 14,
+        "callee": "read_choice",
+        "prompt": "Teacher name for attribution: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 234,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 239,
+        "column": 27,
+        "callee": "input_fn",
+        "prompt": "Mapping profile file (B to go back, M for main menu, Q to quit): ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 260,
+        "column": 20,
+        "callee": "input_fn",
+        "prompt": "Press Enter to try again...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 267,
+        "column": 20,
+        "callee": "input_fn",
+        "prompt": "Press Enter to try again...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 277,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 291,
+        "column": 17,
+        "callee": "input_fn",
+        "prompt": "Choice: ",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 300,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to try again...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 305,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to try again...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 312,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 316,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to try again...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 328,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      },
+      {
+        "path": "meridian/report_guided_selection.py",
+        "function": "collect_guided_report_selection",
+        "line": 333,
+        "column": 12,
+        "callee": "input_fn",
+        "prompt": "Press Enter to return to this report...",
+        "dynamic_prompt": false,
+        "raw_id_like": false
+      }
+    ]
+  },
+  "separate_issue110_legacy_quarantine": {
+    "expected_count": 188,
+    "expected_sha256": "2639c4eeb08692c4a7286eab52156a720496bd7552f28575c72c9cd2dfa5ae55",
+    "scope": "all meridian/menu*.py, with two exact issue121 Advanced identity exemptions"
+  },
+  "constraints": [
+    "No academic writes, report execution, authorization, producer reads, or live workspace scans in Slice 1",
+    "AST prompt counts are static sites, not measured live keyboard presses",
+    "Do not treat menu labels or session preferences as canonical authority",
+    "Existing Advanced candidates are not yet hidden or migrated by Slice 1"
+  ]
+}

@@ -17,6 +17,18 @@ from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 from meridian.conventional_grade_assembly import ConventionalGradeWorkEvidenceSpec
 from meridian.grade_policy import GradeCalculationFamily
 from meridian.menu_grades import WorkEvidenceProvider
+from meridian.menu_teacher_named_override_authoring import (
+    run_named_override_authoring,
+)
+from meridian.menu_teacher_named_override_review import (
+    run_named_current_override_review,
+)
+from meridian.menu_teacher_named_override_selection import (
+    run_named_latest_override_selection,
+)
+from meridian.menu_teacher_named_override_withdrawal import (
+    run_named_override_withdrawal,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -47,6 +59,7 @@ from meridian.teacher_grade_override_workflow import (
     commit_teacher_grade_override_authoring_preview,
     preview_teacher_grade_override_authoring,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -314,15 +327,9 @@ def _preview_selection(
         target_revision=preview.target_reference.override_revision,
         target_sha256=preview.target_reference.override_sha256,
         target_decision=preview.target_decision.decision,
-        replacement_grade=_decimal_text(
-            preview.target_decision.replacement_grade
-        ),
-        current_revision=(
-            None if current is None else current.override_revision
-        ),
-        current_sha256=(
-            None if current is None else current.override_sha256
-        ),
+        replacement_grade=_decimal_text(preview.target_decision.replacement_grade),
+        current_revision=(None if current is None else current.override_revision),
+        current_sha256=(None if current is None else current.override_sha256),
         preview=preview,
     )
 
@@ -438,9 +445,7 @@ def _scope(input_fn: InputFunction, output: TextIO) -> OverrideScope:
     student_id = read_choice(input_fn, "Student ID: ")
     school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
     period_id = read_choice(input_fn, "Academic Period ID: ")
-    calendar_revision = _positive_int(
-        read_choice(input_fn, "Calendar revision: ")
-    )
+    calendar_revision = _positive_int(read_choice(input_fn, "Calendar revision: "))
     write_lines(
         output,
         "",
@@ -563,9 +568,7 @@ def _author_override(
     print_menu_header(output, "Author Grade Override")
     try:
         scope = _scope(input_fn, output)
-        replacement = Decimal(
-            read_choice(input_fn, "Replacement Grade: ")
-        )
+        replacement = Decimal(read_choice(input_fn, "Replacement Grade: "))
         actor_id = read_choice(input_fn, "Teacher actor ID: ")
         rationale = read_choice(input_fn, "Rationale: ")
         plan = deps.authoring_previewer(
@@ -673,14 +676,8 @@ def _select_latest(
         f"Decision: {plan.target_decision}",
         f"Target revision: {plan.target_revision}",
         f"Target sha256: {plan.target_sha256}",
-        (
-            "Replacement Grade: "
-            f"{plan.replacement_grade or 'not applicable'}"
-        ),
-        (
-            "Currently selected revision: "
-            f"{plan.current_revision or 'none'}"
-        ),
+        (f"Replacement Grade: {plan.replacement_grade or 'not applicable'}"),
+        (f"Currently selected revision: {plan.current_revision or 'none'}"),
         "",
         "Type SELECT to make this exact revision current.",
     )
@@ -846,6 +843,7 @@ def _withdraw_override(
 def run_overrides_menu(
     *,
     dependencies: OverrideMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -855,20 +853,83 @@ def run_overrides_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Overrides")
-        write_lines(
-            stream,
-            "1. Review current override",
-            "2. Author a new override revision",
-            "3. Select the latest authored override",
-            "4. Withdraw the current override",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review current override by student and marking period",
+                "2. Advanced: Author a new override revision",
+                "3. Advanced: Select the latest authored override",
+                "4. Advanced: Withdraw the current override",
+                "5. Advanced: Review current override (exact records)",
+                "6. Use the latest authored override decision by student",
+                "7. Record a replacement Grade decision by student",
+                "8. Record withdrawal of a selected replacement by student",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review current override",
+                "2. Author a new override revision",
+                "3. Select the latest authored override",
+                "4. Withdraw the current override",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_current_override_review(
+                    navigation=navigation_context,
+                    review_loader=deps.review_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
+            _review_current(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "8" and navigation_context is not None:
+            run_named_override_withdrawal(
+                navigation=navigation_context,
+                withdrawal_previewer=deps.withdrawal_previewer,
+                withdrawal_committer=deps.withdrawal_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "7" and navigation_context is not None:
+            run_named_override_authoring(
+                navigation=navigation_context,
+                authoring_previewer=deps.authoring_previewer,
+                authoring_committer=deps.authoring_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "6" and navigation_context is not None:
+            run_named_latest_override_selection(
+                navigation=navigation_context,
+                selection_previewer=deps.selection_previewer,
+                selection_committer=deps.selection_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "5" and navigation_context is not None:
             _review_current(
                 deps=deps,
                 input_fn=input_fn,
@@ -900,5 +961,8 @@ def run_overrides_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
         pause_for_user(input_fn)

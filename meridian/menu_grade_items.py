@@ -57,6 +57,14 @@ from meridian.grade_items_workflow import (
     GradeItemsWorkflowError,
     project_grade_items_review,
 )
+from meridian.menu_teacher_named_membership_selection import (
+    run_named_membership_revision_selection,
+)
+from meridian.menu_teacher_named_review import run_named_grade_item_review
+from meridian.menu_teacher_named_revision import (
+    run_named_grade_item_revision_selection,
+)
+from meridian.menu_teacher_named_work import run_named_work_membership_review
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -67,6 +75,8 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
+from meridian.teacher_navigation_domain import TeacherAcademicChoiceCatalog
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 GradeItemsReviewLoader: TypeAlias = Callable[[Path, str], GradeItemsReview]
@@ -290,9 +300,7 @@ def _render_technical(output: TextIO, review: GradeItemsReview) -> None:
         return
     for row in review.items:
         selected = (
-            row.selected_revision
-            if row.selected_revision is not None
-            else "none"
+            row.selected_revision if row.selected_revision is not None else "none"
         )
         print(
             f"{row.grade_item_id}: selected={selected}; "
@@ -387,7 +395,6 @@ def _review_grade_items(
         output=output,
         clear_fn=clear_fn,
     )
-
 
 
 def _positive_int(value: str, label: str) -> int:
@@ -511,9 +518,7 @@ def _review_one_grade_item(
             dependencies.workspace_resolver(),
             class_id,
         )
-        row = next(
-            item for item in review.items if item.grade_item_id == grade_item_id
-        )
+        row = next(item for item in review.items if item.grade_item_id == grade_item_id)
     except StopIteration:
         write_lines(output, "", "That Grade Item is not present in the class review.")
         pause_for_user(input_fn)
@@ -959,6 +964,7 @@ def run_grade_items_menu(
     *,
     dependencies: GradeItemsMenuDependencies | None = None,
     write_dependencies: GradeItemsWriteDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -971,22 +977,47 @@ def run_grade_items_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Manage Grade Items")
-        write_lines(
-            stream,
-            "1. Review Grade Items",
-            "2. Review one Grade Item and work relationships",
-            "3. Author Grade Item revision",
-            "4. Select Grade Item revision",
-            "5. Author work membership revision",
-            "6. Select work membership revision",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review Grade Items by name",
+                "2. Review Grade Item and relationships by name",
+                "3. Advanced: Author Grade Item revision (exact records)",
+                "4. Advanced: Select Grade Item revision",
+                "5. Advanced: Author work membership revision",
+                "6. Advanced: Select work membership revision",
+                "7. Explore registered work and Grade Item relationships",
+                "8. Use an existing Grade Item version",
+                "9. Use an existing work membership decision",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review Grade Items",
+                "2. Review one Grade Item and work relationships",
+                "3. Author Grade Item revision",
+                "4. Select Grade Item revision",
+                "5. Author work membership revision",
+                "6. Select work membership revision",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_grade_item_review(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    review_loader=active.review_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_grade_items(
                 dependencies=active,
                 input_fn=input_fn,
@@ -995,6 +1026,16 @@ def run_grade_items_menu(
             )
             continue
         if choice == "2":
+            if navigation_context is not None:
+                run_named_grade_item_review(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    review_loader=active.review_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_one_grade_item(
                 dependencies=active,
                 input_fn=input_fn,
@@ -1038,5 +1079,39 @@ def run_grade_items_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
+        if choice == "7" and navigation_context is not None:
+            run_named_work_membership_review(
+                navigation=navigation_context,
+                review_loader=active.review_loader,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "8" and navigation_context is not None:
+            run_named_grade_item_revision_selection(
+                navigation=navigation_context,
+                review_loader=active.review_loader,
+                previewer=writes.selection_previewer,
+                committer=writes.selection_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "9" and navigation_context is not None:
+            run_named_membership_revision_selection(
+                navigation=navigation_context,
+                review_loader=active.review_loader,
+                previewer=writes.membership_selection_previewer,
+                committer=writes.membership_selection_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)

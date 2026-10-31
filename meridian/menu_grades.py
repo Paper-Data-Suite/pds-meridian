@@ -24,6 +24,10 @@ from meridian.grade_report_preview import (
     GradeReportPreviewRequest,
     explain_grade_report_preview,
 )
+from meridian.menu_teacher_named_grade_report import (
+    run_named_grade_report_review,
+)
+from meridian.menu_teacher_named_grades import run_named_current_grade_review
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -34,6 +38,7 @@ from meridian.menu_ui import (
     read_choice,
     write_lines,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 WorkEvidenceProvider: TypeAlias = Callable[
@@ -172,14 +177,10 @@ def _presentation(common: GradePreviewExplanation) -> GradePreviewPresentation:
         activation_revision=activation.activation_revision,
         activation_sha256=activation.activation_sha256,
         override_revision=(
-            override.reference.override_revision
-            if override is not None
-            else None
+            override.reference.override_revision if override is not None else None
         ),
         override_sha256=(
-            override.reference.override_sha256
-            if override is not None
-            else None
+            override.reference.override_sha256 if override is not None else None
         ),
     )
 
@@ -288,9 +289,7 @@ def _load_report(
                 student_id=row.target.student_id,
                 status=row.status,
                 unavailable_reason=row.unavailable_reason,
-                base_status=(
-                    common.base_result_status if common is not None else None
-                ),
+                base_status=(common.base_result_status if common is not None else None),
                 freshness_status=(
                     common.base_freshness_status if common is not None else None
                 ),
@@ -462,8 +461,7 @@ def _render_report(output: TextIO, value: GradeReportPresentation) -> None:
             detail = (row.unavailable_reason or "unavailable").replace("_", " ")
         else:
             detail = (
-                f"{_grade_text(row.effective_grade)} "
-                f"({row.effective_source or 'none'})"
+                f"{_grade_text(row.effective_grade)} ({row.effective_source or 'none'})"
             )
             if row.freshness_status == "stale":
                 detail += " — stale"
@@ -504,9 +502,7 @@ def _period_scope(
     class_id = read_choice(input_fn, "Class ID: ")
     school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
     period_id = read_choice(input_fn, "Academic Period ID: ")
-    calendar_revision = _positive_int(
-        read_choice(input_fn, "Calendar revision: ")
-    )
+    calendar_revision = _positive_int(read_choice(input_fn, "Calendar revision: "))
     print("1. Conventional")
     print("2. Standards based")
     print("3. Hybrid")
@@ -532,9 +528,7 @@ def _show_current(
     clear_fn()
     print_menu_header(output, "Preview Current Grade")
     try:
-        class_id, _year, period, calendar_revision, family = _period_scope(
-            input_fn
-        )
+        class_id, _year, period, calendar_revision, family = _period_scope(input_fn)
         student_id = read_choice(input_fn, "Student ID: ")
         value = deps.current_grade_loader(
             deps.workspace_resolver(),
@@ -592,9 +586,7 @@ def _show_report(
     clear_fn()
     print_menu_header(output, "Preview Grade Report")
     try:
-        class_id, _year, period, calendar_revision, family = _period_scope(
-            input_fn
-        )
+        class_id, _year, period, calendar_revision, family = _period_scope(input_fn)
         student_ids = _student_ids(
             read_choice(input_fn, "Student IDs, comma-separated: ")
         )
@@ -647,6 +639,7 @@ def _show_report(
 def run_grade_preview_menu(
     *,
     dependencies: GradeMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -656,18 +649,37 @@ def run_grade_preview_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Preview Grades")
-        write_lines(
-            stream,
-            "1. Preview one current Grade",
-            "2. Preview a bounded Grade report",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review a current Grade by student and marking period",
+                "2. Review a Grade report for named roster students",
+                "3. Advanced: Preview a bounded Grade report",
+                "4. Advanced: Preview one current Grade (exact records)",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Preview one current Grade",
+                "2. Preview a bounded Grade report",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_current_grade_review(
+                    navigation=navigation_context,
+                    current_grade_loader=deps.current_grade_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _show_current(
                 deps=deps,
                 input_fn=input_fn,
@@ -676,6 +688,15 @@ def run_grade_preview_menu(
             )
             continue
         if choice == "2":
+            if navigation_context is not None:
+                run_named_grade_report_review(
+                    navigation=navigation_context,
+                    report_loader=deps.report_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _show_report(
                 deps=deps,
                 input_fn=input_fn,
@@ -683,5 +704,24 @@ def run_grade_preview_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1, 2, B, M, or Q.")
+        if choice == "3" and navigation_context is not None:
+            _show_report(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "4" and navigation_context is not None:
+            _show_current(
+                deps=deps,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-4, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-2, B, M, or Q.")
         pause_for_user(input_fn)

@@ -34,6 +34,22 @@ from meridian.export_profile_storage import (
     select_export_profile,
     write_export_profile_revision,
 )
+from meridian.menu_snapshots import _list_snapshots
+from meridian.menu_teacher_named_export_delivery import (
+    run_named_report_export_delivery,
+)
+from meridian.menu_teacher_named_export_preview import (
+    run_named_report_export_preview,
+)
+from meridian.menu_teacher_named_export_profile_selection import (
+    run_named_export_profile_selection,
+)
+from meridian.menu_teacher_named_export_profiles import (
+    run_named_export_profile_browse,
+)
+from meridian.menu_teacher_named_export_receipts import (
+    run_named_export_receipt_browse,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -62,6 +78,7 @@ from meridian.report_export_receipt import (
     load_export_receipt,
 )
 from meridian.reporting_snapshot import ReportingSnapshotReference
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -235,8 +252,7 @@ def _profile_presentation(stored: object) -> ExportProfilePresentation:
         revision=profile.profile_revision,
         profile_sha256=stored.profile_sha256,  # type: ignore[attr-defined]
         columns=tuple(
-            (column.source_field, column.output_name)
-            for column in profile.columns
+            (column.source_field, column.output_name) for column in profile.columns
         ),
         format=profile.representation.format,
         include_header=profile.representation.include_header,
@@ -988,6 +1004,7 @@ def _receipts(
 def run_export_menu(
     *,
     dependencies: ExportMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -997,21 +1014,98 @@ def run_export_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Export")
-        write_lines(
-            stream,
-            "1. List Export Profiles",
-            "2. Inspect current Export Profile",
-            "3. Author Export Profile revision",
-            "4. Select latest Export Profile revision",
-            "5. Preview and export a ReportingSnapshot",
-            "6. Review ExportReceipts",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: List Export Profiles (exact IDs)",
+                "2. Advanced: Inspect current Export Profile (exact ID)",
+                "3. Advanced: Author Export Profile revision",
+                "4. Advanced: Select latest Export Profile revision",
+                "5. Advanced: Preview and export a ReportingSnapshot",
+                "6. Advanced: Review ExportReceipts",
+                "7. Browse Export Profiles by name",
+                "8. Use latest Export Profile version by name",
+                "9. Browse past local exports by name",
+                "10. Preview a local report export by name",
+                "11. Deliver a local report export by name",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. List Export Profiles",
+                "2. Inspect current Export Profile",
+                "3. Author Export Profile revision",
+                "4. Select latest Export Profile revision",
+                "5. Preview and export a ReportingSnapshot",
+                "6. Review ExportReceipts",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "11" and navigation_context is not None:
+            run_named_report_export_delivery(
+                navigation=navigation_context,
+                snapshot_lister=_list_snapshots,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                preview_builder=deps.preview_builder,
+                export_committer=deps.export_committer,
+                receipt_loader=deps.receipt_loader,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "10" and navigation_context is not None:
+            run_named_report_export_preview(
+                navigation=navigation_context,
+                snapshot_lister=_list_snapshots,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                preview_builder=deps.preview_builder,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "9" and navigation_context is not None:
+            run_named_export_receipt_browse(
+                navigation=navigation_context,
+                receipt_lister=deps.receipt_lister,
+                receipt_loader=deps.receipt_loader,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "8" and navigation_context is not None:
+            run_named_export_profile_selection(
+                navigation=navigation_context,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                selection_previewer=deps.profile_selection_previewer,
+                selection_committer=deps.profile_selector,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "7" and navigation_context is not None:
+            run_named_export_profile_browse(
+                navigation=navigation_context,
+                profile_lister=deps.profile_lister,
+                profile_loader=deps.profile_loader,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         actions = {
             "1": _profiles,
             "2": _inspect_profile,
@@ -1022,7 +1116,10 @@ def run_export_menu(
         }
         action = actions.get(choice)
         if action is None:
-            write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
+            if navigation_context is not None:
+                write_lines(stream, "", "Please choose 1-11, B, M, or Q.")
+            else:
+                write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
             pause_for_user(input_fn)
             continue
         action(deps, input_fn, stream, clear_fn)

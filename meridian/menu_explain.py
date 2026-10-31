@@ -42,6 +42,30 @@ from meridian.hybrid_grade_explanation import (
     HybridGradePreviewExplanation,
     hybrid_grade_observation,
 )
+from meridian.menu_teacher_named_explain_comparison import (
+    run_named_grade_snapshot_comparison,
+)
+from meridian.menu_teacher_named_explain_derivation import (
+    run_named_planning_derivation_explanation,
+)
+from meridian.menu_teacher_named_explain_export import (
+    run_named_planning_export_explanation,
+)
+from meridian.menu_teacher_named_explain_grade import (
+    run_named_current_grade_explanation,
+)
+from meridian.menu_teacher_named_explain_item_proficiency import (
+    run_named_grade_item_proficiency_explanation,
+)
+from meridian.menu_teacher_named_explain_period_proficiency import (
+    run_named_academic_period_proficiency_explanation,
+)
+from meridian.menu_teacher_named_explain_preview_review import (
+    run_named_planning_preview_review_explanation,
+)
+from meridian.menu_teacher_named_explain_report_receipt import (
+    run_named_report_receipt_explanation,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -78,6 +102,7 @@ from meridian.standards_grade_explanation import (
     StandardsGradePreviewExplanation,
     standards_grade_observation,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 WorkEvidenceProvider: TypeAlias = Callable[
@@ -330,10 +355,7 @@ def _current_grade_presentation(explanation: object) -> ExplanationPresentation:
         f"policy_sha256: {policy_ref.policy_sha256}",
         f"activation_revision: {activation.activation_revision}",
         f"activation_sha256: {activation.activation_sha256}",
-        (
-            "calculation_fingerprint: "
-            f"{common.base_result.calculation_fingerprint}"
-        ),
+        (f"calculation_fingerprint: {common.base_result.calculation_fingerprint}"),
         f"inputs_sha256: {common.base_result.inputs_sha256}",
     )
     return ExplanationPresentation(
@@ -556,6 +578,11 @@ def _academic_period(
         ),
         technical_lines=(
             f"class_id: {value.class_id}",
+            f"school_year: {value.target_period.school_year}",
+            f"period_id: {value.target_period.period_id}",
+            f"calendar_revision: {value.target_period.calendar_revision}",
+            f"student_id: {value.student_id}",
+            f"standard_id: {value.standard_id}",
             f"result_revision: {value.result_revision}",
             f"result_sha256: {value.result_sha256}",
             f"inputs_sha256: {value.inputs_sha256}",
@@ -580,17 +607,12 @@ def _planning_derivation(
             derivation_id=derivation_id,
         ),
     )
-    contributing = sum(
-        item.disposition == "contributing" for item in value.students
-    )
+    contributing = sum(item.disposition == "contributing" for item in value.students)
     return ExplanationPresentation(
         title="Planning Derivation Explanation",
         lines=(
             f"Policy: {value.policy.title}",
-            (
-                "Academic Period: "
-                f"{value.policy.target_period.label}"
-            ),
+            (f"Academic Period: {value.policy.target_period.label}"),
             f"Standard: {value.policy.standard_id}",
             f"Dimension: {value.dimension_id}",
             f"Bands: {value.band_count}",
@@ -625,9 +647,7 @@ def _planning_preview(
         ),
     )
     review_text = (
-        "none selected"
-        if value.review is None
-        else _human(value.review.decision)
+        "none selected" if value.review is None else _human(value.review.decision)
     )
     coverage = value.coverage
     return ExplanationPresentation(
@@ -654,17 +674,23 @@ def _planning_preview(
             f"class_id: {value.class_id}",
             f"preview_id: {value.preview_id}",
             f"preview_sha256: {value.preview_sha256}",
-            (
-                "derivation_id: "
-                f"{value.derivation_reference.derivation_id}"
-            ),
-            (
-                "derivation_sha256: "
-                f"{value.derivation_reference.derivation_sha256}"
-            ),
+            (f"derivation_id: {value.derivation_reference.derivation_id}"),
+            (f"derivation_sha256: {value.derivation_reference.derivation_sha256}"),
             f"policy_id: {value.policy_id}",
             f"policy_revision: {value.policy_revision}",
             f"policy_sha256: {value.policy_sha256}",
+            (
+                "selected_review_revision: "
+                + (
+                    str(value.review.review_revision)
+                    if value.review is not None
+                    else "none"
+                )
+            ),
+            (
+                "selected_review_sha256: "
+                f"{value.review.review_sha256 if value.review is not None else 'none'}"
+            ),
             (
                 "live_currentness_reasons: "
                 + (
@@ -699,10 +725,7 @@ def _planning_export(
             f"Students exported: {exported}",
             f"Students omitted: {len(value.students) - exported}",
             f"Review decision: {_human(value.review_decision)}",
-            (
-                "Preview currentness: "
-                f"{_human(value.preview_currentness_state)}"
-            ),
+            (f"Preview currentness: {_human(value.preview_currentness_state)}"),
         ),
         technical_lines=(
             f"class_id: {value.class_id}",
@@ -738,10 +761,7 @@ def _export_receipt(
             ),
             f"Rows: {value.row_count}",
             f"Destination kind: {_human(value.destination.kind)}",
-            (
-                "Destination file: "
-                f"{value.destination.basename or 'none'}"
-            ),
+            (f"Destination file: {value.destination.basename or 'none'}"),
             f"Teacher: {value.actor.actor_id}",
             (
                 "Scope: local Meridian export provenance; "
@@ -990,6 +1010,7 @@ def _run_two_id(
 def run_explain_menu(
     *,
     dependencies: ExplainMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -999,23 +1020,117 @@ def run_explain_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Explain")
-        write_lines(
-            stream,
-            "1. Current Grade",
-            "2. Prior / current Grade comparison",
-            "3. Grade Item proficiency",
-            "4. Academic Period proficiency",
-            "5. Planning derivation",
-            "6. Planning preview / review",
-            "7. Planning export",
-            "8. ExportReceipt provenance",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: Current Grade (exact IDs)",
+                "2. Advanced: Prior / current Grade comparison",
+                "3. Advanced: Grade Item proficiency",
+                "4. Advanced: Academic Period proficiency",
+                "5. Advanced: Planning derivation",
+                "6. Advanced: Planning preview / review",
+                "7. Advanced: Planning export",
+                "8. Advanced: ExportReceipt provenance",
+                "9. Explain a current Grade by name",
+                "10. Compare a current Grade to a saved checkpoint by name",
+                "11. Explain Grade Item proficiency by name",
+                "12. Explain Academic Period proficiency by name",
+                "13. Explain a saved Planning Derivation by name",
+                "14. Explain a saved Planning Preview / Review by name",
+                "15. Explain a saved Planning Export by name",
+                "16. Explain a saved local Report ExportReceipt by name",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Current Grade",
+                "2. Prior / current Grade comparison",
+                "3. Grade Item proficiency",
+                "4. Academic Period proficiency",
+                "5. Planning derivation",
+                "6. Planning preview / review",
+                "7. Planning export",
+                "8. ExportReceipt provenance",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "16" and navigation_context is not None:
+            run_named_report_receipt_explanation(
+                navigation=navigation_context,
+                report_receipt_explainer=deps.export_receipt,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "15" and navigation_context is not None:
+            run_named_planning_export_explanation(
+                navigation=navigation_context,
+                planning_export_explainer=deps.planning_export,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "14" and navigation_context is not None:
+            run_named_planning_preview_review_explanation(
+                navigation=navigation_context,
+                planning_preview_explainer=deps.planning_preview_review,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "13" and navigation_context is not None:
+            run_named_planning_derivation_explanation(
+                navigation=navigation_context,
+                planning_derivation_explainer=deps.planning_derivation,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "12" and navigation_context is not None:
+            run_named_academic_period_proficiency_explanation(
+                navigation=navigation_context,
+                academic_period_explainer=deps.academic_period_proficiency,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "11" and navigation_context is not None:
+            run_named_grade_item_proficiency_explanation(
+                navigation=navigation_context,
+                grade_item_explainer=deps.grade_item_proficiency,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "10" and navigation_context is not None:
+            run_named_grade_snapshot_comparison(
+                navigation=navigation_context,
+                snapshot_comparer=deps.snapshot_comparison,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "9" and navigation_context is not None:
+            run_named_current_grade_explanation(
+                navigation=navigation_context,
+                current_grade_explainer=deps.current_grade,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "1":
             _run_current(deps, input_fn, stream, clear_fn)
             continue
@@ -1052,7 +1167,10 @@ def run_explain_menu(
         }
         route = routes.get(choice)
         if route is None:
-            write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
+            if navigation_context is not None:
+                write_lines(stream, "", "Please choose 1-16, B, M, or Q.")
+            else:
+                write_lines(stream, "", "Please choose 1-8, B, M, or Q.")
             pause_for_user(input_fn)
             continue
         _run_two_id(

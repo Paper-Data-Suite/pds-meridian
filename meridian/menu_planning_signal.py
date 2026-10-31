@@ -16,6 +16,27 @@ from meridian.grouping_signal_preview_projection import (
     GroupingSignalTeacherPreviewProjection,
 )
 from meridian.grouping_signal_review import GroupingSignalReviewDecisionValue
+from meridian.menu_teacher_named_planning_derivation_write import (
+    run_named_planning_derivation_write,
+)
+from meridian.menu_teacher_named_planning_diagnostics import (
+    run_named_planning_preview_diagnostics,
+)
+from meridian.menu_teacher_named_planning_export import (
+    run_named_planning_core_export,
+)
+from meridian.menu_teacher_named_planning_preview_write import (
+    run_named_planning_preview_write,
+)
+from meridian.menu_teacher_named_planning_readiness import (
+    run_named_planning_readiness,
+)
+from meridian.menu_teacher_named_planning_review_authoring import (
+    run_named_planning_review_authoring,
+)
+from meridian.menu_teacher_named_planning_review_selection import (
+    run_named_planning_review_selection,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -78,6 +99,7 @@ from meridian.planning_signal_workflow import (
     PlanningSignalWorkflowError,
     project_planning_signal_readiness,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -318,9 +340,7 @@ def _review_readiness(
         return
     class_id, policy_id = scope
     try:
-        value = deps.readiness_projector(
-            deps.workspace_resolver(), class_id, policy_id
-        )
+        value = deps.readiness_projector(deps.workspace_resolver(), class_id, policy_id)
     except (WorkspaceRootError, PlanningSignalWorkflowError, ValueError) as error:
         write_lines(output, "", "Planning readiness could not be reviewed safely.")
         write_lines(output, f"Details: {error}")
@@ -600,10 +620,14 @@ def _write_review(
                 "",
                 "Acceptance requires explicit acknowledgment of every warning above.",
             )
-            ack = read_choice(
-                input_fn,
-                "Acknowledge all listed warnings? (yes/no): ",
-            ).strip().casefold()
+            ack = (
+                read_choice(
+                    input_fn,
+                    "Acknowledge all listed warnings? (yes/no): ",
+                )
+                .strip()
+                .casefold()
+            )
             if ack not in {"yes", "y"}:
                 write_lines(output, "", "Teacher review was not authored.")
                 pause_for_user(input_fn)
@@ -751,10 +775,7 @@ def _select_review(
         write_lines(
             output,
             "",
-            (
-                "The reviewed teacher-review selection could not be "
-                "committed safely."
-            ),
+            ("The reviewed teacher-review selection could not be committed safely."),
         )
         write_lines(output, f"Details: {error}")
         pause_for_user(input_fn)
@@ -843,9 +864,7 @@ def _export_signal(
         pause_for_user(input_fn)
         return
     core = (
-        result.core
-        if isinstance(result, PlanningSignalExportCommitResult)
-        else result
+        result.core if isinstance(result, PlanningSignalExportCommitResult) else result
     )
     write_lines(
         output,
@@ -869,6 +888,7 @@ def _export_signal(
 def run_planning_signal_menu(
     *,
     dependencies: PlanningSignalMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -878,25 +898,120 @@ def run_planning_signal_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Create Planning Signal")
-        write_lines(
-            stream,
-            "1. Review readiness",
-            "2. Write exact derivation",
-            "3. Write planning preview",
-            "4. Review preview and diagnostics",
-            "5. Write teacher review",
-            "6. Select teacher review",
-            "7. Export accepted signal to Core",
-            "",
-            "Each write, selection, and export is a separate confirmation.",
-            "No step creates Concord grouping state.",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: Review readiness (exact policy ID)",
+                "2. Advanced: Write exact derivation",
+                "3. Advanced: Write planning preview",
+                "4. Advanced: Review preview and diagnostics",
+                "5. Advanced: Write teacher review",
+                "6. Advanced: Select teacher review",
+                "7. Advanced: Export accepted signal to Core",
+                "8. Review Planning Signal readiness by policy name",
+                "9. Save Planning Derivation by policy name",
+                "10. Save Planning Preview by derivation name",
+                "11. Review Planning Preview diagnostics by name",
+                "12. Author Planning Review by preview name",
+                "13. Select a saved Planning Review by name",
+                "14. Export accepted Planning Signal to Core by name",
+                "",
+                "Each write, selection, and export is a separate confirmation.",
+                "No step creates Concord grouping state.",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review readiness",
+                "2. Write exact derivation",
+                "3. Write planning preview",
+                "4. Review preview and diagnostics",
+                "5. Write teacher review",
+                "6. Select teacher review",
+                "7. Export accepted signal to Core",
+                "",
+                "Each write, selection, and export is a separate confirmation.",
+                "No step creates Concord grouping state.",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "14" and navigation_context is not None:
+            run_named_planning_core_export(
+                navigation=navigation_context,
+                export_previewer=deps.export_previewer,
+                export_committer=deps.export_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "13" and navigation_context is not None:
+            run_named_planning_review_selection(
+                navigation=navigation_context,
+                selection_preparer=deps.review_selection_previewer,
+                selection_committer=deps.review_selection_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "12" and navigation_context is not None:
+            run_named_planning_review_authoring(
+                navigation=navigation_context,
+                diagnostics_projector=deps.diagnostics_projector,
+                authoring_previewer=deps.review_authoring_previewer,
+                authoring_committer=deps.review_authoring_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "11" and navigation_context is not None:
+            run_named_planning_preview_diagnostics(
+                navigation=navigation_context,
+                diagnostics_projector=deps.diagnostics_projector,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "10" and navigation_context is not None:
+            run_named_planning_preview_write(
+                navigation=navigation_context,
+                preview_preparer=deps.preview_write_previewer,
+                preview_committer=deps.preview_write_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "9" and navigation_context is not None:
+            run_named_planning_derivation_write(
+                navigation=navigation_context,
+                readiness_projector=deps.readiness_projector,
+                derivation_previewer=deps.derivation_previewer,
+                derivation_committer=deps.derivation_committer,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "8" and navigation_context is not None:
+            run_named_planning_readiness(
+                navigation=navigation_context,
+                readiness_projector=deps.readiness_projector,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "1":
             _review_readiness(
                 deps=deps, input_fn=input_fn, output=stream, clear_fn=clear_fn
@@ -932,5 +1047,8 @@ def run_planning_signal_menu(
                 deps=deps, input_fn=input_fn, output=stream, clear_fn=clear_fn
             )
             continue
-        write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-14, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-7, B, M, or Q.")
         pause_for_user(input_fn)

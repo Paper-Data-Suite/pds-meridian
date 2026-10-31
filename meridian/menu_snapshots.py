@@ -14,6 +14,17 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
 from meridian.diagnostics import DiagnosticsDependencies
+from meridian.menu_teacher_named_definition_create import (
+    run_named_definition_creation,
+)
+from meridian.menu_teacher_named_definition_revision import (
+    run_named_definition_revision,
+)
+from meridian.menu_teacher_named_definitions import run_named_definition_browse
+from meridian.menu_teacher_named_snapshot_selection import (
+    run_named_snapshot_selection,
+)
+from meridian.menu_teacher_named_snapshots import run_named_snapshot_browse
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -60,6 +71,7 @@ from meridian.reporting_snapshot_workflow import (
     prepare_reporting_snapshot_freeze,
     required_projection_authorizations,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 Clock: TypeAlias = Callable[[], datetime]
@@ -128,9 +140,7 @@ class SnapshotSelectionPlan:
     current_snapshot_id: str | None
     current_selection_revision: int | None
     target_reference: ReportingSnapshotReference = field(repr=False)
-    expected_current: ReportingSnapshotSelectionReference | None = field(
-        repr=False
-    )
+    expected_current: ReportingSnapshotSelectionReference | None = field(repr=False)
 
 
 SnapshotLister: TypeAlias = Callable[
@@ -689,9 +699,7 @@ def _show_current(
     school_year = read_choice(input_fn, "School year (YYYY-YYYY): ")
     period_id = read_choice(input_fn, "Academic Period ID: ")
     try:
-        calendar_revision = _positive_int(
-            read_choice(input_fn, "Calendar revision: ")
-        )
+        calendar_revision = _positive_int(read_choice(input_fn, "Calendar revision: "))
         value = deps.selection_loader(
             deps.workspace_resolver(),
             class_id,
@@ -782,10 +790,7 @@ def _select(
         f"Academic Period: {plan.school_year} / {plan.period_id}",
         f"Rows: {plan.row_count}",
         f"Teacher: {plan.actor_id}",
-        (
-            "Currently selected snapshot: "
-            f"{plan.current_snapshot_id or 'none'}"
-        ),
+        (f"Currently selected snapshot: {plan.current_snapshot_id or 'none'}"),
         "",
         "Type SELECT to make this exact snapshot current for reporting use.",
     )
@@ -1035,33 +1040,102 @@ def run_snapshots_menu(
     *,
     dependencies: SnapshotMenuDependencies | None = None,
     freeze_dependencies: SnapshotFreezeDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
 ) -> None:
     stream = sys.stdout if output is None else output
     deps = dependencies or default_snapshot_menu_dependencies()
-    freeze_deps = (
-        freeze_dependencies or default_snapshot_freeze_dependencies()
-    )
+    freeze_deps = freeze_dependencies or default_snapshot_freeze_dependencies()
     while True:
         clear_fn()
         print_menu_header(stream, "Snapshots")
-        write_lines(
-            stream,
-            "1. List frozen ReportingSnapshots",
-            "2. Inspect a ReportingSnapshot",
-            "3. Show current reporting-use selection",
-            "4. Select an existing ReportingSnapshot",
-            "5. Author a Reporting Definition revision",
-            "6. Freeze a ReportingSnapshot",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Advanced: List frozen ReportingSnapshots (exact IDs)",
+                "2. Advanced: Inspect a ReportingSnapshot (exact ID)",
+                "3. Advanced: Show current reporting-use selection",
+                "4. Advanced: Select an existing ReportingSnapshot",
+                "5. Advanced: Author a Reporting Definition revision",
+                "6. Advanced: Freeze a ReportingSnapshot (build-request JSON)",
+                "7. Browse frozen reporting checkpoints by name",
+                "8. Use a frozen reporting checkpoint by name",
+                "9. Browse reporting definitions by name",
+                "10. Revise an existing reporting definition by name",
+                "11. Create a new reporting definition",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. List frozen ReportingSnapshots",
+                "2. Inspect a ReportingSnapshot",
+                "3. Show current reporting-use selection",
+                "4. Select an existing ReportingSnapshot",
+                "5. Author a Reporting Definition revision",
+                "6. Freeze a ReportingSnapshot",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
+        if choice == "11" and navigation_context is not None:
+            run_named_definition_creation(
+                navigation=navigation_context,
+                definition_previewer=deps.definition_previewer,
+                definition_committer=deps.definition_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "10" and navigation_context is not None:
+            run_named_definition_revision(
+                navigation=navigation_context,
+                definition_previewer=deps.definition_previewer,
+                definition_committer=deps.definition_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "9" and navigation_context is not None:
+            run_named_definition_browse(
+                navigation=navigation_context,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "8" and navigation_context is not None:
+            run_named_snapshot_selection(
+                navigation=navigation_context,
+                lister=deps.lister,
+                inspector=deps.inspector,
+                selection_previewer=deps.selection_previewer,
+                selection_committer=deps.selection_committer,
+                clock=deps.clock,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
+        if choice == "7" and navigation_context is not None:
+            run_named_snapshot_browse(
+                navigation=navigation_context,
+                lister=deps.lister,
+                inspector=deps.inspector,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
+            )
+            continue
         if choice == "1":
             _list(
                 deps=deps,
@@ -1111,5 +1185,8 @@ def run_snapshots_menu(
                 clear_fn=clear_fn,
             )
             continue
-        write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
+        if navigation_context is not None:
+            write_lines(stream, "", "Please choose 1-11, B, M, or Q.")
+        else:
+            write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)

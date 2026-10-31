@@ -1,0 +1,30 @@
+{
+  "schema": "pds.meridian.issue123.adversarial_matrix.v1",
+  "source_base": "dd35b044d5d566a6c560d9d5c09cd1ba4a89fe6f",
+  "route_scope": "real teacher_navigation selector/context and two real read-only Grade Item/proficiency controllers; synthetic Core/domain readers",
+  "adversarial_scenarios": [
+    "wrong-class Grade Item review is rejected without changing session",
+    "missing selected Grade Item relationship does not infer/create an assignment",
+    "changed Grade Item selection witness blocks after domain read",
+    "changed active school year blocks current class verification",
+    "unavailable roster metadata blocks route and redacts upstream detail",
+    "Grade Item catalog permission failure prevents private record read",
+    "proficiency selected Grade Item witness changed between list and action",
+    "proficiency student roster witness changed before load",
+    "selected Standard/current proficiency witness changed before load",
+    "selected Standard/current proficiency witness changed after read",
+    "proficiency source permission revoked prevents session update",
+    "missing student catalog permission does not infer proficiency",
+    "indistinguishable duplicate roster names block selection",
+    "Unicode compatibility collisions do not choose the first candidate",
+    "control-bearing labels are not rendered as valid choices",
+    "more than 500 choices block without unbounded listing",
+    "single candidate is not silently selected or made current",
+    "successful read-only paths do not write Grade Item/proficiency records"
+  ],
+  "installed_wheel": "not qualified in Slice 11C",
+  "protected_publication_authorization": "not qualified in Slice 11C",
+  "write_side_cas_and_receipts": "existing #122/#39/#40 tests remain separate qualification",
+  "runtime_mutation": "none; three additive acceptance files only",
+  "status": "workstation qualification pending"
+}

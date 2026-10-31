@@ -1,0 +1,22 @@
+{
+  "schema": "pds.meridian.issue123.interaction_contract.v1",
+  "source_base": "751c9e0721f74451dc691650c5877619c77ecefc",
+  "status": "source-tree qualification pending",
+  "journey": "Composed menu Grade Items -> Proficiency -> Grades -> Overrides -> Snapshots -> Export -> Explain -> Reports -> Quit",
+  "seven_named_domain_probes": [
+    "Grade Items", "Proficiency", "Grades", "Overrides", "Snapshots", "Export", "Explain"
+  ],
+  "expected_input_calls": 25,
+  "expected_class_chooser_appearances": 1,
+  "expected_routine_canonical_record_prompts": 0,
+  "expected_catalog_reads_for_initial_class_selection": 3,
+  "synthetic_roster_size": 29,
+  "synthetic_duplicate_roster_display_names": 2,
+  "reports_scope": "real Reports menu rendered; existing #111 report-detail tests remain the separate functional proof",
+  "domain_scope": "synthetic read-only named-action probes, not complete domain tasks",
+  "installed_wheel_acceptance": "not attempted in Slice 11B",
+  "protected_publication_read_authorization": "not attempted in Slice 11B",
+  "consequential_write_workflow": "not attempted in Slice 11B",
+  "latency_ms": null,
+  "measurement_note": "Elapsed nanoseconds are measured locally per test run; no universal latency threshold is asserted on unrelated hardware."
+}

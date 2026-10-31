@@ -85,6 +85,8 @@ from meridian.menu_planning_signal import (
     PlanningSignalMenuDependencies,
     run_planning_signal_menu,
 )
+from meridian.menu_teacher_named_period import run_named_period_proficiency
+from meridian.menu_teacher_named_review import run_named_grade_item_proficiency
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -110,6 +112,9 @@ from meridian.standards_evidence_storage import (
 from meridian.standards_proficiency import (
     StandardProficiencyCalculationPolicyReference,
 )
+from meridian.teacher_navigation_context import TeacherNavigationContext
+from meridian.teacher_navigation_domain import TeacherAcademicChoiceCatalog
+from meridian.teacher_navigation_period import PeriodProficiencyChoiceCatalog
 
 WorkspaceResolver: TypeAlias = Callable[[], Path]
 
@@ -368,9 +373,7 @@ def _load_academic_period(
         calculated_count=value.calculation.calculated_result_count,
         insufficient_count=value.calculation.insufficient_result_count,
         missing_count=value.calculation.missing_result_count,
-        period_scope_mismatch_count=(
-            value.calculation.period_scope_mismatch_count
-        ),
+        period_scope_mismatch_count=(value.calculation.period_scope_mismatch_count),
     )
 
 
@@ -398,9 +401,7 @@ def _load_planning(
             policy_revision=None,
             policy_sha256=None,
             derivation_id=value.candidate_derivation_id,
-            calculation_fingerprint=(
-                value.candidate_calculation_fingerprint
-            ),
+            calculation_fingerprint=(value.candidate_calculation_fingerprint),
         )
     period = policy.target_period.period
     return PlanningReadinessPresentation(
@@ -576,8 +577,9 @@ def _preview_academic_period_result_persistence(
     )
 
 
-def default_academic_period_proficiency_action_dependencies(
-) -> AcademicPeriodProficiencyActionDependencies:
+def default_academic_period_proficiency_action_dependencies() -> (
+    AcademicPeriodProficiencyActionDependencies
+):
     return AcademicPeriodProficiencyActionDependencies(
         clock=_utc_now,
         preview_builder=build_bounded_academic_period_calculation_preview,
@@ -1026,8 +1028,7 @@ def _calculation_request(
     scope = _student_scope(
         read_choice(
             input_fn,
-            "Authorization Student IDs, comma-separated "
-            "(blank for target student): ",
+            "Authorization Student IDs, comma-separated (blank for target student): ",
         ),
         student_id,
     )
@@ -1088,10 +1089,7 @@ def _show_calculation_preview(
         f"Policy: {calculation.policy_title}",
         f"Strategy: {_humanize(calculation.strategy)}",
         f"Status: {_humanize(outcome.status)}",
-        (
-            "Proficiency level: "
-            f"{outcome.proficiency_level_id or 'not calculated'}"
-        ),
+        (f"Proficiency level: {outcome.proficiency_level_id or 'not calculated'}"),
         (
             "Evidence: "
             f"{outcome.performance_observation_count} performance, "
@@ -1102,10 +1100,7 @@ def _show_calculation_preview(
         (
             "Current result revision: none"
             if calculation.current_result_revision is None
-            else (
-                "Current result revision: "
-                f"{calculation.current_result_revision}"
-            )
+            else (f"Current result revision: {calculation.current_result_revision}")
         ),
         f"Next immutable result revision: {calculation.next_result_revision}",
         "",
@@ -1165,10 +1160,7 @@ def _preview_grade_item_calculation(
         output,
         "",
         f"Inputs sha256: {preview.calculation.inputs_sha256}",
-        (
-            "Calculation fingerprint: "
-            f"{preview.calculation.calculation_fingerprint}"
-        ),
+        (f"Calculation fingerprint: {preview.calculation.calculation_fingerprint}"),
     )
     pause_for_user(input_fn)
 
@@ -1247,8 +1239,7 @@ def _write_grade_item_result(
             "Current selected result revision: none"
             if preview.selected_revision_before is None
             else (
-                "Current selected result revision: "
-                f"{preview.selected_revision_before}"
+                f"Current selected result revision: {preview.selected_revision_before}"
             )
         ),
         "",
@@ -1348,8 +1339,7 @@ def _select_grade_item_result(
             "Current result revision: none"
             if preview.expected_current_result_revision is None
             else (
-                "Current result revision: "
-                f"{preview.expected_current_result_revision}"
+                f"Current result revision: {preview.expected_current_result_revision}"
             )
         ),
         f"Target is latest authored result: {latest_text}",
@@ -1459,10 +1449,7 @@ def _academic_period_calculation_request(
             write_lines(
                 output,
                 "",
-                (
-                    "Membership binding "
-                    f"{membership_index} of {membership_count}"
-                ),
+                (f"Membership binding {membership_index} of {membership_count}"),
             )
             module_id = read_choice(input_fn, "Work module ID: ")
             work_id = read_choice(input_fn, "Work ID: ")
@@ -1545,10 +1532,7 @@ def _show_academic_period_calculation_preview(
         f"Strategy: {_humanize(calculation.strategy)}",
         f"Scale: {value.inputs.target_scale.scale_id}",
         f"Status: {_humanize(outcome.status)}",
-        (
-            "Proficiency level: "
-            f"{outcome.proficiency_level_id or 'not calculated'}"
-        ),
+        (f"Proficiency level: {outcome.proficiency_level_id or 'not calculated'}"),
         (
             "Grade Items: "
             f"{outcome.calculated_result_count} calculated, "
@@ -1560,10 +1544,7 @@ def _show_academic_period_calculation_preview(
         (
             "Current result revision: none"
             if calculation.current_result_revision is None
-            else (
-                "Current result revision: "
-                f"{calculation.current_result_revision}"
-            )
+            else (f"Current result revision: {calculation.current_result_revision}")
         ),
         f"Next immutable result revision: {calculation.next_result_revision}",
         "",
@@ -1613,10 +1594,7 @@ def _preview_academic_period_calculation(
         output,
         "",
         f"Inputs sha256: {preview.calculation.inputs_sha256}",
-        (
-            "Calculation fingerprint: "
-            f"{preview.calculation.calculation_fingerprint}"
-        ),
+        (f"Calculation fingerprint: {preview.calculation.calculation_fingerprint}"),
     )
     pause_for_user(input_fn)
 
@@ -1685,8 +1663,7 @@ def _write_academic_period_result(
             "Current selected result revision: none"
             if preview.selected_revision_before is None
             else (
-                "Current selected result revision: "
-                f"{preview.selected_revision_before}"
+                f"Current selected result revision: {preview.selected_revision_before}"
             )
         ),
         "",
@@ -1792,8 +1769,7 @@ def _select_academic_period_result(
             "Current result revision: none"
             if preview.expected_current_result_revision is None
             else (
-                "Current result revision: "
-                f"{preview.expected_current_result_revision}"
+                f"Current result revision: {preview.expected_current_result_revision}"
             )
         ),
         f"Target is latest authored result: {latest_text}",
@@ -1838,6 +1814,7 @@ def run_proficiency_menu(
         AcademicPeriodProficiencyActionDependencies | None
     ) = None,
     planning_dependencies: PlanningSignalMenuDependencies | None = None,
+    navigation_context: TeacherNavigationContext | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -1845,8 +1822,7 @@ def run_proficiency_menu(
     stream = sys.stdout if output is None else output
     deps = dependencies or default_proficiency_menu_dependencies()
     actions = (
-        action_dependencies
-        or default_grade_item_proficiency_action_dependencies()
+        action_dependencies or default_grade_item_proficiency_action_dependencies()
     )
     period_actions = (
         period_action_dependencies
@@ -1855,26 +1831,52 @@ def run_proficiency_menu(
     while True:
         clear_fn()
         print_menu_header(stream, "Review Proficiency")
-        write_lines(
-            stream,
-            "1. Review current Grade Item proficiency",
-            "2. Review current Academic Period proficiency",
-            "3. Review planning-signal readiness",
-            "4. Preview Grade Item proficiency calculation",
-            "5. Write Grade Item proficiency result",
-            "6. Select Grade Item proficiency result",
-            "7. Preview Academic Period proficiency calculation",
-            "8. Write Academic Period proficiency result",
-            "9. Select Academic Period proficiency result",
-            "10. Create Planning Signal",
-            "",
-        )
+        if navigation_context is not None:
+            write_lines(
+                stream,
+                "1. Review current Grade Item proficiency by name",
+                "2. Review current Academic Period proficiency by name",
+                "3. Advanced: Planning-signal readiness",
+                "4. Advanced: Preview Grade Item calculation",
+                "5. Advanced: Write Grade Item result",
+                "6. Advanced: Select Grade Item result",
+                "7. Advanced: Preview Academic Period calculation",
+                "8. Advanced: Write Academic Period result",
+                "9. Advanced: Select Academic Period result",
+                "10. Create Planning Signal (named workflows)",
+                "",
+            )
+        else:
+            write_lines(
+                stream,
+                "1. Review current Grade Item proficiency",
+                "2. Review current Academic Period proficiency",
+                "3. Review planning-signal readiness",
+                "4. Preview Grade Item proficiency calculation",
+                "5. Write Grade Item proficiency result",
+                "6. Select Grade Item proficiency result",
+                "7. Preview Academic Period proficiency calculation",
+                "8. Write Academic Period proficiency result",
+                "9. Select Academic Period proficiency result",
+                "10. Create Planning Signal",
+                "",
+            )
         print_standard_navigation(stream)
         choice = read_choice(input_fn)
         nav = parse_navigation_choice(choice)
         if nav is NavigationChoice.BACK or choice == "":
             return
         if choice == "1":
+            if navigation_context is not None:
+                run_named_grade_item_proficiency(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    load_proficiency=deps.grade_item_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_grade_item(
                 deps=deps,
                 input_fn=input_fn,
@@ -1883,6 +1885,17 @@ def run_proficiency_menu(
             )
             continue
         if choice == "2":
+            if navigation_context is not None:
+                run_named_period_proficiency(
+                    navigation=navigation_context,
+                    catalog=TeacherAcademicChoiceCatalog(navigation_context),
+                    period_catalog=PeriodProficiencyChoiceCatalog(navigation_context),
+                    load_proficiency=deps.academic_period_loader,
+                    input_fn=input_fn,
+                    output=stream,
+                    clear_fn=clear_fn,
+                )
+                continue
             _review_academic_period(
                 deps=deps,
                 input_fn=input_fn,
@@ -1955,6 +1968,7 @@ def run_proficiency_menu(
         if choice == "10":
             run_planning_signal_menu(
                 dependencies=planning_dependencies,
+                navigation_context=navigation_context,
                 input_fn=input_fn,
                 output=stream,
                 clear_fn=clear_fn,
