@@ -1,0 +1,66 @@
+{
+  "schema": "pds.meridian.issue124.slicea.source_boundary.v1",
+  "baseline_head": "c69e4e5ca9603ffe4b9295a6ac9f6e4fbe924a29",
+  "current_branch": "124-automatic-assessment-discovery-grade-item-setup",
+  "measurement_kind": "static_ast_callsite_census_not_runtime_interactions",
+  "legacy_new_item_path": {
+    "separate_review_apply_call_sites": 2,
+    "grade_item_save_select_confirmations": 1,
+    "membership_save_select_confirmations": 1,
+    "direct_entry_controllers": ["_create_grade_item", "_link_work"],
+    "technical_id_prompts_measured": false,
+    "runtime_input_calls_measured": false,
+    "duration_measured": false
+  },
+  "read_boundaries": {
+    "legacy_bridge_current_registration": true,
+    "legacy_bridge_current_calendar": true,
+    "grade_item_review_canonical_selection_projection": true,
+    "inbox_discovery_current_academic_result_set_only": true,
+    "inbox_reads_protected_payload_during_discovery": false,
+    "registration_only_discovery_implemented_by_slice_a": false
+  },
+  "existing_separate_domain_action_ports": [
+    "prepare_grade_item_action",
+    "prepare_membership_action"
+  ],
+  "future_requirements_not_yet_implemented": [
+    "catalog_backed_registered_work_discovery",
+    "typed_grade_item_work_period_readiness",
+    "one_reviewed_composite_setup_confirmation",
+    "exact_composite_action_recovery_and_idempotency",
+    "installed_producer_and_classroom_acceptance"
+  ],
+  "pinned_meridian_sources": {
+    "meridian/menu_teacher_grade_items.py": "36e732da0d6bb6d5eb594e0057aade5df760fd91",
+    "meridian/guided_grade_items.py": "292709764f6e1e0beddf59ce51dbe9409e80ffbb",
+    "meridian/grade_items_workflow.py": "40c3f70c41412dbf567fdae44fb3a187313565b2",
+    "meridian/teacher_evidence_inbox.py": "5df32c37dd10b038d011926feed1ecc07315e0ac",
+    "meridian/teacher_evidence_continuation.py": "48a2a802a10f7eddfd3a08789af0f09b6ef7c19b",
+    "meridian/teacher_action_guided.py": "863e5e6ccb4fe33057ca383a572bd46d4ac97db7",
+    "meridian/teacher_action_orchestration.py": "d53efd2dbf03837e2c456ff61a930338c2e0fad5",
+    "meridian/teacher_action_receipts.py": "7a2cd15a609714e74bc6b5c1e83eb139e8603f09",
+    "meridian/menu_teacher_evidence.py": "ca748f6fad64a27818612b4be4e10764b990ca19",
+    "meridian/menu.py": "3c5c051473d5251f673b4c21e9903c55e8d2fe05"
+  },
+  "cross_repository_main_2026_10_31": {
+    "pds-core": "a0d5e1a50580bbe025f0cad23c7e8524203a52ec",
+    "pds-scoreform": "dbb4159bb2c4d04889742de746be42a394130170",
+    "pds-quillan": "93cf0ae84887d79377e6f77c1d0c818af24688a5",
+    "pds-concord": "0eb3721bfd339a40111daf814bfb81eef4a00832"
+  },
+  "repository_dependency_baseline": {
+    "core": "pds-core>=0.6.5,<0.7",
+    "scoreform": "scoreform>=0.13.0",
+    "quillan": "quillan>=0.10.6",
+    "concord": "pds-concord>=0.3.2"
+  },
+  "ci_release_wheel_matrix": {
+    "core": "0.6.6",
+    "scoreform": "0.13.0",
+    "quillan": "0.10.6",
+    "concord": "0.3.2",
+    "meridian_candidate": "0.4.2",
+    "interpreted_as": "pinned_ci_dependency_baseline_not_latest_available_releases"
+  }
+}
