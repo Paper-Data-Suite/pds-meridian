@@ -472,6 +472,7 @@ def validate_wheel(path: str | Path) -> None:
         "meridian/assessment_setup_composite.py",
         "meridian/assessment_setup_live.py",
         "meridian/assessment_setup_recovery.py",
+        "meridian/assessment_setup_correlation.py",
         "meridian/py.typed",
     }
     name_set = set(names)
