@@ -280,6 +280,24 @@ class AssessmentSetupCorrelationStore:
                 raise AssessmentSetupCorrelationStorageConflict(
                     "Reviewed intent already advanced; never reinitialize."
                 )
+            # Enforce cross-intent exclusivity INSIDE the class lock. A prior
+            # read-only inventory cannot prevent a competing process from
+            # claiming the same Grade Item/work under a different intent hash.
+            for entry in entries:
+                if not entry.name.endswith(".json"):
+                    continue
+                other = self._load_verified(entry.stem)
+                if other is None:
+                    raise AssessmentSetupCorrelationStorageError(
+                        "Correlation inventory changed during claim."
+                    )
+                if other.grade_item_id == value.grade_item_id or (
+                    other.module_id == value.module_id
+                    and other.work_id == value.work_id
+                ):
+                    raise AssessmentSetupCorrelationStorageConflict(
+                        "Another reviewed intent already claims this Grade Item/work."
+                    )
             self._persist(value)
             return CorrelationStoreResult(value, "created")
 
