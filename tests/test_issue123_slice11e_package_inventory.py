@@ -94,8 +94,9 @@ def test_exact_current_meridian_modules_are_explicitly_allowlisted() -> None:
     actual = _actual()
     assert len(EXPECTED_ADDITIONS) == 44
     # The #123 inventory had 272 entries; B1 adds one reviewed module.
-    assert len(actual) == 272 + 1
+    assert len(actual) == 272 + 2
     assert "meridian/assessment_setup_inventory.py" in actual
+    assert "meridian/assessment_setup_choices.py" in actual
     assert actual == required
     assert EXPECTED_ADDITIONS.issubset(required)
     assert all(Path(path).is_file() for path in required)
