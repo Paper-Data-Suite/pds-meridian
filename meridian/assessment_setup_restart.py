@@ -221,9 +221,89 @@ def inspect_stored_assessment_setup_restart(
         return verdict("requires_review", "restart_evidence_unavailable")
 
 
+@dataclass(frozen=True, slots=True)
+class RestartContextCandidateInspection:
+    """Read-only candidate hint; never a reconstructed reviewed preview."""
+
+    disposition: Literal["unique_candidate", "requires_review"]
+    reason: str
+    intent_sha256: str | None = None
+
+    @property
+    def may_resume_automatically(self) -> bool:
+        return False
+
+    @property
+    def may_select_academic_record(self) -> bool:
+        return False
+
+
+def inspect_restart_context_candidate(
+    workspace_root: Path,
+    class_id: str,
+    module_id: str,
+    work_id: str,
+    actor: TeacherActionActor,
+) -> RestartContextCandidateInspection:
+    """Find an exact durable *candidate*, never resurrect old review authority.
+
+    This deliberately does not reconstruct AssessmentSetupPreview. A digest
+    cannot supply the original teacher's choices or authorize a RESUME.
+    """
+    from meridian.teacher_action_guided import _identity
+
+    def refuse(reason: str) -> RestartContextCandidateInspection:
+        return RestartContextCandidateInspection("requires_review", reason)
+
+    if (
+        not isinstance(workspace_root, Path)
+        or not workspace_root.is_absolute()
+        or not isinstance(actor, TeacherActionActor)
+        or actor.source != "saved"
+        or any(
+            not isinstance(value, str) or not value or value != value.strip()
+            for value in (class_id, module_id, work_id)
+        )
+    ):
+        return refuse("invalid_context")
+    try:
+        store = AssessmentSetupCorrelationStore(workspace_root, class_id)
+        before = store.list_records()
+        if len(before) > 10000:
+            return refuse("unbounded_inventory")
+        fingerprint = _identity("workspace", str(workspace_root.resolve()))
+        matching = tuple(
+            value
+            for value in before
+            if value.class_id == class_id
+            and value.module_id == module_id
+            and value.work_id == work_id
+        )
+        if len(matching) != 1:
+            return refuse("absent_or_ambiguous_context")
+        candidate = matching[0]
+        if (
+            candidate.workspace_sha256 != fingerprint
+            or candidate.actor_id != actor.actor_id
+            or candidate.actor_profile_sha256 != actor.profile_sha256
+        ):
+            return refuse("scope_or_actor_changed")
+        if store.list_records() != before:
+            return refuse("inventory_changed")
+        return RestartContextCandidateInspection(
+            "unique_candidate",
+            "review_context_must_be_reconstructed",
+            candidate.intent_sha256,
+        )
+    except Exception:
+        return refuse("context_inventory_unavailable")
+
+
 __all__ = (
     "AssessmentSetupRestartInspection",
     "AssessmentSetupRestartReaders",
     "RestartDisposition",
+    "RestartContextCandidateInspection",
+    "inspect_restart_context_candidate",
     "inspect_stored_assessment_setup_restart",
 )
