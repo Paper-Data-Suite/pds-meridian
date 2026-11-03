@@ -137,6 +137,10 @@ def _offer_assessment_setup_if_bound(
                 session.active_work is not None and reviewed.work != session.active_work
             )
             or (
+                session.active_publication_id is not None
+                and session.active_publication_id != reviewed.publication_id
+            )
+            or (
                 session.active_grade_item_id is not None
                 and session.active_grade_item_id != reviewed.grade_item_id
             )
@@ -158,7 +162,19 @@ def _offer_assessment_setup_if_bound(
             input_fn=lambda prompt: read_choice(input_fn, prompt),
             output=output,
         )
-        if outcome.status != "ready_verified":
+        if outcome.status == "ready_verified":
+            # Session context is navigation only, never academic authority.
+            # Change it only after the composite recovery has been verified.
+            session.select_work(reviewed.work)
+            if reviewed.publication_id is not None:
+                session.select_publication(reviewed.publication_id)
+            session.select_grade_item(reviewed.grade_item_id)
+            write_lines(
+                output,
+                "Verified assessment and Grade Item retained in this session.",
+                "Return to Grade Items or evidence to continue this assessment.",
+            )
+        else:
             write_lines(output, "Recheck the current assessment before proceeding.")
     except Exception:
         write_lines(
