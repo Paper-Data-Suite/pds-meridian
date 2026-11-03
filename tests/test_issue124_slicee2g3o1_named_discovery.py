@@ -312,7 +312,7 @@ def test_main_menu_help_describes_non_authoritative_discovery() -> None:
         )
         == 0
     )
-    assert "setup execution is not enabled" in output.getvalue().lower()
+    assert "fresh review and one apply" in output.getvalue().lower()
 
 
 def test_M_preserves_global_navigation_semantics(tmp_path: Path) -> None:

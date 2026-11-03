@@ -274,6 +274,7 @@ def default_teacher_menu_dependencies(
         ),
         discover_assessments=lambda: run_teacher_assessment_discovery_menu(
             session_context=session,
+            assessment_bridge_dependencies=recovery_bridge,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
@@ -338,7 +339,7 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
         "Meridian Grade and report outputs are teacher-controlled local PDS results.",
         "They do not prove that an SIS, LMS, or district gradebook was updated.",
         "",
-        "D lists registered assessments read-only; setup execution is not enabled.",
+        "D discovers assessments; fresh review and one APPLY can set them up.",
         "R reviews interrupted Save checkpoints without replaying academic writes.",
         "S opens teacher identity and classroom navigation settings.",
         "Inside a task, use B for Back, M for Main Menu, and Q to Quit.",
