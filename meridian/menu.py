@@ -35,6 +35,9 @@ from meridian.menu_snapshots import (
 from meridian.menu_teacher_action_recovery import (
     run_teacher_action_recovery_menu,
 )
+from meridian.menu_teacher_assessment_discovery import (
+    run_teacher_assessment_discovery_menu,
+)
 from meridian.menu_teacher_authorization import (
     run_teacher_evidence_authorization_menu,
 )
@@ -127,6 +130,7 @@ class TeacherMenuDependencies:
         Callable[[], TeacherLocalPublicationAuthorizer | None] | None
     ) = None
     review_save_recovery: MenuTaskHandler | None = None
+    discover_assessments: MenuTaskHandler | None = None
 
     def handler_for(self, task_id: TeacherMenuTaskId) -> MenuTaskHandler:
         """Resolve one stable symbolic task to its injected application route."""
@@ -268,6 +272,12 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
+        discover_assessments=lambda: run_teacher_assessment_discovery_menu(
+            session_context=session,
+            input_fn=teacher_input,
+            output=stream,
+            clear_fn=clear_fn,
+        ),
         review_save_recovery=lambda: run_teacher_action_recovery_menu(
             session_context=session,
             diagnostics=diagnostics,
@@ -291,12 +301,15 @@ def _render_main_menu(
     *,
     setup_available: bool = False,
     recovery_available: bool = False,
+    discovery_available: bool = False,
     pending_override: OneActionAttributionOverride | None = None,
 ) -> None:
     print_menu_header(output)
     for task in TEACHER_MENU_TASKS:
         print(f"{task.number}. {task.title}", file=output)
     print(file=output)
+    if discovery_available:
+        print("D. Discover Registered Assessments", file=output)
     if setup_available:
         print("A. Set Up Evidence Access", file=output)
     if recovery_available:
@@ -325,6 +338,7 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
         "Meridian Grade and report outputs are teacher-controlled local PDS results.",
         "They do not prove that an SIS, LMS, or district gradebook was updated.",
         "",
+        "D lists registered assessments read-only; setup execution is not enabled.",
         "R reviews interrupted Save checkpoints without replaying academic writes.",
         "S opens teacher identity and classroom navigation settings.",
         "Inside a task, use B for Back, M for Main Menu, and Q to Quit.",
@@ -363,6 +377,7 @@ def run_menu(
                 stream,
                 setup_available=active.setup_evidence_access is not None,
                 recovery_available=active.review_save_recovery is not None,
+                discovery_available=active.discover_assessments is not None,
                 pending_override=active.attribution_override,
             )
             choice = read_choice(input_fn)
@@ -383,6 +398,10 @@ def run_menu(
                         output=stream,
                         clear_fn=clear_fn,
                     )
+                continue
+
+            if choice.casefold() == "d" and active.discover_assessments is not None:
+                active.discover_assessments()
                 continue
 
             if choice.casefold() == "r" and active.review_save_recovery is not None:
@@ -422,6 +441,8 @@ def run_menu(
                 continue
 
             letters = ["R"] if active.review_save_recovery is not None else []
+            if active.discover_assessments is not None:
+                letters.insert(0, "D")
             if active.setup_evidence_access is not None:
                 letters.insert(0, "A")
             letters.extend(("S", "H", "Q"))

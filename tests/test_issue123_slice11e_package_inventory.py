@@ -93,8 +93,8 @@ def test_exact_current_meridian_modules_are_explicitly_allowlisted() -> None:
     required = _required()
     actual = _actual()
     assert len(EXPECTED_ADDITIONS) == 44
-    # Frozen #123 baseline 272; #124 B1/B2/C1/D1/D2/E1/E2A/E2B/E2C/E2D/E2E add eleven.
-    assert len(actual) == 272 + 17
+    # Frozen #123 baseline 272; #124 adds 19 explicit modules through E2G3O1.
+    assert len(actual) == 272 + 19
     assert "meridian/assessment_setup_inventory.py" in actual
     assert "meridian/assessment_setup_choices.py" in actual
     assert "meridian/assessment_setup_preview.py" in actual
@@ -112,6 +112,8 @@ def test_exact_current_meridian_modules_are_explicitly_allowlisted() -> None:
     assert "meridian/assessment_setup_reconstructed_context.py" in actual
     assert "meridian/assessment_setup_fresh_review_caller.py" in actual
     assert "meridian/assessment_setup_teacher_choices.py" in actual
+    assert "meridian/menu_teacher_assessment_setup_review.py" in actual
+    assert "meridian/menu_teacher_assessment_discovery.py" in actual
     assert actual == required
     assert EXPECTED_ADDITIONS.issubset(required)
     assert all(Path(path).is_file() for path in required)
