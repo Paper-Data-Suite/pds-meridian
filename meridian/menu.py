@@ -17,6 +17,7 @@ from meridian.diagnostics import (
     DiagnosticsDependencies,
     default_diagnostics_dependencies,
 )
+from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.menu_explain import run_explain_menu
 from meridian.menu_export import run_export_menu
 from meridian.menu_grade_items import run_grade_items_menu
@@ -159,6 +160,7 @@ def default_teacher_menu_dependencies(
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
+    assessment_bridge_dependencies: GuidedGradeItemBridgeDependencies | None = None,
 ) -> TeacherMenuDependencies:
     """Compose the nine real teacher controllers over one terminal session."""
 
@@ -188,6 +190,11 @@ def default_teacher_menu_dependencies(
     )
     proficiency_actions = default_grade_item_proficiency_action_dependencies(
         diagnostics=diagnostics,
+    )
+    recovery_bridge = (
+        GuidedGradeItemBridgeDependencies()
+        if assessment_bridge_dependencies is None
+        else assessment_bridge_dependencies
     )
 
     return TeacherMenuDependencies(
@@ -264,7 +271,8 @@ def default_teacher_menu_dependencies(
         review_save_recovery=lambda: run_teacher_action_recovery_menu(
             session_context=session,
             diagnostics=diagnostics,
-            input_fn=input_fn,
+            assessment_bridge_dependencies=recovery_bridge,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
