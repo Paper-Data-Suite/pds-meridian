@@ -11,6 +11,9 @@ from pds_core.menu_navigation import NavigationChoice, parse_navigation_choice
 from pds_core.routes import class_metadata_path
 from pds_core.workspace import WorkspaceRootError, resolve_workspace_root
 
+from meridian.assessment_setup_fresh_review_caller import (
+    make_fresh_assessment_context_loader,
+)
 from meridian.assessment_setup_original_receipt import (
     inspect_original_assessment_setup_receipt,
 )
@@ -21,9 +24,13 @@ from meridian.assessment_setup_reconstructed_context import (
 from meridian.assessment_setup_recovery_prompt import (
     offer_assessment_setup_recovery,
 )
+from meridian.assessment_setup_teacher_choices import (
+    make_interactive_assessment_choice_provider,
+)
 from meridian.attempt_selection import AttemptProjectionReference
 from meridian.diagnostics import DiagnosticsDependencies
 from meridian.evidence_eligibility import EvidenceSourceReference
+from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -726,6 +733,7 @@ def run_teacher_action_recovery_menu(
     diagnostics: DiagnosticsDependencies | None = None,
     assessment_context_loader: AssessmentContextLoader | None = None,
     reconstructed_context_loader: ReconstructedContextLoader | None = None,
+    assessment_bridge_dependencies: GuidedGradeItemBridgeDependencies | None = None,
     workspace_resolver: Callable[[], Path] = resolve_workspace_root,
     class_validator: Callable[[Path, str], None] = _validate_class,
     input_fn: InputFunction = input,
@@ -734,6 +742,16 @@ def run_teacher_action_recovery_menu(
 ) -> None:
     """Display exact journal records after restart, without replay authority."""
     stream = sys.stdout if output is None else output
+    if (
+        reconstructed_context_loader is None
+        and assessment_bridge_dependencies is not None
+    ):
+        provider = make_interactive_assessment_choice_provider(
+            input_fn=input_fn, output=stream
+        )
+        reconstructed_context_loader = make_fresh_assessment_context_loader(
+            assessment_bridge_dependencies, choose=provider
+        )
     clear_fn()
     print_menu_header(stream, "Review Interrupted Saves")
     class_id = session_context.active_class_id
@@ -840,7 +858,7 @@ def run_teacher_action_recovery_menu(
                         output=stream,
                     )
                 )
-                if composite_handled:
+                if reconstructed_handled or composite_handled:
                     pass
                 elif entry.kind == "grade_item":
                     _offer_grade_item_resume(
