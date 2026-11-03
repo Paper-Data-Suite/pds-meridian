@@ -15,6 +15,9 @@ from meridian.assessment_setup_original_receipt import (
     inspect_original_assessment_setup_receipt,
 )
 from meridian.assessment_setup_preview import AssessmentSetupPreview
+from meridian.assessment_setup_reconstructed_context import (
+    inspect_reconstructed_assessment_context,
+)
 from meridian.assessment_setup_recovery_prompt import (
     offer_assessment_setup_recovery,
 )
@@ -84,6 +87,13 @@ AssessmentContextLoader = Callable[
     [Path, TeacherSessionContext, RecoveryInboxEntry],
     tuple[AssessmentSetupPreview, TeacherActionActor] | None,
 ]
+ReconstructedContextLoader = Callable[
+    [Path, TeacherSessionContext, RecoveryInboxEntry],
+    tuple[
+        AssessmentSetupPreview, TeacherActionActor, Callable[[], AssessmentSetupPreview]
+    ]
+    | None,
+]
 
 
 def _offer_assessment_setup_if_bound(
@@ -147,6 +157,70 @@ def _offer_assessment_setup_if_bound(
         write_lines(
             output,
             "Composite assessment recovery could not be verified safely.",
+            "No composite recovery was authorized. Inspect canonical state.",
+        )
+    return True
+
+
+def _offer_verified_assessment_setup_if_bound(
+    root: Path,
+    session: TeacherSessionContext,
+    entry: RecoveryInboxEntry,
+    *,
+    loader: ReconstructedContextLoader | None,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> bool:
+    # Gate fresh teacher review through E2G3B before E2G2 handoff.
+    if loader is None:
+        return False
+    try:
+        selected = loader(root, session, entry)
+        if selected is None:
+            return False
+        if not isinstance(selected, tuple) or len(selected) != 3:
+            raise ValueError("Invalid reconstructed context")
+        reviewed, actor, fresh = selected
+        if (
+            not isinstance(reviewed, AssessmentSetupPreview)
+            or not isinstance(actor, TeacherActionActor)
+            or not callable(fresh)
+            or session.active_class_id != entry.receipt.preview.scope.class_id
+            or reviewed.class_id != session.active_class_id
+            or reviewed.grade_item_id != entry.receipt.preview.scope.grade_item_id
+            or (
+                session.active_work is not None and reviewed.work != session.active_work
+            )
+        ):
+            raise ValueError("Reconstructed context differs from selected action")
+        inspected = inspect_reconstructed_assessment_context(
+            root,
+            reviewed.class_id,
+            reviewed.work.module_id,
+            reviewed.work.work_id,
+            actor,
+            load_fresh_review=fresh,
+        )
+        if (
+            inspected.disposition != "verified_for_review"
+            or inspected.reviewed != reviewed
+        ):
+            raise ValueError("Fresh context has not been reverified")
+        # E2G2 independently checks original receipt identity and then invokes
+        # E2G1's explicit RESUME prompt; no new selector exists here.
+        if not _offer_assessment_setup_if_bound(
+            root,
+            session,
+            entry,
+            loader=lambda *_: (reviewed, actor),
+            input_fn=input_fn,
+            output=output,
+        ):
+            raise ValueError("Original action handoff unavailable")
+    except Exception:
+        write_lines(
+            output,
+            "Fresh assessment recovery context could not be verified safely.",
             "No composite recovery was authorized. Inspect canonical state.",
         )
     return True
@@ -651,6 +725,7 @@ def run_teacher_action_recovery_menu(
     session_context: TeacherSessionContext,
     diagnostics: DiagnosticsDependencies | None = None,
     assessment_context_loader: AssessmentContextLoader | None = None,
+    reconstructed_context_loader: ReconstructedContextLoader | None = None,
     workspace_resolver: Callable[[], Path] = resolve_workspace_root,
     class_validator: Callable[[Path, str], None] = _validate_class,
     input_fn: InputFunction = input,
@@ -738,16 +813,32 @@ def run_teacher_action_recovery_menu(
                 clear_fn()
                 entry = visible[ordinal - 1]
                 _show_entry(stream, entry)
-                composite_handled = entry.kind in (
+                reconstructed_handled = entry.kind in (
                     "grade_item",
                     "grade_item_membership",
-                ) and _offer_assessment_setup_if_bound(
+                ) and _offer_verified_assessment_setup_if_bound(
                     root,
                     session_context,
                     entry,
-                    loader=assessment_context_loader,
+                    loader=reconstructed_context_loader,
                     input_fn=input_fn,
                     output=stream,
+                )
+                composite_handled = (
+                    (not reconstructed_handled)
+                    and entry.kind
+                    in (
+                        "grade_item",
+                        "grade_item_membership",
+                    )
+                    and _offer_assessment_setup_if_bound(
+                        root,
+                        session_context,
+                        entry,
+                        loader=assessment_context_loader,
+                        input_fn=input_fn,
+                        output=stream,
+                    )
                 )
                 if composite_handled:
                     pass
