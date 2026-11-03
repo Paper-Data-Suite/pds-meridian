@@ -9,11 +9,20 @@ and recovery still govern partial actions across process restarts.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal, TextIO, TypeAlias
 
 from meridian.assessment_setup_composite import PreparedAssessmentSetupComposite
+from meridian.assessment_setup_correlated_live import (
+    bind_correlated_live_assessment_setup,
+)
+from meridian.assessment_setup_correlation_storage import (
+    AssessmentSetupCorrelationStore,
+)
 from meridian.assessment_setup_preview import AssessmentSetupPreview
+from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.menu_ui import InputFunction, print_menu_header, read_choice, write_lines
+from meridian.teacher_action_contract import TeacherActionActor
 from meridian.teacher_session import TeacherSessionContext
 
 ReviewStatus: TypeAlias = Literal[
@@ -164,4 +173,109 @@ def review_assessment_setup_once(
     )
 
 
-__all__ = ("TeacherAssessmentReviewOutcome", "review_assessment_setup_once")
+def review_correlated_assessment_setup_once(
+    workspace_root: Path,
+    reviewed: AssessmentSetupPreview,
+    session: TeacherSessionContext,
+    *,
+    actor: TeacherActionActor | None,
+    dependencies: GuidedGradeItemBridgeDependencies,
+    input_fn: InputFunction,
+    output: TextIO,
+) -> TeacherAssessmentReviewOutcome:
+    """Enter the one-APPLY workflow only through E2C durable action fences.
+
+    This is a trusted, reviewed-context boundary, not discovery or menu
+    routing. Existing correlations are evidence of a prior attempt, never
+    permission to prepare fresh #122 action IDs or repeat an academic write.
+    """
+
+    def unavailable(reason: str, *message: str) -> TeacherAssessmentReviewOutcome:
+        write_lines(output, *message)
+        return TeacherAssessmentReviewOutcome("requires_review", reason)
+
+    if (
+        not isinstance(workspace_root, Path)
+        or not workspace_root.is_absolute()
+        or not workspace_root.is_dir()
+        or not isinstance(reviewed, AssessmentSetupPreview)
+        or not isinstance(session, TeacherSessionContext)
+        or not isinstance(dependencies, GuidedGradeItemBridgeDependencies)
+    ):
+        return unavailable(
+            "invalid_correlated_context",
+            "Assessment setup context cannot be verified safely.",
+        )
+    if not _session_matches(session, reviewed):
+        return unavailable(
+            "session_scope_changed",
+            "Selected assessment differs from the teacher session.",
+            "Reopen the assessment review before applying a change.",
+        )
+    if reviewed.kind == "already_ready":
+        if actor is not None:
+            return unavailable(
+                "unexpected_actor_for_ready_review",
+                "Already-ready review must be verified without an action actor.",
+            )
+    elif (
+        not isinstance(actor, TeacherActionActor)
+        or actor.source != "saved"
+        or actor.actor_id != reviewed.actor_attribution
+    ):
+        return unavailable(
+            "saved_actor_required",
+            "A current saved teacher attribution is required for setup.",
+        )
+
+    # This read-only preflight prevents a known interrupted action from being
+    # shown as a fresh one-confirmation setup. E2C independently repeats the
+    # collision check under the correlation store lock just before its write.
+    if reviewed.kind != "already_ready":
+        try:
+            existing = AssessmentSetupCorrelationStore(
+                workspace_root, reviewed.class_id
+            ).list_records()
+            if any(
+                item.grade_item_id == reviewed.grade_item_id
+                or (item.module_id, item.work_id)
+                == (reviewed.work.module_id, reviewed.work.work_id)
+                for item in existing
+            ):
+                return unavailable(
+                    "prior_correlated_action_requires_recovery",
+                    "A prior assessment setup is already recorded.",
+                    "Use Review Interrupted Saves; do not repeat APPLY.",
+                )
+        except Exception:
+            return unavailable(
+                "correlation_inventory_unavailable",
+                "Original setup correlation cannot be inspected safely.",
+                "No new setup action was requested.",
+            )
+    try:
+        prepared = bind_correlated_live_assessment_setup(
+            workspace_root,
+            reviewed,
+            actor=actor,
+            dependencies=dependencies,
+        )
+    except Exception:
+        return unavailable(
+            "correlated_binding_unavailable",
+            "Canonical setup binding could not be verified safely.",
+            "Review the original receipts before attempting another setup.",
+        )
+    return review_assessment_setup_once(
+        prepared,
+        session,
+        input_fn=input_fn,
+        output=output,
+    )
+
+
+__all__ = (
+    "TeacherAssessmentReviewOutcome",
+    "review_assessment_setup_once",
+    "review_correlated_assessment_setup_once",
+)
