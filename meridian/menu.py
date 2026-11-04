@@ -201,6 +201,15 @@ def default_teacher_menu_dependencies(
         else assessment_bridge_dependencies
     )
 
+    def discover_registered_assessments() -> None:
+        run_teacher_assessment_discovery_menu(
+            session_context=session,
+            assessment_bridge_dependencies=recovery_bridge,
+            input_fn=teacher_input,
+            output=stream,
+            clear_fn=clear_fn,
+        )
+
     return TeacherMenuDependencies(
         review_new_evidence=lambda: run_teacher_evidence_inbox_menu(
             dependencies=inbox_dependencies,
@@ -211,6 +220,7 @@ def default_teacher_menu_dependencies(
         ),
         manage_grade_items=lambda: run_grade_items_menu(
             navigation_context=navigation,
+            discover_assessments=discover_registered_assessments,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
@@ -272,13 +282,7 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
-        discover_assessments=lambda: run_teacher_assessment_discovery_menu(
-            session_context=session,
-            assessment_bridge_dependencies=recovery_bridge,
-            input_fn=teacher_input,
-            output=stream,
-            clear_fn=clear_fn,
-        ),
+        discover_assessments=discover_registered_assessments,
         review_save_recovery=lambda: run_teacher_action_recovery_menu(
             session_context=session,
             diagnostics=diagnostics,
