@@ -167,7 +167,13 @@ def test_main_menu_only_injects_actor_provider_into_teacher_routes() -> None:
     factory = source.split("def default_teacher_menu_dependencies(", 1)[1]
     factory = factory.split("\ndef _task_for_choice(", 1)[0]
     assert "TeacherAttributionInput(" in factory
-    assert factory.count("input_fn=teacher_input,") == 10
+    # #124 added two reviewed teacher entry points; both retain the
+    # same saved-profile attribution adapter rather than raw actor input.
+    assert factory.count("input_fn=teacher_input,") == 12
+    assert "def discover_registered_assessments() -> None:" in factory
+    assert "run_teacher_assessment_discovery_menu(" in factory
+    assert "discover_assessments=discover_registered_assessments," in factory
+    assert "manage_grade_items=lambda: run_grade_items_menu(" in factory
     assert "attribution_provider=attribution_provider," in factory
     assert (
         "attribution_provider=TeacherIdentityProvider(TeacherProfileStore())," in source

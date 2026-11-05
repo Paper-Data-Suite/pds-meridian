@@ -21,10 +21,18 @@ _BASELINE_RAW_PROMPT_SHA256 = (
 # Match exact file/function/prompt triples; do not exempt generic ID prompts.
 _ADVANCED_TEACHER_IDENTITY_SITES = frozenset(
     {
-        "meridian/menu_teacher_settings.py|_profile_action|"
-        "Name for the new identity: ",
+        "meridian/menu_teacher_settings.py|_profile_action|Name for the new identity: ",
         "meridian/menu_teacher_settings.py|_arm_temporary_attribution|"
         "Actor ID (Advanced): ",
+    }
+)
+# #124 calls this exact #121 bridged prompt, NOT an opaque teacher input:
+# TeacherAttributionInput supplies the saved profile actor to normal menus.
+# Preserve the original #110 legacy technical-prompt count and digest.
+_GUIDED_SAVED_ATTRIBUTION_SITES = frozenset(
+    {
+        "meridian/menu_teacher_assessment_discovery.py|"
+        "_offer_selected_assessment_setup|Teacher actor ID: "
     }
 )
 
@@ -93,7 +101,9 @@ def _raw_prompt_sites(*, include_advanced: bool = False) -> tuple[str, ...]:
         for function_name, prompt in _read_choice_prompts(path):
             if _looks_like_raw_identifier_prompt(prompt):
                 site = f"{path.as_posix()}|{function_name}|{prompt}"
-                if not include_advanced and site in _ADVANCED_TEACHER_IDENTITY_SITES:
+                if not include_advanced and site in (
+                    _ADVANCED_TEACHER_IDENTITY_SITES | _GUIDED_SAVED_ATTRIBUTION_SITES
+                ):
                     continue
                 sites.append(site)
     return tuple(sorted(sites))
@@ -134,15 +144,35 @@ def test_issue121_advanced_identity_prompts_are_not_legacy_raw_id_debt() -> None
     # new identifier prompt is allowed to evade the frozen Issue #110 digest.
     all_sites = set(_raw_prompt_sites(include_advanced=True))
     legacy_sites = set(_raw_prompt_sites())
-    assert all_sites - legacy_sites == _ADVANCED_TEACHER_IDENTITY_SITES
+    assert all_sites - legacy_sites == (
+        _ADVANCED_TEACHER_IDENTITY_SITES | _GUIDED_SAVED_ATTRIBUTION_SITES
+    )
     assert legacy_sites.isdisjoint(_ADVANCED_TEACHER_IDENTITY_SITES)
+    assert legacy_sites.isdisjoint(_GUIDED_SAVED_ATTRIBUTION_SITES)
+
+
+def test_issue124_routine_actor_attribution_uses_the_saved_identity_bridge() -> None:
+    from meridian.teacher_attribution_input import ATTRIBUTION_PROMPTS
+
+    assert "Teacher actor ID: " in ATTRIBUTION_PROMPTS
+    source = Path("meridian/menu_teacher_assessment_discovery.py").read_text(
+        encoding="utf-8"
+    )
+    assert 'actor_id = read_choice(input_fn, "Teacher actor ID: ")' in source
+    assert "actor = resolve_menu_actor(actor_id, input_fn)" in source
+    factory = Path("meridian/menu.py").read_text(encoding="utf-8")
+    assert "TeacherAttributionInput(" in factory
+    assert "def discover_registered_assessments() -> None:" in factory
+    assert "run_teacher_assessment_discovery_menu(" in factory
+    assert "discover_assessments=discover_registered_assessments," in factory
+    assert "input_fn=teacher_input," in factory
 
 
 def test_issue110_contract_preserves_exact_direct_cli() -> None:
     cli = Path("meridian/cli.py").read_text(encoding="utf-8")
     document = _CONTRACT_DOC.read_text(encoding="utf-8").casefold()
 
-    assert 'groups.add_parser(' in cli
+    assert "groups.add_parser(" in cli
     assert '"publications"' in cli
     assert "direct cli" in document
     assert "ordinary guided teacher route" in document

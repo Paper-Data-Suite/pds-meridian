@@ -169,7 +169,7 @@ def _offer_selected_assessment_setup(
             if navigation is NavigationChoice.BACK:
                 return None
             rationale = rationale_raw or None
-            actor_id = read_choice(input_fn, "Saved teacher attribution ID: ")
+            actor_id = read_choice(input_fn, "Teacher actor ID: ")
             navigation = parse_navigation_choice(actor_id)
             if navigation is NavigationChoice.BACK or actor_id == "":
                 return None
