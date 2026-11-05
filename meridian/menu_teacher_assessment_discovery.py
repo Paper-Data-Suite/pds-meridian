@@ -18,6 +18,10 @@ from pds_core.menu_navigation import (
     ReturnToMainMenu,
     parse_navigation_choice,
 )
+from pds_core.publication_storage import (
+    get_current_publication_record,
+    load_publication_record,
+)
 from pds_core.routes import class_metadata_path
 from pds_core.routing_models import ModuleWorkRef
 from pds_core.workspace import resolve_workspace_root
@@ -467,4 +471,158 @@ def run_teacher_assessment_discovery_menu(
             pause_for_user(input_fn)
 
 
-__all__ = ("run_teacher_assessment_discovery_menu",)
+def run_teacher_published_assessment_setup(
+    root: Path,
+    work: ModuleWorkRef,
+    publication_id: str,
+    session: TeacherSessionContext,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction = clear_screen,
+    assessment_bridge_dependencies: GuidedGradeItemBridgeDependencies,
+) -> None:
+    """Enter reviewed Grade Item setup for one exact Inbox publication.
+
+    No protected producer manifest or student evidence is opened here. The
+    selected Inbox row is not write authority: current Core publication,
+    registration, and calendar identity must be revalidated before review.
+    """
+
+    def refuse() -> None:
+        write_lines(
+            output,
+            "Selected publication is no longer current or cannot be verified.",
+            "Refresh the Evidence Inbox before trying Grade Item setup.",
+            "No academic setup was attempted.",
+        )
+        pause_for_user(input_fn)
+
+    if (
+        not isinstance(root, Path)
+        or not isinstance(work, ModuleWorkRef)
+        or not isinstance(publication_id, str)
+        or not isinstance(session, TeacherSessionContext)
+        or not isinstance(
+            assessment_bridge_dependencies, GuidedGradeItemBridgeDependencies
+        )
+        or session.active_class_id != work.class_id
+    ):
+        refuse()
+        return
+    try:
+        root = root.resolve(strict=True)
+        record = load_publication_record(root, publication_id)
+        current = get_current_publication_record(
+            root, work, "academic_result_set", record.record_set_id
+        )
+        if (
+            record.work != work
+            or record.publication_kind != "academic_result_set"
+            or current is None
+            or current != record
+        ):
+            raise ValueError("Inbox publication does not match current Core head")
+        metadata = load_class_metadata(class_metadata_path(root, work.class_id))
+        if metadata.class_id != work.class_id:
+            raise ValueError("Inbox class metadata changed")
+        year = metadata.school_year
+        calendar = load_current_academic_period_calendar(root, year)
+        if calendar is None or calendar.school_year != year:
+            raise ValueError("Current academic calendar unavailable")
+        periods = tuple(
+            sorted(
+                (
+                    period
+                    for period in calendar.periods
+                    if period.period_type == "marking_period"
+                    and period.lifecycle != "cancelled"
+                ),
+                key=lambda period: (period.sequence, period.period_id),
+            )
+        )
+        if not periods:
+            raise ValueError("No eligible marking period")
+    except Exception:
+        refuse()
+        return
+
+    clear_fn()
+    print_menu_header(output, "Selected Publication — Grade Item Setup")
+    write_lines(output, "Choose a marking period for this assessment.", "")
+    for ordinal, period in enumerate(periods, start=1):
+        print(f"{ordinal}. {period.label}", file=output)
+    print_standard_navigation(output)
+    raw = read_choice(input_fn)
+    navigation = parse_navigation_choice(raw)
+    if navigation is NavigationChoice.BACK or raw == "":
+        return
+    if not (
+        raw.isascii()
+        and raw.isdigit()
+        and len(raw) <= 5
+        and 1 <= int(raw) <= len(periods)
+    ):
+        write_lines(output, "Select a displayed marking period or B to cancel.")
+        pause_for_user(input_fn)
+        return
+    period = periods[int(raw) - 1]
+    try:
+        named = load_named_assessment_choices(
+            root,
+            class_id=work.class_id,
+            school_year=year,
+            period_id=period.period_id,
+        )
+        matches = tuple(item for item in named.items if item.candidate.work == work)
+        if (
+            named.class_id != work.class_id
+            or named.school_year != year
+            or named.period_id != period.period_id
+            or len(matches) != 1
+            or matches[0].publication_state != "current_results_verified"
+            or matches[0].candidate.publication_id != publication_id
+        ):
+            raise ValueError("Fresh registration/publication no longer matches")
+        selected = matches[0]
+    except (ReturnToMainMenu, QuitPDS):
+        raise
+    except Exception:
+        refuse()
+        return
+
+    # The session changes only after the exact current source was verified.
+    session.select_work(work)
+    session.select_publication(publication_id)
+    try:
+        outcome = _offer_selected_assessment_setup(
+            root,
+            session,
+            work,
+            year=year,
+            period_id=period.period_id,
+            registration_revision=selected.candidate.registration_revision,
+            setup_state=selected.candidate.setup_state,
+            active_unlinked_ids=selected.candidate.active_unlinked_grade_item_ids,
+            dependencies=assessment_bridge_dependencies,
+            input_fn=input_fn,
+            output=output,
+        )
+    except (ReturnToMainMenu, QuitPDS):
+        raise
+    except Exception:
+        write_lines(
+            output,
+            "Assessment setup outcome is uncertain.",
+            "Use Review Interrupted Saves before trying this setup again.",
+        )
+        pause_for_user(input_fn)
+        return
+    if outcome is not None and outcome.status != "cancelled":
+        pause_for_user(input_fn)
+
+
+__all__ = (
+    "run_teacher_assessment_discovery_menu",
+    "run_teacher_published_assessment_setup",
+)
