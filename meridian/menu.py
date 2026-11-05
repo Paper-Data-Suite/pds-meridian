@@ -17,6 +17,7 @@ from meridian.diagnostics import (
     DiagnosticsDependencies,
     default_diagnostics_dependencies,
 )
+from meridian.guided_grade_items import GuidedGradeItemBridgeDependencies
 from meridian.menu_explain import run_explain_menu
 from meridian.menu_export import run_export_menu
 from meridian.menu_grade_items import run_grade_items_menu
@@ -33,6 +34,9 @@ from meridian.menu_snapshots import (
 )
 from meridian.menu_teacher_action_recovery import (
     run_teacher_action_recovery_menu,
+)
+from meridian.menu_teacher_assessment_discovery import (
+    run_teacher_assessment_discovery_menu,
 )
 from meridian.menu_teacher_authorization import (
     run_teacher_evidence_authorization_menu,
@@ -126,6 +130,7 @@ class TeacherMenuDependencies:
         Callable[[], TeacherLocalPublicationAuthorizer | None] | None
     ) = None
     review_save_recovery: MenuTaskHandler | None = None
+    discover_assessments: MenuTaskHandler | None = None
 
     def handler_for(self, task_id: TeacherMenuTaskId) -> MenuTaskHandler:
         """Resolve one stable symbolic task to its injected application route."""
@@ -159,6 +164,7 @@ def default_teacher_menu_dependencies(
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
+    assessment_bridge_dependencies: GuidedGradeItemBridgeDependencies | None = None,
 ) -> TeacherMenuDependencies:
     """Compose the nine real teacher controllers over one terminal session."""
 
@@ -189,6 +195,20 @@ def default_teacher_menu_dependencies(
     proficiency_actions = default_grade_item_proficiency_action_dependencies(
         diagnostics=diagnostics,
     )
+    recovery_bridge = (
+        GuidedGradeItemBridgeDependencies()
+        if assessment_bridge_dependencies is None
+        else assessment_bridge_dependencies
+    )
+
+    def discover_registered_assessments() -> None:
+        run_teacher_assessment_discovery_menu(
+            session_context=session,
+            assessment_bridge_dependencies=recovery_bridge,
+            input_fn=teacher_input,
+            output=stream,
+            clear_fn=clear_fn,
+        )
 
     return TeacherMenuDependencies(
         review_new_evidence=lambda: run_teacher_evidence_inbox_menu(
@@ -200,6 +220,7 @@ def default_teacher_menu_dependencies(
         ),
         manage_grade_items=lambda: run_grade_items_menu(
             navigation_context=navigation,
+            discover_assessments=discover_registered_assessments,
             input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
@@ -261,10 +282,12 @@ def default_teacher_menu_dependencies(
             output=stream,
             clear_fn=clear_fn,
         ),
+        discover_assessments=discover_registered_assessments,
         review_save_recovery=lambda: run_teacher_action_recovery_menu(
             session_context=session,
             diagnostics=diagnostics,
-            input_fn=input_fn,
+            assessment_bridge_dependencies=recovery_bridge,
+            input_fn=teacher_input,
             output=stream,
             clear_fn=clear_fn,
         ),
@@ -283,12 +306,15 @@ def _render_main_menu(
     *,
     setup_available: bool = False,
     recovery_available: bool = False,
+    discovery_available: bool = False,
     pending_override: OneActionAttributionOverride | None = None,
 ) -> None:
     print_menu_header(output)
     for task in TEACHER_MENU_TASKS:
         print(f"{task.number}. {task.title}", file=output)
     print(file=output)
+    if discovery_available:
+        print("D. Discover Registered Assessments", file=output)
     if setup_available:
         print("A. Set Up Evidence Access", file=output)
     if recovery_available:
@@ -317,6 +343,7 @@ def _show_main_help(*, output: TextIO, input_fn: InputFunction) -> None:
         "Meridian Grade and report outputs are teacher-controlled local PDS results.",
         "They do not prove that an SIS, LMS, or district gradebook was updated.",
         "",
+        "D discovers assessments; fresh review and one APPLY can set them up.",
         "R reviews interrupted Save checkpoints without replaying academic writes.",
         "S opens teacher identity and classroom navigation settings.",
         "Inside a task, use B for Back, M for Main Menu, and Q to Quit.",
@@ -355,6 +382,7 @@ def run_menu(
                 stream,
                 setup_available=active.setup_evidence_access is not None,
                 recovery_available=active.review_save_recovery is not None,
+                discovery_available=active.discover_assessments is not None,
                 pending_override=active.attribution_override,
             )
             choice = read_choice(input_fn)
@@ -375,6 +403,10 @@ def run_menu(
                         output=stream,
                         clear_fn=clear_fn,
                     )
+                continue
+
+            if choice.casefold() == "d" and active.discover_assessments is not None:
+                active.discover_assessments()
                 continue
 
             if choice.casefold() == "r" and active.review_save_recovery is not None:
@@ -414,6 +446,8 @@ def run_menu(
                 continue
 
             letters = ["R"] if active.review_save_recovery is not None else []
+            if active.discover_assessments is not None:
+                letters.insert(0, "D")
             if active.setup_evidence_access is not None:
                 letters.insert(0, "A")
             letters.extend(("S", "H", "Q"))

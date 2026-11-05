@@ -37,6 +37,9 @@ from meridian.guided_projection import (
 )
 from meridian.guided_standards import GuidedStandardsDependencies
 from meridian.ingestion import CatalogDiscoveryError, PublicationIngestionError
+from meridian.menu_teacher_assessment_discovery import (
+    run_teacher_published_assessment_setup,
+)
 from meridian.menu_teacher_attempts import run_guided_attempt_menu
 from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
 from meridian.menu_teacher_standards import run_guided_standard_menu
@@ -101,6 +104,7 @@ EligibilityHandler: TypeAlias = Callable[
 AttemptHandler: TypeAlias = EligibilityHandler
 StandardsHandler: TypeAlias = EligibilityHandler
 
+
 class _RefreshEvidenceInbox(Exception):
     """Unwind nested guided screens to reload canonical discovery state."""
 
@@ -115,6 +119,18 @@ ContinuationResolver: TypeAlias = Callable[
     TeacherEvidenceContinuation,
 ]
 CatalogRebuilder: TypeAlias = Callable[[Path], object]
+PublishedAssessmentSetupHandler: TypeAlias = Callable[
+    [
+        Path,
+        ModuleWorkRef,
+        str,
+        TeacherSessionContext,
+        InputFunction,
+        TextIO,
+        ClearFunction,
+    ],
+    None,
+]
 
 
 def _reconcile_session_with_inbox(
@@ -139,15 +155,12 @@ def _reconcile_session_with_inbox(
     if group is None:
         return
 
-    work_items = tuple(
-        item for item in group.items if item.work == session.active_work
-    )
+    work_items = tuple(item for item in group.items if item.work == session.active_work)
     if not work_items:
         return
 
     if not any(
-        item.publication_id == session.active_publication_id
-        for item in work_items
+        item.publication_id == session.active_publication_id for item in work_items
     ):
         session.clear_publication()
 
@@ -241,6 +254,7 @@ class TeacherEvidenceInboxMenuDependencies:
     standards_handler: StandardsHandler
     continuation_resolver: ContinuationResolver | None = None
     catalog_rebuilder: CatalogRebuilder = rebuild_academic_catalog
+    setup_published_assessment: PublishedAssessmentSetupHandler | None = None
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -251,9 +265,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
 
     active = diagnostics or default_diagnostics_dependencies()
 
-    projection_dependencies = default_guided_projection_dependencies(
-        diagnostics=active
-    )
+    projection_dependencies = default_guided_projection_dependencies(diagnostics=active)
 
     def load(
         root: Path,
@@ -374,6 +386,26 @@ def default_teacher_evidence_inbox_menu_dependencies(
             attempt_dependencies=attempt_dependencies,
         )
 
+    def setup_published(
+        root: Path,
+        work: ModuleWorkRef,
+        publication_id: str,
+        session: TeacherSessionContext,
+        input_fn: InputFunction,
+        output: TextIO,
+        clear_fn: ClearFunction,
+    ) -> None:
+        run_teacher_published_assessment_setup(
+            root,
+            work,
+            publication_id,
+            session,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+            assessment_bridge_dependencies=grade_item_bridge_dependencies,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
@@ -384,6 +416,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
         attempt_handler=handle_attempts,
         standards_handler=handle_standards,
         continuation_resolver=resolve_continuation,
+        setup_published_assessment=setup_published,
     )
 
 
@@ -447,10 +480,13 @@ def _render_class_list(
     write_lines(output, "", "R. Refresh evidence list")
     print_standard_navigation(output)
 
+
 def _render_assignment_list(
     output: TextIO,
     group: TeacherEvidenceClassGroup,
     session: TeacherSessionContext,
+    *,
+    setup_available: bool = False,
 ) -> None:
     print_menu_header(output, "Review New Evidence")
     write_lines(
@@ -470,8 +506,16 @@ def _render_assignment_list(
             f"   {item.producer_label} · {item.status_label}{suffix}",
             file=output,
         )
+    if setup_available:
+        write_lines(
+            output,
+            "",
+            "To set up a Grade Item without opening evidence, use S<number>.",
+            "For example, S1 sets up the assessment numbered 1.",
+        )
     write_lines(output, "", "R. Refresh evidence list")
     print_standard_navigation(output)
+
 
 def _status_explanation(item: TeacherEvidenceInboxItem) -> tuple[str, ...]:
     explanations = {
@@ -586,18 +630,9 @@ def _show_blocked_item(
                 f"Work ID: {item.work.work_id}",
                 f"Producer module: {item.work.module_id}",
                 f"Canonical state: {item.canonical_state or 'unavailable'}",
-                (
-                    "Canonical error: "
-                    f"{item.canonical_error_code or 'none'}"
-                ),
-                (
-                    "Drift fields: "
-                    f"{', '.join(item.drift_fields) or 'none'}"
-                ),
-                (
-                    "Support reasons: "
-                    f"{', '.join(item.support_reason_codes) or 'none'}"
-                ),
+                (f"Canonical error: {item.canonical_error_code or 'none'}"),
+                (f"Drift fields: {', '.join(item.drift_fields) or 'none'}"),
+                (f"Support reasons: {', '.join(item.support_reason_codes) or 'none'}"),
                 "",
                 "This view is read-only.",
             )
@@ -636,6 +671,7 @@ def _show_blocked_item(
             f"Please choose {upper}R, T, B, M, or Q.",
         )
         pause_for_user(input_fn)
+
 
 def _show_review_failure(
     *,
@@ -886,6 +922,7 @@ def _show_review_item(
             f"Please choose C, 1-{upper}, R, B, M, or Q.",
         )
         pause_for_user(input_fn)
+
 
 def _run_evidence_rows(
     *,
@@ -1140,6 +1177,7 @@ def _show_projection_failure(
         write_lines(output, "", "Please choose R, T, B, M, or Q.")
         pause_for_user(input_fn)
 
+
 def _run_class_evidence_menu(
     *,
     root: Path,
@@ -1152,9 +1190,45 @@ def _run_class_evidence_menu(
 ) -> None:
     while True:
         clear_fn()
-        _render_assignment_list(output, group, session_context)
+        _render_assignment_list(
+            output,
+            group,
+            session_context,
+            setup_available=dependencies.setup_published_assessment is not None,
+        )
         choice = read_choice(input_fn)
-        if choice.casefold() == "r":
+        lowered = choice.casefold()
+        if (
+            dependencies.setup_published_assessment is not None
+            and lowered.startswith("s")
+            and 1 < len(lowered) <= 6
+            and lowered[1:].isascii()
+            and lowered[1:].isdigit()
+        ):
+            index = int(lowered[1:])
+            if not 1 <= index <= len(group.items):
+                write_lines(output, "No assessment matches that setup number.")
+                pause_for_user(input_fn)
+                continue
+            item = group.items[index - 1]
+            if item.status_code == "ambiguous_presentation":
+                write_lines(
+                    output,
+                    "The assessment display is ambiguous; refresh before setup.",
+                )
+                pause_for_user(input_fn)
+                continue
+            dependencies.setup_published_assessment(
+                root,
+                item.work,
+                item.publication_id,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            continue
+        if lowered == "r":
             raise _RefreshEvidenceInbox
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
@@ -1224,6 +1298,7 @@ def _run_class_evidence_menu(
             f"Please choose 1-{len(group.items)}, R, B, M, or Q.",
         )
         pause_for_user(input_fn)
+
 
 def run_teacher_evidence_inbox_menu(
     *,
@@ -1323,13 +1398,12 @@ def run_teacher_evidence_inbox_menu(
                 continue
 
         if inbox.groups:
-            message = (
-                f"Please choose 1-{len(inbox.groups)}, R, B, M, or Q."
-            )
+            message = f"Please choose 1-{len(inbox.groups)}, R, B, M, or Q."
         else:
             message = "Please choose R, B, M, or Q."
         write_lines(stream, "", message)
         pause_for_user(input_fn)
+
 
 __all__ = (
     "TeacherEvidenceInboxMenuDependencies",

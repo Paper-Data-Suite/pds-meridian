@@ -965,6 +965,7 @@ def run_grade_items_menu(
     dependencies: GradeItemsMenuDependencies | None = None,
     write_dependencies: GradeItemsWriteDependencies | None = None,
     navigation_context: TeacherNavigationContext | None = None,
+    discover_assessments: Callable[[], None] | None = None,
     input_fn: InputFunction = input,
     output: TextIO | None = None,
     clear_fn: ClearFunction = clear_screen,
@@ -991,6 +992,11 @@ def run_grade_items_menu(
                 "9. Use an existing work membership decision",
                 "",
             )
+            if discover_assessments is not None:
+                write_lines(
+                    stream,
+                    "D. Discover Registered Assessments / Set Up Grade Item",
+                )
         else:
             write_lines(
                 stream,
@@ -1007,6 +1013,13 @@ def run_grade_items_menu(
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
             return
+        if (
+            choice.casefold() == "d"
+            and navigation_context is not None
+            and discover_assessments is not None
+        ):
+            discover_assessments()
+            continue
         if choice == "1":
             if navigation_context is not None:
                 run_named_grade_item_review(
@@ -1111,7 +1124,12 @@ def run_grade_items_menu(
             )
             continue
         if navigation_context is not None:
-            write_lines(stream, "", "Please choose 1-9, B, M, or Q.")
+            options = (
+                "1-9, D, B, M, or Q"
+                if discover_assessments is not None
+                else "1-9, B, M, or Q"
+            )
+            write_lines(stream, "", f"Please choose {options}.")
         else:
             write_lines(stream, "", "Please choose 1-6, B, M, or Q.")
         pause_for_user(input_fn)

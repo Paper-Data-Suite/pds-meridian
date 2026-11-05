@@ -48,6 +48,9 @@ SOURCE_BLOBS: Final[dict[str, str]] = {
 }
 
 # Slice 3 threads dependencies without changing legacy prompts.
+# #124 reviewed the Evidence Inbox S<number> setup route: existing read_choice
+# prompt call sites remain unchanged. #124 also reviewed the exact saved-actor
+# input bridge exemption in #110; the historic frozen inventory is untouched.
 # The first 49-operation audit remains pinned to its historic Git tree.
 REVIEWED_COMPOSITION_PATHS: Final[frozenset[str]] = frozenset(
     {
@@ -61,6 +64,8 @@ REVIEWED_COMPOSITION_PATHS: Final[frozenset[str]] = frozenset(
         "meridian/menu_explain.py",
         "meridian/menu_planning_signal.py",
         "meridian/menu_reports.py",
+        "meridian/menu_teacher_evidence.py",
+        "tests/test_issue110_teacher_interface_contract.py",
     }
 )
 

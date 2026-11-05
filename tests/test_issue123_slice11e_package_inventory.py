@@ -93,7 +93,27 @@ def test_exact_current_meridian_modules_are_explicitly_allowlisted() -> None:
     required = _required()
     actual = _actual()
     assert len(EXPECTED_ADDITIONS) == 44
-    assert len(actual) == 272
+    # Frozen #123 baseline 272; #124 adds 19 explicit modules through E2G3O1.
+    assert len(actual) == 272 + 19
+    assert "meridian/assessment_setup_inventory.py" in actual
+    assert "meridian/assessment_setup_choices.py" in actual
+    assert "meridian/assessment_setup_preview.py" in actual
+    assert "meridian/assessment_setup_composite.py" in actual
+    assert "meridian/assessment_setup_live.py" in actual
+    assert "meridian/assessment_setup_recovery.py" in actual
+    assert "meridian/assessment_setup_correlation.py" in actual
+    assert "meridian/assessment_setup_correlation_storage.py" in actual
+    assert "meridian/assessment_setup_correlated_live.py" in actual
+    assert "meridian/assessment_setup_restart.py" in actual
+    assert "meridian/assessment_setup_exact_resume.py" in actual
+    assert "meridian/assessment_setup_original_receipt.py" in actual
+    assert "meridian/assessment_setup_restored_port.py" in actual
+    assert "meridian/assessment_setup_recovery_prompt.py" in actual
+    assert "meridian/assessment_setup_reconstructed_context.py" in actual
+    assert "meridian/assessment_setup_fresh_review_caller.py" in actual
+    assert "meridian/assessment_setup_teacher_choices.py" in actual
+    assert "meridian/menu_teacher_assessment_setup_review.py" in actual
+    assert "meridian/menu_teacher_assessment_discovery.py" in actual
     assert actual == required
     assert EXPECTED_ADDITIONS.issubset(required)
     assert all(Path(path).is_file() for path in required)
