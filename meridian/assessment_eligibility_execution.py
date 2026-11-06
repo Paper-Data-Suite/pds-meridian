@@ -12,7 +12,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal
 
 from meridian.assessment_eligibility_plan import (
     AssessmentEligibilityPlanStaleError,
@@ -34,6 +34,7 @@ from meridian.guided_eligibility import (
 from meridian.guided_projection import GuidedProjectionResult
 from meridian.teacher_action_contract import TeacherActionResult
 from meridian.teacher_action_guided import (
+    PreparedGuidedAction,
     bind_reviewed_actor,
     prepare_eligibility_action,
 )
@@ -260,6 +261,11 @@ def execute_batch_eligibility_plan(
     prepared: GuidedProjectionResult,
     grade_item: GuidedEligibilityGradeItemChoice,
     dependencies: GuidedEligibilityDependencies,
+    before_apply: Callable[
+        [BatchEligibilityReviewPlan, BatchEligibilityPlanItem, PreparedGuidedAction],
+        None,
+    ]
+    | None = None,
 ) -> BatchEligibilityOutcome:
     """Execute one reviewed confirmation through the canonical #122 item bridge.
 
@@ -273,6 +279,8 @@ def execute_batch_eligibility_plan(
         raise BatchEligibilityExecutionError("Confirmation must be explicit boolean.")
     if not isinstance(plan.items, tuple):
         raise BatchEligibilityExecutionError("Invalid immutable selection.")
+    if before_apply is not None and not callable(before_apply):
+        raise BatchEligibilityExecutionError("Invalid pre-apply progress sealer.")
     rows = [_base_outcome(item) for item in plan.items]
     if not confirmed:
         rows = [
@@ -409,6 +417,21 @@ def execute_batch_eligibility_plan(
             )
             return _finalize(plan, True, rows, "item_preflight_failed")
 
+        if before_apply is not None:
+            try:
+                before_apply(plan, item, action)
+            except Exception:
+                # No canonical apply has begun; a partial index is unsafe to
+                # retry blindly, and later items must not be attempted.
+                rows[index] = BatchEligibilityItemOutcome(
+                    item.source.item_id,
+                    item.student_label,
+                    item.evidence_label,
+                    item.disposition,
+                    "blocked_before_write",
+                    "progress_seal_failed",
+                )
+                return _finalize(plan, True, rows, "progress_seal_failed")
         try:
             outcome = action.apply(confirmed=True)
             if not isinstance(outcome, TeacherActionResult):
