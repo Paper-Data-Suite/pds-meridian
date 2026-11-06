@@ -7,6 +7,8 @@ No generic confirmation, implicit zero, attempt selection, or Grade write.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from dataclasses import replace
 from functools import partial
 from pathlib import Path
 from typing import Literal, TextIO, cast
@@ -40,6 +42,9 @@ from meridian.guided_eligibility import (
     discover_guided_eligibility_grade_items,
 )
 from meridian.guided_projection import GuidedProjectionResult
+from meridian.menu_teacher_action_recovery import (
+    run_teacher_action_recovery_menu,
+)
 from meridian.menu_teacher_eligibility import (
     _choose_disposition,
     _choose_grade_item,
@@ -80,22 +85,53 @@ def _enumerate_candidates(
     )
 
 
+def _enumerate_replaceable(
+    review: AssessmentEligibilityReview,
+) -> tuple[tuple[str, str, str], ...]:
+    """Opt-in known-student decisions; reject source, attempt, or roster exceptions."""
+    if (
+        getattr(review, "source_status", "current") != "current"
+        or getattr(review, "membership_state", "included") != "included"
+    ):
+        return ()
+    allowed = {
+        "previous_included",
+        "previous_excluded",
+        "previous_pending",
+        "previous_unsupported",
+    }
+    return tuple(
+        (item.source.item_id, student.display_label, item.evidence_label)
+        for student in review.students
+        if student.within_requested_authorization
+        for item in student.items
+        if getattr(item, "eligibility_status", None)
+        in {"included", "excluded", "pending", "unsupported"}
+        and getattr(item, "selected_eligibility_revision", None) is not None
+        and getattr(item, "selected_eligibility_disposition", None)
+        == item.eligibility_status
+        and all(issue.code in allowed for issue in getattr(item, "exceptions", ()))
+    )
+
+
 def _choose_source_ids(
     review: AssessmentEligibilityReview,
     *,
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
+    recovery_handler: Callable[[], None] | None = None,
 ) -> tuple[str, ...] | None:
-    """Opt-in to explicit bounded IDs; no silent select-all on Enter."""
+    """Select exact no-decision or prior-decision items, never implicitly."""
     candidates = _enumerate_candidates(review)
-    if not candidates:
+    existing = _enumerate_replaceable(review)
+    if not candidates and not existing and recovery_handler is None:
         clear_fn()
         print_menu_header(output, "Batch Eligibility — No Safe Candidates")
         write_lines(
             output,
-            "There are no unselected, exception-free candidate items.",
-            "An existing decision requires an individual reviewed replacement.",
+            "No eligible items or recoverable batch menu are available.",
+            "Existing decisions require explicit reviewed replacement.",
             "No missing-result zero or lifecycle exclusion was inferred.",
         )
         pause_for_user(input_fn)
@@ -106,12 +142,15 @@ def _choose_source_ids(
         write_lines(
             output,
             f"Safe no-decision evidence items: {len(candidates)}",
+            f"Explicitly replaceable prior decisions: {len(existing)}",
             f"Core roster students: {len(review.students)}",
             f"Observed exceptions: {review.exception_count}",
             "",
             "A. Explicitly select every safe candidate",
             "S. Select the safe items of specific students",
-            "I. Select individual evidence items by numbered pages",
+            "I. Select individual safe evidence items by numbered pages",
+            "E. Select previously decided items for explicit replacement",
+            "R. Recover an earlier #122 action after restarting Meridian",
             "V. Review roster and exception counts",
             "",
         )
@@ -119,7 +158,18 @@ def _choose_source_ids(
         raw = read_choice(input_fn).strip()
         if _back(raw):
             return None
-        if raw.casefold() == "a":
+        if raw.casefold() == "r" and recovery_handler is not None:
+            recovery_handler()
+            continue
+        if raw.casefold() == "e" and existing:
+            return _choose_paged_items(
+                existing,
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+                title="Select Previously Decided Evidence",
+            )
+        if raw.casefold() == "a" and candidates:
             return tuple(item_id for item_id, _, _ in candidates)
         if raw.casefold() == "v":
             write_lines(
@@ -139,26 +189,36 @@ def _choose_source_ids(
                 if any(item.candidate_for_explicit_review for item in s.items)
                 and s.within_requested_authorization
             )
-            clear_fn()
-            print_menu_header(output, "Select Students")
-            for number, student in enumerate(students, 1):
-                count = sum(
-                    item.candidate_for_explicit_review for item in student.items
+            display = tuple(
+                (
+                    student.student_id,
+                    student.display_label,
+                    f"{sum(i.candidate_for_explicit_review for i in student.items)} "
+                    "safe items",
                 )
-                print(
-                    f"{number}. {student.display_label} ({count} safe items)",
-                    file=output,
-                )
-            write_lines(
-                output,
-                "",
-                "Enter comma-separated student numbers (e.g., 1,3,6).",
-                "B. Back",
+                for student in students
             )
-            selected = _numbers(read_choice(input_fn), len(students), allow_many=True)
-            if selected is None:
-                continue
-            wanted = {students[i - 1].student_id for i in selected}
+            if len(display) <= _PAGE:
+                clear_fn()
+                print_menu_header(output, "Select Students")
+                for number, (_, name, detail) in enumerate(display, 1):
+                    print(f"{number}. {name} ({detail})", file=output)
+                write_lines(output, "Enter student numbers or B to return.")
+                picks = _numbers(read_choice(input_fn), len(display), allow_many=True)
+                if picks is None:
+                    continue
+                wanted = {display[i - 1][0] for i in picks}
+            else:
+                selected = _choose_paged_items(
+                    display,
+                    input_fn=input_fn,
+                    output=output,
+                    clear_fn=clear_fn,
+                    title="Select Students",
+                )
+                if selected is None:
+                    continue
+                wanted = set(selected)
             exact = tuple(
                 item.source.item_id
                 for student in students
@@ -178,7 +238,7 @@ def _choose_source_ids(
             if selected:
                 return selected
             continue
-        write_lines(output, "Choose A, S, I, V, B, M, or Q.")
+        write_lines(output, "Choose A, S, I, E, R, V, B, M, or Q.")
         pause_for_user(input_fn)
 
 
@@ -207,6 +267,7 @@ def _choose_paged_items(
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
+    title: str = "Select Individual Evidence",
 ) -> tuple[str, ...] | None:
     page = 0
     selected: set[int] = set()
@@ -214,7 +275,7 @@ def _choose_paged_items(
         start = page * _PAGE
         end = min(len(candidates), start + _PAGE)
         clear_fn()
-        print_menu_header(output, "Select Individual Evidence")
+        print_menu_header(output, title)
         write_lines(output, f"Page {page + 1}/{(len(candidates) - 1) // _PAGE + 1}")
         for number in range(start, end):
             _, student, label = candidates[number]
@@ -240,7 +301,7 @@ def _choose_paged_items(
                 tuple(candidates[i][0] for i in sorted(selected)) if selected else None
             )
         values = _numbers(raw, len(candidates), allow_many=True)
-        if values is not None:
+        if values is not None and all(start < v <= end for v in values):
             for n in values:
                 index = n - 1
                 if index in selected:
@@ -313,7 +374,7 @@ def _choose_exception_target(
             page -= 1
             continue
         selected = _numbers(raw, len(labels), allow_many=False)
-        if selected is not None:
+        if selected is not None and start < selected[0] <= end:
             return selected[0] - 1
         write_lines(output, "Choose a target number, N, P, or B.")
         pause_for_user(input_fn)
@@ -326,6 +387,8 @@ def _exceptions(
     input_fn: InputFunction,
     output: TextIO,
     clear_fn: ClearFunction,
+    common: str = "included",
+    common_reason_codes: tuple[str, ...] = (),
 ) -> tuple[tuple[BatchStudentException, ...], tuple[BatchItemException, ...]] | None:
     """Student overrides and exact item overrides, no hidden automatic exceptions."""
     selected_ids = set(selected)
@@ -340,6 +403,11 @@ def _exceptions(
         for item in s.items
         if item.source.item_id in selected_ids
     )
+    existing = {
+        item_id
+        for item_id, _, _ in _enumerate_replaceable(review)
+        if item_id in selected_ids
+    }
     by_student: dict[str, BatchStudentException] = {}
     by_item: dict[str, BatchItemException] = {}
     while True:
@@ -350,6 +418,7 @@ def _exceptions(
             f"Exact selected evidence items: {len(selected)}",
             f"Student overrides: {len(by_student)}",
             f"Individual item overrides: {len(by_item)}",
+            f"Existing decisions explicitly selected: {len(existing)}",
             "",
             "1. Override a selected student's items",
             "2. Override one exact selected evidence item",
@@ -361,6 +430,40 @@ def _exceptions(
         if _back(raw):
             return None
         if raw.casefold() == "d":
+            if existing:
+                write_lines(
+                    output,
+                    "",
+                    f"{len(existing)} existing decisions selected for replacement.",
+                    "Only the final reviewed APPLY can trigger an academic write.",
+                )
+                for item_id in existing:
+                    if item_id in by_item:
+                        if by_item[item_id].disposition is not None:
+                            by_item[item_id] = replace(
+                                by_item[item_id], replace_existing=True
+                            )
+                        continue
+                    student_id = next(
+                        (
+                            s.student_id
+                            for s in students
+                            if any(i.source.item_id == item_id for i in s.items)
+                        ),
+                        None,
+                    )
+                    if student_id is not None and student_id in by_student:
+                        if by_student[student_id].disposition is not None:
+                            by_student[student_id] = replace(
+                                by_student[student_id], replace_existing=True
+                            )
+                    else:
+                        by_item[item_id] = BatchItemException(
+                            item_id=item_id,
+                            disposition=cast(DispositionOrDefer, common),
+                            reason_codes=common_reason_codes,
+                            replace_existing=True,
+                        )
             return tuple(by_student.values()), tuple(by_item.values())
         if raw == "3":
             by_student.clear()
@@ -466,6 +569,26 @@ def _show_recovery(
         return
 
 
+def _open_restart_recovery(
+    workspace_root: Path,
+    session_context: TeacherSessionContext,
+    diagnostics: DiagnosticsDependencies,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+) -> None:
+    """Existing #122 receipt inbox after process restart; no plan reauthoring."""
+    run_teacher_action_recovery_menu(
+        session_context=session_context,
+        diagnostics=diagnostics,
+        workspace_resolver=lambda: workspace_root,
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+    )
+
+
 def run_assessment_eligibility_menu(
     *,
     workspace_root: Path,
@@ -527,7 +650,18 @@ def run_assessment_eligibility_menu(
         pause_for_user(input_fn)
         return
     selected = _choose_source_ids(
-        review, input_fn=input_fn, output=output, clear_fn=clear_fn
+        review,
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+        recovery_handler=lambda: _open_restart_recovery(
+            workspace_root,
+            session_context,
+            diagnostics,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+        ),
     )
     if selected is None:
         return
@@ -543,7 +677,13 @@ def run_assessment_eligibility_menu(
     if policy is None:
         return
     overrides = _exceptions(
-        review, selected, input_fn=input_fn, output=output, clear_fn=clear_fn
+        review,
+        selected,
+        input_fn=input_fn,
+        output=output,
+        clear_fn=clear_fn,
+        common=common,
+        common_reason_codes=() if common == "included" else _MANUAL_REASON,
     )
     if overrides is None:
         return
