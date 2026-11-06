@@ -322,10 +322,33 @@ def build_assessment_eligibility_review(
             "the authorized known roster items."
         )
 
-    native_target_counts = Counter(
-        (row.student_id, row.target_kind, row.target_id)
+    # One native target can carry independent result kinds (for example,
+    # ScoreForm's selected answer and correctness). Count only repeated
+    # result-kind/Standard signatures as competing native-target evidence.
+    # When a signature repeats, block ALL siblings at that target: choosing
+    # a preferred attempt is #126's job, never an eligibility shortcut.
+    target_signatures: dict[tuple[str, str, str], list[tuple[str, tuple[str, ...]]]] = (
+        defaultdict(list)
+    )
+    for row in evidence.rows:
+        if row.student_id is not None and row.target_id is not None:
+            target_signatures[(row.student_id, row.target_kind, row.target_id)].append(
+                (row.result_kind, row.standard_ids)
+            )
+    ambiguous_targets = {
+        identity
+        for identity, signatures in target_signatures.items()
+        if len(signatures) != len(set(signatures))
+    }
+    display_counts = Counter(
+        (row.student_id, native_labels[row.source.item_id])
         for row in evidence.rows
-        if row.target_id is not None and row.student_id is not None
+        if row.student_id is not None and row.source.item_id in native_labels
+    )
+    display_kind_counts = Counter(
+        (row.student_id, native_labels[row.source.item_id], row.result_kind)
+        for row in evidence.rows
+        if row.student_id is not None and row.source.item_id in native_labels
     )
     per_student: dict[str, list[AssessmentEligibilityItem]] = defaultdict(list)
     shared: list[AssessmentEligibilityItem] = []
@@ -338,7 +361,7 @@ def build_assessment_eligibility_review(
         duplicate = bool(
             row.student_id is not None
             and row.target_id is not None
-            and native_target_counts[row.student_id, row.target_kind, row.target_id] > 1
+            and (row.student_id, row.target_kind, row.target_id) in ambiguous_targets
         )
         problems = _classify(
             row,
@@ -369,6 +392,14 @@ def build_assessment_eligibility_review(
         if label is None:
             # Unknown roster attribution: retain source identity, not a guessed name.
             label = "Unmatched " + row.target_kind.replace("_", " ").capitalize()
+        elif display_counts[row.student_id, label] > 1:
+            base_label = label
+            label += " · " + row.result_kind.replace("_", " ").capitalize()
+            if (
+                display_kind_counts[row.student_id, base_label, row.result_kind] > 1
+                and row.standard_ids
+            ):
+                label += " · " + ", ".join(row.standard_ids)
         item = AssessmentEligibilityItem(
             source=row.source,
             student_id=row.student_id,
