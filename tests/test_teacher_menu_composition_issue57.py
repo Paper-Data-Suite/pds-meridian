@@ -24,6 +24,7 @@ def test_default_composition_routes_all_nine_real_controllers(
 
     def clear_fn() -> None:
         return None
+
     diagnostics = cast(DiagnosticsDependencies, object())
     inbox_deps = object()
     freeze_deps = object()
@@ -33,16 +34,14 @@ def test_default_composition_routes_all_nine_real_controllers(
         menu_module,
         "default_teacher_evidence_inbox_menu_dependencies",
         lambda *, diagnostics=None: (
-            factory_observations.append(("inbox", diagnostics))
-            or inbox_deps
+            factory_observations.append(("inbox", diagnostics)) or inbox_deps
         ),
     )
     monkeypatch.setattr(
         menu_module,
         "default_snapshot_freeze_dependencies",
         lambda *, diagnostics=None: (
-            factory_observations.append(("freeze", diagnostics))
-            or freeze_deps
+            factory_observations.append(("freeze", diagnostics)) or freeze_deps
         ),
     )
 
@@ -87,9 +86,7 @@ def test_default_composition_routes_all_nine_real_controllers(
     for task in TEACHER_MENU_TASKS:
         dependencies.handler_for(task.task_id)()
 
-    assert [item[0] for item in calls] == [
-        task.task_id for task in TEACHER_MENU_TASKS
-    ]
+    assert [item[0] for item in calls] == [task.task_id for task in TEACHER_MENU_TASKS]
     assert all(item[1] is input_fn for item in calls)
     assert all(item[2] is output for item in calls)
     assert all(item[3] is clear_fn for item in calls)

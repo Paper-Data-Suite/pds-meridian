@@ -189,9 +189,12 @@ def test_write_uses_privacy_minimized_family_scoped_path(
     assert STUDENT_ID not in result.stored.relative_path
     assert PERIOD.school_year not in result.stored.relative_path
     assert PERIOD.period_id not in result.stored.relative_path
-    assert get_current_teacher_grade_override_reference(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1, value.calculation_family
-    ) is None
+    assert (
+        get_current_teacher_grade_override_reference(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1, value.calculation_family
+        )
+        is None
+    )
 
 
 def test_subject_key_covers_calendar_and_calculation_family() -> None:
@@ -234,9 +237,12 @@ def test_history_is_contiguous_and_immutable(tmp_path: Path) -> None:
     assert list_teacher_grade_override_revisions(
         root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
     ) == (1, 2)
-    assert load_teacher_grade_override_revision(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional", 1
-    ).content == first_content
+    assert (
+        load_teacher_grade_override_revision(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional", 1
+        ).content
+        == first_content
+    )
 
     with pytest.raises(TeacherGradeOverrideStorageConflictError):
         write_teacher_grade_override_revision(root, override_decision(4))
@@ -245,16 +251,17 @@ def test_history_is_contiguous_and_immutable(tmp_path: Path) -> None:
 def test_write_never_changes_current_selection(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     first = write_teacher_grade_override_revision(root, override_decision()).stored
-    select_teacher_grade_override_revision(
-        root, first.reference, expected_current=None
-    )
+    select_teacher_grade_override_revision(root, first.reference, expected_current=None)
     write_teacher_grade_override_revision(
         root, override_decision(2, replacement=Decimal("90"))
     )
 
-    assert get_current_teacher_grade_override_reference(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
-    ) == first.reference
+    assert (
+        get_current_teacher_grade_override_reference(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
+        )
+        == first.reference
+    )
 
 
 def test_selection_is_digest_bound_cas_and_exact_retry_is_idempotent(
@@ -275,9 +282,12 @@ def test_selection_is_digest_bound_cas_and_exact_retry_is_idempotent(
         root, second.reference, expected_current=first.reference
     )
     assert selected2.disposition == "updated"
-    assert load_current_teacher_grade_override(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
-    ) == second
+    assert (
+        load_current_teacher_grade_override(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
+        )
+        == second
+    )
 
     retry = select_teacher_grade_override_revision(
         root, second.reference, expected_current=None
@@ -307,9 +317,12 @@ def test_low_level_selection_can_reselect_exact_history_with_valid_cas(
         root, first.reference, expected_current=second.reference
     )
     assert back.disposition == "updated"
-    assert get_current_teacher_grade_override_reference(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
-    ) == first.reference
+    assert (
+        get_current_teacher_grade_override_reference(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1, "conventional"
+        )
+        == first.reference
+    )
 
 
 def test_selection_rejects_wrong_digest_even_when_revision_exists(
