@@ -673,9 +673,7 @@ def _grade_participation(
         standards_breakdown = explanation.standards_component.breakdown
         if not isinstance(
             conventional_breakdown, ConventionalGradeBreakdownExplanation
-        ) or not isinstance(
-            standards_breakdown, StandardsGradeBreakdownExplanation
-        ):
+        ) or not isinstance(standards_breakdown, StandardsGradeBreakdownExplanation):
             raise AssessmentImpactValidationError(
                 "hybrid Grade component breakdown types are inconsistent."
             )

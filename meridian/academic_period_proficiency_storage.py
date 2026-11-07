@@ -76,9 +76,7 @@ ACADEMIC_PERIOD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE: Final[str] = (
 DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_POLICY_BYTES: Final[int] = 128 * 1024
 DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_POINTER_BYTES: Final[int] = 16 * 1024
 DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_DIGEST_BYTES: Final[int] = 128
-DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULT_BYTES: Final[int] = (
-    8 * 1024 * 1024
-)
+DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULT_BYTES: Final[int] = 8 * 1024 * 1024
 ACADEMIC_PERIOD_PROFICIENCY_RESULT_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 ACADEMIC_PERIOD_PROFICIENCY_RESULT_CURRENT_RECORD_TYPE: Final[str] = (
     "meridian_academic_period_proficiency_result_current"
@@ -102,9 +100,7 @@ AcademicPeriodProficiencyResultSelectDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -348,10 +344,13 @@ def academic_period_proficiency_policies_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    return academic_period_proficiency_directory(
-        workspace_root,
-        class_id,
-    ) / "p"
+    return (
+        academic_period_proficiency_directory(
+            workspace_root,
+            class_id,
+        )
+        / "p"
+    )
 
 
 def academic_period_proficiency_policy_path_key(
@@ -389,13 +388,10 @@ def academic_period_proficiency_policy_directory(
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return (
-        academic_period_proficiency_policies_directory(
-            workspace_root,
-            class_id,
-        )
-        / academic_period_proficiency_policy_path_key(class_id, policy)
-    )
+    return academic_period_proficiency_policies_directory(
+        workspace_root,
+        class_id,
+    ) / academic_period_proficiency_policy_path_key(class_id, policy)
 
 
 def academic_period_proficiency_policy_revisions_directory(
@@ -417,11 +413,14 @@ def academic_period_proficiency_policy_revision_path(
     policy_revision: int,
 ) -> Path:
     revision = _positive_int(policy_revision, "policy_revision")
-    return academic_period_proficiency_policy_revisions_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / f"{revision}.json"
+    return (
+        academic_period_proficiency_policy_revisions_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def academic_period_proficiency_policy_current_path(
@@ -429,11 +428,14 @@ def academic_period_proficiency_policy_current_path(
     class_id: str,
     policy_id: str,
 ) -> Path:
-    return academic_period_proficiency_policy_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / "current.json"
+    return (
+        academic_period_proficiency_policy_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / "current.json"
+    )
 
 
 def academic_period_proficiency_policy_revision_relative_path(
@@ -582,9 +584,7 @@ def load_academic_period_proficiency_policy_revision(
         DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_POLICY_BYTES,
     )
     try:
-        model = academic_period_proficiency_aggregation_policy_from_json_bytes(
-            content
-        )
+        model = academic_period_proficiency_aggregation_policy_from_json_bytes(content)
     except (
         AcademicPeriodProficiencySerializationError,
         AcademicPeriodProficiencyValidationError,
@@ -646,12 +646,14 @@ def list_academic_period_proficiency_policy_revisions(
     return _list_history_revisions(
         root,
         relation,
-        lambda revision: load_academic_period_proficiency_policy_revision(
-            root,
-            class_value,
-            policy_value,
-            revision,
-        ).policy,
+        lambda revision: (
+            load_academic_period_proficiency_policy_revision(
+                root,
+                class_value,
+                policy_value,
+                revision,
+            ).policy
+        ),
         validate_academic_period_proficiency_aggregation_policy_transition,
     )
 
@@ -707,11 +709,7 @@ def get_current_academic_period_proficiency_policy_revision(
         policy_id,
         missing_ok=True,
     )
-    return (
-        None
-        if pointer is None
-        else cast(int, pointer["policy_revision"])
-    )
+    return None if pointer is None else cast(int, pointer["policy_revision"])
 
 
 def load_current_academic_period_proficiency_policy(
@@ -773,9 +771,7 @@ def select_academic_period_proficiency_policy_revision(
             missing_ok=True,
         )
         current_revision = (
-            None
-            if current is None
-            else cast(int, current["policy_revision"])
+            None if current is None else cast(int, current["policy_revision"])
         )
         if current_revision != expected_current_policy_revision:
             raise AcademicPeriodProficiencyStorageConflictError(
@@ -816,19 +812,20 @@ def academic_period_proficiency_results_directory(
 ) -> Path:
     """Return the class-local #35 Academic Period result collection root."""
 
-    return academic_period_proficiency_directory(
-        workspace_root,
-        class_id,
-    ) / "r"
+    return (
+        academic_period_proficiency_directory(
+            workspace_root,
+            class_id,
+        )
+        / "r"
+    )
 
 
 def academic_period_proficiency_standard_key(standard_id: str) -> str:
     """Return a deterministic path-safe key for one durable Core standard ID."""
 
     standard = _standard_id(standard_id)
-    return hashlib.sha256(
-        _canonical_json_bytes({"standard_id": standard})
-    ).hexdigest()
+    return hashlib.sha256(_canonical_json_bytes({"standard_id": standard})).hexdigest()
 
 
 def academic_period_proficiency_result_subject_key(
@@ -874,10 +871,7 @@ def academic_period_proficiency_result_family_directory(
         student,
         standard,
     )
-    path = (
-        academic_period_proficiency_results_directory(root, class_value)
-        / family_key
-    )
+    path = academic_period_proficiency_results_directory(root, class_value) / family_key
     _require_containment(root, path)
     return path
 
@@ -910,14 +904,17 @@ def academic_period_proficiency_result_revision_path(
     result_revision: int,
 ) -> Path:
     revision = _positive_int(result_revision, "result_revision")
-    return academic_period_proficiency_result_revisions_directory(
-        workspace_root,
-        class_id,
-        school_year,
-        period_id,
-        student_id,
-        standard_id,
-    ) / f"{revision}.json"
+    return (
+        academic_period_proficiency_result_revisions_directory(
+            workspace_root,
+            class_id,
+            school_year,
+            period_id,
+            student_id,
+            standard_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def academic_period_proficiency_result_current_path(
@@ -930,14 +927,17 @@ def academic_period_proficiency_result_current_path(
 ) -> Path:
     """Return one durable #35 result family's explicit current pointer path."""
 
-    return academic_period_proficiency_result_family_directory(
-        workspace_root,
-        class_id,
-        school_year,
-        period_id,
-        student_id,
-        standard_id,
-    ) / "current.json"
+    return (
+        academic_period_proficiency_result_family_directory(
+            workspace_root,
+            class_id,
+            school_year,
+            period_id,
+            student_id,
+            standard_id,
+        )
+        / "current.json"
+    )
 
 
 def academic_period_proficiency_result_revision_relative_path(
@@ -961,10 +961,7 @@ def academic_period_proficiency_result_revision_relative_path(
         standard,
     )
     revision = _positive_int(result_revision, "result_revision")
-    return (
-        f"classes/{class_value}/modules/meridian/ap/r/"
-        f"{family_key}/{revision}.json"
-    )
+    return f"classes/{class_value}/modules/meridian/ap/r/{family_key}/{revision}.json"
 
 
 def write_academic_period_proficiency_result_revision(
@@ -978,9 +975,7 @@ def write_academic_period_proficiency_result_revision(
             "snapshot must be an AcademicPeriodProficiencyResultSnapshot."
         )
     try:
-        content = academic_period_proficiency_result_snapshot_to_json_bytes(
-            snapshot
-        )
+        content = academic_period_proficiency_result_snapshot_to_json_bytes(snapshot)
     except (
         AcademicPeriodProficiencySerializationError,
         AcademicPeriodProficiencyValidationError,
@@ -1183,9 +1178,7 @@ def load_academic_period_proficiency_result_revision(
         DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULT_BYTES,
     )
     try:
-        snapshot = academic_period_proficiency_result_snapshot_from_json_bytes(
-            content
-        )
+        snapshot = academic_period_proficiency_result_snapshot_from_json_bytes(content)
     except (
         AcademicPeriodProficiencySerializationError,
         AcademicPeriodProficiencyValidationError,
@@ -1352,9 +1345,7 @@ def list_academic_period_proficiency_result_standard_ids(
             DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULT_BYTES,
         )
         try:
-            first = academic_period_proficiency_result_snapshot_from_json_bytes(
-                content
-            )
+            first = academic_period_proficiency_result_snapshot_from_json_bytes(content)
         except (
             AcademicPeriodProficiencySerializationError,
             AcademicPeriodProficiencyValidationError,
@@ -1610,9 +1601,7 @@ def select_academic_period_proficiency_result_revision(
             missing_ok=True,
         )
         current_revision = (
-            None
-            if current is None
-            else cast(int, current["result_revision"])
+            None if current is None else cast(int, current["result_revision"])
         )
         if current_revision != expected_current_result_revision:
             raise AcademicPeriodProficiencyStorageConflictError(
@@ -1756,10 +1745,7 @@ def _validate_result_entry_dependencies(
         raise AcademicPeriodProficiencyResultDependencyError(
             "Exact Grade Item revision is unavailable for result write."
         ) from error
-    if (
-        stored_grade_item.revision_sha256
-        != grade_item.grade_item_revision_sha256
-    ):
+    if stored_grade_item.revision_sha256 != grade_item.grade_item_revision_sha256:
         raise AcademicPeriodProficiencyResultDependencyError(
             "Exact Grade Item revision digest does not match result inputs."
         )
@@ -1825,12 +1811,10 @@ def _validate_result_entry_dependencies(
         or child.standard_id != snapshot.standard_id
         or child.target_scale != snapshot.target_scale
         or child.algorithm_version != entry.result_algorithm_version
-        or child.calculation_fingerprint
-        != entry.result_calculation_fingerprint
+        or child.calculation_fingerprint != entry.result_calculation_fingerprint
         or child.outcome.status != entry.result_status
         or child.outcome.proficiency_level_id != entry.proficiency_level_id
-        or child.outcome.insufficiency_reasons
-        != entry.result_insufficiency_reasons
+        or child.outcome.insufficiency_reasons != entry.result_insufficiency_reasons
     ):
         raise AcademicPeriodProficiencyResultDependencyError(
             "Exact #34 result does not match normalized #35 inputs."
@@ -1869,8 +1853,7 @@ def _write_result_revision_pair(
         if created_json:
             _remove_file(path)
         raise AcademicPeriodProficiencyStorageWriteError(
-            "Could not persist immutable Academic Period proficiency result "
-            "revision."
+            "Could not persist immutable Academic Period proficiency result revision."
         ) from error
 
 
@@ -2142,11 +2125,7 @@ def _require_only_named_directory(
             f"{label} contains an unexpected entry."
         )
     entry = entries[0]
-    if (
-        entry.name != expected_name
-        or entry.is_symlink()
-        or not entry.is_dir()
-    ):
+    if entry.name != expected_name or entry.is_symlink() or not entry.is_dir():
         raise AcademicPeriodProficiencyStorageIntegrityError(
             f"{label} contains an unexpected entry."
         )
@@ -2207,9 +2186,7 @@ def _result_pointer(
         "period_id": period.period_id,
         "student_id": snapshot.student_id,
         "standard_id": snapshot.standard_id,
-        "standard_key": academic_period_proficiency_standard_key(
-            snapshot.standard_id
-        ),
+        "standard_key": academic_period_proficiency_standard_key(snapshot.standard_id),
         "result_revision": snapshot.result_revision,
         "result_sha256": stored.result_sha256,
     }
@@ -2264,8 +2241,7 @@ def _load_result_pointer(
         if missing_ok:
             return None
         raise AcademicPeriodProficiencyStorageNotFoundError(
-            "Academic Period proficiency result has no explicit current "
-            "selection."
+            "Academic Period proficiency result has no explicit current selection."
         )
 
     mapping = _read_pointer(root, path, _RESULT_POINTER_KEYS)
@@ -2281,8 +2257,7 @@ def _load_result_pointer(
         or mapping["standard_id"] != standard
     ):
         raise AcademicPeriodProficiencyStorageIntegrityError(
-            "Academic Period proficiency current-result pointer identity is "
-            "invalid."
+            "Academic Period proficiency current-result pointer identity is invalid."
         )
     expected_key = academic_period_proficiency_standard_key(standard)
     if mapping["standard_key"] != expected_key:
@@ -2299,9 +2274,7 @@ def _policy_pointer(
     stored: StoredAcademicPeriodProficiencyAggregationPolicy,
 ) -> dict[str, object]:
     return {
-        "schema_version": (
-            ACADEMIC_PERIOD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION
-        ),
+        "schema_version": (ACADEMIC_PERIOD_PROFICIENCY_POLICY_CURRENT_SCHEMA_VERSION),
         "record_type": ACADEMIC_PERIOD_PROFICIENCY_POLICY_CURRENT_RECORD_TYPE,
         "class_id": stored.policy.class_id,
         "policy_id": stored.policy.policy_id,
@@ -2478,9 +2451,7 @@ def _academic_period_proficiency_policy_id_from_directory(
             revision_path,
             DEFAULT_MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_POLICY_BYTES,
         )
-        policy = academic_period_proficiency_aggregation_policy_from_json_bytes(
-            content
-        )
+        policy = academic_period_proficiency_aggregation_policy_from_json_bytes(content)
     except (
         AcademicPeriodProficiencyStorageError,
         AcademicPeriodProficiencySerializationError,
@@ -2913,9 +2884,7 @@ def _period_ref(school_year: object, period_id: object) -> AcademicPeriodRef:
             "school_year and period_id must be strings."
         )
     try:
-        return validate_academic_period_ref(
-            AcademicPeriodRef(school_year, period_id)
-        )
+        return validate_academic_period_ref(AcademicPeriodRef(school_year, period_id))
     except AcademicPeriodValidationError as error:
         raise AcademicPeriodProficiencyStorageValidationError(str(error)) from error
 
@@ -2930,10 +2899,7 @@ def _standard_id(value: object) -> str:
         raise AcademicPeriodProficiencyStorageValidationError(
             "standard_id must not be blank."
         )
-    if any(
-        ord(character) < 32 or ord(character) == 127
-        for character in normalized
-    ):
+    if any(ord(character) < 32 or ord(character) == 127 for character in normalized):
         raise AcademicPeriodProficiencyStorageValidationError(
             "standard_id must not contain control characters."
         )
@@ -2948,9 +2914,7 @@ def _identifier(value: object, field_name: str) -> str:
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
-        raise AcademicPeriodProficiencyStorageValidationError(
-            str(error)
-        ) from error
+        raise AcademicPeriodProficiencyStorageValidationError(str(error)) from error
 
 
 def _positive_int(value: object, field_name: str) -> int:
