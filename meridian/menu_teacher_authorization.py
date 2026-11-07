@@ -101,7 +101,8 @@ def _current_items(
         for item in inbox.items
         if item.work.class_id == class_id
         and item.canonical_state == "current_selectable"
-        and item.status_code not in {
+        and item.status_code
+        not in {
             "ambiguous_presentation",
             "work_title_unavailable",
         }
@@ -199,13 +200,14 @@ def _confirm_plan(
     write_lines(
         output,
         f"Class: {plan.class_id}",
-        "Source(s): " + ", ".join(
-            dict(_SUPPORTED_PRODUCERS).get(key, key)
-            for key in plan.producer_module_ids
+        "Source(s): "
+        + ", ".join(
+            dict(_SUPPORTED_PRODUCERS).get(key, key) for key in plan.producer_module_ids
         ),
         (
             f"Assignment: {selected.work_title}"
-            if selected is not None else "Assignments: current and future"
+            if selected is not None
+            else "Assignments: current and future"
         ),
         f"Scope: {plan.scope_label}",
         "Purpose: evidence review and teacher reporting",
@@ -293,8 +295,13 @@ def _setup_class(
             future = True
         elif choice == "5":
             selected = _select_publication(
-                root, class_id, diagnostics, loader,
-                input_fn=input_fn, output=output, clear_fn=clear_fn,
+                root,
+                class_id,
+                diagnostics,
+                loader,
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
             )
             if selected is None:
                 continue
@@ -318,8 +325,13 @@ def _setup_class(
             pause_for_user(input_fn)
             continue
         return _confirm_plan(
-            plan, selected=selected, diagnostics=diagnostics, loader=loader,
-            input_fn=input_fn, output=output, clear_fn=clear_fn,
+            plan,
+            selected=selected,
+            diagnostics=diagnostics,
+            loader=loader,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
         )
 
 
@@ -366,8 +378,13 @@ def run_teacher_evidence_authorization_menu(
             return None
         if choice.isdigit() and 1 <= int(choice) <= len(classes):
             return _setup_class(
-                root, classes[int(choice) - 1], active, inbox_loader,
-                input_fn=input_fn, output=stream, clear_fn=clear_fn,
+                root,
+                classes[int(choice) - 1],
+                active,
+                inbox_loader,
+                input_fn=input_fn,
+                output=stream,
+                clear_fn=clear_fn,
             )
         write_lines(stream, "", "Please select an existing class or B to go back.")
         pause_for_user(input_fn)
