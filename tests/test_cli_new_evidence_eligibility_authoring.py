@@ -216,9 +216,13 @@ def test_confirm_write_commits_the_exact_preview_without_selecting(
 
     monkeypatch.setattr(cli, "commit_new_evidence_eligibility_preview", fake_commit)
 
-    assert cli.main(
-        _arguments("--confirm-write"), dependencies=object()  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed["args"] == ("synthetic-workspace", preview, authorized)
@@ -244,10 +248,13 @@ def test_json_confirmation_reports_preview_and_commit_state(
         lambda *args: _result_stub(changed=True),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     payload = json.loads(capsys.readouterr().out)
 
     assert payload["mode"] == "written"

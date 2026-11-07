@@ -136,10 +136,7 @@ def test_core_export_confirmation_requires_complete_export_intent(
     assert cli.main(_review_source_args("--confirm-core-export")) == 1
     error = capsys.readouterr().err
     assert "core_export_commit_invalid" in error
-    assert (
-        "--confirm-core-export requires the exact #40 export preview intent"
-        in error
-    )
+    assert "--confirm-core-export requires the exact #40 export preview intent" in error
 
 
 def test_core_export_partial_success_is_distinct_and_recoverable(
@@ -196,10 +193,7 @@ def test_core_export_partial_success_json_is_machine_distinct(
 
     monkeypatch.setattr(cli, "commit_planning_signal_core_export", partial)
 
-    assert (
-        cli.main(_export_args("--confirm-core-export", "--format", "json"))
-        == 1
-    )
+    assert cli.main(_export_args("--confirm-core-export", "--format", "json")) == 1
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "core_export_partial_success"

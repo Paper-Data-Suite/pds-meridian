@@ -63,9 +63,7 @@ def _readiness(*, ready: bool = True) -> object:
         actor_kind="teacher",
         actor_id="teacher_42",
         rationale=None,
-        revised_at=SimpleNamespace(
-            isoformat=lambda: "2026-09-03T03:00:00+00:00"
-        ),
+        revised_at=SimpleNamespace(isoformat=lambda: "2026-09-03T03:00:00+00:00"),
     )
     generation = SimpleNamespace(
         status="generated" if ready else "blocked",
@@ -268,9 +266,7 @@ def test_confirmed_json_preserves_later_stage_boundaries(
         lambda *args, **kwargs: _persistence_result(preview),
     )
 
-    assert cli.main(
-        _arguments("--confirm-derivation-write", "--format", "json")
-    ) == 0
+    assert cli.main(_arguments("--confirm-derivation-write", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["task"] == "create-planning-signal"

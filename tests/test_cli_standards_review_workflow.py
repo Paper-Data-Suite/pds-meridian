@@ -115,9 +115,7 @@ def _projection(
         mapping_profile=mapping_profile,
         mapping_profile_supplied=mapping_profile is not None,
         mapping_status=mapping_status,
-        mapped_proficiency_level_id=(
-            "meets" if mapping_status == "mapped" else None
-        ),
+        mapped_proficiency_level_id=("meets" if mapping_status == "mapped" else None),
         native_state=None,
         mapping_unsupported_reason=None,
         result_kind="score",
@@ -179,10 +177,13 @@ def test_review_uses_exact_authorization_and_scale_without_profile(
     monkeypatch.setattr(cli, "inspect_evidence_diagnostic", inspect)
     monkeypatch.setattr(cli, "build_standards_review_projection", build)
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     _, inspect_kwargs = observed["inspect"]
@@ -228,19 +229,22 @@ def test_review_constructs_exact_mapping_profile_reference(
 
     monkeypatch.setattr(cli, "build_standards_review_projection", build)
 
-    assert cli.main(
-        _arguments(
-            "--mapping-profile-scale-id",
-            PROFILE_SCALE_ID,
-            "--mapping-profile-id",
-            PROFILE_ID,
-            "--mapping-profile-revision",
-            str(PROFILE_REVISION),
-            "--mapping-profile-sha256",
-            PROFILE_SHA256,
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(
+                "--mapping-profile-scale-id",
+                PROFILE_SCALE_ID,
+                "--mapping-profile-id",
+                PROFILE_ID,
+                "--mapping-profile-revision",
+                str(PROFILE_REVISION),
+                "--mapping-profile-sha256",
+                PROFILE_SHA256,
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
 
     profile = observed["kwargs"]["mapping_profile"]
     assert profile == NativeValueMappingProfileReference(
@@ -271,21 +275,24 @@ def test_json_preserves_interpretation_layers_without_calculation(
         lambda *args, **kwargs: _projection(mapping_profile=profile),
     )
 
-    assert cli.main(
-        _arguments(
-            "--mapping-profile-scale-id",
-            PROFILE_SCALE_ID,
-            "--mapping-profile-id",
-            PROFILE_ID,
-            "--mapping-profile-revision",
-            str(PROFILE_REVISION),
-            "--mapping-profile-sha256",
-            PROFILE_SHA256,
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(
+                "--mapping-profile-scale-id",
+                PROFILE_SCALE_ID,
+                "--mapping-profile-id",
+                PROFILE_ID,
+                "--mapping-profile-revision",
+                str(PROFILE_REVISION),
+                "--mapping-profile-sha256",
+                PROFILE_SHA256,
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
 
     data = json.loads(capsys.readouterr().out)
     assert data["producer_alignment"]["declares_requested_standard"] is True
@@ -309,10 +316,13 @@ def test_partial_mapping_profile_fails_before_evidence_access(
         ),
     )
 
-    assert cli.main(
-        _arguments(
-            "--mapping-profile-id",
-            PROFILE_ID,
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            _arguments(
+                "--mapping-profile-id",
+                PROFILE_ID,
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )

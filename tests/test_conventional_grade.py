@@ -276,9 +276,7 @@ def test_no_calculable_denominator_is_insufficient_not_zero() -> None:
     )
     assert outcome.status == "insufficient"
     assert outcome.rounded_grade is None
-    assert tuple(reason.code for reason in outcome.reasons) == (
-        "no_calculable_items",
-    )
+    assert tuple(reason.code for reason in outcome.reasons) == ("no_calculable_items",)
 
 
 def test_possible_points_mismatch_is_unresolved_without_rescaling() -> None:

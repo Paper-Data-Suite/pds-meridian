@@ -140,9 +140,7 @@ def test_export_commit_without_confirmation_never_commits(
     monkeypatch.setattr(
         export_cli,
         "_render_export_preview",
-        lambda built, output_format, *, commit_context: rendered.append(
-            commit_context
-        ),
+        lambda built, output_format, *, commit_context: rendered.append(commit_context),
     )
 
     def forbidden_commit(*args: object, **kwargs: object) -> object:
