@@ -729,7 +729,6 @@ def assess_standards_grade_result_freshness(
     )
 
 
-
 def _profile_evaluation_to_dict(
     value: ProfileConstraintEvaluation,
 ) -> dict[str, object]:
@@ -873,6 +872,7 @@ def _profile_evaluation_from_dict(
         )
     return ProfileConstraintEvaluation(bands=tuple(bands))
 
+
 def standards_grade_calculation_outcome_to_dict(
     value: StandardsGradeCalculationOutcome,
 ) -> dict[str, object]:
@@ -897,9 +897,7 @@ def standards_grade_calculation_outcome_to_dict(
         "minimum_calculated_results": value.minimum_calculated_results,
         "active_weight": _optional_decimal_text(value.active_weight),
         "weighted_numerator": _optional_decimal_text(value.weighted_numerator),
-        "base_unrounded_grade": _optional_decimal_text(
-            value.base_unrounded_grade
-        ),
+        "base_unrounded_grade": _optional_decimal_text(value.base_unrounded_grade),
         "unrounded_grade": _optional_decimal_text(value.unrounded_grade),
         "rounded_grade": _optional_decimal_text(value.rounded_grade),
         "profile_evaluation": (
@@ -970,9 +968,7 @@ def standards_grade_calculation_outcome_from_dict(
             mapping["unrounded_grade"], "unrounded_grade"
         ),
         rounded_grade=_optional_decimal(mapping["rounded_grade"], "rounded_grade"),
-        profile_evaluation=_profile_evaluation_from_dict(
-            mapping["profile_evaluation"]
-        ),
+        profile_evaluation=_profile_evaluation_from_dict(mapping["profile_evaluation"]),
         selected_profile_band_id=_optional_str(
             mapping["selected_profile_band_id"],
             "selected_profile_band_id",
@@ -1088,6 +1084,7 @@ def _state_treatment_from_dict(data: object) -> GradeStateTreatment:
         frozenset(_NON_CALCULATED_STATES),
         "Grade state treatment",
     )
+
     def consequence(field_name: str) -> GradeStateConsequence:
         return cast(
             GradeStateConsequence,
@@ -1168,9 +1165,7 @@ def _standard_input_from_dict(data: object) -> StandardsGradeStandardInput:
             mapping["proficiency_level_id"], "proficiency_level_id"
         ),
         target_scale=(
-            None
-            if scale_data is None
-            else _scale_reference_from_dict(scale_data)
+            None if scale_data is None else _scale_reference_from_dict(scale_data)
         ),
         freshness_status=(
             None
@@ -1248,9 +1243,7 @@ def _standard_result_from_dict(data: object) -> StandardsGradeStandardResult:
             mapping["result_algorithm_version"], "result_algorithm_version"
         ),
         target_scale=(
-            None
-            if scale_data is None
-            else _scale_reference_from_dict(scale_data)
+            None if scale_data is None else _scale_reference_from_dict(scale_data)
         ),
         proficiency_level_id=_optional_str(
             mapping["proficiency_level_id"], "proficiency_level_id"
@@ -1447,9 +1440,7 @@ def _staleness_reasons(value: object) -> tuple[StandardsGradeStalenessReason, ..
         not isinstance(reason, str) or reason not in _STALENESS_REASON_SET
         for reason in raw
     ):
-        raise StandardsGradeResultValidationError(
-            "staleness reason is not supported."
-        )
+        raise StandardsGradeResultValidationError("staleness reason is not supported.")
     if len(set(raw)) != len(raw):
         raise StandardsGradeResultValidationError(
             "staleness reasons must not contain duplicates."
@@ -1526,9 +1517,7 @@ def _exact_mapping(
     if not isinstance(value, Mapping):
         raise StandardsGradeResultSerializationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in value):
-        raise StandardsGradeResultSerializationError(
-            f"{label} keys must be strings."
-        )
+        raise StandardsGradeResultSerializationError(f"{label} keys must be strings.")
     mapping = dict(cast(Mapping[str, object], value))
     actual = frozenset(mapping)
     if actual != keys:
@@ -1551,9 +1540,7 @@ def _required_list(value: object, field_name: str) -> list[object]:
 
 def _required_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise StandardsGradeResultSerializationError(
-            f"{field_name} must be a string."
-        )
+        raise StandardsGradeResultSerializationError(f"{field_name} must be a string.")
     return value
 
 

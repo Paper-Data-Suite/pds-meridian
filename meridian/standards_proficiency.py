@@ -118,20 +118,14 @@ _BLOCKING_EXCLUSION_REASONS: Final[
     "source_unverifiable",
     "standard_unresolved",
 )
-_BLOCKING_EXCLUSION_SET: Final[frozenset[str]] = frozenset(
-    _BLOCKING_EXCLUSION_REASONS
-)
-_STALENESS_REASON_ORDER: Final[
-    tuple[StandardProficiencyStalenessReason, ...]
-] = (
+_BLOCKING_EXCLUSION_SET: Final[frozenset[str]] = frozenset(_BLOCKING_EXCLUSION_REASONS)
+_STALENESS_REASON_ORDER: Final[tuple[StandardProficiencyStalenessReason, ...]] = (
     "inputs_changed",
     "policy_changed",
     "scale_changed",
     "algorithm_changed",
 )
-_STALENESS_REASON_SET: Final[frozenset[str]] = frozenset(
-    _STALENESS_REASON_ORDER
-)
+_STALENESS_REASON_SET: Final[frozenset[str]] = frozenset(_STALENESS_REASON_ORDER)
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 
 _ACTOR_KEYS: Final[frozenset[str]] = frozenset({"kind", "actor_id"})
@@ -162,9 +156,7 @@ _POLICY_KEYS: Final[frozenset[str]] = frozenset(
 _POLICY_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
     {"class_id", "policy_id", "policy_revision", "policy_sha256"}
 )
-_LEVEL_COUNT_KEYS: Final[frozenset[str]] = frozenset(
-    {"proficiency_level_id", "count"}
-)
+_LEVEL_COUNT_KEYS: Final[frozenset[str]] = frozenset({"proficiency_level_id", "count"})
 _INSUFFICIENCY_REASON_KEYS: Final[frozenset[str]] = frozenset(
     {"kind", "source_keys", "required_observations", "actual_observations"}
 )
@@ -283,9 +275,7 @@ class StandardProficiencyCalculationPolicy:
     minimum_performance_observations: int
     mode_tie_rule: ModeTieRule | None
     median_even_rule: MedianEvenRule | None
-    blocking_exclusion_reasons: tuple[
-        StandardProficiencyBlockingExclusionReason, ...
-    ]
+    blocking_exclusion_reasons: tuple[StandardProficiencyBlockingExclusionReason, ...]
     native_state_handling: NativeStateHandling
     actor: StandardProficiencyActor
     rationale: str | None
@@ -363,12 +353,8 @@ class StandardProficiencyCalculationPolicy:
                 "highest/lowest strategies must not define tie rules."
             )
 
-        blocking = _blocking_exclusion_reasons(
-            self.blocking_exclusion_reasons
-        )
-        native_state_handling = _native_state_handling(
-            self.native_state_handling
-        )
+        blocking = _blocking_exclusion_reasons(self.blocking_exclusion_reasons)
+        native_state_handling = _native_state_handling(self.native_state_handling)
         if not isinstance(self.actor, StandardProficiencyActor):
             raise StandardProficiencyValidationError(
                 "actor must be a StandardProficiencyActor."
@@ -439,7 +425,6 @@ class StandardProficiencyCalculationPolicyReference:
         )
 
 
-
 @dataclass(frozen=True, slots=True)
 class StandardProficiencyLevelCount:
     "Count of contributing observations at one exact target-scale level."
@@ -497,12 +482,7 @@ class StandardProficiencyInsufficiencyReason:
                     "no_performance_evidence requires only actual_observations=0."
                 )
         elif self.kind == "below_minimum_performance_observations":
-            if (
-                source_keys
-                or required is None
-                or actual is None
-                or actual >= required
-            ):
+            if source_keys or required is None or actual is None or actual >= required:
                 raise StandardProficiencyValidationError(
                     "below-minimum evidence requires exact required/actual counts."
                 )
@@ -531,13 +511,9 @@ class StandardProficiencyTieResolution:
 
     def __post_init__(self) -> None:
         if self.kind not in {"mode_tie", "median_even"}:
-            raise StandardProficiencyValidationError(
-                "unsupported tie-resolution kind."
-            )
+            raise StandardProficiencyValidationError("unsupported tie-resolution kind.")
         if self.rule not in {"lower", "higher", "insufficient"}:
-            raise StandardProficiencyValidationError(
-                "unsupported tie-resolution rule."
-            )
+            raise StandardProficiencyValidationError("unsupported tie-resolution rule.")
         candidates = _identifier_tuple(
             self.candidate_level_ids,
             "candidate_level_ids",
@@ -752,7 +728,6 @@ class StandardProficiencyCalculationOutcome:
         object.__setattr__(self, "level_counts", level_counts)
         object.__setattr__(self, "insufficiency_reasons", reasons)
         object.__setattr__(self, "explanation_entries", explanations)
-
 
 
 @dataclass(frozen=True, slots=True)
@@ -1013,14 +988,10 @@ def standard_proficiency_calculation_policy_to_dict(
         "title": value.title,
         "target_scale": _scale_reference_to_dict(value.target_scale),
         "strategy": value.strategy,
-        "minimum_performance_observations": (
-            value.minimum_performance_observations
-        ),
+        "minimum_performance_observations": (value.minimum_performance_observations),
         "mode_tie_rule": value.mode_tie_rule,
         "median_even_rule": value.median_even_rule,
-        "blocking_exclusion_reasons": list(
-            value.blocking_exclusion_reasons
-        ),
+        "blocking_exclusion_reasons": list(value.blocking_exclusion_reasons),
         "native_state_handling": value.native_state_handling,
         "actor": _actor_to_dict(value.actor),
         "rationale": value.rationale,
@@ -1078,9 +1049,7 @@ def standard_proficiency_calculation_policy_from_dict(
             tuple[StandardProficiencyBlockingExclusionReason, ...],
             blocking,
         ),
-        native_state_handling=_native_state_handling(
-            mapping["native_state_handling"]
-        ),
+        native_state_handling=_native_state_handling(mapping["native_state_handling"]),
         actor=_actor_from_dict(mapping["actor"]),
         rationale=_optional_str(mapping["rationale"], "rationale"),
         revised_at=_datetime_from_text(
@@ -1093,9 +1062,7 @@ def standard_proficiency_calculation_policy_from_dict(
 def standard_proficiency_calculation_policy_to_json_bytes(
     value: StandardProficiencyCalculationPolicy,
 ) -> bytes:
-    return _canonical_json_bytes(
-        standard_proficiency_calculation_policy_to_dict(value)
-    )
+    return _canonical_json_bytes(standard_proficiency_calculation_policy_to_dict(value))
 
 
 def standard_proficiency_calculation_policy_from_json_bytes(
@@ -1151,7 +1118,6 @@ def standard_proficiency_calculation_policy_reference_from_dict(
     )
 
 
-
 def standard_proficiency_calculation_fingerprint(
     inputs: StandardAggregationInputs,
     policy: StandardProficiencyCalculationPolicy,
@@ -1168,9 +1134,7 @@ def standard_proficiency_calculation_fingerprint(
         "algorithm_version": STANDARD_PROFICIENCY_ALGORITHM_VERSION,
         "aggregation_inputs_sha256": inputs.sha256,
         "policy_reference": (
-            standard_proficiency_calculation_policy_reference_to_dict(
-                policy_reference
-            )
+            standard_proficiency_calculation_policy_reference_to_dict(policy_reference)
         ),
         "target_scale": _scale_reference_to_dict(scale_reference),
     }
@@ -1342,7 +1306,6 @@ def calculate_standard_proficiency(
     )
 
 
-
 def create_standard_proficiency_result_snapshot(
     inputs: StandardAggregationInputs,
     outcome: StandardProficiencyCalculationOutcome,
@@ -1467,9 +1430,7 @@ def standard_proficiency_calculation_outcome_to_dict(
             else {
                 "kind": value.tie_resolution.kind,
                 "rule": value.tie_resolution.rule,
-                "candidate_level_ids": list(
-                    value.tie_resolution.candidate_level_ids
-                ),
+                "candidate_level_ids": list(value.tie_resolution.candidate_level_ids),
                 "selected_level_id": value.tie_resolution.selected_level_id,
             }
         ),
@@ -1568,9 +1529,7 @@ def standard_proficiency_calculation_outcome_from_dict(
             mapping["excluded_count"],
             "excluded_count",
         ),
-        level_counts=tuple(
-            _level_count_from_dict(item) for item in level_counts_data
-        ),
+        level_counts=tuple(_level_count_from_dict(item) for item in level_counts_data),
         insufficiency_reasons=tuple(
             _insufficiency_reason_from_dict(item) for item in reason_data
         ),
@@ -1608,9 +1567,7 @@ def standard_proficiency_result_snapshot_to_dict(
             )
         ),
         "target_scale": _scale_reference_to_dict(value.target_scale),
-        "outcome": standard_proficiency_calculation_outcome_to_dict(
-            value.outcome
-        ),
+        "outcome": standard_proficiency_calculation_outcome_to_dict(value.outcome),
         "calculated_at": _datetime_to_text(value.calculated_at),
     }
 
@@ -1663,9 +1620,7 @@ def standard_proficiency_result_snapshot_from_dict(
             )
         ),
         target_scale=_scale_reference_from_dict(mapping["target_scale"]),
-        outcome=standard_proficiency_calculation_outcome_from_dict(
-            mapping["outcome"]
-        ),
+        outcome=standard_proficiency_calculation_outcome_from_dict(mapping["outcome"]),
         calculated_at=_datetime_from_text(
             mapping["calculated_at"],
             "calculated_at",
@@ -1676,9 +1631,7 @@ def standard_proficiency_result_snapshot_from_dict(
 def standard_proficiency_result_snapshot_to_json_bytes(
     value: StandardProficiencyResultSnapshot,
 ) -> bytes:
-    return _canonical_json_bytes(
-        standard_proficiency_result_snapshot_to_dict(value)
-    )
+    return _canonical_json_bytes(standard_proficiency_result_snapshot_to_dict(value))
 
 
 def standard_proficiency_result_snapshot_from_json_bytes(
@@ -1951,9 +1904,7 @@ def _calculation_fingerprint_from_references(
             "aggregation_inputs_sha256",
         ),
         "policy_reference": (
-            standard_proficiency_calculation_policy_reference_to_dict(
-                policy_reference
-            )
+            standard_proficiency_calculation_policy_reference_to_dict(policy_reference)
         ),
         "target_scale": _scale_reference_to_dict(scale_reference),
     }
@@ -2015,9 +1966,7 @@ def _apply_median_strategy(
         reason = None
     else:
         selected = None
-        reason = StandardProficiencyInsufficiencyReason(
-            "unresolved_even_median"
-        )
+        reason = StandardProficiencyInsufficiencyReason("unresolved_even_median")
     return (
         selected,
         StandardProficiencyTieResolution(
@@ -2043,11 +1992,7 @@ def _apply_mode_strategy(
     maximum = max(counts.values())
     candidates = tuple(
         sorted(
-            (
-                level_id
-                for level_id, count in counts.items()
-                if count == maximum
-            ),
+            (level_id for level_id, count in counts.items() if count == maximum),
             key=positions.__getitem__,
         )
     )
@@ -2067,9 +2012,7 @@ def _apply_mode_strategy(
         reason = None
     else:
         selected = None
-        reason = StandardProficiencyInsufficiencyReason(
-            "unresolved_mode_tie"
-        )
+        reason = StandardProficiencyInsufficiencyReason("unresolved_mode_tie")
     return (
         selected,
         StandardProficiencyTieResolution(
@@ -2157,11 +2100,7 @@ def _staleness_reasons(
             f"unsupported freshness reasons: {invalid!r}."
         )
     selected = set(cast(tuple[str, ...], raw))
-    return tuple(
-        reason
-        for reason in _STALENESS_REASON_ORDER
-        if reason in selected
-    )
+    return tuple(reason for reason in _STALENESS_REASON_ORDER if reason in selected)
 
 
 def _strategy(value: object) -> StandardProficiencyStrategy:
@@ -2213,11 +2152,7 @@ def _blocking_exclusion_reasons(
             f"#33 exclusion reasons: {invalid!r}."
         )
     selected = set(cast(tuple[str, ...], raw))
-    return tuple(
-        reason
-        for reason in _BLOCKING_EXCLUSION_REASONS
-        if reason in selected
-    )
+    return tuple(reason for reason in _BLOCKING_EXCLUSION_REASONS if reason in selected)
 
 
 def _native_state_handling(value: object) -> NativeStateHandling:
@@ -2228,17 +2163,12 @@ def _native_state_handling(value: object) -> NativeStateHandling:
     return value
 
 
-
 def _standard_id(value: object) -> str:
     if not isinstance(value, str):
-        raise StandardProficiencyValidationError(
-            "standard_id must be a string."
-        )
+        raise StandardProficiencyValidationError("standard_id must be a string.")
     result = value.strip()
     if not result:
-        raise StandardProficiencyValidationError(
-            "standard_id must not be blank."
-        )
+        raise StandardProficiencyValidationError("standard_id must not be blank.")
     if any(ord(character) < 32 or ord(character) == 127 for character in result):
         raise StandardProficiencyValidationError(
             "standard_id must not contain control characters."
@@ -2248,15 +2178,11 @@ def _standard_id(value: object) -> str:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise StandardProficiencyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise StandardProficiencyValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
         raise StandardProficiencyValidationError(str(error)) from error
-
-
 
 
 def _typed_tuple(
@@ -2265,9 +2191,7 @@ def _typed_tuple(
     field_name: str,
 ) -> tuple[_T, ...]:
     if isinstance(values, (str, bytes)):
-        raise StandardProficiencyValidationError(
-            f"{field_name} must be an iterable."
-        )
+        raise StandardProficiencyValidationError(f"{field_name} must be an iterable.")
     try:
         result = tuple(cast(Iterable[object], values))
     except TypeError as error:
@@ -2303,10 +2227,7 @@ def _identifier_tuple(
     field_name: str,
 ) -> tuple[str, ...]:
     raw = _typed_tuple(values, str, field_name)
-    return tuple(
-        _identifier(value, f"{field_name} item")
-        for value in raw
-    )
+    return tuple(_identifier(value, f"{field_name} item") for value in raw)
 
 
 def _sha256_tuple(
@@ -2318,10 +2239,7 @@ def _sha256_tuple(
         raise StandardProficiencyValidationError(
             f"{field_name} must not contain duplicates."
         )
-    return tuple(
-        _sha256(value, f"{field_name} item")
-        for value in raw
-    )
+    return tuple(_sha256(value, f"{field_name} item") for value in raw)
 
 
 def _positive_int(value: object, field_name: str) -> int:
@@ -2362,9 +2280,7 @@ def _bounded_text(
     maximum: int,
 ) -> str:
     if not isinstance(value, str):
-        raise StandardProficiencyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise StandardProficiencyValidationError(f"{field_name} must be a string.")
     if value != value.strip() or not value:
         raise StandardProficiencyValidationError(
             f"{field_name} must be nonempty without surrounding whitespace."
@@ -2419,9 +2335,7 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(text[:-1] + "+00:00")
     except ValueError as error:
-        raise StandardProficiencyValidationError(
-            f"{field_name} is invalid."
-        ) from error
+        raise StandardProficiencyValidationError(f"{field_name} is invalid.") from error
     if _datetime_to_text(parsed) != text:
         raise StandardProficiencyValidationError(
             f"{field_name} must use canonical microsecond UTC encoding."
@@ -2443,25 +2357,20 @@ def _exact_mapping(
     label: str,
 ) -> dict[str, object]:
     if not isinstance(value, dict):
-        raise StandardProficiencySerializationError(
-            f"{label} must be a JSON object."
-        )
+        raise StandardProficiencySerializationError(f"{label} must be a JSON object.")
     actual = frozenset(value)
     if actual != keys:
         missing = sorted(keys - actual)
         unknown = sorted(actual - keys)
         raise StandardProficiencySerializationError(
-            f"{label} does not use exact schema "
-            f"(missing={missing}, unknown={unknown})."
+            f"{label} does not use exact schema (missing={missing}, unknown={unknown})."
         )
     return cast(dict[str, object], value)
 
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise StandardProficiencyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise StandardProficiencyValidationError(f"{field_name} must be a string.")
     return value
 
 
@@ -2473,9 +2382,7 @@ def _optional_str(value: object, field_name: str) -> str | None:
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise StandardProficiencyValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise StandardProficiencyValidationError(f"{field_name} must be an integer.")
     return value
 
 
@@ -2515,9 +2422,7 @@ def _unique_object(
     result: dict[str, object] = {}
     for key, value in pairs:
         if key in result:
-            raise StandardProficiencySerializationError(
-                f"duplicate JSON key: {key}"
-            )
+            raise StandardProficiencySerializationError(f"duplicate JSON key: {key}")
         result[key] = value
     return result
 
@@ -2530,9 +2435,7 @@ def _reject_constant(value: str) -> object:
 
 def _decode_json(data: bytes, label: str) -> object:
     if type(data) is not bytes:
-        raise StandardProficiencySerializationError(
-            f"{label} input must be bytes."
-        )
+        raise StandardProficiencySerializationError(f"{label} input must be bytes.")
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:

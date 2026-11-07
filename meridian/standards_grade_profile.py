@@ -148,8 +148,7 @@ class ProfileBandEvaluation:
                 "profile band evaluation status is invalid."
             )
         if any(
-            not isinstance(item, ProfilePredicateEvaluation)
-            for item in self.predicates
+            not isinstance(item, ProfilePredicateEvaluation) for item in self.predicates
         ):
             raise StandardsGradeProfileValidationError(
                 "profile band predicates must be predicate evaluations."
@@ -176,7 +175,6 @@ class ProfileConstraintEvaluation:
             raise StandardsGradeProfileValidationError(
                 "profile evaluation bands must be ordered by contiguous priority."
             )
-
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,6 +228,7 @@ def select_profile_grade_band(
         "profile evaluation contains no selectable or indeterminate band."
     )
 
+
 def evaluate_profile_constraints(
     constraints: ProfileConstraintConfiguration,
     scale: ProficiencyScale,
@@ -242,9 +241,7 @@ def evaluate_profile_constraints(
             "constraints must be ProfileConstraintConfiguration."
         )
     if not isinstance(scale, ProficiencyScale):
-        raise StandardsGradeProfileValidationError(
-            "scale must be ProficiencyScale."
-        )
+        raise StandardsGradeProfileValidationError("scale must be ProficiencyScale.")
 
     try:
         observation_values = tuple(observations)
@@ -253,8 +250,7 @@ def evaluate_profile_constraints(
             "observations must be an iterable of ProfileStandardObservation values."
         ) from error
     if any(
-        not isinstance(item, ProfileStandardObservation)
-        for item in observation_values
+        not isinstance(item, ProfileStandardObservation) for item in observation_values
     ):
         raise StandardsGradeProfileValidationError(
             "observations must contain only ProfileStandardObservation values."
