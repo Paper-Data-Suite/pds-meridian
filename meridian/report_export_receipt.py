@@ -67,9 +67,7 @@ ReportExportReceiptWriteDisposition: TypeAlias = Literal["created", "existing"]
 _DESTINATION_KINDS: Final[frozenset[str]] = frozenset({"file", "copyable_text"})
 _ACTOR_KINDS: Final[frozenset[str]] = frozenset({"teacher"})
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
-_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(
-    r"^(mk_[0-9a-f]{64})\.json$"
-)
+_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(r"^(mk_[0-9a-f]{64})\.json$")
 _RECEIPT_DIGEST: Final[re.Pattern[str]] = re.compile(
     r"^(mk_[0-9a-f]{64})\.json\.sha256$"
 )
@@ -299,9 +297,9 @@ class ExportReceipt:
                 roster_sha256,
                 "roster_observation_sha256",
             )
-            expected_roster_sha256 = (
-                export_roster_observation_reference(roster).observation_sha256
-            )
+            expected_roster_sha256 = export_roster_observation_reference(
+                roster
+            ).observation_sha256
             if roster_sha256 != expected_roster_sha256:
                 raise ReportExportReceiptValidationError(
                     "roster observation digest does not match embedded observation."
@@ -346,9 +344,7 @@ class ExportReceipt:
             self.destination.basename,
         )
         if not isinstance(self.actor, ReportExportActor):
-            raise ReportExportReceiptValidationError(
-                "actor must be ReportExportActor."
-            )
+            raise ReportExportReceiptValidationError("actor must be ReportExportActor.")
         actor = ReportExportActor(self.actor.kind, self.actor.actor_id)
         rationale = _optional_bounded_text(
             self.rationale,
@@ -532,9 +528,7 @@ def validate_export_receipt(value: ExportReceipt) -> ExportReceipt:
     """Fully revalidate one immutable ExportReceipt."""
 
     if not isinstance(value, ExportReceipt):
-        raise ReportExportReceiptValidationError(
-            "value must be ExportReceipt."
-        )
+        raise ReportExportReceiptValidationError("value must be ExportReceipt.")
     return ExportReceipt(
         schema_version=value.schema_version,
         record_type=value.record_type,
@@ -782,10 +776,13 @@ def report_export_receipt_path(
     export_id: str,
 ) -> Path:
     receipt_key = report_export_receipt_path_key(class_id, export_id)
-    return report_export_receipts_directory(
-        workspace_root,
-        class_id,
-    ) / f"{receipt_key}.json"
+    return (
+        report_export_receipts_directory(
+            workspace_root,
+            class_id,
+        )
+        / f"{receipt_key}.json"
+    )
 
 
 def report_export_receipt_digest_path(
@@ -794,8 +791,7 @@ def report_export_receipt_digest_path(
     export_id: str,
 ) -> Path:
     return Path(
-        str(report_export_receipt_path(workspace_root, class_id, export_id))
-        + ".sha256"
+        str(report_export_receipt_path(workspace_root, class_id, export_id)) + ".sha256"
     )
 
 
@@ -807,8 +803,7 @@ def report_export_receipt_relative_path(class_id: str, export_id: str) -> str:
         export_value,
     )
     return (
-        f"classes/{class_value}/modules/meridian/reporting_exports/"
-        f"{receipt_key}.json"
+        f"classes/{class_value}/modules/meridian/reporting_exports/{receipt_key}.json"
     )
 
 
@@ -1368,9 +1363,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -1379,9 +1372,7 @@ def _identifier(value: object, field_name: str) -> str:
 
 def _bounded_text(value: object, field_name: str, maximum: int) -> str:
     if not isinstance(value, str):
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise ReportExportReceiptValidationError(
             f"{field_name} must be nonblank without surrounding whitespace."
@@ -1391,8 +1382,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise ReportExportReceiptValidationError(
             f"{field_name} must be single-line and free of control characters."
@@ -1422,9 +1412,7 @@ def _positive_int(value: object, field_name: str) -> int:
 def _nonnegative_int(value: object, field_name: str) -> int:
     integer = _require_int(value, field_name)
     if integer < 0:
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be nonnegative."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be nonnegative.")
     return integer
 
 
@@ -1438,9 +1426,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise ReportExportReceiptValidationError(
             f"{field_name} must be timezone-aware."
@@ -1461,9 +1447,7 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be a string.")
     return value
 
 
@@ -1475,25 +1459,19 @@ def _optional_str(value: object, field_name: str) -> str | None:
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be an integer.")
     return value
 
 
 def _require_bool(value: object, field_name: str) -> bool:
     if type(value) is not bool:
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be a boolean."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be a boolean.")
     return value
 
 
 def _require_list(value: object, field_name: str) -> list[object]:
     if not isinstance(value, list):
-        raise ReportExportReceiptValidationError(
-            f"{field_name} must be a JSON array."
-        )
+        raise ReportExportReceiptValidationError(f"{field_name} must be a JSON array.")
     return value
 
 

@@ -433,9 +433,7 @@ def _handle_definition_list(
     _ = dependencies
     try:
         families = []
-        definition_ids = list_reporting_definition_ids(
-            args.workspace, args.class_id
-        )
+        definition_ids = list_reporting_definition_ids(args.workspace, args.class_id)
         for definition_id in definition_ids:
             revisions = list_reporting_definition_revisions(
                 args.workspace,
@@ -576,8 +574,7 @@ def _handle_definition_write(
     if not args.confirm_write:
         print("NO REPORTING DEFINITION WRITTEN")
     print(
-        "authority: local Meridian reporting state; "
-        "not an official district/SIS Grade"
+        "authority: local Meridian reporting state; not an official district/SIS Grade"
     )
     return 0
 
@@ -914,9 +911,7 @@ def _handle_snapshot_freeze(
     dependencies: DiagnosticsDependencies | None,
 ) -> int:
     try:
-        build_request = load_reporting_snapshot_build_request_file(
-            args.build_request
-        )
+        build_request = load_reporting_snapshot_build_request_file(args.build_request)
         raw_authorizations = _projection_authorizations(args.projection_auth)
         authorizations = tuple(
             ReportingSnapshotProjectionAuthorization(
@@ -974,9 +969,7 @@ def _handle_snapshot_freeze(
             "disposition": "preview_only",
             "snapshot_id": args.snapshot_id,
             "build_request_sha256": build_digest,
-            "live_grade_report": grade_report_preview_to_dict(
-                preview.live_report
-            ),
+            "live_grade_report": grade_report_preview_to_dict(preview.live_report),
             "live_grade_report_sha256": preview.live_report_sha256,
             "freeze_confirmed": False,
             "official_system_authority": False,
@@ -1120,8 +1113,7 @@ def _handle_selection_show(
         print(f"selection revision: {stored.selection.selection_revision}")
         print(f"selection sha256: {stored.selection_sha256}")
     print(
-        "authority: local reporting-use selection; "
-        "not an official district/SIS Grade"
+        "authority: local reporting-use selection; not an official district/SIS Grade"
     )
     return 0
 
@@ -1230,9 +1222,7 @@ def _handle_selection_select(
         "schema_version": 1,
         "surface": "reporting_snapshot_selection_change",
         "disposition": disposition,
-        "snapshot_reference": reporting_snapshot_reference_to_dict(
-            requested_reference
-        ),
+        "snapshot_reference": reporting_snapshot_reference_to_dict(requested_reference),
         "expected_current": (
             None
             if expected is None
@@ -1258,8 +1248,7 @@ def _handle_selection_select(
     if not args.confirm_select:
         print("NO CURRENT-USE SELECTION WRITTEN")
     print(
-        "authority: local reporting-use selection; "
-        "not an official district/SIS Grade"
+        "authority: local reporting-use selection; not an official district/SIS Grade"
     )
     return 0
 

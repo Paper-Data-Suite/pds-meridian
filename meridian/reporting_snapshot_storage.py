@@ -48,12 +48,8 @@ ReportingStorageWriteDisposition: TypeAlias = Literal["created", "existing"]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
-_SNAPSHOT_JSON: Final[re.Pattern[str]] = re.compile(
-    r"^(mk_[0-9a-f]{64})\.json$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
+_SNAPSHOT_JSON: Final[re.Pattern[str]] = re.compile(r"^(mk_[0-9a-f]{64})\.json$")
 _SNAPSHOT_DIGEST: Final[re.Pattern[str]] = re.compile(
     r"^(mk_[0-9a-f]{64})\.json\.sha256$"
 )
@@ -285,11 +281,14 @@ def reporting_definitions_directory(
 ) -> Path:
     """Return the class-local collection of reporting-definition families."""
 
-    return class_module_dir(
-        workspace_root,
-        _identifier(class_id, "class_id"),
-        "meridian",
-    ) / "reporting_definitions"
+    return (
+        class_module_dir(
+            workspace_root,
+            _identifier(class_id, "class_id"),
+            "meridian",
+        )
+        / "reporting_definitions"
+    )
 
 
 def reporting_definition_path_key(
@@ -328,13 +327,10 @@ def reporting_definition_directory(
 ) -> Path:
     """Return one reporting-definition family directory."""
 
-    return (
-        reporting_definitions_directory(
-            workspace_root,
-            class_id,
-        )
-        / reporting_definition_path_key(class_id, definition_id)
-    )
+    return reporting_definitions_directory(
+        workspace_root,
+        class_id,
+    ) / reporting_definition_path_key(class_id, definition_id)
 
 
 def reporting_definition_revisions_directory(
@@ -342,11 +338,14 @@ def reporting_definition_revisions_directory(
     class_id: str,
     definition_id: str,
 ) -> Path:
-    return reporting_definition_directory(
-        workspace_root,
-        class_id,
-        definition_id,
-    ) / "revisions"
+    return (
+        reporting_definition_directory(
+            workspace_root,
+            class_id,
+            definition_id,
+        )
+        / "revisions"
+    )
 
 
 def reporting_definition_revision_path(
@@ -356,11 +355,14 @@ def reporting_definition_revision_path(
     definition_revision: int,
 ) -> Path:
     revision = _positive_int(definition_revision, "definition_revision")
-    return reporting_definition_revisions_directory(
-        workspace_root,
-        class_id,
-        definition_id,
-    ) / f"{revision}.json"
+    return (
+        reporting_definition_revisions_directory(
+            workspace_root,
+            class_id,
+            definition_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def reporting_definition_revision_digest_path(
@@ -403,11 +405,14 @@ def reporting_snapshots_directory(
 ) -> Path:
     """Return the class-local immutable ReportingSnapshot collection."""
 
-    return class_module_dir(
-        workspace_root,
-        _identifier(class_id, "class_id"),
-        "meridian",
-    ) / "reporting_snapshots"
+    return (
+        class_module_dir(
+            workspace_root,
+            _identifier(class_id, "class_id"),
+            "meridian",
+        )
+        / "reporting_snapshots"
+    )
 
 
 def reporting_snapshot_path_key(
@@ -431,10 +436,13 @@ def reporting_snapshot_path(
     snapshot_id: str,
 ) -> Path:
     key = reporting_snapshot_path_key(class_id, snapshot_id)
-    return reporting_snapshots_directory(
-        workspace_root,
-        class_id,
-    ) / f"{key}.json"
+    return (
+        reporting_snapshots_directory(
+            workspace_root,
+            class_id,
+        )
+        / f"{key}.json"
+    )
 
 
 def reporting_snapshot_digest_path(
@@ -443,8 +451,7 @@ def reporting_snapshot_digest_path(
     snapshot_id: str,
 ) -> Path:
     return Path(
-        str(reporting_snapshot_path(workspace_root, class_id, snapshot_id))
-        + ".sha256"
+        str(reporting_snapshot_path(workspace_root, class_id, snapshot_id)) + ".sha256"
     )
 
 
@@ -452,10 +459,7 @@ def reporting_snapshot_relative_path(class_id: str, snapshot_id: str) -> str:
     class_value = _identifier(class_id, "class_id")
     snapshot_value = _identifier(snapshot_id, "snapshot_id")
     key = reporting_snapshot_path_key(class_value, snapshot_value)
-    return (
-        f"classes/{class_value}/modules/meridian/reporting_snapshots/"
-        f"{key}.json"
-    )
+    return f"classes/{class_value}/modules/meridian/reporting_snapshots/{key}.json"
 
 
 def write_reporting_definition_revision(
@@ -992,16 +996,14 @@ def _reporting_definition_id_from_directory(
         ) from error
     if definition.class_id != class_id or definition.definition_revision != 1:
         raise ReportingSnapshotStorageIntegrityError(
-            "Reporting-definition revision 1 identity does not match collection "
-            "scope."
+            "Reporting-definition revision 1 identity does not match collection scope."
         )
     if relation.name != reporting_definition_path_key(
         class_id,
         definition.definition_id,
     ):
         raise ReportingSnapshotStorageIntegrityError(
-            "Reporting-definition directory key does not match authoritative "
-            "identity."
+            "Reporting-definition directory key does not match authoritative identity."
         )
     return definition.definition_id
 
@@ -1379,16 +1381,12 @@ def _fsync_directory_if_supported(path: Path) -> None:
 
 def _reject_symlink(path: Path, label: str) -> None:
     if path.is_symlink():
-        raise ReportingSnapshotStorageIntegrityError(
-            f"{label} must not be a symlink."
-        )
+        raise ReportingSnapshotStorageIntegrityError(f"{label} must not be a symlink.")
 
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportingSnapshotStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportingSnapshotStorageValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

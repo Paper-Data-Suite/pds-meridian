@@ -39,9 +39,7 @@ from meridian.storage_path_keys import (
 )
 
 PROFICIENCY_SCALE_CURRENT_SCHEMA_VERSION: Final[str] = "1"
-PROFICIENCY_SCALE_CURRENT_RECORD_TYPE: Final[str] = (
-    "meridian_proficiency_scale_current"
-)
+PROFICIENCY_SCALE_CURRENT_RECORD_TYPE: Final[str] = "meridian_proficiency_scale_current"
 MAPPING_PROFILE_CURRENT_SCHEMA_VERSION: Final[str] = "1"
 MAPPING_PROFILE_CURRENT_RECORD_TYPE: Final[str] = (
     "meridian_native_value_mapping_profile_current"
@@ -56,9 +54,7 @@ MappingSelectDisposition: TypeAlias = Literal["created", "updated", "existing"]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _SCALE_POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -249,10 +245,9 @@ def proficiency_scale_directory(
     scale_id: str,
 ) -> Path:
     scale = _identifier(scale_id, "scale_id")
-    return (
-        proficiency_scales_directory(workspace_root, class_id)
-        / proficiency_scale_path_key(class_id, scale)
-    )
+    return proficiency_scales_directory(
+        workspace_root, class_id
+    ) / proficiency_scale_path_key(class_id, scale)
 
 
 def proficiency_scale_revisions_directory(
@@ -270,9 +265,10 @@ def proficiency_scale_revision_path(
     scale_revision: int,
 ) -> Path:
     revision = _positive_int(scale_revision, "scale_revision")
-    return proficiency_scale_revisions_directory(
-        workspace_root, class_id, scale_id
-    ) / f"{revision}.json"
+    return (
+        proficiency_scale_revisions_directory(workspace_root, class_id, scale_id)
+        / f"{revision}.json"
+    )
 
 
 def proficiency_scale_current_path(
@@ -280,9 +276,9 @@ def proficiency_scale_current_path(
     class_id: str,
     scale_id: str,
 ) -> Path:
-    return proficiency_scale_directory(
-        workspace_root, class_id, scale_id
-    ) / "current.json"
+    return (
+        proficiency_scale_directory(workspace_root, class_id, scale_id) / "current.json"
+    )
 
 
 def mapping_profiles_directory(
@@ -345,10 +341,9 @@ def mapping_profile_directory(
     profile_id: str,
 ) -> Path:
     profile = _identifier(profile_id, "profile_id")
-    return (
-        mapping_profiles_directory(workspace_root, class_id, scale_id)
-        / mapping_profile_path_key(class_id, scale_id, profile)
-    )
+    return mapping_profiles_directory(
+        workspace_root, class_id, scale_id
+    ) / mapping_profile_path_key(class_id, scale_id, profile)
 
 
 def mapping_profile_revisions_directory(
@@ -357,9 +352,7 @@ def mapping_profile_revisions_directory(
     scale_id: str,
     profile_id: str,
 ) -> Path:
-    return mapping_profile_directory(
-        workspace_root, class_id, scale_id, profile_id
-    )
+    return mapping_profile_directory(workspace_root, class_id, scale_id, profile_id)
 
 
 def mapping_profile_revision_path(
@@ -370,9 +363,12 @@ def mapping_profile_revision_path(
     profile_revision: int,
 ) -> Path:
     revision = _positive_int(profile_revision, "profile_revision")
-    return mapping_profile_revisions_directory(
-        workspace_root, class_id, scale_id, profile_id
-    ) / f"{revision}.json"
+    return (
+        mapping_profile_revisions_directory(
+            workspace_root, class_id, scale_id, profile_id
+        )
+        / f"{revision}.json"
+    )
 
 
 def mapping_profile_current_path(
@@ -381,9 +377,10 @@ def mapping_profile_current_path(
     scale_id: str,
     profile_id: str,
 ) -> Path:
-    return mapping_profile_directory(
-        workspace_root, class_id, scale_id, profile_id
-    ) / "current.json"
+    return (
+        mapping_profile_directory(workspace_root, class_id, scale_id, profile_id)
+        / "current.json"
+    )
 
 
 def proficiency_scale_revision_relative_path(
@@ -394,10 +391,7 @@ def proficiency_scale_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     scale = _identifier(scale_id, "scale_id")
     revision = _positive_int(scale_revision, "scale_revision")
-    return (
-        f"{proficiency_scale_relative_directory(class_value, scale)}/"
-        f"{revision}.json"
-    )
+    return f"{proficiency_scale_relative_directory(class_value, scale)}/{revision}.json"
 
 
 def mapping_profile_revision_relative_path(
@@ -544,9 +538,9 @@ def list_proficiency_scale_revisions(
     return _list_history_revisions(
         root,
         relation,
-        lambda revision: load_proficiency_scale_revision(
-            root, class_value, scale, revision
-        ).scale,
+        lambda revision: (
+            load_proficiency_scale_revision(root, class_value, scale, revision).scale
+        ),
         validate_proficiency_scale_transition,
     )
 
@@ -574,9 +568,7 @@ def list_proficiency_scale_ids(
                 "Proficiency-scale collection contains an unexpected entry."
             )
         _validate_scale_directory(entry)
-        result.append(
-            _scale_id_from_directory(root, class_value, entry)
-        )
+        result.append(_scale_id_from_directory(root, class_value, entry))
     return tuple(sorted(result))
 
 
@@ -585,9 +577,7 @@ def get_current_proficiency_scale_revision(
     class_id: str,
     scale_id: str,
 ) -> int | None:
-    pointer = _load_scale_pointer(
-        workspace_root, class_id, scale_id, missing_ok=True
-    )
+    pointer = _load_scale_pointer(workspace_root, class_id, scale_id, missing_ok=True)
     return None if pointer is None else cast(int, pointer["scale_revision"])
 
 
@@ -596,9 +586,7 @@ def load_current_proficiency_scale(
     class_id: str,
     scale_id: str,
 ) -> StoredProficiencyScale | None:
-    pointer = _load_scale_pointer(
-        workspace_root, class_id, scale_id, missing_ok=True
-    )
+    pointer = _load_scale_pointer(workspace_root, class_id, scale_id, missing_ok=True)
     if pointer is None:
         return None
     stored = load_proficiency_scale_revision(
@@ -623,9 +611,7 @@ def select_proficiency_scale_revision(
     expected_current_scale_revision: int | None,
 ) -> ProficiencyScaleSelectionResult:
     root = _root(workspace_root)
-    target = load_proficiency_scale_revision(
-        root, class_id, scale_id, scale_revision
-    )
+    target = load_proficiency_scale_revision(root, class_id, scale_id, scale_revision)
     relation = proficiency_scale_directory(root, class_id, scale_id)
     lock = relation / ".write.lock"
     _acquire_lock(lock)
@@ -721,9 +707,7 @@ def write_mapping_profile_revision(
                 history[-1],
             ).profile
             try:
-                validate_native_value_mapping_profile_transition(
-                    previous, candidate
-                )
+                validate_native_value_mapping_profile_transition(previous, candidate)
             except ProficiencyMappingValidationError as error:
                 raise ProficiencyMappingStorageConflictError(str(error)) from error
         _write_revision_pair(target, digest_target, content, digest)
@@ -753,13 +737,9 @@ def load_mapping_profile_revision(
     scale = _identifier(scale_id, "scale_id")
     profile = _identifier(profile_id, "profile_id")
     revision = _positive_int(profile_revision, "profile_revision")
-    relation = mapping_profile_directory(
-        root, class_value, scale, profile
-    )
+    relation = mapping_profile_directory(root, class_value, scale, profile)
     _validate_profile_directory(relation)
-    path = mapping_profile_revision_path(
-        root, class_value, scale, profile, revision
-    )
+    path = mapping_profile_revision_path(root, class_value, scale, profile, revision)
     content, digest = _read_revision_pair(
         root,
         path,
@@ -785,9 +765,7 @@ def load_mapping_profile_revision(
         )
     target_scale = _load_target_scale(root, model.target_scale)
     try:
-        validate_native_value_mapping_profile_against_scale(
-            model, target_scale.scale
-        )
+        validate_native_value_mapping_profile_against_scale(model, target_scale.scale)
     except ProficiencyMappingValidationError as error:
         raise ProficiencyMappingStorageIntegrityError(
             f"Persisted mapping-profile target-scale dependency is invalid: {error}"
@@ -820,9 +798,11 @@ def list_mapping_profile_revisions(
     return _list_history_revisions(
         root,
         relation,
-        lambda revision: load_mapping_profile_revision(
-            root, class_value, scale, profile, revision
-        ).profile,
+        lambda revision: (
+            load_mapping_profile_revision(
+                root, class_value, scale, profile, revision
+            ).profile
+        ),
         validate_native_value_mapping_profile_transition,
     )
 

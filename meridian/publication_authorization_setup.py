@@ -178,7 +178,9 @@ def preview_publication_access(
         try:
             existing = load_publication_authorizer(path, workspace_root=root)
         except (
-            PublicationAuthorizationConfigurationError, OSError, ValueError
+            PublicationAuthorizationConfigurationError,
+            OSError,
+            ValueError,
         ) as error:
             raise PublicationAuthorizationSetupError(
                 "Existing authorization policy is invalid; no changes were made."
@@ -195,8 +197,15 @@ def preview_publication_access(
     if grant in grants:
         assert before is not None and existing is not None
         return PublicationAccessPlan(
-            root, class_key, producers, publications, include_future_publications,
-            _digest(before), existing.policy_version, False, before,
+            root,
+            class_key,
+            producers,
+            publications,
+            include_future_publications,
+            _digest(before),
+            existing.policy_version,
+            False,
+            before,
         )
     policy_id = existing.policy_id if existing is not None else "teacher_local"
     if existing is None:
@@ -204,13 +213,23 @@ def preview_publication_access(
     elif existing.policy_version.isdecimal():
         version = str(int(existing.policy_version) + 1)
     else:
-        version = "revision_" + hashlib.sha256(
-            repr((existing.policy_version, grant)).encode("utf-8")
-        ).hexdigest()[:16]
+        version = (
+            "revision_"
+            + hashlib.sha256(
+                repr((existing.policy_version, grant)).encode("utf-8")
+            ).hexdigest()[:16]
+        )
     proposed = _encode_policy(root, policy_id, version, (*grants, grant))
     return PublicationAccessPlan(
-        root, class_key, producers, publications, include_future_publications,
-        _digest(before), version, True, proposed,
+        root,
+        class_key,
+        producers,
+        publications,
+        include_future_publications,
+        _digest(before),
+        version,
+        True,
+        proposed,
     )
 
 

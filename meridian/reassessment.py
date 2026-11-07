@@ -282,9 +282,7 @@ class ReassessmentPolicy:
             raise ReassessmentValidationError("allowed_modes must not be empty.")
         object.__setattr__(self, "allowed_modes", modes)
         if not isinstance(self.actor, ReassessmentActor):
-            raise ReassessmentValidationError(
-                "actor must be a ReassessmentActor."
-            )
+            raise ReassessmentValidationError("actor must be a ReassessmentActor.")
         object.__setattr__(self, "actor", validate_reassessment_actor(self.actor))
         rationale = self.rationale
         if rationale is not None:
@@ -347,9 +345,7 @@ class ReassessmentDecision:
             "student_id",
             _identifier(self.student_id, "student_id"),
         )
-        if not isinstance(
-            self.attempt_selection, AttemptSelectionDecisionReference
-        ):
+        if not isinstance(self.attempt_selection, AttemptSelectionDecisionReference):
             raise ReassessmentValidationError(
                 "attempt_selection must be an AttemptSelectionDecisionReference."
             )
@@ -423,9 +419,7 @@ class ReassessmentDecision:
                 "decision supersedes_revision must equal decision_revision - 1."
             )
         if not isinstance(self.actor, ReassessmentActor):
-            raise ReassessmentValidationError(
-                "actor must be a ReassessmentActor."
-            )
+            raise ReassessmentValidationError("actor must be a ReassessmentActor.")
         object.__setattr__(self, "actor", validate_reassessment_actor(self.actor))
         rationale = self.rationale
         if rationale is not None:
@@ -479,9 +473,7 @@ def validate_replacement_relationship(
     value: ReplacementRelationship,
 ) -> ReplacementRelationship:
     if not isinstance(value, ReplacementRelationship):
-        raise ReassessmentValidationError(
-            "value must be a ReplacementRelationship."
-        )
+        raise ReassessmentValidationError("value must be a ReplacementRelationship.")
     return ReplacementRelationship(
         replacement_attempt=value.replacement_attempt,
         replaced_attempts=value.replaced_attempts,
@@ -492,9 +484,7 @@ def validate_reassessment_combination(
     value: ReassessmentCombination,
 ) -> ReassessmentCombination:
     if not isinstance(value, ReassessmentCombination):
-        raise ReassessmentValidationError(
-            "value must be a ReassessmentCombination."
-        )
+        raise ReassessmentValidationError("value must be a ReassessmentCombination.")
     return ReassessmentCombination(
         combination_id=value.combination_id,
         members=value.members,
@@ -641,9 +631,7 @@ def attempt_selection_decision_reference_from_dict(
         decision_revision=_positive_int(
             mapping["decision_revision"], "decision_revision"
         ),
-        decision_sha256=_require_str(
-            mapping["decision_sha256"], "decision_sha256"
-        ),
+        decision_sha256=_require_str(mapping["decision_sha256"], "decision_sha256"),
     )
 
 
@@ -947,9 +935,7 @@ def _validate_mode_shape(
             )
         ids = tuple(value.combination_id for value in combinations)
         if len(set(ids)) != len(ids):
-            raise ReassessmentValidationError(
-                "combination IDs must not be duplicated."
-            )
+            raise ReassessmentValidationError("combination IDs must not be duplicated.")
         members = tuple(attempt for value in combinations for attempt in value.members)
         if len(set(members)) != len(members):
             raise ReassessmentValidationError(
@@ -1018,9 +1004,7 @@ def _mode_tuple(values: object) -> tuple[ReassessmentMode, ...]:
 
 def _reassessment_actor_kind(value: object) -> ReassessmentActorKind:
     if value not in {"teacher", "policy"}:
-        raise ReassessmentValidationError(
-            "actor kind must be one of: policy, teacher."
-        )
+        raise ReassessmentValidationError("actor kind must be one of: policy, teacher.")
     return value
 
 
