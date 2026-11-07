@@ -284,9 +284,7 @@ def _project_observation(
         else observation.candidate.catalog_publication.work
     )
     title = _work_title(observation)
-    status = _status_code(
-        observation, work_title=title, authorizer=authorizer
-    )
+    status = _status_code(observation, work_title=title, authorizer=authorizer)
 
     return TeacherEvidenceInboxItem(
         publication_id=observation.publication_id,
@@ -301,9 +299,7 @@ def _project_observation(
         canonical_error_code=observation.canonical_error_code,
         drift_fields=observation.drift_fields,
         support_reason_codes=(
-            observation.support.reason_codes
-            if observation.support is not None
-            else ()
+            observation.support.reason_codes if observation.support is not None else ()
         ),
     )
 

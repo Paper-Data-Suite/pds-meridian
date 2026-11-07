@@ -57,9 +57,7 @@ class TeacherEvidenceStudentAmbiguityError(TeacherEvidenceReviewError):
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise TeacherEvidenceReviewValidationError(
-            f"{field_name} must be a string."
-        )
+        raise TeacherEvidenceReviewValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip() or "\n" in value or "\r" in value:
         raise TeacherEvidenceReviewValidationError(
             f"{field_name} must be non-empty single-line text."
@@ -240,9 +238,7 @@ class TeacherEvidenceStudent:
             _identifier(self.display_label, "display_label"),
         )
         if not isinstance(self.period, str):
-            raise TeacherEvidenceReviewValidationError(
-                "period must be a string."
-            )
+            raise TeacherEvidenceReviewValidationError("period must be a string.")
         if not self.items:
             raise TeacherEvidenceReviewValidationError(
                 "represented student must contain evidence."
@@ -266,9 +262,7 @@ class TeacherEvidenceReview:
     def __post_init__(self) -> None:
         class_id = _identifier(self.class_id, "class_id")
         if not isinstance(self.work, ModuleWorkRef):
-            raise TeacherEvidenceReviewValidationError(
-                "work must be a ModuleWorkRef."
-            )
+            raise TeacherEvidenceReviewValidationError("work must be a ModuleWorkRef.")
         if self.work.class_id != class_id:
             raise TeacherEvidenceReviewValidationError(
                 "review class must match exact work identity."
@@ -279,8 +273,7 @@ class TeacherEvidenceReview:
             _identifier(self.publication_id, "publication_id"),
         )
         if any(
-            not isinstance(student, TeacherEvidenceStudent)
-            for student in self.students
+            not isinstance(student, TeacherEvidenceStudent) for student in self.students
         ):
             raise TeacherEvidenceReviewValidationError(
                 "students must contain TeacherEvidenceStudent values."
@@ -369,9 +362,7 @@ def build_teacher_evidence_review(
     """Project validated evidence and optional roster into teacher-facing groups."""
 
     if not isinstance(work, ModuleWorkRef):
-        raise TeacherEvidenceReviewValidationError(
-            "work must be a ModuleWorkRef."
-        )
+        raise TeacherEvidenceReviewValidationError("work must be a ModuleWorkRef.")
 
     raw_items = tuple(getattr(inventory, "items", ()))
     projected = tuple(_project_item(item) for item in raw_items)
@@ -395,9 +386,7 @@ def build_teacher_evidence_review(
             )
         lookup = student_lookup(roster)
         missing = tuple(
-            student_id
-            for student_id in represented_ids
-            if student_id not in lookup
+            student_id for student_id in represented_ids if student_id not in lookup
         )
         if missing:
             raise TeacherEvidenceStudentMissingError(
@@ -406,9 +395,7 @@ def build_teacher_evidence_review(
 
         represented = set(represented_ids)
         records = tuple(
-            student
-            for student in roster.students
-            if student.student_id in represented
+            student for student in roster.students if student.student_id in represented
         )
         labels = _display_labels(records)
         students = tuple(
@@ -417,9 +404,7 @@ def build_teacher_evidence_review(
                 display_label=labels[record.student_id],
                 period=record.period,
                 items=tuple(
-                    item
-                    for item in projected
-                    if item.student_id == record.student_id
+                    item for item in projected if item.student_id == record.student_id
                 ),
             )
             for record in records
@@ -450,8 +435,7 @@ def project_teacher_evidence_review(
     publication = authorized.current_context.publication
     inventory = authorized.stored.snapshot.inventory
     represented = any(
-        getattr(item, "subject", None) is not None
-        for item in inventory.items
+        getattr(item, "subject", None) is not None for item in inventory.items
     )
 
     roster: Roster | None = None
