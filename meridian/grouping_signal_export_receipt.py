@@ -64,15 +64,11 @@ class GroupingSignalExportReceiptError(ValueError):
     """Base error for #40 export-receipt domain state."""
 
 
-class GroupingSignalExportReceiptValidationError(
-    GroupingSignalExportReceiptError
-):
+class GroupingSignalExportReceiptValidationError(GroupingSignalExportReceiptError):
     """Raised when an export receipt violates its closed contract."""
 
 
-class GroupingSignalExportReceiptSerializationError(
-    GroupingSignalExportReceiptError
-):
+class GroupingSignalExportReceiptSerializationError(GroupingSignalExportReceiptError):
     """Raised when export-receipt JSON is invalid or noncanonical."""
 
 
@@ -199,8 +195,7 @@ def create_grouping_signal_export_receipt(
         or signal.source.module_id != "meridian"
         or signal.source.snapshot_id != derivation_reference.derivation_id
         or signal.source.snapshot_digest_algorithm != "sha256"
-        or signal.source.snapshot_digest
-        != derivation_reference.derivation_sha256
+        or signal.source.snapshot_digest != derivation_reference.derivation_sha256
     ):
         raise GroupingSignalExportReceiptValidationError(
             "Core signal source must bind the exact Meridian #38 derivation."

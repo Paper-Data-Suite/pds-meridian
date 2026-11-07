@@ -165,9 +165,7 @@ def inspect_grade_report_attention_for_class(
     _require_exact_class(root, class_value)
 
     try:
-        stale_grades: dict[
-            StandardsGradeTargetKey, StandardsGradeResultReference
-        ] = {}
+        stale_grades: dict[StandardsGradeTargetKey, StandardsGradeResultReference] = {}
         selected_standards = _discover_current_standards_grade_results(
             root,
             class_value,
@@ -181,7 +179,7 @@ def inspect_grade_report_attention_for_class(
             if previous is not None and previous != stored.reference:
                 raise GradeReportAttentionReadError(
                     "Duplicate selected standards Grade target changed during "
-                "inspection."
+                    "inspection."
                 )
             stale_grades[key] = stored.reference
         _revalidate_stale_grade_selections(root, class_value, stale_grades)
@@ -227,9 +225,7 @@ def inspect_grade_report_attention_for_class(
                 raise GradeReportAttentionIntegrityError(
                     "ReportingSnapshot replacement predecessor changed unexpectedly."
                 )
-            if _reporting_scope(snapshot) != _reporting_scope(
-                predecessor.snapshot
-            ):
+            if _reporting_scope(snapshot) != _reporting_scope(predecessor.snapshot):
                 # The immutable relationship is real, but it cannot prove a
                 # replacement pending in one current-use selector scope.
                 continue
@@ -567,9 +563,7 @@ def _required_school_year(data: dict[str, object], field: str) -> str:
 def _required_positive_int(data: dict[str, object], field: str) -> int:
     value = data[field]
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise GradeReportAttentionReadError(
-            f"{field} must be a positive integer."
-        )
+        raise GradeReportAttentionReadError(f"{field} must be a positive integer.")
     return value
 
 
@@ -645,8 +639,7 @@ def _selected_reporting_snapshot_publication_changed(
         )
         current_state = (
             tuple(
-                member.publication.publication_id
-                for member in current.series.members
+                member.publication.publication_id for member in current.series.members
             ),
             current.series.target_index,
             current.series.head_publication_id,
@@ -798,9 +791,7 @@ def _required_list(
 def _required_text(data: dict[str, object], field: str) -> str:
     value = data[field]
     if not isinstance(value, str) or not value:
-        raise GradeReportAttentionIntegrityError(
-            f"{field} must be a nonempty string."
-        )
+        raise GradeReportAttentionIntegrityError(f"{field} must be a nonempty string.")
     return value
 
 
@@ -963,9 +954,7 @@ def _require_exact_class(workspace_root: Path, class_id: str) -> None:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradeReportAttentionIntegrityError(
-            f"{field_name} must be a string."
-        )
+        raise GradeReportAttentionIntegrityError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

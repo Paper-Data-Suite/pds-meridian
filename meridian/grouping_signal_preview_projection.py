@@ -84,9 +84,7 @@ _DIAGNOSTIC_MESSAGES: Final[dict[str, str]] = {
         "The derivation does not have contributing band assignments for the full "
         "roster."
     ),
-    "empty_bands": (
-        "One or more configured bands contain no contributing students."
-    ),
+    "empty_bands": ("One or more configured bands contain no contributing students."),
     "single_occupied_band": (
         "All contributing students currently occupy one configured band."
     ),
@@ -97,9 +95,7 @@ class GroupingSignalTeacherProjectionError(RuntimeError):
     """Base error for teacher-facing preview projection."""
 
 
-class GroupingSignalTeacherProjectionReadError(
-    GroupingSignalTeacherProjectionError
-):
+class GroupingSignalTeacherProjectionReadError(GroupingSignalTeacherProjectionError):
     """Raised when exact preview/current review state cannot be read safely."""
 
 
@@ -237,8 +233,7 @@ def build_grouping_signal_teacher_projection(
         preview.derivation_reference.class_id,
     )
     students = tuple(
-        _teacher_student_row(row, display_names)
-        for row in preview.student_rows
+        _teacher_student_row(row, display_names) for row in preview.student_rows
     )
     by_student = {row.student_id: row for row in students}
 
@@ -247,12 +242,10 @@ def build_grouping_signal_teacher_projection(
         for summary in preview.band_summaries
     )
     ties = tuple(
-        _teacher_tie_group(group, display_names)
-        for group in preview.tie_groups
+        _teacher_tie_group(group, display_names) for group in preview.tie_groups
     )
     diagnostics = tuple(
-        _teacher_diagnostic(item, display_names)
-        for item in preview.diagnostics
+        _teacher_diagnostic(item, display_names) for item in preview.diagnostics
     )
     noncontributors = tuple(
         by_student[row.student_id]
@@ -305,9 +298,7 @@ def build_grouping_signal_teacher_projection(
         target_scale_reference=basis.target_scale,
         derivation_reference=preview.derivation_reference,
         derivation_algorithm_version=preview.derivation_algorithm_version,
-        derivation_calculation_fingerprint=(
-            preview.derivation_calculation_fingerprint
-        ),
+        derivation_calculation_fingerprint=(preview.derivation_calculation_fingerprint),
         live_currentness=live_currentness,
         policy_reference=preview.policy_reference,
         policy_title=preview.policy_title,
@@ -363,8 +354,7 @@ def format_grouping_signal_teacher_projection(
         (
             f"Derivation: {projection.derivation_reference!r}",
             f"Algorithm: {projection.derivation_algorithm_version}",
-            "Calculation fingerprint: "
-            f"{projection.derivation_calculation_fingerprint}",
+            f"Calculation fingerprint: {projection.derivation_calculation_fingerprint}",
             f"Live currentness: {projection.live_currentness.state}",
         )
     )
@@ -383,8 +373,7 @@ def format_grouping_signal_teacher_projection(
             f"Band count: {projection.band_count}",
             f"Tie handling: {projection.tie_handling}",
             f"Missing-result handling: {projection.missing_result_handling}",
-            "Insufficient-result handling: "
-            f"{projection.insufficient_result_handling}",
+            f"Insufficient-result handling: {projection.insufficient_result_handling}",
         )
     )
 
@@ -446,8 +435,7 @@ def format_grouping_signal_teacher_projection(
     else:
         for item in projection.diagnostics:
             lines.append(
-                f"[{item.severity}] {item.code} ({item.diagnostic_id}): "
-                f"{item.message}"
+                f"[{item.severity}] {item.code} ({item.diagnostic_id}): {item.message}"
             )
 
     _section(lines, "Review Status")
@@ -480,13 +468,9 @@ def format_grouping_signal_teacher_projection(
                 ),
             )
         )
-        if (
-            review.applicability is not None
-            and review.applicability.reason_codes
-        ):
+        if review.applicability is not None and review.applicability.reason_codes:
             lines.append(
-                "Applicability reasons: "
-                + ", ".join(review.applicability.reason_codes)
+                "Applicability reasons: " + ", ".join(review.applicability.reason_codes)
             )
 
     _section(lines, "Export Boundary")
@@ -522,8 +506,7 @@ def _teacher_band_summary(
         proficiency_level_ids=summary.proficiency_level_ids,
         student_ids=summary.student_ids,
         student_display_names=tuple(
-            display_names.get(student_id)
-            for student_id in summary.student_ids
+            display_names.get(student_id) for student_id in summary.student_ids
         ),
         student_count=summary.student_count,
     )
@@ -540,8 +523,7 @@ def _teacher_tie_group(
         band_label=f"Band {group.band}",
         student_ids=group.student_ids,
         student_display_names=tuple(
-            display_names.get(student_id)
-            for student_id in group.student_ids
+            display_names.get(student_id) for student_id in group.student_ids
         ),
     )
 
@@ -557,8 +539,7 @@ def _teacher_diagnostic(
         message=_DIAGNOSTIC_MESSAGES[item.code],
         student_ids=item.student_ids,
         student_display_names=tuple(
-            display_names.get(student_id)
-            for student_id in item.student_ids
+            display_names.get(student_id) for student_id in item.student_ids
         ),
         bands=item.bands,
         details=item.details,
@@ -576,17 +557,12 @@ def _current_display_names(
     if roster.class_id != class_id:
         return {}
     return {
-        student.student_id: student_display_name(student)
-        for student in roster.students
+        student.student_id: student_display_name(student) for student in roster.students
     }
 
 
 def _student_line(student: GroupingSignalTeacherStudentRow) -> str:
-    name = (
-        f" ({student.display_name})"
-        if student.display_name is not None
-        else ""
-    )
+    name = f" ({student.display_name})" if student.display_name is not None else ""
     band = f"Band {student.band}" if student.band is not None else "none"
     level = (
         student.proficiency_level_id
@@ -594,9 +570,7 @@ def _student_line(student: GroupingSignalTeacherStudentRow) -> str:
         else "none"
     )
     position = (
-        str(student.scale_position)
-        if student.scale_position is not None
-        else "none"
+        str(student.scale_position) if student.scale_position is not None else "none"
     )
     return (
         f"{student.student_id}{name}: source={student.source_state}; "

@@ -119,8 +119,7 @@ class GroupingSignalCoreExportResult:
             != self.eligibility.derivation_reference.derivation_sha256
         ):
             raise GroupingSignalCoreExportInvariantError(
-                "Stored Core signal does not bind the exact authorized #38 "
-                "derivation."
+                "Stored Core signal does not bind the exact authorized #38 derivation."
             )
         if (
             self.diagnostics.signal_set_id != signal.signal_set_id
@@ -173,8 +172,7 @@ def export_grouping_signal_to_core(
         )
     except GroupingSignalDiagnosticsError as error:
         raise GroupingSignalCoreExportDiagnosticsError(
-            "Core roster diagnostics could not verify the grouping-signal "
-            "candidate."
+            "Core roster diagnostics could not verify the grouping-signal candidate."
         ) from error
 
     _validate_diagnostics_against_reviewed_state(
@@ -252,8 +250,7 @@ def _validate_diagnostics_against_reviewed_state(
             )
         )
         raise GroupingSignalCoreExportDiagnosticsError(
-            "Core grouping-signal diagnostics reported export error(s): "
-            f"{codes}."
+            f"Core grouping-signal diagnostics reported export error(s): {codes}."
         )
 
     if (
@@ -299,9 +296,7 @@ def _validate_diagnostics_against_reviewed_state(
         if item.disposition == "noncontributing"
     )
     contributing_ids = tuple(sorted(item.student_id for item in contributing))
-    noncontributing_ids = tuple(
-        sorted(item.student_id for item in noncontributing)
-    )
+    noncontributing_ids = tuple(sorted(item.student_id for item in noncontributing))
     missing_ids = tuple(
         sorted(
             finding.student_id
@@ -335,16 +330,14 @@ def _validate_diagnostics_against_reviewed_state(
         for band in range(1, derivation.band_count + 1)
     )
     preview_counts = tuple(
-        (summary.band, summary.student_count)
-        for summary in preview.band_summaries
+        (summary.band, summary.student_count) for summary in preview.band_summaries
     )
     if (
         dimension.band_counts != canonical_expected_counts
         or preview_counts != canonical_expected_counts
     ):
         raise GroupingSignalCoreExportInvariantError(
-            "Core band distribution does not exactly match the accepted #39 "
-            "preview."
+            "Core band distribution does not exactly match the accepted #39 preview."
         )
 
     preview_contributing_ids = tuple(

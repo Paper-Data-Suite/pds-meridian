@@ -44,9 +44,7 @@ MAXIMUM_GROUPING_SIGNAL_POLICY_TEXT_LENGTH: Final[int] = 2000
 MAXIMUM_GROUPING_SIGNAL_POLICY_ACTOR_ID_LENGTH: Final[int] = 256
 MAXIMUM_GROUPING_SIGNAL_POLICY_BYTES: Final[int] = 256 * 1024
 
-GroupingSignalAcademicBasisKind: TypeAlias = Literal[
-    "academic_period_proficiency"
-]
+GroupingSignalAcademicBasisKind: TypeAlias = Literal["academic_period_proficiency"]
 GroupingSignalTieHandling: TypeAlias = Literal["same_level_same_band"]
 GroupingSignalResultHandling: TypeAlias = Literal["noncontributing", "blocking"]
 GroupingSignalPolicyActorKind: TypeAlias = Literal["teacher", "policy"]
@@ -54,9 +52,7 @@ GroupingSignalPolicyActorKind: TypeAlias = Literal["teacher", "policy"]
 _BASIS_KINDS: Final[tuple[GroupingSignalAcademicBasisKind, ...]] = (
     "academic_period_proficiency",
 )
-_TIE_HANDLINGS: Final[tuple[GroupingSignalTieHandling, ...]] = (
-    "same_level_same_band",
-)
+_TIE_HANDLINGS: Final[tuple[GroupingSignalTieHandling, ...]] = ("same_level_same_band",)
 _RESULT_HANDLINGS: Final[tuple[GroupingSignalResultHandling, ...]] = (
     "noncontributing",
     "blocking",
@@ -273,9 +269,7 @@ class GroupingSignalDerivationPolicy:
         dimension_id = _identifier(self.dimension_id, "dimension_id")
         band_count = _positive_int(self.band_count, "band_count")
         if band_count < 2:
-            raise GroupingSignalPolicyValidationError(
-                "band_count must be at least 2."
-            )
+            raise GroupingSignalPolicyValidationError("band_count must be at least 2.")
         definitions = _band_definitions(self.band_definitions, band_count)
         tie_handling = _tie_handling(self.tie_handling)
         missing = _result_handling(
@@ -369,9 +363,7 @@ def validate_grouping_signal_academic_basis_dependencies(
         )
         validated_scale = validate_proficiency_scale(target_scale)
         expected_policy_reference = (
-            academic_period_proficiency_aggregation_policy_reference(
-                validated_policy
-            )
+            academic_period_proficiency_aggregation_policy_reference(validated_policy)
         )
         expected_scale_reference = proficiency_scale_reference(validated_scale)
     except ValueError as error:
@@ -413,8 +405,7 @@ def validate_grouping_signal_derivation_policy_against_scale(
         )
     if value.band_definitions[-1].maximum_scale_position != level_count:
         raise GroupingSignalPolicyValidationError(
-            "band definitions must form a complete partition of source scale "
-            "positions."
+            "band definitions must form a complete partition of source scale positions."
         )
     return value
 
@@ -510,9 +501,7 @@ def grouping_signal_derivation_policy_to_dict(
         "policy_revision": policy.policy_revision,
         "supersedes_revision": policy.supersedes_revision,
         "title": policy.title,
-        "academic_basis": grouping_signal_academic_basis_to_dict(
-            policy.academic_basis
-        ),
+        "academic_basis": grouping_signal_academic_basis_to_dict(policy.academic_basis),
         "dimension_id": policy.dimension_id,
         "band_count": policy.band_count,
         "band_definitions": [
@@ -563,8 +552,7 @@ def grouping_signal_derivation_policy_from_dict(
         dimension_id=_require_str(mapping["dimension_id"], "dimension_id"),
         band_count=_require_int(mapping["band_count"], "band_count"),
         band_definitions=tuple(
-            grouping_signal_band_definition_from_dict(item)
-            for item in definitions_data
+            grouping_signal_band_definition_from_dict(item) for item in definitions_data
         ),
         tie_handling=cast(GroupingSignalTieHandling, tie),
         missing_result_handling=cast(GroupingSignalResultHandling, missing),
@@ -732,9 +720,7 @@ def _band_definitions(
     band_count: int,
 ) -> tuple[GroupingSignalBandDefinition, ...]:
     if not isinstance(value, tuple):
-        raise GroupingSignalPolicyValidationError(
-            "band_definitions must be a tuple."
-        )
+        raise GroupingSignalPolicyValidationError("band_definitions must be a tuple.")
     definitions: list[GroupingSignalBandDefinition] = []
     for item in value:
         if not isinstance(item, GroupingSignalBandDefinition):
@@ -849,9 +835,7 @@ def _validate_revision_pair(revision: int, supersedes: int | None) -> None:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -874,14 +858,10 @@ def _optional_positive_int(value: object, field_name: str) -> int | None:
 
 def _bounded_text(value: object, field_name: str, maximum: int) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must be a string.")
     normalized = value.strip()
     if not normalized:
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must not be blank."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must not be blank.")
     if len(normalized) > maximum:
         raise GroupingSignalPolicyValidationError(
             f"{field_name} exceeds the maximum length of {maximum}."
@@ -901,9 +881,7 @@ def _optional_bounded_text(
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise GroupingSignalPolicyValidationError(
             f"{field_name} must be timezone-aware."
@@ -968,9 +946,7 @@ def _exact_mapping(
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must be a string.")
     return value
 
 
@@ -982,9 +958,7 @@ def _optional_str(value: object, field_name: str) -> str | None:
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must be an integer.")
     return value
 
 
@@ -996,9 +970,7 @@ def _optional_int(value: object, field_name: str) -> int | None:
 
 def _require_list(value: object, field_name: str) -> list[object]:
     if not isinstance(value, list):
-        raise GroupingSignalPolicyValidationError(
-            f"{field_name} must be a JSON array."
-        )
+        raise GroupingSignalPolicyValidationError(f"{field_name} must be a JSON array.")
     return cast(list[object], value)
 
 

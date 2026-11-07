@@ -53,9 +53,7 @@ GroupingSignalExportReceiptWriteDisposition: TypeAlias = Literal[
 ]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
-_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(
-    r"^(mk_[0-9a-f]{64})\.json$"
-)
+_RECEIPT_JSON: Final[re.Pattern[str]] = re.compile(r"^(mk_[0-9a-f]{64})\.json$")
 _RECEIPT_DIGEST: Final[re.Pattern[str]] = re.compile(
     r"^(mk_[0-9a-f]{64})\.json\.sha256$"
 )
@@ -137,9 +135,7 @@ class StoredGroupingSignalExportReceipt:
                 "receipt_sha256 does not match exact immutable content."
             )
         try:
-            decoded = grouping_signal_export_receipt_from_json_bytes(
-                self.content
-            )
+            decoded = grouping_signal_export_receipt_from_json_bytes(self.content)
         except (
             GroupingSignalExportReceiptSerializationError,
             GroupingSignalExportReceiptValidationError,
@@ -190,10 +186,7 @@ def grouping_signal_export_receipts_directory(
 ) -> Path:
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "grouping_signal_exports"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "grouping_signal_exports"
     _require_containment(root, path)
     return path
 
@@ -222,10 +215,13 @@ def grouping_signal_export_receipt_path(
         class_id,
         signal_set_id,
     )
-    return grouping_signal_export_receipts_directory(
-        workspace_root,
-        class_id,
-    ) / f"{receipt_key}.json"
+    return (
+        grouping_signal_export_receipts_directory(
+            workspace_root,
+            class_id,
+        )
+        / f"{receipt_key}.json"
+    )
 
 
 def grouping_signal_export_receipt_relative_path(
@@ -283,8 +279,7 @@ def write_grouping_signal_export_receipt(
                 ) from error
             if (
                 stored.content != content
-                or stored.receipt_sha256
-                != expected_reference.receipt_sha256
+                or stored.receipt_sha256 != expected_reference.receipt_sha256
             ):
                 raise GroupingSignalExportReceiptStorageConflictError(
                     "Export receipt identity already exists with different content."
@@ -308,8 +303,7 @@ def write_grouping_signal_export_receipt(
         )
         if (
             stored.content != content
-            or stored.receipt_sha256
-            != expected_reference.receipt_sha256
+            or stored.receipt_sha256 != expected_reference.receipt_sha256
         ):
             raise GroupingSignalExportReceiptStorageIntegrityError(
                 "Persisted export receipt differs from candidate canonical bytes."
@@ -459,8 +453,7 @@ def _validate_receipt_dependencies(
         or signal.source.module_id != "meridian"
         or signal.source.snapshot_id != derivation.reference.derivation_id
         or signal.source.snapshot_digest_algorithm != "sha256"
-        or signal.source.snapshot_digest
-        != derivation.reference.derivation_sha256
+        or signal.source.snapshot_digest != derivation.reference.derivation_sha256
     ):
         raise GroupingSignalExportReceiptStorageIntegrityError(
             "Core signal source does not bind the receipt #38 derivation."
