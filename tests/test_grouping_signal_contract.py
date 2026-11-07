@@ -426,9 +426,9 @@ def test_single_dimension_csv_is_complete_identity_preserving_round_trip() -> No
         "student_002",
     )
     assert grouping_signal_csv_to_signal_set(document) == signal
-    assert grouping_signal_set_to_csv_bytes(
-        signal, "reading_analysis"
-    ) == text.encode("utf-8")
+    assert grouping_signal_set_to_csv_bytes(signal, "reading_analysis") == text.encode(
+        "utf-8"
+    )
 
 
 def test_multi_dimension_csv_is_projection_and_requires_fresh_identity() -> None:

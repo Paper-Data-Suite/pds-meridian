@@ -37,9 +37,7 @@ from tests.test_grouping_signal_export_eligibility import (
 
 
 def _seed(tmp_path: Path):
-    root, stored_preview, stored_review = _seed_selected_accepted_review(
-        tmp_path
-    )
+    root, stored_preview, stored_review = _seed_selected_accepted_review(tmp_path)
     return (
         root,
         stored_preview,
@@ -69,10 +67,7 @@ def test_export_creates_minimal_exact_receipt_after_core_write(
     assert receipt.review_reference == stored_review.reference
     assert receipt.core_contract == "grouping_signal_set_v1"
     assert receipt.core_digest_algorithm == "sha256"
-    assert (
-        receipt.core_signal_digest
-        == result.core.write_result.stored.digest
-    )
+    assert receipt.core_signal_digest == result.core.write_result.stored.digest
     receipt_key = grouping_signal_export_receipt_path_key(
         CLASS_ID,
         receipt.signal_set_id,
@@ -244,9 +239,7 @@ def test_post_core_receipt_failure_surfaces_recoverable_partial_success(
     original_write = receipt_workflow.write_grouping_signal_export_receipt
 
     def fail_receipt(*args, **kwargs):
-        raise GroupingSignalExportReceiptStorageWriteError(
-            "synthetic receipt failure"
-        )
+        raise GroupingSignalExportReceiptStorageWriteError("synthetic receipt failure")
 
     monkeypatch.setattr(
         receipt_workflow,

@@ -117,19 +117,15 @@ def test_active_package_boundary_tests_do_not_call_issue38_next() -> None:
 
 
 def test_issue38_installed_smoke_is_release_guarded_and_signal_free() -> None:
-    validator = Path("scripts/validate_repository.py").read_text(
-        encoding="utf-8"
-    )
-    sdist_checker = Path("scripts/check_sdist.py").read_text(
-        encoding="utf-8"
-    )
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     runner_path = Path("scripts/smoke_test_grouping_signal_generation_wheel.py")
     program_path = Path("scripts/smoke_program_grouping_signal_generation.py")
     program = program_path.read_text(encoding="utf-8")
 
-    core_runner = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
+    core_runner = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "scripts.installed_qualification_runner" in validator
     assert "grouping-signal-generation" in core_runner
@@ -139,9 +135,6 @@ def test_issue38_installed_smoke_is_release_guarded_and_signal_free() -> None:
     assert "student.band == 2" in program
     assert 'write_disposition == "created"' in program
     assert 'write_disposition == "existing"' in program
-    assert (
-        "list_grouping_signal_ids(workspace, CLASS_ID) == ()"
-        in program
-    )
+    assert "list_grouping_signal_ids(workspace, CLASS_ID) == ()" in program
     assert 'find_spec("concord") is None' in program
     assert "write_grouping_signal(" not in program

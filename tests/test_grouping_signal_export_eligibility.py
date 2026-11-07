@@ -61,9 +61,7 @@ def _seed_selected_accepted_review(tmp_path: Path):
 def test_resolve_uses_exact_selected_accepted_review_and_current_derivation(
     tmp_path: Path,
 ) -> None:
-    root, stored_preview, stored_review = _seed_selected_accepted_review(
-        tmp_path
-    )
+    root, stored_preview, stored_review = _seed_selected_accepted_review(tmp_path)
 
     eligibility = resolve_grouping_signal_export_eligibility(
         root,
@@ -72,10 +70,7 @@ def test_resolve_uses_exact_selected_accepted_review_and_current_derivation(
     )
 
     assert eligibility.review_reference == stored_review.reference
-    assert (
-        eligibility.derivation_reference
-        == stored_review.review.derivation_reference
-    )
+    assert eligibility.derivation_reference == stored_review.review.derivation_reference
     assert eligibility.preview_reference == stored_preview.reference
     assert eligibility.currentness.state == "current"
     assert (
@@ -181,9 +176,7 @@ def test_resolve_distinguishes_stale_review_from_blocked_derivation(
 def test_final_revalidation_detects_selected_review_change(
     tmp_path: Path,
 ) -> None:
-    root, stored_preview, stored_review = _seed_selected_accepted_review(
-        tmp_path
-    )
+    root, stored_preview, stored_review = _seed_selected_accepted_review(tmp_path)
     derivation_id = stored_review.review.derivation_reference.derivation_id
     eligibility = resolve_grouping_signal_export_eligibility(
         root,

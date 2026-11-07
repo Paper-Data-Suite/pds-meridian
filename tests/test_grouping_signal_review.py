@@ -246,9 +246,7 @@ def test_review_canonical_round_trip_and_reference() -> None:
         grouping_signal_review_from_json_bytes(noncanonical)
 
     with pytest.raises(GroupingSignalReviewSerializationError, match="canonical"):
-        grouping_signal_review_from_json_bytes(
-            payload.replace(b"\n", b"\r\n")
-        )
+        grouping_signal_review_from_json_bytes(payload.replace(b"\n", b"\r\n"))
 
 
 def test_review_revision_lineage_is_explicit_and_contiguous() -> None:

@@ -312,8 +312,7 @@ def test_scale_dependent_validation_requires_complete_exact_partition() -> None:
         academic_basis=exact_basis,
         band_count=5,
         band_definitions=tuple(
-            GroupingSignalBandDefinition(index, index, index)
-            for index in range(1, 6)
+            GroupingSignalBandDefinition(index, index, index) for index in range(1, 6)
         ),
     )
     with pytest.raises(GroupingSignalPolicyValidationError, match="must not exceed"):
@@ -407,8 +406,7 @@ def test_revision_shape_and_transition_are_contiguous_and_explicit() -> None:
     first = policy()
     second = policy(revision=2)
     assert (
-        validate_grouping_signal_derivation_policy_transition(first, second)
-        == second
+        validate_grouping_signal_derivation_policy_transition(first, second) == second
     )
 
     with pytest.raises(GroupingSignalPolicyValidationError, match="contiguous"):

@@ -114,9 +114,7 @@ def test_noncanonical_crlf_fails_even_with_matching_sidecar(tmp_path: Path) -> N
     crlf = stored.content.replace(b"\n", b"\r\n")
     stored.path.write_bytes(crlf)
     digest_path = Path(str(stored.path) + ".sha256")
-    digest_path.write_bytes(
-        (hashlib.sha256(crlf).hexdigest() + "\n").encode("ascii")
-    )
+    digest_path.write_bytes((hashlib.sha256(crlf).hexdigest() + "\n").encode("ascii"))
     with pytest.raises(
         GroupingSignalDerivationStorageIntegrityError,
         match="noncanonical",

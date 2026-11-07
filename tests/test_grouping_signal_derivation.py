@@ -379,24 +379,30 @@ def test_student_derivation_shapes_preserve_missing_and_insufficient() -> None:
         "level_2",
     )
     reference = academic_period_proficiency_result_reference(calculated)
-    assert GroupingSignalStudentDerivation(
-        "student_1",
-        "calculated",
-        "contributing",
-        reference,
-        "level_2",
-        2,
-        2,
-    ).band == 2
-    assert GroupingSignalStudentDerivation(
-        "student_2",
-        "missing",
-        "noncontributing",
-        None,
-        None,
-        None,
-        None,
-    ).source_result is None
+    assert (
+        GroupingSignalStudentDerivation(
+            "student_1",
+            "calculated",
+            "contributing",
+            reference,
+            "level_2",
+            2,
+            2,
+        ).band
+        == 2
+    )
+    assert (
+        GroupingSignalStudentDerivation(
+            "student_2",
+            "missing",
+            "noncontributing",
+            None,
+            None,
+            None,
+            None,
+        ).source_result
+        is None
+    )
     insufficient_result = period_result(
         exact_scale,
         exact_source_policy,
@@ -406,15 +412,18 @@ def test_student_derivation_shapes_preserve_missing_and_insufficient() -> None:
     insufficient_reference = academic_period_proficiency_result_reference(
         insufficient_result
     )
-    assert GroupingSignalStudentDerivation(
-        "student_3",
-        "insufficient_evidence",
-        "noncontributing",
-        insufficient_reference,
-        None,
-        None,
-        None,
-    ).source_state == "insufficient_evidence"
+    assert (
+        GroupingSignalStudentDerivation(
+            "student_3",
+            "insufficient_evidence",
+            "noncontributing",
+            insufficient_reference,
+            None,
+            None,
+            None,
+        ).source_state
+        == "insufficient_evidence"
+    )
 
 
 def test_student_derivation_rejects_numeric_missing_or_insufficient_fallback() -> None:
@@ -511,9 +520,7 @@ def test_insufficient_blocking_aborts_pure_derivation_with_structured_student() 
             },
             insufficient="blocking",
         )
-    assert captured.value.blocking_students == (
-        ("student_2", "insufficient_evidence"),
-    )
+    assert captured.value.blocking_students == (("student_2", "insufficient_evidence"),)
 
 
 def test_zero_contributor_derivation_is_valid_without_fabricated_band() -> None:
@@ -521,8 +528,7 @@ def test_zero_contributor_derivation_is_valid_without_fabricated_band() -> None:
         levels={"student_1": None, "student_2": None, "student_3": None}
     )
     assert all(
-        item.disposition == "noncontributing"
-        for item in snapshot.student_derivations
+        item.disposition == "noncontributing" for item in snapshot.student_derivations
     )
     assert all(item.band is None for item in snapshot.student_derivations)
 

@@ -204,10 +204,13 @@ def test_storage_has_no_current_latest_active_or_revision_state(tmp_path: Path) 
 def test_exact_reference_requires_matching_digest(tmp_path: Path) -> None:
     value = snapshot()
     stored = write_grouping_signal_derivation(tmp_path, value).stored
-    assert load_grouping_signal_derivation_reference(
-        tmp_path,
-        stored.reference,
-    ) == stored
+    assert (
+        load_grouping_signal_derivation_reference(
+            tmp_path,
+            stored.reference,
+        )
+        == stored
+    )
     wrong = replace(stored.reference, derivation_sha256="0" * 64)
     with pytest.raises(
         GroupingSignalDerivationStorageIntegrityError,

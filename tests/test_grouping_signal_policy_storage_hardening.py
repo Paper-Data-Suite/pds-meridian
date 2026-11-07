@@ -163,7 +163,8 @@ def test_malformed_noncanonical_and_oversized_pointers_fail_closed(
         )
 
     pointer.write_bytes(
-        b"{" + b" " * (storage.DEFAULT_MAXIMUM_GROUPING_SIGNAL_POLICY_POINTER_BYTES + 1)
+        b"{"
+        + b" " * (storage.DEFAULT_MAXIMUM_GROUPING_SIGNAL_POLICY_POINTER_BYTES + 1)
         + b"}"
     )
     with pytest.raises(storage.GroupingSignalPolicyStorageTooLargeError):

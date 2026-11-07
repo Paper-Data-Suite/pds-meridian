@@ -150,9 +150,7 @@ def test_current_candidate_discovery_filters_and_orders_current_grade_items(
     def stored(item_id: str) -> object:
         status = "archived" if item_id == "item_archived" else "active"
         purpose = (
-            "conventional_grade"
-            if item_id == "item_grade"
-            else "standards_proficiency"
+            "conventional_grade" if item_id == "item_grade" else "standards_proficiency"
         )
         return SimpleNamespace(
             revision=SimpleNamespace(
@@ -222,12 +220,15 @@ def test_current_candidate_discovery_requires_at_least_one_relevant_membership(
         lambda *args: False,
     )
 
-    assert basis_module._current_candidate_bases(
-        basis_module._root(tmp_path),  # type: ignore[arg-type]
-        exact_policy,
-        object(),  # type: ignore[arg-type]
-        "direct",
-    ) == ()
+    assert (
+        basis_module._current_candidate_bases(
+            basis_module._root(tmp_path),  # type: ignore[arg-type]
+            exact_policy,
+            object(),  # type: ignore[arg-type]
+            "direct",
+        )
+        == ()
+    )
 
 
 def test_stale_membership_selection_is_not_current_grade_item_basis() -> None:
