@@ -174,10 +174,13 @@ def test_attempt_decisions_uses_exact_student_authorization_and_is_read_only(
     monkeypatch.setattr(cli, "inspect_evidence_diagnostic", fake_inspect)
     monkeypatch.setattr(cli, "project_attempt_decisions", fake_project)
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     inspect_call = observed["inspect"]
@@ -223,10 +226,13 @@ def test_json_output_preserves_status_policy_and_attempt_identity(
         lambda *args, **kwargs: _projection(),
     )
 
-    assert cli.main(
-        _arguments("--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["status"] == "selected"
@@ -270,10 +276,13 @@ def test_stale_text_output_preserves_exact_reason(
         lambda *args, **kwargs: projection,
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
     assert "status: stale" in output
     assert "stale reason: eligibility_stale" in output

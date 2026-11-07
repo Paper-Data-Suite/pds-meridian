@@ -188,10 +188,13 @@ def test_zero_bindings_never_access_protected_evidence(
 
     monkeypatch.setattr(cli, "build_bounded_calculation_preview", build)
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert len(observed) == 1
@@ -234,23 +237,26 @@ def test_explicit_binding_and_profile_preserve_exact_authorization(
     monkeypatch.setattr(cli, "inspect_evidence_diagnostic", inspect)
     monkeypatch.setattr(cli, "build_bounded_calculation_preview", build)
 
-    assert cli.main(
-        _arguments(
-            "--binding",
-            PUBLICATION_ID,
-            CACHE_KEY,
-            ITEM_ID,
-            "--binding-profile",
-            PUBLICATION_ID,
-            CACHE_KEY,
-            ITEM_ID,
-            SCALE_ID,
-            "scoreform_points",
-            "4",
-            "c" * 64,
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(
+                "--binding",
+                PUBLICATION_ID,
+                CACHE_KEY,
+                ITEM_ID,
+                "--binding-profile",
+                PUBLICATION_ID,
+                CACHE_KEY,
+                ITEM_ID,
+                SCALE_ID,
+                "scoreform_points",
+                "4",
+                "c" * 64,
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
 
     inspect_args, inspect_kwargs = observed["inspect"]
     assert inspect_args[0:3] == (
@@ -288,19 +294,22 @@ def test_orphan_profile_fails_before_evidence_access(
         ),
     )
 
-    assert cli.main(
-        _arguments(
-            "--binding-profile",
-            PUBLICATION_ID,
-            CACHE_KEY,
-            ITEM_ID,
-            SCALE_ID,
-            "scoreform_points",
-            "4",
-            "c" * 64,
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            _arguments(
+                "--binding-profile",
+                PUBLICATION_ID,
+                CACHE_KEY,
+                ITEM_ID,
+                SCALE_ID,
+                "scoreform_points",
+                "4",
+                "c" * 64,
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
 
 
 def test_duplicate_binding_fails_before_evidence_access(
@@ -314,19 +323,22 @@ def test_duplicate_binding_fails_before_evidence_access(
         ),
     )
 
-    assert cli.main(
-        _arguments(
-            "--binding",
-            PUBLICATION_ID,
-            CACHE_KEY,
-            ITEM_ID,
-            "--binding",
-            PUBLICATION_ID,
-            CACHE_KEY,
-            ITEM_ID,
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            _arguments(
+                "--binding",
+                PUBLICATION_ID,
+                CACHE_KEY,
+                ITEM_ID,
+                "--binding",
+                PUBLICATION_ID,
+                CACHE_KEY,
+                ITEM_ID,
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
 
 
 def test_json_output_preserves_calculation_write_select_boundaries(
@@ -339,10 +351,13 @@ def test_json_output_preserves_calculation_write_select_boundaries(
         lambda *args, **kwargs: _preview(),
     )
 
-    assert cli.main(
-        _arguments("--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["scope"]["class_id"] == CLASS_ID

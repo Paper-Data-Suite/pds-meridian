@@ -174,9 +174,7 @@ def test_included_requires_complete_period_coordinates(
         lambda *args, **kwargs: pytest.fail("invalid input must not preview"),
     )
     arguments = tuple(
-        value
-        for value in _arguments()
-        if value not in {"--calendar-revision", "3"}
+        value for value in _arguments() if value not in {"--calendar-revision", "3"}
     )
 
     assert cli.main(arguments, dependencies=object()) == 1  # type: ignore[arg-type]
@@ -198,10 +196,13 @@ def test_excluded_rejects_period_coordinates(
     decision_index = arguments.index("--decision") + 1
     arguments[decision_index] = "excluded"
 
-    assert cli.main(
-        tuple(arguments),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            tuple(arguments),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "membership_authoring_invalid" in captured.err
@@ -242,10 +243,13 @@ def test_confirm_write_commits_exact_preview_without_selecting(
         fake_commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [("synthetic-workspace", captured_preview[0])]
@@ -279,10 +283,13 @@ def test_json_confirmation_reports_write_without_selection(
         lambda *args: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "written"

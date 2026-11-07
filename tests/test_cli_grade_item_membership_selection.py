@@ -176,10 +176,13 @@ def test_confirm_select_commits_exact_preview_without_authoring(
         fake_commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-select"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [("synthetic-workspace", previews[0])]
@@ -214,10 +217,13 @@ def test_json_confirmation_reports_exact_historical_basis(
         lambda *args: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "selected"
@@ -243,16 +249,16 @@ def test_invalid_work_identity_uses_membership_selection_error_boundary(
     arguments = list(_arguments())
     arguments[4] = "ScoreForm"
 
-    assert cli.main(
-        tuple(arguments),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            tuple(arguments),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert (
-        "teacher_workflow.grade_items.membership_selection_invalid"
-        in captured.err
-    )
+    assert "teacher_workflow.grade_items.membership_selection_invalid" in captured.err
 
 
 def test_stale_preview_is_reported_as_workflow_error(
@@ -270,7 +276,4 @@ def test_stale_preview_is_reported_as_workflow_error(
     assert cli.main(_arguments(), dependencies=object()) == 1  # type: ignore[arg-type]
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert (
-        "teacher_workflow.grade_items.membership_selection_stale"
-        in captured.err
-    )
+    assert "teacher_workflow.grade_items.membership_selection_stale" in captured.err

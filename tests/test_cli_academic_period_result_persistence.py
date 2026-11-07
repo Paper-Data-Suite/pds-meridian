@@ -198,9 +198,7 @@ def test_default_is_preview_only(
             ("synthetic-workspace", reviewed),
             {
                 "actor_id": "teacher_42",
-                "calculated_at": datetime(
-                    2026, 9, 3, 2, 30, tzinfo=UTC
-                ),
+                "calculated_at": datetime(2026, 9, 3, 2, 30, tzinfo=UTC),
             },
         )
     ]
@@ -241,15 +239,14 @@ def test_confirm_write_commits_exact_preview(
     assert cli.main(_arguments("--confirm-write")) == 0
     output = capsys.readouterr().out
 
-    assert observed == [(
-        ("synthetic-workspace", persistence),
-        {},
-    )]
+    assert observed == [
+        (
+            ("synthetic-workspace", persistence),
+            {},
+        )
+    ]
     assert "confirmation supplied: yes" in output
-    assert (
-        "Academic Period proficiency result revision 3 written (created)"
-        in output
-    )
+    assert "Academic Period proficiency result revision 3 written (created)" in output
     assert "current Academic Period result selection after write: 1" in output
     assert "Academic Period result selection action: not performed" in output
 
@@ -274,9 +271,7 @@ def test_json_result_preserves_write_select_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json")
-    ) == 0
+    assert cli.main(_arguments("--confirm-write", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "written"
@@ -316,7 +311,6 @@ def test_concurrent_selection_change_is_reported_not_overwritten(
     output = capsys.readouterr().out
 
     assert (
-        "WARNING: current Academic Period result selection changed "
-        "concurrently: 1 -> 2"
+        "WARNING: current Academic Period result selection changed concurrently: 1 -> 2"
     ) in output
     assert "Academic Period result selection action: not performed" in output

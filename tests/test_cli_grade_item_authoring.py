@@ -54,16 +54,12 @@ def _preview(
 ) -> GradeItemAuthoringPreview:
     candidate = revision or _revision(1)
     history_before = tuple(range(1, candidate.grade_item_revision))
-    digest = hashlib.sha256(
-        grade_item_revision_to_json_bytes(candidate)
-    ).hexdigest()
+    digest = hashlib.sha256(grade_item_revision_to_json_bytes(candidate)).hexdigest()
     return GradeItemAuthoringPreview(
         actor_id="teacher_local",
         operation=operation,  # type: ignore[arg-type]
         history_before=history_before,
-        latest_revision_sha256_before=(
-            None if not history_before else "a" * 64
-        ),
+        latest_revision_sha256_before=(None if not history_before else "a" * 64),
         candidate=candidate,
         candidate_sha256=digest,
     )
@@ -117,22 +113,25 @@ def test_preview_is_write_free_and_forwards_weighting_metadata(
         ),
     )
 
-    assert cli.main(
-        _base_arguments(
-            "create",
-            "--title",
-            "Unit 1",
-            "--purpose",
-            "standards_proficiency",
-            "--weighting-category-id",
-            "summative",
-            "--relative-weight",
-            "2.5",
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _base_arguments(
+                "create",
+                "--title",
+                "Unit 1",
+                "--purpose",
+                "standards_proficiency",
+                "--weighting-category-id",
+                "summative",
+                "--relative-weight",
+                "2.5",
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
 
     kwargs = observed["kwargs"]
     assert isinstance(kwargs, dict)
@@ -175,19 +174,22 @@ def test_confirm_write_reports_written_revision_without_selecting(
 
     monkeypatch.setattr(cli, "commit_grade_item_authoring_preview", fake_commit)
 
-    assert cli.main(
-        _base_arguments(
-            "revise",
-            "--title",
-            "Revised",
-            "--purpose",
-            "reporting_only",
-            "--confirm-write",
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _base_arguments(
+                "revise",
+                "--title",
+                "Revised",
+                "--purpose",
+                "reporting_only",
+                "--confirm-write",
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
 
     assert observed == [("synthetic-workspace", preview)]
     payload = json.loads(capsys.readouterr().out)
@@ -212,34 +214,42 @@ def test_archive_does_not_invent_configuration_changes(
 
     monkeypatch.setattr(cli, "preview_grade_item_authoring", fake_preview)
 
-    assert cli.main(
-        _base_arguments("archive", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _base_arguments("archive", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert observed["title"] is None
     assert observed["purpose"] is None
     assert observed["weighting"] is None
 
+
 def test_invalid_weighting_is_reported_as_workflow_scope_error(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _base_arguments(
-            "create",
-            "--title",
-            "Unit 1",
-            "--purpose",
-            "standards_proficiency",
-            "--relative-weight",
-            "0",
+    assert (
+        cli.main(
+            _base_arguments(
+                "create",
+                "--title",
+                "Unit 1",
+                "--purpose",
+                "standards_proficiency",
+                "--relative-weight",
+                "0",
+            )
         )
-    ) == 1
+        == 1
+    )
 
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "teacher_workflow.grade_items.authoring_scope_invalid" in captured.err
+
 
 def test_revise_omitted_weighting_uses_preserve_action(
     monkeypatch: pytest.MonkeyPatch,
@@ -254,18 +264,21 @@ def test_revise_omitted_weighting_uses_preserve_action(
 
     monkeypatch.setattr(cli, "preview_grade_item_authoring", fake_preview)
 
-    assert cli.main(
-        _base_arguments(
-            "revise",
-            "--title",
-            "Revised",
-            "--purpose",
-            "standards_proficiency",
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _base_arguments(
+                "revise",
+                "--title",
+                "Revised",
+                "--purpose",
+                "standards_proficiency",
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert observed["weighting"] is None
@@ -285,36 +298,42 @@ def test_clear_weighting_is_explicit_and_mutually_exclusive(
 
     monkeypatch.setattr(cli, "preview_grade_item_authoring", fake_preview)
 
-    assert cli.main(
-        _base_arguments(
-            "revise",
-            "--title",
-            "Revised",
-            "--purpose",
-            "standards_proficiency",
-            "--clear-weighting",
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _base_arguments(
+                "revise",
+                "--title",
+                "Revised",
+                "--purpose",
+                "standards_proficiency",
+                "--clear-weighting",
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
     assert observed["weighting"] is None
     assert observed["weighting_action"] == "clear"
 
-    assert cli.main(
-        _base_arguments(
-            "revise",
-            "--title",
-            "Revised",
-            "--purpose",
-            "standards_proficiency",
-            "--clear-weighting",
-            "--relative-weight",
-            "2",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            _base_arguments(
+                "revise",
+                "--title",
+                "Revised",
+                "--purpose",
+                "standards_proficiency",
+                "--clear-weighting",
+                "--relative-weight",
+                "2",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "teacher_workflow.grade_items.authoring_scope_invalid" in captured.err
@@ -333,22 +352,25 @@ def test_weighting_replacement_uses_replace_action(
 
     monkeypatch.setattr(cli, "preview_grade_item_authoring", fake_preview)
 
-    assert cli.main(
-        _base_arguments(
-            "revise",
-            "--title",
-            "Revised",
-            "--purpose",
-            "standards_proficiency",
-            "--weighting-category-id",
-            "summative",
-            "--relative-weight",
-            "3",
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _base_arguments(
+                "revise",
+                "--title",
+                "Revised",
+                "--purpose",
+                "standards_proficiency",
+                "--weighting-category-id",
+                "summative",
+                "--relative-weight",
+                "3",
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert observed["weighting_action"] == "replace"

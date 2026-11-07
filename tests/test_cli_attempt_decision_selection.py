@@ -177,10 +177,13 @@ def test_without_confirmation_previews_and_performs_no_selection(
         ),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     routed = observed["args"]
@@ -222,10 +225,13 @@ def test_authorization_is_exactly_student_scoped(
         lambda *args, **kwargs: _preview(),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     _, kwargs = observed["inspect"]
@@ -256,10 +262,13 @@ def test_confirm_select_commits_exact_preview_without_authoring(
         commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-select"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [
@@ -289,10 +298,13 @@ def test_json_output_reports_historical_target_and_selected_attempts(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "selected"

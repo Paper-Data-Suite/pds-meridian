@@ -113,10 +113,13 @@ def test_without_confirmation_previews_and_performs_no_write(
         lambda *args: pytest.fail("unconfirmed policy authoring must not commit"),
     )
 
-    assert cli.main(
-        _arguments("--rationale", "Use exactly one explicit attempt."),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--rationale", "Use exactly one explicit attempt."),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed["args"][:3] == (  # type: ignore[index]
@@ -159,10 +162,13 @@ def test_confirm_write_commits_preview_without_selecting(
         fake_commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [("synthetic-workspace", preview)]
@@ -186,10 +192,13 @@ def test_json_output_reports_explicit_policy_and_no_selection(
         lambda *args: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "written"
@@ -219,10 +228,13 @@ def test_unbounded_maximum_uses_omission_not_sentinel(
     index = arguments.index("--maximum-selected")
     del arguments[index : index + 2]
 
-    assert cli.main(
-        tuple(arguments),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            tuple(arguments),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert observed["maximum_selected"] is None
@@ -234,13 +246,13 @@ def test_invalid_work_identity_uses_policy_authoring_error_boundary(
     arguments = list(_arguments())
     arguments[4] = "ScoreForm"
 
-    assert cli.main(
-        tuple(arguments),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            tuple(arguments),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert (
-        "teacher_workflow.attempt_decisions.policy_authoring_invalid"
-        in captured.err
-    )
+    assert "teacher_workflow.attempt_decisions.policy_authoring_invalid" in captured.err
