@@ -88,8 +88,7 @@ def _receipt(
         export_id=export_id,
         preview=value.preview,
         roster_observation=value.roster_observation,
-        destination=destination
-        or ReportExportDestinationReceipt("file", "grades.csv"),
+        destination=destination or ReportExportDestinationReceipt("file", "grades.csv"),
         actor=ReportExportActor("teacher", "teacher_local"),
         rationale="Teacher approved exact export.",
         exported_at=NOW,
@@ -291,14 +290,15 @@ def test_long_export_id_uses_bounded_receipt_path_and_round_trips(
     assert len(receipt_key) == 67
     assert stored.path.name == f"{receipt_key}.json"
     assert long_export_id not in stored.relative_path
-    assert load_export_receipt(
-        root,
-        CLASS_ID,
-        long_export_id,
-    ).receipt.export_id == long_export_id
-    assert list_export_receipt_ids(root, CLASS_ID) == (
-        long_export_id,
+    assert (
+        load_export_receipt(
+            root,
+            CLASS_ID,
+            long_export_id,
+        ).receipt.export_id
+        == long_export_id
     )
+    assert list_export_receipt_ids(root, CLASS_ID) == (long_export_id,)
 
 
 def test_receipt_listing_rejects_bounded_key_identity_mismatch(

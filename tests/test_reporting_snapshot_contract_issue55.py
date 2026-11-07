@@ -102,9 +102,12 @@ def test_definition_round_trips_canonically_and_reference_binds_exact_bytes() ->
 
     reference = reporting_definition_reference(value)
     assert reference.definition_sha256 == hashlib.sha256(encoded).hexdigest()
-    assert reporting_definition_reference_from_dict(
-        reporting_definition_reference_to_dict(reference)
-    ) == reference
+    assert (
+        reporting_definition_reference_from_dict(
+            reporting_definition_reference_to_dict(reference)
+        )
+        == reference
+    )
 
 
 def test_definition_serialization_uses_exact_schema() -> None:
@@ -143,8 +146,7 @@ def test_definition_json_rejects_duplicate_object_keys() -> None:
     )
     duplicate = canonical.replace(
         '  "class_id": "synthetic_class_2026",',
-        '  "class_id": "synthetic_class_2026",\n'
-        '  "class_id": "synthetic_class_2026",',
+        '  "class_id": "synthetic_class_2026",\n  "class_id": "synthetic_class_2026",',
         1,
     ).encode("utf-8")
 
@@ -331,9 +333,12 @@ def test_snapshot_reference_is_exact_frozen_identity_not_current_selection() -> 
         snapshot_sha256=SHA_A,
     )
 
-    assert reporting_snapshot_reference_from_dict(
-        reporting_snapshot_reference_to_dict(reference)
-    ) == reference
+    assert (
+        reporting_snapshot_reference_from_dict(
+            reporting_snapshot_reference_to_dict(reference)
+        )
+        == reference
+    )
     with pytest.raises(FrozenInstanceError):
         reference.snapshot_id = "snapshot_002"  # type: ignore[misc]
     assert not hasattr(reference, "__dict__")
@@ -356,9 +361,12 @@ def test_predecessor_relationship_is_explicit_and_round_trips() -> None:
         ),
     )
 
-    assert reporting_snapshot_predecessor_from_dict(
-        reporting_snapshot_predecessor_to_dict(predecessor)
-    ) == predecessor
+    assert (
+        reporting_snapshot_predecessor_from_dict(
+            reporting_snapshot_predecessor_to_dict(predecessor)
+        )
+        == predecessor
+    )
 
 
 @pytest.mark.parametrize(

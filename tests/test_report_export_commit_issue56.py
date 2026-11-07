@@ -101,11 +101,14 @@ def test_copyable_commit_revalidates_then_records_receipt_and_exact_text(
     assert committed.receipt.receipt.destination.kind == "copyable_text"
     assert committed.receipt.receipt.destination.basename is None
     assert committed.receipt.receipt.payload_sha256 == built.preview.payload_sha256
-    assert load_export_receipt(
-        root,
-        CLASS_ID,
-        "copy_export_001",
-    ).reference == committed.receipt.reference
+    assert (
+        load_export_receipt(
+            root,
+            CLASS_ID,
+            "copy_export_001",
+        ).reference
+        == committed.receipt.reference
+    )
 
 
 def test_copyable_commit_preserves_requested_utf8_bom_in_exact_text(

@@ -345,9 +345,7 @@ def test_conventional_snapshot_preserves_two_item_authority_and_history(
     items = explanation["items"]
     assert isinstance(items, list)
     assert len(items) == 2
-    item_ids = {
-        item["grade_item"]["reference"]["grade_item_id"] for item in items
-    }
+    item_ids = {item["grade_item"]["reference"]["grade_item_id"] for item in items}
     assert item_ids == {issue50.GRADE_ITEM_ID, SECOND_GRADE_ITEM_ID}
     for item in items:
         kinds = {entry["kind"] for entry in item["provenance"]}
@@ -603,20 +601,26 @@ def test_hybrid_snapshot_preserves_embedded_components_without_standalone_result
         )
         is None
     )
-    assert get_current_conventional_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        issue52.PERIOD,
-        1,
-    ) is None
-    assert get_current_hybrid_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        issue52.PERIOD,
-        1,
-    ) == 1
+    assert (
+        get_current_conventional_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            issue52.PERIOD,
+            1,
+        )
+        is None
+    )
+    assert (
+        get_current_hybrid_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            issue52.PERIOD,
+            1,
+        )
+        == 1
+    )
 
     stored, reloaded, row, explanation, _ = _freeze_family(
         root,
@@ -641,13 +645,16 @@ def test_hybrid_snapshot_preserves_embedded_components_without_standalone_result
     assert reloaded.content == stored.content
     assert reloaded.snapshot_sha256 == stored.snapshot_sha256
 
-    assert get_current_conventional_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        issue52.PERIOD,
-        1,
-    ) is None
+    assert (
+        get_current_conventional_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            issue52.PERIOD,
+            1,
+        )
+        is None
+    )
     assert (
         get_current_standards_grade_result_revision(
             root,

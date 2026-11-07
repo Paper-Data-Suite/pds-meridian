@@ -245,8 +245,7 @@ def _selected_source_for_eligibility(scenario):
     item = next(
         value
         for value in projection.inventory.items
-        if value.subject is not None
-        and value.subject.student_id == SHARED_STUDENT_ID
+        if value.subject is not None and value.subject.student_id == SHARED_STUDENT_ID
     )
     return source_reference(projection, item)
 
