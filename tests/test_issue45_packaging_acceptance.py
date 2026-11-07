@@ -24,9 +24,7 @@ def test_issue45_does_not_enlarge_runtime_wheel_allowlist() -> None:
 
 
 def test_issue45_validator_keeps_concord_and_adds_no_concord_smoke() -> None:
-    validator = Path("scripts/validate_repository.py").read_text(
-        encoding="utf-8"
-    )
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
     runner = Path("scripts/installed_qualification_runner.py").read_text(
         encoding="utf-8"
     )
@@ -66,9 +64,9 @@ def test_issue45_producer_dependencies_remain_optional() -> None:
 
 
 def test_issue45_wrapper_has_no_concord_wheel_parameter() -> None:
-    wrapper = Path(
-        "scripts/smoke_test_proficiency_signal_export_wheel.py"
-    ).read_text(encoding="utf-8")
+    wrapper = Path("scripts/smoke_test_proficiency_signal_export_wheel.py").read_text(
+        encoding="utf-8"
+    )
     assert "concord_wheel" not in wrapper
     assert '"CONCORD_WHEEL"' in wrapper
     assert "environment.pop(variable, None)" in wrapper

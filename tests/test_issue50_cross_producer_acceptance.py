@@ -561,13 +561,16 @@ def test_released_scoreform_points_flow_through_v02_authority_and_result_history
         work_evidence=work_evidence,
     )
     assert written.disposition == "created"
-    assert get_current_conventional_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        PERIOD,
-        CALENDAR_REVISION,
-    ) is None
+    assert (
+        get_current_conventional_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            PERIOD,
+            CALENDAR_REVISION,
+        )
+        is None
+    )
 
     selected = select_conventional_grade_result_revision(
         root,
@@ -595,9 +598,12 @@ def test_released_scoreform_points_flow_through_v02_authority_and_result_history
     assert conventional_grade_result_snapshot_from_json_bytes(canonical) == (
         reloaded.snapshot
     )
-    assert conventional_grade_result_snapshot_to_json_bytes(
-        conventional_grade_result_snapshot_from_json_bytes(canonical)
-    ) == canonical
+    assert (
+        conventional_grade_result_snapshot_to_json_bytes(
+            conventional_grade_result_snapshot_from_json_bytes(canonical)
+        )
+        == canonical
+    )
 
     producer_after = {
         module_id: _tree_bytes(root, module_id)

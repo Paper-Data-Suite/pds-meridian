@@ -2,9 +2,9 @@ from pathlib import Path
 
 
 def test_conventional_grade_result_architecture_is_documented() -> None:
-    text = Path(
-        "docs/architecture/conventional-grade-calculation.md"
-    ).read_text(encoding="utf-8")
+    text = Path("docs/architecture/conventional-grade-calculation.md").read_text(
+        encoding="utf-8"
+    )
     required = (
         "ConventionalGradeResultSnapshot",
         "writing result revision != selecting result revision",
