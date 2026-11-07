@@ -45,9 +45,7 @@ def _input_entries_for_module(snapshot: object, module_id: str) -> tuple[object,
 
 def _trace_rows_for_module(explanation: object, module_id: str) -> tuple[object, ...]:
     return tuple(
-        row
-        for row in explanation.evidence
-        if row.source.work.module_id == module_id
+        row for row in explanation.evidence if row.source.work.module_id == module_id
     )
 
 
@@ -125,9 +123,7 @@ def test_quillan_withdrawal_is_exclusion_not_low_and_preserves_history(
         standards_library=aggregation.standard_library,
     )
     fresh_quillan = tuple(
-        entry
-        for entry in fresh_inputs.entries
-        if entry.source == old_entry.source
+        entry for entry in fresh_inputs.entries if entry.source == old_entry.source
     )
     assert len(fresh_quillan) == 1
     fresh_entry = fresh_quillan[0]
@@ -250,9 +246,7 @@ def test_scoreform_supersession_is_exact_and_does_not_rewrite_old_sources(
 
     old_scoreform = _input_entries_for_module(original.snapshot, "scoreform")
     assert len(old_scoreform) == 2
-    old_publication_ids = {
-        entry.source.publication_id for entry in old_scoreform
-    }
+    old_publication_ids = {entry.source.publication_id for entry in old_scoreform}
     assert old_publication_ids == {
         workspace.mixed.publications["scoreform"].publication_id
     }

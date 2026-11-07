@@ -60,19 +60,13 @@ def source_state(
     value: str = "superseded",
 ) -> EvidenceSourceStateObservation:
     successor = (
-        "pub_" + ("4" * 32)
-        if value in {"superseded", "withdrawn_superseded"}
-        else None
+        "pub_" + ("4" * 32) if value in {"superseded", "withdrawn_superseded"} else None
     )
     return EvidenceSourceStateObservation(
         state=value,  # type: ignore[arg-type]
         head_publication_id=successor or PUBLICATION_ID,
         successor_publication_id=successor,
-        withdrawn_at=(
-            NOW
-            if value in {"withdrawn", "withdrawn_superseded"}
-            else None
-        ),
+        withdrawn_at=(NOW if value in {"withdrawn", "withdrawn_superseded"} else None),
     )
 
 
@@ -101,9 +95,7 @@ def decision(
             policy_version="1",
         ),
         reason_codes=(
-            ()
-            if disposition == "included"
-            else ("eligibility.teacher_exclusion",)
+            () if disposition == "included" else ("eligibility.teacher_exclusion",)
         ),
         rationale=None,
         source_state=EvidenceSourceStateObservation(
@@ -147,51 +139,33 @@ def row(
     return ExclusionReviewRow(
         source=source(),
         student_id="student_001",
-        selected_disposition=(
-            None if selected_revision is None else "excluded"
-        ),
+        selected_disposition=(None if selected_revision is None else "excluded"),
         selected_eligibility_revision=selected_revision,
-        selected_decision_sha256=(
-            None if selected_revision is None else "b" * 64
-        ),
-        reviewed_membership_revision=(
-            None if selected_revision is None else 2
-        ),
+        selected_decision_sha256=(None if selected_revision is None else "b" * 64),
+        reviewed_membership_revision=(None if selected_revision is None else 2),
         current_membership_revision=2,
         reason_codes=(
-            ()
-            if selected_revision is None
-            else ("eligibility.teacher_exclusion",)
+            () if selected_revision is None else ("eligibility.teacher_exclusion",)
         ),
         rationale=None,
         actor_kind=None if selected_revision is None else "teacher",
         actor_id=None if selected_revision is None else "teacher_42",
-        policy_id=(
-            None
-            if selected_revision is None
-            else "teacher_local_eligibility"
-        ),
+        policy_id=(None if selected_revision is None else "teacher_local_eligibility"),
         policy_version=None if selected_revision is None else "1",
-        reviewed_source_state=(
-            None if selected_revision is None else "current"
-        ),
+        reviewed_source_state=(None if selected_revision is None else "current"),
         source_state=current_source_state,
         successor_publication_id=(
             "pub_" + ("4" * 32)
-            if current_source_state
-            in {"superseded", "withdrawn_superseded"}
+            if current_source_state in {"superseded", "withdrawn_superseded"}
             else None
         ),
         head_publication_id=(
             "pub_" + ("4" * 32)
-            if current_source_state
-            in {"superseded", "withdrawn_superseded"}
+            if current_source_state in {"superseded", "withdrawn_superseded"}
             else PUBLICATION_ID
         ),
         operative_included=False,
-        review_state=(
-            "no_decision" if selected_revision is None else "current"
-        ),
+        review_state=("no_decision" if selected_revision is None else "current"),
     )
 
 
@@ -475,9 +449,7 @@ def test_commit_rejects_changed_current_selector_before_mutation(
     monkeypatch.setattr(
         workflow,
         "select_evidence_eligibility_revision",
-        lambda *args, **kwargs: pytest.fail(
-            "stale preview must not select"
-        ),
+        lambda *args, **kwargs: pytest.fail("stale preview must not select"),
     )
 
     with pytest.raises(
@@ -511,9 +483,7 @@ def test_commit_rejects_changed_target_bytes_before_mutation(
     monkeypatch.setattr(
         workflow,
         "select_evidence_eligibility_revision",
-        lambda *args, **kwargs: pytest.fail(
-            "changed target must not select"
-        ),
+        lambda *args, **kwargs: pytest.fail("changed target must not select"),
     )
 
     with pytest.raises(

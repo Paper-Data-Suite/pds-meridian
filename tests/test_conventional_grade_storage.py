@@ -150,9 +150,12 @@ def test_write_is_immutable_idempotent_and_does_not_select(
     result = _result()
     created = _write(tmp_path, monkeypatch, result)
     assert created.disposition == "created"
-    assert storage.get_current_conventional_grade_result_revision(
-        tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ) is None
+    assert (
+        storage.get_current_conventional_grade_result_revision(
+            tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1
+        )
+        is None
+    )
     replay = _write(tmp_path, monkeypatch, result)
     assert replay.disposition == "existing"
     assert replay.stored.result_sha256 == created.stored.result_sha256
@@ -244,9 +247,12 @@ def test_current_selection_is_explicit_cas_and_historical_reselection_works(
     )
     _write(tmp_path, monkeypatch, first)
     _write(tmp_path, monkeypatch, second)
-    assert storage.get_current_conventional_grade_result_revision(
-        tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ) is None
+    assert (
+        storage.get_current_conventional_grade_result_revision(
+            tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1
+        )
+        is None
+    )
 
     selected = storage.select_conventional_grade_result_revision(
         tmp_path,
@@ -258,9 +264,12 @@ def test_current_selection_is_explicit_cas_and_historical_reselection_works(
         expected_current_result_revision=None,
     )
     assert selected.disposition == "created"
-    assert storage.load_current_conventional_grade_result(
-        tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ).snapshot.result_revision == 2
+    assert (
+        storage.load_current_conventional_grade_result(
+            tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1
+        ).snapshot.result_revision
+        == 2
+    )
 
     with pytest.raises(storage.ConventionalGradeStorageConflictError):
         storage.select_conventional_grade_result_revision(
@@ -313,18 +322,16 @@ def test_tampered_result_bytes_are_detected(
 ) -> None:
     _workspace(tmp_path, monkeypatch)
     stored = _write(tmp_path, monkeypatch, _result()).stored
-    stored.path.write_bytes(stored.content.replace(
-            b'"rounded_grade": "80"', b'"rounded_grade": "81"'
-        ))
+    stored.path.write_bytes(
+        stored.content.replace(b'"rounded_grade": "80"', b'"rounded_grade": "81"')
+    )
     with pytest.raises(storage.ConventionalGradeStorageIntegrityError):
         storage.load_conventional_grade_result_revision(
             tmp_path, CLASS_ID, STUDENT_ID, PERIOD, 1, 1
         )
 
 
-def test_tampered_digest_is_detected(
-    tmp_path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_tampered_digest_is_detected(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     _workspace(tmp_path, monkeypatch)
     stored = _write(tmp_path, monkeypatch, _result()).stored
     (stored.path.parent / "1.json.sha256").write_text("0" * 64 + "\n")
