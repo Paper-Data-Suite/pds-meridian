@@ -211,7 +211,4 @@ def test_pyproject_registers_exact_module_operations_entry_point() -> None:
     text = Path("pyproject.toml").read_text(encoding="utf-8")
 
     assert '[project.entry-points."paper_data_suite.module_operations"]' in text
-    assert (
-        'meridian = "meridian.pds_operations:get_module_operations_profile"'
-        in text
-    )
+    assert 'meridian = "meridian.pds_operations:get_module_operations_profile"' in text

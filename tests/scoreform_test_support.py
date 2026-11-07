@@ -138,9 +138,7 @@ def scoreform_manifest_bytes(
             questions,
         ),
         (
-            StudentResults(
-                primary_student_id, (pds2_attempt, later_manual_attempt)
-            ),
+            StudentResults(primary_student_id, (pds2_attempt, later_manual_attempt)),
             StudentResults(secondary_student_id, (review_attempt,)),
         ),
     )

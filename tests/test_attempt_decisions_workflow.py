@@ -126,9 +126,7 @@ def test_no_decision_projects_candidates_without_ranking_or_selection(
     assert projection.candidate_count == 2
     assert [row.native_sequence for row in projection.candidates] == [1, 2]
     assert [row.eligible_evidence_count for row in projection.candidates] == [3, 1]
-    assert not any(
-        row.selected_in_reviewed_decision for row in projection.candidates
-    )
+    assert not any(row.selected_in_reviewed_decision for row in projection.candidates)
     assert projection.reviewed_selected_attempts == ()
     assert projection.operative_selection is False
 
@@ -181,9 +179,10 @@ def test_selected_projection_marks_only_explicit_reviewed_attempt(
     assert projection.selected_decision_revision == 4
     assert projection.selected_decision_sha256 == "4" * 64
     assert projection.reviewed_selected_attempts == (selected_attempt,)
-    assert [
-        row.selected_in_reviewed_decision for row in projection.candidates
-    ] == [False, True]
+    assert [row.selected_in_reviewed_decision for row in projection.candidates] == [
+        False,
+        True,
+    ]
     assert projection.current_policy_id == "explicit_one"
     assert projection.current_policy_revision == 2
     assert projection.minimum_selected == 1

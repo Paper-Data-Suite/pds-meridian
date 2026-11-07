@@ -69,7 +69,9 @@ def authorized(
     monkeypatch: pytest.MonkeyPatch,
     *,
     capabilities: tuple[str, ...] = (
-        "points", "question_evidence", "multiple_attempts"
+        "points",
+        "question_evidence",
+        "multiple_attempts",
     ),
     items: tuple[SimpleNamespace, ...] = (),
 ) -> FakeAuthorizedSnapshot:
