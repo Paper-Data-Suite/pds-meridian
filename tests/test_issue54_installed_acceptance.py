@@ -26,7 +26,7 @@ def test_issue54_installed_program_covers_all_preview_surfaces() -> None:
     )
     for token in (
         'metadata.version("pds-core")',
-            '"pds-concord": "0.3.2"',
+        '"pds-concord": "0.3.2"',
         "meridian.grade_preview_explanation",
         "meridian.current_grade_preview",
         "meridian.grade_preview_comparison",
@@ -58,13 +58,10 @@ def test_issue54_standards_smoke_uses_provenance_complete_v02_state() -> None:
     ):
         assert token in program
     standards_call = "standards_target = _standards_state(standards_workspace)"
-    hybrid_call = (
-        "hybrid_producer, hybrid_evidence, hybrid_descriptor = _hybrid_state("
-    )
+    hybrid_call = "hybrid_producer, hybrid_evidence, hybrid_descriptor = _hybrid_state("
     assert standards_call in program
     assert hybrid_call in program
     assert program.index(standards_call) < program.index(hybrid_call)
-
 
 
 def test_issue54_hybrid_smoke_uses_provenance_complete_v02_state() -> None:

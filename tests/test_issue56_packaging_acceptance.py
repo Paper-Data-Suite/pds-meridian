@@ -17,7 +17,7 @@ RUNTIME_MODULES = (
 def test_issue56_wheel_guard_requires_runtime_and_contract_floor() -> None:
     text = (ROOT / "scripts" / "check_package.py").read_text(encoding="utf-8")
 
-    assert 'Requirement("quillan>=0.10.6; extra == \'quillan\'")' in text
+    assert "Requirement(\"quillan>=0.10.6; extra == 'quillan'\")" in text
     for module in RUNTIME_MODULES:
         assert f'"{module}"' in text
 

@@ -123,9 +123,7 @@ def test_conventional_incomplete_state_keeps_policy_consequence_separate() -> No
     blocking_by_id = {
         item.grade_item.grade_item_id: item for item in blocking.item_results
     }
-    zero_by_id = {
-        item.grade_item.grade_item_id: item for item in zero.item_results
-    }
+    zero_by_id = {item.grade_item.grade_item_id: item for item in zero.item_results}
     excluded_by_id = {
         item.grade_item.grade_item_id: item for item in excluded.item_results
     }
@@ -186,19 +184,14 @@ def test_standards_incomplete_state_keeps_policy_consequence_separate() -> None:
     blocking_by_standard = {
         item.standard_id: item for item in blocking.standard_results
     }
-    zero_by_standard = {
-        item.standard_id: item for item in zero.standard_results
-    }
+    zero_by_standard = {item.standard_id: item for item in zero.standard_results}
     excluded_by_standard = {
         item.standard_id: item for item in excluded.standard_results
     }
 
     assert blocking.status == "blocked"
     assert blocking.rounded_grade is None
-    assert (
-        blocking_by_standard["std.issue60.incomplete"].source_state
-        == "incomplete"
-    )
+    assert blocking_by_standard["std.issue60.incomplete"].source_state == "incomplete"
     assert blocking_by_standard["std.issue60.incomplete"].action == "blocking"
 
     assert zero.status == "calculated"
@@ -206,18 +199,12 @@ def test_standards_incomplete_state_keeps_policy_consequence_separate() -> None:
     assert zero.rounded_grade == Decimal("52.50")
     assert zero_by_standard["std.issue60.incomplete"].source_state == "incomplete"
     assert zero_by_standard["std.issue60.incomplete"].action == "zero"
-    assert (
-        zero_by_standard["std.issue60.incomplete"].calculation_value
-        == Decimal("0")
-    )
+    assert zero_by_standard["std.issue60.incomplete"].calculation_value == Decimal("0")
 
     assert excluded.status == "calculated"
     assert excluded.actual_calculated_result_count == 1
     assert excluded.rounded_grade == Decimal("105.00")
-    assert (
-        excluded_by_standard["std.issue60.incomplete"].source_state
-        == "incomplete"
-    )
+    assert excluded_by_standard["std.issue60.incomplete"].source_state == "incomplete"
     assert excluded_by_standard["std.issue60.incomplete"].action == "exclude"
 
 

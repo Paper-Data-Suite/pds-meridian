@@ -49,10 +49,7 @@ def test_issue59_active_docs_changelog_and_release_guards_link_contract() -> Non
     filename = "suite-operations-integration.md"
     document = f"docs/architecture/{filename}"
 
-    assert (
-        "Issue #59 integrates Meridian with Paper Data Suite operations"
-        in changelog
-    )
+    assert "Issue #59 integrates Meridian with Paper Data Suite operations" in changelog
     assert filename in docs_index
     assert "Suite operations integration" in readme
     assert document in documentation_checker
@@ -65,12 +62,12 @@ def test_issue59_final_repository_qualification_reaches_installed_core_smoke() -
     runner = Path("scripts/installed_qualification_runner.py").read_text(
         encoding="utf-8"
     )
-    core_programs = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
-    installed_smoke = Path(
-        "scripts/smoke_program_issue59_operations.py"
-    ).read_text(encoding="utf-8")
+    core_programs = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
+    installed_smoke = Path("scripts/smoke_program_issue59_operations.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "scripts.installed_qualification_runner" in validator
     assert "run_core_program_smokes" in runner

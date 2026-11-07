@@ -6,9 +6,9 @@ from pathlib import Path
 
 
 def test_issue59_installed_smoke_is_in_prepared_core_matrix_and_sdist() -> None:
-    core_programs = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
+    core_programs = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
 
     assert "ISSUE59_OPERATIONS_PROGRAM" in core_programs
@@ -48,9 +48,7 @@ def test_issue59_installed_smoke_covers_profile_readiness_and_launcher() -> None
 
 
 def test_issue59_historical_attention_smoke_accepts_readiness_presence() -> None:
-    program = Path("scripts/smoke_program_attention.py").read_text(
-        encoding="utf-8"
-    )
+    program = Path("scripts/smoke_program_attention.py").read_text(encoding="utf-8")
     issue43_guard = Path("tests/test_issue43_installed_acceptance.py").read_text(
         encoding="utf-8"
     )

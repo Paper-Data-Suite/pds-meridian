@@ -19,7 +19,7 @@ def test_issue57_wheel_guard_requires_complete_menu_runtime() -> None:
         "meridian/menu_explain.py",
     ):
         assert f'"{module}"' in text
-    assert 'Requirement("quillan>=0.10.6; extra == \'quillan\'")' in text
+    assert "Requirement(\"quillan>=0.10.6; extra == 'quillan'\")" in text
 
 
 def test_issue57_sdist_guard_requires_docs_smoke_and_menu_runtime() -> None:
@@ -46,7 +46,6 @@ def test_issue57_legacy_quillan_release_is_exact_0105() -> None:
         in verifier
     )
     assert (
-        "031e5a5455c222da6b9a7d8f72e7823dd4c61acde7d90ddce94b49d9bcbe123f"
-        in verifier
+        "031e5a5455c222da6b9a7d8f72e7823dd4c61acde7d90ddce94b49d9bcbe123f" in verifier
     )
     assert 'QUILLAN_READER_VERSION: Final = "0.10.5"' in adapter
