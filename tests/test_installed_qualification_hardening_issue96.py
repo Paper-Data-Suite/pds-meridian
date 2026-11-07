@@ -22,12 +22,7 @@ def _write_wheel(path: Path, distribution: str, version: str) -> None:
     with zipfile.ZipFile(path, "w") as archive:
         archive.writestr(
             metadata_path,
-            (
-                "Metadata-Version: 2.1\n"
-                f"Name: {distribution}\n"
-                f"Version: {version}\n"
-                "\n"
-            ),
+            (f"Metadata-Version: 2.1\nName: {distribution}\nVersion: {version}\n\n"),
         )
 
 
