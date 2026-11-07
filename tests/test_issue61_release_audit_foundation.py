@@ -35,13 +35,13 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
         "Calculation-state and silent-zero audit — CONFORMS",
         "Zero is therefore a policy consequence, not a fallback",
         "Selection and authority audit — CONFORMS",
-        "selection_basis=\"explicit\"",
-        "relationship_basis=\"explicit\"",
+        'selection_basis="explicit"',
+        'relationship_basis="explicit"',
         "Override authority and source binding audit — CONFORMS",
         "does not float to a later result revision",
         "Withdrawal is itself exact authority, not deletion.",
         "Historical explanation and provenance audit — CONFORMS",
-        "selection=\"revision\"",
+        'selection="revision"',
         "does not substitute the current activation or policy revision.",
         "ReportingSnapshot current-use audit — CONFORMS",
         "Predecessor metadata does not move current use.",
@@ -76,18 +76,14 @@ def test_issue61_release_audit_freezes_starting_source_and_inventory() -> None:
 def test_issue61_release_audit_is_repository_only() -> None:
     member = AUDIT.as_posix()
     manifest = (REPO_ROOT / "MANIFEST.in").read_text(encoding="utf-8")
-    sdist_checker = (REPO_ROOT / "scripts/check_sdist.py").read_text(
-        encoding="utf-8"
-    )
+    sdist_checker = (REPO_ROOT / "scripts/check_sdist.py").read_text(encoding="utf-8")
 
     assert f"exclude {member}" in manifest
     assert member in sdist_checker
 
 
 def test_issue61_documentation_checker_requires_release_audit() -> None:
-    checker = (REPO_ROOT / "scripts/check_documentation.py").read_text(
-        encoding="utf-8"
-    )
+    checker = (REPO_ROOT / "scripts/check_documentation.py").read_text(encoding="utf-8")
 
     assert 'Path("docs/development/v0.3.0-release-audit.md")' in checker
     assert "Substantive blocker count: **0**" in checker

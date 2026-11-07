@@ -294,9 +294,7 @@ def test_profile_indeterminate_standards_component_can_be_excluded() -> None:
     assert outcome.status == "calculated"
     assert outcome.standards_component.source_status == "insufficient"
     assert outcome.standards_component.action == "exclude"
-    assert outcome.standards_component.reason_codes == (
-        "profile_band_indeterminate",
-    )
+    assert outcome.standards_component.reason_codes == ("profile_band_indeterminate",)
     assert outcome.active_weight == Decimal("0.7")
     assert outcome.unrounded_grade == Decimal("80")
     assert outcome.rounded_grade == Decimal("80.00")
@@ -325,9 +323,7 @@ def test_profile_indeterminate_standards_component_can_block_hybrid() -> None:
     assert outcome.status == "blocked"
     assert outcome.standards_component.source_status == "insufficient"
     assert outcome.standards_component.action == "blocking"
-    assert outcome.standards_component.reason_codes == (
-        "profile_band_indeterminate",
-    )
+    assert outcome.standards_component.reason_codes == ("profile_band_indeterminate",)
     assert outcome.unrounded_grade is None
     assert outcome.rounded_grade is None
     assert tuple(

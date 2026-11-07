@@ -126,21 +126,15 @@ def test_profile_breakdown_exposes_base_policy_predicates_band_and_adjustment(
     assert serialized_formula["base_unrounded_grade"] == "87"
     assert serialized_formula["selected_profile_band_id"] == "high"
     assert serialized_formula["profile_adjustment"] == "floor"
-    assert serialized_formula["profile_constraints"]["fallback_band_id"] == (
-        "fallback"
-    )
+    assert serialized_formula["profile_constraints"]["fallback_band_id"] == ("fallback")
     assert (
-        serialized_formula["profile_evaluation"]["bands"][0]["predicates"][0][
-            "status"
-        ]
+        serialized_formula["profile_evaluation"]["bands"][0]["predicates"][0]["status"]
         == "matched"
     )
 
     keys = {
         (entry.dimension, entry.key)
-        for entry in explanation.standards_grade_breakdown_basis_entries(
-            breakdown
-        )
+        for entry in explanation.standards_grade_breakdown_basis_entries(breakdown)
     }
     assert keys == {
         ("formula", "standards_formula"),

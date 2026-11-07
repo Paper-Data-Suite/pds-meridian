@@ -79,8 +79,9 @@ def test_issue61_reporting_definition_remains_teacher_only(
         reporting_definition_revision_from_dict(data)
 
 
-def test_issue61_reporting_build_request_keeps_projection_identity_not_payload(
-) -> None:
+def test_issue61_reporting_build_request_keeps_projection_identity_not_payload() -> (
+    None
+):
     projection = ReportingSnapshotProjectionInputReference(
         "pub_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "1" * 64,

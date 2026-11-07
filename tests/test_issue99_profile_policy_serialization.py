@@ -183,7 +183,6 @@ def test_profile_constrained_mean_round_trips_canonically() -> None:
     assert reference.policy_sha256 == hashlib.sha256(encoded).hexdigest()
 
 
-
 def test_profile_band_zero_bounds_round_trip_canonically() -> None:
     value = ProfileGradeBand(
         "zero_band",
@@ -202,6 +201,7 @@ def test_profile_band_zero_bounds_round_trip_canonically() -> None:
     assert encoded["minimum_grade"] == "0"
     assert encoded["maximum_grade"] == "0"
     assert _profile_band_from_dict(encoded) == value
+
 
 def test_profile_policy_canonicalizes_group_and_predicate_order() -> None:
     first = policy(profile_mean())

@@ -32,9 +32,7 @@ def test_distribution_metadata() -> None:
     quillan = [item for item in requirements if item.name == "quillan"]
     assert quillan == [Requirement("quillan>=0.10.6; extra == 'quillan'")]
     concord = [item for item in requirements if item.name == "pds-concord"]
-    assert concord == [
-        Requirement("pds-concord>=0.3.2; extra == 'concord'")
-    ]
+    assert concord == [Requirement("pds-concord>=0.3.2; extra == 'concord'")]
 
 
 def test_console_and_plugin_entry_points() -> None:
