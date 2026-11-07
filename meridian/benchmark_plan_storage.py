@@ -265,9 +265,7 @@ def write_benchmark_plan_revision(
     digest = hashlib.sha256(content).hexdigest()
     # Publish the digest first. Readers enumerate only ``*.json`` revisions, so
     # the final JSON link is the commit point and cannot be observed half-written.
-    _atomic_create(
-        destination.with_suffix(".json.sha256"), (digest + "\n").encode()
-    )
+    _atomic_create(destination.with_suffix(".json.sha256"), (digest + "\n").encode())
     try:
         _atomic_create(destination, content)
     except BenchmarkPlanStorageError:

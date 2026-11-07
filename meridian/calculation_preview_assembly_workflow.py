@@ -45,9 +45,7 @@ class CalculationPreviewAssemblyScopeError(
     code = "teacher_workflow.calculation_preview.assembly_invalid"
 
 
-class CalculationPreviewAssemblyDependencyError(
-    CalculationPreviewAssemblyError
-):
+class CalculationPreviewAssemblyDependencyError(CalculationPreviewAssemblyError):
     """Raised when exact selected Grade Item/#33 dependencies cannot resolve."""
 
     code = "teacher_workflow.calculation_preview.assembly_dependency_invalid"
@@ -111,9 +109,7 @@ def build_bounded_calculation_preview(
         policy_reference,
     )
 
-    source_keys = tuple(
-        evidence_source_key(binding.source) for binding in bindings
-    )
+    source_keys = tuple(evidence_source_key(binding.source) for binding in bindings)
     if len(set(source_keys)) != len(source_keys):
         raise CalculationPreviewAssemblyScopeError(
             "Calculation Preview bindings must not duplicate an evidence source."
@@ -137,9 +133,7 @@ def build_bounded_calculation_preview(
     basis = GradeItemAggregationBasis(
         class_id=target_scale.class_id,
         grade_item_id=grade_item_id,
-        grade_item_revision=(
-            stored_grade_item.revision.grade_item_revision
-        ),
+        grade_item_revision=(stored_grade_item.revision.grade_item_revision),
         grade_item_revision_sha256=stored_grade_item.revision_sha256,
     )
 
