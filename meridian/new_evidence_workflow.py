@@ -108,15 +108,18 @@ class NewEvidenceRow:
             raise NewEvidenceWorkflowScopeError("recommended_task is invalid.")
 
         if self.membership_state != "included":
-            if any(
-                value is not None
-                for value in (
-                    self.eligibility_status,
-                    self.selected_eligibility_revision,
-                    self.selected_eligibility_disposition,
-                    self.eligibility_source_state,
+            if (
+                any(
+                    value is not None
+                    for value in (
+                        self.eligibility_status,
+                        self.selected_eligibility_revision,
+                        self.selected_eligibility_disposition,
+                        self.eligibility_source_state,
+                    )
                 )
-            ) or self.operative_included:
+                or self.operative_included
+            ):
                 raise NewEvidenceWorkflowScopeError(
                     "Eligibility state must not be invented before included membership."
                 )

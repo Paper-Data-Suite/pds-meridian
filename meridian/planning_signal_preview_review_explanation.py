@@ -378,9 +378,7 @@ def planning_signal_preview_review_explanation_to_dict(
         "preview_identity": {
             "preview_algorithm_version": value.preview_algorithm_version,
             "preview_fingerprint": value.preview_fingerprint,
-            "derivation_reference": _derivation_ref_dict(
-                value.derivation_reference
-            ),
+            "derivation_reference": _derivation_ref_dict(value.derivation_reference),
         },
         "planning_basis": {
             "policy_id": value.policy_id,
@@ -401,9 +399,7 @@ def planning_signal_preview_review_explanation_to_dict(
         "live_currentness": _currentness_dict(value.live_currentness),
         "coverage": {
             "roster_student_count": value.coverage.roster_student_count,
-            "contributing_student_count": (
-                value.coverage.contributing_student_count
-            ),
+            "contributing_student_count": (value.coverage.contributing_student_count),
             "noncontributing_student_count": (
                 value.coverage.noncontributing_student_count
             ),
@@ -546,10 +542,7 @@ def render_planning_signal_preview_review_explanation_text(
                     f"selection={review.selection_state}"
                 ),
                 f"review_decision: {review.decision}",
-                (
-                    "warning_acknowledgments: "
-                    f"{_csv(review.acknowledged_warning_ids)}"
-                ),
+                (f"warning_acknowledgments: {_csv(review.acknowledged_warning_ids)}"),
                 f"review_actor: {review.actor_kind}:{review.actor_id}",
                 f"reviewed_at: {review.reviewed_at.isoformat()}",
                 (
@@ -885,10 +878,7 @@ def _path_state(
     ):
         return "accepted_but_not_selected"
     if review.selection_state == "selected":
-        if (
-            eligibility.eligible
-            and eligibility.target_preview_is_authorized_path
-        ):
+        if eligibility.eligible and eligibility.target_preview_is_authorized_path:
             return "selected_and_export_eligible"
         if eligibility.block_code in {"review_stale", "derivation_not_current"}:
             return "selected_but_stale"
@@ -1022,9 +1012,7 @@ def _eligibility_dict(
         "selected_preview_reference": _preview_ref_dict(
             value.selected_preview_reference
         ),
-        "target_preview_is_authorized_path": (
-            value.target_preview_is_authorized_path
-        ),
+        "target_preview_is_authorized_path": (value.target_preview_is_authorized_path),
     }
 
 
