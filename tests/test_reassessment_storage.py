@@ -211,30 +211,34 @@ def test_canonical_paths_are_flat_and_class_local(tmp_path: Path) -> None:
         / policy_key
         / "1.json"
     )
-    assert storage.reassessment_policy_revision_relative_path(
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        "teacher_reassessment",
-        1,
-    ) == path.relative_to(workspace).as_posix()
+    assert (
+        storage.reassessment_policy_revision_relative_path(
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            "teacher_reassessment",
+            1,
+        )
+        == path.relative_to(workspace).as_posix()
+    )
     assert len(path.relative_to(workspace).as_posix()) <= 133
     assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 140
 
     decision_path = storage.reassessment_decision_revision_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1", 1
     )
-    subject_key = reassessment_subject_key(
-        CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
-    )
+    subject_key = reassessment_subject_key(CLASS_ID, GRADE_ITEM_ID, WORK, "student_1")
     assert f"/reassess/s/{subject_key}/1.json" in decision_path.as_posix()
-    assert storage.reassessment_decision_revision_relative_path(
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        "student_1",
-        1,
-    ) == decision_path.relative_to(workspace).as_posix()
+    assert (
+        storage.reassessment_decision_revision_relative_path(
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            "student_1",
+            1,
+        )
+        == decision_path.relative_to(workspace).as_posix()
+    )
     assert len(decision_path.relative_to(workspace).as_posix()) <= 130
 
 
@@ -261,14 +265,17 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
     )
     assert long_policy_id not in stored.relative_path
     assert len(stored.relative_path) <= 133
-    assert storage.load_reassessment_policy_revision(
-        workspace,
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        long_policy_id,
-        1,
-    ).policy.policy_id == long_policy_id
+    assert (
+        storage.load_reassessment_policy_revision(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            long_policy_id,
+            1,
+        ).policy.policy_id
+        == long_policy_id
+    )
 
 
 def test_policy_write_is_immutable_idempotent_and_not_current(
@@ -283,12 +290,14 @@ def test_policy_write_is_immutable_idempotent_and_not_current(
     assert second.disposition == "existing"
     assert first.stored.content == second.stored.content
     assert (
-        hashlib.sha256(first.stored.content).hexdigest()
-        == first.stored.policy_sha256
+        hashlib.sha256(first.stored.content).hexdigest() == first.stored.policy_sha256
     )
-    assert storage.get_current_reassessment_policy_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
-    ) is None
+    assert (
+        storage.get_current_reassessment_policy_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
+        )
+        is None
+    )
 
 
 def test_policy_collision_and_contiguous_history(
@@ -326,9 +335,12 @@ def test_policy_selection_is_explicit_cas_and_reselectable(
         expected_current_policy_revision=None,
     )
     assert selected.disposition == "created"
-    assert storage.get_current_reassessment_policy_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
-    ) == 2
+    assert (
+        storage.get_current_reassessment_policy_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
+        )
+        == 2
+    )
     with pytest.raises(storage.ReassessmentStorageConflictError):
         storage.select_reassessment_policy_revision(
             workspace,
@@ -348,9 +360,12 @@ def test_policy_selection_is_explicit_cas_and_reselectable(
         1,
         expected_current_policy_revision=2,
     )
-    assert storage.get_current_reassessment_policy_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
-    ) == 1
+    assert (
+        storage.get_current_reassessment_policy_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
+        )
+        == 1
+    )
 
 
 def test_decision_write_is_immutable_and_does_not_auto_select(
@@ -360,16 +375,23 @@ def test_decision_write_is_immutable_and_does_not_auto_select(
     allow_decision_dependencies(monkeypatch)
     workspace = root(tmp_path)
     first = storage.write_reassessment_decision_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     second = storage.write_reassessment_decision_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     assert first.disposition == "created"
     assert second.disposition == "existing"
-    assert storage.get_current_reassessment_decision_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
-    ) is None
+    assert (
+        storage.get_current_reassessment_decision_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
+        )
+        is None
+    )
 
 
 def test_exact_replay_survives_dependency_drift(
@@ -379,7 +401,9 @@ def test_exact_replay_survives_dependency_drift(
     allow_decision_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_reassessment_decision_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     monkeypatch.setattr(
         storage,
@@ -387,7 +411,9 @@ def test_exact_replay_survives_dependency_drift(
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not run")),
     )
     replay = storage.write_reassessment_decision_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     assert replay.disposition == "existing"
 
@@ -399,7 +425,9 @@ def test_decision_history_and_explicit_selection(
     allow_decision_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_reassessment_decision_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     storage.write_reassessment_decision_revision(
         workspace,
@@ -423,9 +451,12 @@ def test_decision_history_and_explicit_selection(
         expected_current_decision_revision=None,
     )
     assert result.disposition == "created"
-    assert storage.get_current_reassessment_decision_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
-    ) == 2
+    assert (
+        storage.get_current_reassessment_decision_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
+        )
+        == 2
+    )
 
 
 def test_resolver_pass_through_states_do_not_require_reassessment_decision(
@@ -596,9 +627,7 @@ def test_relationship_validation_never_uses_attempt_sequence_as_preference() -> 
     reverse = replace(
         decision(),
         contributing_attempts=(attempt(1),),
-        replacement_relationships=(
-            ReplacementRelationship(attempt(1), (attempt(2),)),
-        ),
+        replacement_relationships=(ReplacementRelationship(attempt(1), (attempt(2),)),),
     )
     storage._validate_relationships_against_selected(reverse, selected)
 
@@ -607,9 +636,7 @@ def test_relationship_validation_rejects_nonselected_attempt() -> None:
     value = replace(
         decision(),
         contributing_attempts=(attempt(2), attempt(3)),
-        replacement_relationships=(
-            ReplacementRelationship(attempt(3), (attempt(1),)),
-        ),
+        replacement_relationships=(ReplacementRelationship(attempt(3), (attempt(1),)),),
     )
     with pytest.raises(
         storage.ReassessmentDependencyError, match="only exact selected"

@@ -132,9 +132,7 @@ def test_csv_failure_after_core_commit_is_explicit_partial_success(
 
     monkeypatch.setattr(workflow, "export_grouping_signal_csv", fail_csv)
 
-    with pytest.raises(
-        workflow.PlanningSignalCsvExportPartialSuccessError
-    ) as raised:
+    with pytest.raises(workflow.PlanningSignalCsvExportPartialSuccessError) as raised:
         workflow.commit_planning_signal_export(
             root,
             preview,

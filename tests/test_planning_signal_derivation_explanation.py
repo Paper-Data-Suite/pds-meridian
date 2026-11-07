@@ -268,9 +268,7 @@ def _grouping_policy(
             ),
             standard_id=STANDARD_ID,
             source_policy=(
-                academic_period_proficiency_aggregation_policy_reference(
-                    source_policy
-                )
+                academic_period_proficiency_aggregation_policy_reference(source_policy)
             ),
             target_scale=proficiency_scale_reference(target),
         ),
@@ -893,9 +891,6 @@ def test_json_and_text_make_band_mapping_and_absence_explicit(
     assert payload.endswith(b"\n")
     assert b'"noncontribution_reason": "missing_result"' in payload
     assert b'"result_revision": 1' in payload
-    assert (
-        "level=proficient -> scale_position=3 -> band_range=2-3 -> band=2"
-        in text
-    )
+    assert "level=proficient -> scale_position=3 -> band_range=2-3 -> band=2" in text
     assert "band: none reason=missing_result policy_handling=noncontributing" in text
     assert "#35_drill_down: revision=1 selection_state=historical" in text

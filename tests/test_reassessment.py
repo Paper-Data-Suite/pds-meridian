@@ -310,9 +310,7 @@ def test_canonical_json_round_trip_and_duplicate_unknown_rejection() -> None:
     assert policy_bytes.endswith(b"\n")
     assert decision_bytes.endswith(b"\n")
 
-    duplicate = (
-        b'{"schema_version":"1","schema_version":"1"}'
-    )
+    duplicate = b'{"schema_version":"1","schema_version":"1"}'
     with pytest.raises(ReassessmentSerializationError, match="duplicate JSON key"):
         reassessment_policy_from_json_bytes(duplicate)
 

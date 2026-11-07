@@ -373,9 +373,7 @@ def test_raw_point_ranges_may_have_gaps_but_not_overlap() -> None:
 def test_native_state_never_becomes_low_proficiency() -> None:
     target = scale()
     profile = scalar_profile(target_scale=target)
-    result = map_native_value(
-        NativeStateValue("unrated"), signature(), profile, target
-    )
+    result = map_native_value(NativeStateValue("unrated"), signature(), profile, target)
     assert result.status == "native_state"
     assert result.native_state == NativeStateValue("unrated")
     assert result.proficiency_level_id is None
