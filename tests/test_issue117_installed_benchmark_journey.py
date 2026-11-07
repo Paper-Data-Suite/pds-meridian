@@ -6,6 +6,7 @@ six-matrix installed qualifier separately executes both real producer wheels.
 
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -56,7 +57,6 @@ def test_benchmark_uses_authoritative_stores_and_normal_menu() -> None:
         "rebuild_academic_catalog(",
         "run_reports_menu(",
         "LiveReportMenuExecutor(",
-        '"9", "1"',
         '"SAVE PLAN"',
         "load_latest_benchmark_plan_revision(",
         "load_benchmark_plan_notes(",
@@ -64,6 +64,21 @@ def test_benchmark_uses_authoritative_stores_and_normal_menu() -> None:
     )
     for snippet in required:
         assert snippet in source
+    # Assert the actual first two menu choices, independent of Ruff line wrapping.
+    tree = ast.parse(source)
+    scripted_calls = (
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_ScriptedInput"
+    )
+    assert any(
+        len(call.args) >= 2
+        and all(isinstance(arg, ast.Constant) for arg in call.args[:2])
+        and tuple(arg.value for arg in call.args[:2]) == ("9", "1")
+        for call in scripted_calls
+    )
     assert "ReportingSnapshot" in source
 
 

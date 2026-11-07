@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -77,8 +78,6 @@ def test_installed_concord_manifest_includes_shared_and_individual_evidence() ->
     for required in (
         'version("pds-concord") != "0.3.2"',
         'version("pds-core") != "0.6.6"',
-        '"core_student", "student_alpha", "core"',
-        '"concord_group", "group_alpha", "concord"',
         'score_kind="standard_backed"',
         'score_kind="local"',
         'privacy=PrivacyProjection("teacher_restricted"',
@@ -91,6 +90,22 @@ def test_installed_concord_manifest_includes_shared_and_individual_evidence() ->
         "run_installed_benchmark_teacher_journey(",
     ):
         assert required in source
+    # Preserve the native target identities, not their physical line layout.
+    target_calls = (
+        node
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "TargetReferenceProjection"
+        and len(node.args) >= 3
+        and all(
+            isinstance(arg, ast.Constant) and isinstance(arg.value, str)
+            for arg in node.args[:3]
+        )
+    )
+    targets = {tuple(arg.value for arg in call.args[:3]) for call in target_calls}
+    assert ("core_student", "student_alpha", "core") in targets
+    assert ("concord_group", "group_alpha", "concord") in targets
 
 
 def test_concord_qualifier_is_separate_from_scoreform_quillan() -> None:
