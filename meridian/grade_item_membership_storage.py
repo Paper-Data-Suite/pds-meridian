@@ -73,9 +73,7 @@ GradeItemMembershipSelectionDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -388,10 +386,7 @@ def grade_item_membership_relative_directory(
         item,
         validated,
     )
-    return (
-        f"classes/{class_value}/modules/meridian/gm/"
-        f"{relation_key}"
-    )
+    return f"classes/{class_value}/modules/meridian/gm/{relation_key}"
 
 
 def grade_item_membership_directory(
@@ -439,9 +434,12 @@ def grade_item_membership_revision_path(
 ) -> Path:
     """Return the canonical JSON path for one membership revision."""
     revision = _positive_int(membership_revision, "membership_revision")
-    return grade_item_membership_revisions_directory(
-        workspace_root, class_id, grade_item_id, work
-    ) / f"{revision}.json"
+    return (
+        grade_item_membership_revisions_directory(
+            workspace_root, class_id, grade_item_id, work
+        )
+        / f"{revision}.json"
+    )
 
 
 def grade_item_membership_revision_digest_path(
@@ -473,9 +471,10 @@ def grade_item_membership_current_path(
     work: ModuleWorkRef,
 ) -> Path:
     """Return one membership relationship's explicit current pointer path."""
-    return grade_item_membership_directory(
-        workspace_root, class_id, grade_item_id, work
-    ) / "current.json"
+    return (
+        grade_item_membership_directory(workspace_root, class_id, grade_item_id, work)
+        / "current.json"
+    )
 
 
 def grade_item_membership_revision_relative_path(
@@ -706,9 +705,7 @@ def list_grade_item_membership_revisions(
             "work.class_id must match class_id."
         )
     root = _root(workspace_root)
-    relation = grade_item_membership_directory(
-        root, class_value, item, validated_work
-    )
+    relation = grade_item_membership_directory(root, class_value, item, validated_work)
     if not relation.exists():
         return ()
     _validate_existing_directory_chain(root, relation)
@@ -801,9 +798,7 @@ def list_grade_item_membership_work_refs(
                 "Membership relationship exists without immutable revision history."
             )
         refs.append(work)
-    return tuple(
-        sorted(refs, key=lambda value: (value.module_id, value.work_id))
-    )
+    return tuple(sorted(refs, key=lambda value: (value.module_id, value.work_id)))
 
 
 def write_grade_item_membership_revision(
@@ -979,9 +974,7 @@ def select_grade_item_membership_revision(
         )
     )
     root = _root(workspace_root)
-    relation = grade_item_membership_directory(
-        root, class_value, item, validated_work
-    )
+    relation = grade_item_membership_directory(root, class_value, item, validated_work)
     _validate_existing_directory_chain(root, relation)
     lock = relation / ".write.lock"
     _acquire_lock(lock)
@@ -996,9 +989,7 @@ def select_grade_item_membership_revision(
         current = _load_current_selection(
             root, class_value, item, validated_work, missing_ok=True
         )
-        current_revision = (
-            current.membership_revision if current is not None else None
-        )
+        current_revision = current.membership_revision if current is not None else None
         if current_revision != expected:
             raise GradeItemMembershipStorageConflictError(
                 "Expected current membership revision does not match stored selection."
@@ -1082,9 +1073,7 @@ def _load_current_selection(
             "work.class_id must match class_id."
         )
     root = _root(workspace_root)
-    relation = grade_item_membership_directory(
-        root, class_value, item, validated_work
-    )
+    relation = grade_item_membership_directory(root, class_value, item, validated_work)
     if not relation.exists():
         if missing_ok:
             return None
@@ -1178,9 +1167,7 @@ def _current_selection_from_json_bytes(
             membership_revision=_positive_int(
                 decoded["membership_revision"], "membership_revision"
             ),
-            decision_sha256=_pointer_str(
-                decoded["decision_sha256"], "decision_sha256"
-            ),
+            decision_sha256=_pointer_str(decoded["decision_sha256"], "decision_sha256"),
         )
     except GradeItemMembershipStorageValidationError as error:
         raise GradeItemMembershipStorageIntegrityError(
@@ -1401,9 +1388,7 @@ def _root(workspace_root: str | Path) -> Path:
         )
     root = Path(os.path.abspath(os.fspath(workspace_root)))
     if not root.exists():
-        raise GradeItemMembershipStorageNotFoundError(
-            "Workspace root does not exist."
-        )
+        raise GradeItemMembershipStorageNotFoundError("Workspace root does not exist.")
     if root.is_symlink() or not root.is_dir():
         raise GradeItemMembershipStorageIntegrityError(
             "Workspace root must be a real directory, not a symlink."
@@ -1621,9 +1606,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _work(value: object) -> ModuleWorkRef:
     if not isinstance(value, ModuleWorkRef):
-        raise GradeItemMembershipStorageValidationError(
-            "work must be a ModuleWorkRef."
-        )
+        raise GradeItemMembershipStorageValidationError("work must be a ModuleWorkRef.")
     try:
         return validate_module_work_ref(value)
     except RoutingModelError as error:

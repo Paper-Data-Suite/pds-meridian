@@ -37,9 +37,7 @@ GRADE_ITEM_MEMBERSHIP_DISPOSITIONS: Final[frozenset[str]] = frozenset(
 )
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
-_ASSIGNMENT_KEYS: Final[frozenset[str]] = frozenset(
-    {"period", "calendar_revision"}
-)
+_ASSIGNMENT_KEYS: Final[frozenset[str]] = frozenset({"period", "calendar_revision"})
 _MEMBERSHIP_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -337,9 +335,7 @@ def grade_item_membership_decision_to_dict(
         "grade_item_id": decision.grade_item_id,
         "grade_item_revision": decision.grade_item_revision,
         "grade_item_revision_sha256": decision.grade_item_revision_sha256,
-        "work_reference": grade_item_work_reference_to_dict(
-            decision.work_reference
-        ),
+        "work_reference": grade_item_work_reference_to_dict(decision.work_reference),
         "membership_revision": decision.membership_revision,
         "supersedes_revision": decision.supersedes_revision,
         "decision": decision.decision,
@@ -373,9 +369,7 @@ def grade_item_membership_decision_from_dict(
             "supersedes_revision must be an integer or null."
         )
     try:
-        work_reference = grade_item_work_reference_from_dict(
-            mapping["work_reference"]
-        )
+        work_reference = grade_item_work_reference_from_dict(mapping["work_reference"])
     except GradeItemValidationError as error:
         raise GradeItemMembershipValidationError(
             f"work_reference is invalid: {error}"
@@ -495,9 +489,7 @@ def _exact_mapping(
     if not isinstance(data, Mapping):
         raise GradeItemMembershipValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise GradeItemMembershipValidationError(
-            f"{label} keys must all be strings."
-        )
+        raise GradeItemMembershipValidationError(f"{label} keys must all be strings.")
     keys = frozenset(cast(Mapping[str, object], data))
     if keys != expected:
         missing = sorted(expected - keys)
@@ -515,9 +507,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradeItemMembershipValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradeItemMembershipValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -542,9 +532,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _bounded_text(value: object, field_name: str, maximum_length: int) -> str:
     if not isinstance(value, str):
-        raise GradeItemMembershipValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradeItemMembershipValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise GradeItemMembershipValidationError(
             f"{field_name} must be nonblank without surrounding whitespace."
@@ -566,9 +554,7 @@ def _is_control_character(value: str) -> bool:
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise GradeItemMembershipValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise GradeItemMembershipValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise GradeItemMembershipValidationError(
             f"{field_name} must be timezone-aware."
@@ -589,15 +575,11 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise GradeItemMembershipValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise GradeItemMembershipValidationError(f"{field_name} must be an integer.")
     return value
 
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradeItemMembershipValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradeItemMembershipValidationError(f"{field_name} must be a string.")
     return value

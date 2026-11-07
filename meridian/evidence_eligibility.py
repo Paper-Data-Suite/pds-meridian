@@ -21,9 +21,7 @@ from pds_core.routing_models import (
 )
 
 EVIDENCE_ELIGIBILITY_SCHEMA_VERSION: Final[str] = "1"
-EVIDENCE_ELIGIBILITY_RECORD_TYPE: Final[str] = (
-    "meridian_evidence_eligibility_decision"
-)
+EVIDENCE_ELIGIBILITY_RECORD_TYPE: Final[str] = "meridian_evidence_eligibility_decision"
 MAXIMUM_EVIDENCE_ELIGIBILITY_ACTOR_ID_LENGTH: Final[int] = 256
 MAXIMUM_EVIDENCE_ELIGIBILITY_RATIONALE_LENGTH: Final[int] = 2000
 MAXIMUM_EVIDENCE_ELIGIBILITY_REASON_CODE_LENGTH: Final[int] = 128
@@ -823,9 +821,7 @@ def _exact_mapping(
     if not isinstance(data, Mapping):
         raise EvidenceEligibilityValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise EvidenceEligibilityValidationError(
-            f"{label} keys must all be strings."
-        )
+        raise EvidenceEligibilityValidationError(f"{label} keys must all be strings.")
     keys = frozenset(cast(Mapping[str, object], data))
     if keys != expected:
         missing = sorted(expected - keys)
@@ -940,9 +936,7 @@ def _is_control_character(value: str) -> bool:
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise EvidenceEligibilityValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise EvidenceEligibilityValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise EvidenceEligibilityValidationError(
             f"{field_name} must be timezone-aware."

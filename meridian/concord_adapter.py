@@ -113,16 +113,12 @@ def _require_contract_agreement(
         or source is None
         or source.module_id != CONCORD_ADAPTER_KEY.producer_module_id
         or source.record_kind != CONCORD_ADAPTER_KEY.source_record_kind
-        or source.contract_version
-        != CONCORD_ADAPTER_KEY.source_record_contract_version
+        or source.contract_version != CONCORD_ADAPTER_KEY.source_record_contract_version
         or source not in registration.source_records
         or publication.record_set_id != _CONCORD_RECORD_SET_ID
-        or frozenset(publication.capabilities)
-        != frozenset(derived_capabilities)
-        or manifest.producer_module_id
-        != CONCORD_ADAPTER_KEY.producer_module_id
-        or manifest.contract_version
-        != CONCORD_ADAPTER_KEY.manifest_contract_version
+        or frozenset(publication.capabilities) != frozenset(derived_capabilities)
+        or manifest.producer_module_id != CONCORD_ADAPTER_KEY.producer_module_id
+        or manifest.contract_version != CONCORD_ADAPTER_KEY.manifest_contract_version
         or manifest.work != publication.work
         or manifest.activity_context.activity_id != publication.work.work_id
         or manifest.activity_context.class_id != publication.work.class_id
@@ -167,9 +163,7 @@ def _native_scale(scale: ScoringScaleProjection) -> NativeScale:
             for level in scale.levels
         ),
         contract_version=None,
-        order_is_meaningful=all(
-            level.position is not None for level in scale.levels
-        ),
+        order_is_meaningful=all(level.position is not None for level in scale.levels),
         lineage_id=scale.lineage_id,
         name=scale.name,
         revision=scale.revision,
@@ -589,9 +583,7 @@ def _subject(score: ScoreProjection) -> StudentSubject | None:
 
 def _target(score: ScoreProjection) -> EvidenceTarget:
     target = score.target_reference
-    standards = (
-        (score.standard_id,) if score.standard_id is not None else ()
-    )
+    standards = (score.standard_id,) if score.standard_id is not None else ()
     return EvidenceTarget(
         target_kind=target.target_kind,
         target_id=target.target_id,

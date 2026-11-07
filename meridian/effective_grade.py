@@ -196,7 +196,6 @@ class EffectiveGradeResolution:
         )
 
 
-
 def resolve_effective_grade(
     selected_source: TeacherGradeOverrideSelectedSource,
     *,
@@ -279,7 +278,6 @@ def resolve_effective_grade(
     )
 
 
-
 def resolve_current_effective_grade(
     workspace_root: str | Path,
     class_id: str,
@@ -346,7 +344,6 @@ def resolve_current_effective_grade(
     )
 
 
-
 def _validate_base_value(
     status: TeacherGradeOverrideBaseStatus,
     grade: Decimal | None,
@@ -363,7 +360,6 @@ def _validate_base_value(
             )
     else:
         raise EffectiveGradeScopeError("unsupported base_result_status.")
-
 
 
 def _freshness_reasons(
@@ -399,7 +395,6 @@ def _freshness_reasons(
     return reasons
 
 
-
 def _require_same_logical_scope(
     source: GradeOverrideSourceResultReference,
     decision: TeacherGradeOverrideDecision,
@@ -425,7 +420,6 @@ def _require_same_logical_scope(
         raise EffectiveGradeScopeError(
             "selected base and selected override must share exact logical scope."
         )
-
 
 
 def _validate_effective_value(
