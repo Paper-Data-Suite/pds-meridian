@@ -67,9 +67,7 @@ def _profile_reference(
 
 def main() -> int:
     if len(sys.argv) != 2:
-        raise SystemExit(
-            "usage: smoke_program_report_exports_reload.py <root>"
-        )
+        raise SystemExit("usage: smoke_program_report_exports_reload.py <root>")
 
     issue56._verify_installed_composition()
     root = Path(sys.argv[1]).resolve()
@@ -154,8 +152,7 @@ def main() -> int:
     _require(
         roster_preview.preview.roster_observation_reference is not None
         and (
-            roster_preview.preview.roster_observation_reference
-            .observation_sha256
+            roster_preview.preview.roster_observation_reference.observation_sha256
             == _text(
                 roster_profile_data.get("roster_observation_sha256"),
                 "roster observation digest missing",

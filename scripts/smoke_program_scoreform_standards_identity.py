@@ -205,9 +205,7 @@ def main() -> None:
     )
 
     question_one = tuple(
-        item
-        for item in inventory.items
-        if item.target.target_id == "question_1"
+        item for item in inventory.items if item.target.target_id == "question_1"
     )
     _require(len(question_one) == 4, "Question evidence was selected or dropped.")
     _require(
