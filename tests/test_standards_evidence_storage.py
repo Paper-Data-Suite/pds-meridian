@@ -134,13 +134,16 @@ def test_raw_standard_id_is_absent_from_canonical_path(tmp_path: Path) -> None:
     )
     assert len(path.relative_to(tmp_path).as_posix()) <= 129
     assert len(f"{path.relative_to(tmp_path).as_posix()}.sha256") <= 136
-    assert storage.standard_evidence_association_revision_relative_path(
-        WORK.class_id,
-        "grade_item_1",
-        source(),
-        STANDARD,
-        1,
-    ) == path.relative_to(tmp_path).as_posix()
+    assert (
+        storage.standard_evidence_association_revision_relative_path(
+            WORK.class_id,
+            "grade_item_1",
+            source(),
+            STANDARD,
+            1,
+        )
+        == path.relative_to(tmp_path).as_posix()
+    )
 
 
 def test_same_revision_different_content_conflicts(
@@ -210,9 +213,7 @@ def test_dependency_validation_distinguishes_producer_declared_and_explicit(
     monkeypatch.setattr(
         storage,
         "load_current_grade_item_membership_decision",
-        lambda *args: SimpleNamespace(
-            decision=SimpleNamespace(decision="included")
-        ),
+        lambda *args: SimpleNamespace(decision=SimpleNamespace(decision="included")),
     )
     producer_target = SimpleNamespace(standard_ids=("another:standard",))
     monkeypatch.setattr(

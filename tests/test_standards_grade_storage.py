@@ -177,12 +177,16 @@ def test_write_is_immutable_and_does_not_select(tmp_path, monkeypatch) -> None:
     assert list_standards_grade_result_revisions(
         root, CLASS_ID, STUDENT_ID, PERIOD, 1
     ) == (1,)
-    assert get_current_standards_grade_result_revision(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ) is None
-    assert load_current_standards_grade_result(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ) is None
+    assert (
+        get_current_standards_grade_result_revision(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1
+        )
+        is None
+    )
+    assert (
+        load_current_standards_grade_result(root, CLASS_ID, STUDENT_ID, PERIOD, 1)
+        is None
+    )
 
 
 def test_long_student_id_keeps_result_family_path_bounded(
@@ -255,9 +259,12 @@ def test_explicit_selection_uses_cas_and_allows_historical_reselection(
         expected_current_result_revision=None,
     )
     assert selected1.disposition == "created"
-    assert get_current_standards_grade_result_revision(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ) == 1
+    assert (
+        get_current_standards_grade_result_revision(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1
+        )
+        == 1
+    )
 
     with pytest.raises(StandardsGradeStorageConflictError, match="Expected current"):
         select_standards_grade_result_revision(
@@ -290,9 +297,12 @@ def test_explicit_selection_uses_cas_and_allows_historical_reselection(
         expected_current_result_revision=2,
     )
     assert reselected.disposition == "updated"
-    assert load_current_standards_grade_result(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1
-    ).snapshot.result_revision == 1
+    assert (
+        load_current_standards_grade_result(
+            root, CLASS_ID, STUDENT_ID, PERIOD, 1
+        ).snapshot.result_revision
+        == 1
+    )
 
 
 def test_source_basis_change_before_commit_fails_closed(tmp_path, monkeypatch) -> None:
@@ -331,9 +341,7 @@ def test_corrupt_digest_is_rejected(tmp_path, monkeypatch) -> None:
     digest_path = written.stored.path.with_suffix(".json.sha256")
     digest_path.write_text("0" * 64 + "\n", encoding="ascii")
     with pytest.raises(StandardsGradeStorageIntegrityError, match="digest"):
-        load_standards_grade_result_revision(
-            root, CLASS_ID, STUDENT_ID, PERIOD, 1, 1
-        )
+        load_standards_grade_result_revision(root, CLASS_ID, STUDENT_ID, PERIOD, 1, 1)
 
 
 def test_corrupt_current_pointer_digest_is_rejected(tmp_path, monkeypatch) -> None:
@@ -355,9 +363,7 @@ def test_corrupt_current_pointer_digest_is_rejected(tmp_path, monkeypatch) -> No
         1,
         expected_current_result_revision=None,
     )
-    pointer = standards_grade_result_current_path(
-        root, CLASS_ID, STUDENT_ID, PERIOD, 1
-    )
+    pointer = standards_grade_result_current_path(root, CLASS_ID, STUDENT_ID, PERIOD, 1)
     text = pointer.read_text(encoding="utf-8").replace(
         '"result_sha256": "',
         '"result_sha256": "f',

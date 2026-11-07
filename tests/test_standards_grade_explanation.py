@@ -313,8 +313,7 @@ def test_weighted_mean_explains_exact_historical_proficiency_revisions(
         ("revision", 2),
     ]
     assert all(
-        item.nested_proficiency_explanation is not None
-        for item in value.standards
+        item.nested_proficiency_explanation is not None for item in value.standards
     )
 
 
@@ -378,8 +377,9 @@ def test_missing_zero_is_distinct_from_calculated_proficiency(
     assert missing.nested_proficiency_explanation is None
 
 
-def test_blocking_standard_remains_nonnumeric_and_serializes_without_nested_trace(
-) -> None:
+def test_blocking_standard_remains_nonnumeric_and_serializes_without_nested_trace() -> (
+    None
+):
     config = _configuration(("std.a", "1"), minimum=1)
     policy = _policy(config)
     snapshot = _snapshot(policy, _state(config.standards[0], "missing"))

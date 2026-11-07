@@ -183,11 +183,7 @@ def _observation(
         work=selected_work,
         record_set_id=record_set_id,
     )
-    context = (
-        _context(publication, title=title)
-        if context_available
-        else None
-    )
+    context = _context(publication, title=title) if context_available else None
     return PublicationObservationDiagnostic(
         candidate=PublicationCandidate(_catalog_row(publication), ordinal),
         canonical_context=context,
@@ -395,11 +391,7 @@ def test_indistinguishable_ready_publications_fail_closed_for_teacher_choice() -
 
     assert inbox.ready_count == 0
     assert inbox.blocked_count == 2
+    assert all(item.status_code == "ambiguous_presentation" for item in inbox.items)
     assert all(
-        item.status_code == "ambiguous_presentation"
-        for item in inbox.items
-    )
-    assert all(
-        item.status_label == "Needs a clearer display label"
-        for item in inbox.items
+        item.status_label == "Needs a clearer display label" for item in inbox.items
     )

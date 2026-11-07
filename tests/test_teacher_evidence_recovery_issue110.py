@@ -153,9 +153,7 @@ def test_evidence_detail_recomputes_continue_after_child_return() -> None:
         ),
         subject_label="Jane Smith",
         dependencies=deps,
-        session_context=TeacherSessionContext(
-            active_class_id="english_12_pd2"
-        ),
+        session_context=TeacherSessionContext(active_class_id="english_12_pd2"),
         input_fn=ScriptedInput("c", "c", "b"),
         output=output,
         clear_fn=lambda: None,

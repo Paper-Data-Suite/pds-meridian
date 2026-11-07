@@ -97,9 +97,7 @@ def test_key_backed_json_leaf_and_digest_leaf_are_explicitly_bounded() -> None:
 
     assert len(json_filename) == STORAGE_PATH_KEY_JSON_FILENAME_MAX_LENGTH == 72
     assert (
-        len(digest_filename)
-        == STORAGE_PATH_KEY_JSON_SHA256_FILENAME_MAX_LENGTH
-        == 79
+        len(digest_filename) == STORAGE_PATH_KEY_JSON_SHA256_FILENAME_MAX_LENGTH == 79
     )
     assert json_filename == f"{key}.json"
     assert digest_filename == f"{key}.json.sha256"
