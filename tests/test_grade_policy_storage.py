@@ -221,9 +221,7 @@ def standards_configuration(
         ProficiencyGradeConversion("proficient", Decimal("85")),
     ]
     if complete_conversions:
-        conversions.append(
-            ProficiencyGradeConversion("advanced", Decimal("100"))
-        )
+        conversions.append(ProficiencyGradeConversion("advanced", Decimal("100")))
     return StandardsBasedGradeConfiguration(
         target_scale=scale,
         standards=(
@@ -298,12 +296,15 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
     )
     assert long_policy_id not in stored.relative_path
     assert len(f"{stored.relative_path}.sha256") <= 130
-    assert load_grade_policy_revision(
-        root,
-        CLASS_ID,
-        long_policy_id,
-        1,
-    ).policy.policy_id == long_policy_id
+    assert (
+        load_grade_policy_revision(
+            root,
+            CLASS_ID,
+            long_policy_id,
+            1,
+        ).policy.policy_id
+        == long_policy_id
+    )
     assert list_grade_policy_ids(
         root,
         CLASS_ID,
@@ -355,12 +356,15 @@ def test_history_is_linear_and_immutable(tmp_path: Path) -> None:
         root,
         policy(configuration, revision=2),
     )
-    assert load_grade_policy_revision(
-        root,
-        CLASS_ID,
-        POLICY_ID,
-        1,
-    ).content == first
+    assert (
+        load_grade_policy_revision(
+            root,
+            CLASS_ID,
+            POLICY_ID,
+            1,
+        ).content
+        == first
+    )
     assert list_grade_policy_revisions(root, CLASS_ID, POLICY_ID) == (1, 2)
 
     skipped = replace(
@@ -414,11 +418,14 @@ def test_selection_is_explicit_and_can_reselect_history(tmp_path: Path) -> None:
         expected_current_revision=2,
     )
     assert selected1.disposition == "updated"
-    assert load_current_grade_policy(
-        root,
-        CLASS_ID,
-        POLICY_ID,
-    ).policy.policy_revision == 1
+    assert (
+        load_current_grade_policy(
+            root,
+            CLASS_ID,
+            POLICY_ID,
+        ).policy.policy_revision
+        == 1
+    )
 
 
 def test_selection_retry_and_stale_compare_and_swap(tmp_path: Path) -> None:

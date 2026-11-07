@@ -243,8 +243,7 @@ def test_common_preview_exposes_all_state_treatments_in_canonical_order() -> Non
         "unresolved",
     )
     assert all(
-        rule.consequence == "exclude"
-        for rule in explanation.policy.state_treatment
+        rule.consequence == "exclude" for rule in explanation.policy.state_treatment
     )
 
 
@@ -424,9 +423,7 @@ def test_observation_is_deterministic_and_snapshot_neutral() -> None:
     assert tuple(
         (entry.dimension, entry.key) for entry in observation.basis_entries
     ) == tuple(
-        sorted(
-            (entry.dimension, entry.key) for entry in observation.basis_entries
-        )
+        sorted((entry.dimension, entry.key) for entry in observation.basis_entries)
     )
     assert {entry.dimension for entry in observation.basis_entries} >= {
         "activation",

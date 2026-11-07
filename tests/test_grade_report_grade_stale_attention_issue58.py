@@ -247,9 +247,7 @@ def _write_pointer(root: Path, *, school_year: str, student_id: str) -> Path:
         "school_year": school_year,
         "period_id": "q1",
         "calendar_revision": 1,
-        "subject_key": standards_grade_subject_key(
-            CLASS_ID, student_id, period, 1
-        ),
+        "subject_key": standards_grade_subject_key(CLASS_ID, student_id, period, 1),
         "result_revision": 1,
         "result_sha256": "a" * 64,
     }
@@ -270,9 +268,7 @@ def test_canonical_pointer_discovery_uses_public_selected_result_loader(
     calls: list[tuple[str, str, str, int]] = []
 
     def load_current(_root, class_id, student_id, period, calendar_revision):
-        calls.append(
-            (class_id, student_id, period.school_year, calendar_revision)
-        )
+        calls.append((class_id, student_id, period.school_year, calendar_revision))
         return stored
 
     monkeypatch.setattr(attention, "load_current_standards_grade_result", load_current)

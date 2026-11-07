@@ -121,12 +121,16 @@ def test_write_first_revision_is_create_only_and_does_not_select(
 
     assert result.disposition == "created"
     assert result.stored.profile == _profile()
-    assert result.stored.reference.profile_sha256 == hashlib.sha256(
-        result.stored.content
-    ).hexdigest()
-    assert get_current_export_profile_selection_reference(
-        root, CLASS_ID, "district_gradebook"
-    ) is None
+    assert (
+        result.stored.reference.profile_sha256
+        == hashlib.sha256(result.stored.content).hexdigest()
+    )
+    assert (
+        get_current_export_profile_selection_reference(
+            root, CLASS_ID, "district_gradebook"
+        )
+        is None
+    )
     assert not export_profile_current_path(
         root, CLASS_ID, "district_gradebook"
     ).exists()
@@ -167,9 +171,7 @@ def test_linear_successor_persists_and_lists_in_numeric_order(tmp_path: Path) ->
 
     assert first.profile.profile_revision == 1
     assert second.profile.profile_revision == 2
-    assert list_export_profile_revisions(
-        root, CLASS_ID, "district_gradebook"
-    ) == (1, 2)
+    assert list_export_profile_revisions(root, CLASS_ID, "district_gradebook") == (1, 2)
 
 
 def test_revision_path_is_class_local_and_privacy_safe(tmp_path: Path) -> None:
@@ -205,15 +207,16 @@ def test_long_profile_id_uses_bounded_key_and_round_trips(
         long_profile_id,
     )
     assert long_profile_id not in stored.relative_path
-    assert load_export_profile_revision(
-        root,
-        CLASS_ID,
-        long_profile_id,
-        1,
-    ).profile.profile_id == long_profile_id
-    assert list_export_profile_ids(root, CLASS_ID) == (
-        long_profile_id,
+    assert (
+        load_export_profile_revision(
+            root,
+            CLASS_ID,
+            long_profile_id,
+            1,
+        ).profile.profile_id
+        == long_profile_id
     )
+    assert list_export_profile_ids(root, CLASS_ID) == (long_profile_id,)
 
 
 def test_load_reference_requires_exact_digest(tmp_path: Path) -> None:
@@ -305,9 +308,10 @@ def test_no_current_profile_before_explicit_selection(tmp_path: Path) -> None:
     root = _workspace(tmp_path)
     write_export_profile_revision(root, _profile())
 
-    assert load_current_export_profile_selection(
-        root, CLASS_ID, "district_gradebook"
-    ) is None
+    assert (
+        load_current_export_profile_selection(root, CLASS_ID, "district_gradebook")
+        is None
+    )
     assert load_current_export_profile(root, CLASS_ID, "district_gradebook") is None
 
 
@@ -501,11 +505,15 @@ def test_selector_json_rejects_unknown_duplicate_and_noncanonical_bytes(
     with pytest.raises(ExportProfileStorageIntegrityError, match="canonical"):
         load_current_export_profile_selection(root, CLASS_ID, "district_gradebook")
 
-    duplicate = result.selection.content.decode("utf-8").replace(
-        '  "class_id": "english_12",',
-        '  "class_id": "english_12",\n  "class_id": "english_12",',
-        1,
-    ).encode("utf-8")
+    duplicate = (
+        result.selection.content.decode("utf-8")
+        .replace(
+            '  "class_id": "english_12",',
+            '  "class_id": "english_12",\n  "class_id": "english_12",',
+            1,
+        )
+        .encode("utf-8")
+    )
     path.write_bytes(duplicate)
     with pytest.raises(ExportProfileStorageIntegrityError, match="duplicate"):
         load_current_export_profile_selection(root, CLASS_ID, "district_gradebook")
@@ -582,6 +590,7 @@ def test_write_and_selection_change_only_export_profile_owned_state(
             root, CLASS_ID, "district_gradebook"
         ).selection  # type: ignore[union-attr]
     )
+
 
 def test_list_profile_ids_is_sorted_and_verifies_each_family(
     tmp_path: Path,

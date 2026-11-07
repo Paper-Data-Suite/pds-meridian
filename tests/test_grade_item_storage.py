@@ -105,12 +105,15 @@ def test_long_grade_item_id_uses_bounded_key_and_round_trips(
     assert item_dir.name == grade_item_path_key(long_item_id)
     assert long_item_id not in stored.relative_path
     assert len(f"{stored.relative_path}.sha256") <= 130
-    assert load_grade_item_revision(
-        root,
-        CLASS_ID,
-        long_item_id,
-        1,
-    ).revision.grade_item_id == long_item_id
+    assert (
+        load_grade_item_revision(
+            root,
+            CLASS_ID,
+            long_item_id,
+            1,
+        ).revision.grade_item_id
+        == long_item_id
+    )
     assert list_grade_item_ids(root, CLASS_ID) == (long_item_id,)
 
 
@@ -194,10 +197,9 @@ def test_selection_is_explicit_and_can_select_history(tmp_path: Path) -> None:
     )
     assert selected2.disposition == "created"
     assert get_current_grade_item_revision(root, CLASS_ID, ITEM_ID) == 2
-    assert (
-        load_current_grade_item_revision(root, CLASS_ID, ITEM_ID).revision
-        == revision(2)
-    )
+    assert load_current_grade_item_revision(
+        root, CLASS_ID, ITEM_ID
+    ).revision == revision(2)
 
     selected1 = select_grade_item_revision(
         root, CLASS_ID, ITEM_ID, 1, expected_current_revision=2
@@ -257,9 +259,7 @@ def test_digest_sidecar_rejects_crlf_as_noncanonical(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     created = write_grade_item_revision(root, revision(1))
     digest = grade_item_revision_digest_path(root, CLASS_ID, ITEM_ID, 1)
-    digest.write_bytes(
-        (created.stored.revision_sha256 + "\r\n").encode("ascii")
-    )
+    digest.write_bytes((created.stored.revision_sha256 + "\r\n").encode("ascii"))
     with pytest.raises(GradeItemStorageIntegrityError, match="not canonical"):
         load_grade_item_revision(root, CLASS_ID, ITEM_ID, 1)
 
@@ -385,7 +385,6 @@ def test_grade_item_storage_contains_no_student_or_producer_mutation(
     assert b"student_ids" not in serialized
 
 
-
 def test_stored_revision_rejects_content_model_mismatch(tmp_path: Path) -> None:
     first = revision(1)
     second = GradeItemRevision(
@@ -412,9 +411,7 @@ def test_stored_revision_rejects_content_model_mismatch(tmp_path: Path) -> None:
             revision=second,
             revision_sha256=digest,
             path=tmp_path / "1.json",
-            relative_path=grade_item_revision_relative_path(
-                CLASS_ID, ITEM_ID, 1
-            ),
+            relative_path=grade_item_revision_relative_path(CLASS_ID, ITEM_ID, 1),
             content=content,
         )
 
