@@ -15,10 +15,7 @@ def test_issue42_documentation_is_release_guarded() -> None:
     assert DOC in sdist_checker
     assert "issue #42 — implemented" in documentation_checker
     assert "issue #43 — implemented" in documentation_checker
-    assert (
-        "#44 ScoreForm/Quillan/Concord cross-producer "
-        in documentation_checker
-    )
+    assert "#44 ScoreForm/Quillan/Concord cross-producer " in documentation_checker
     assert "proficiency scenarios — implemented" in documentation_checker
     assert (
         "#45 installed proficiency and signal-export acceptance "
@@ -47,10 +44,7 @@ def test_issue42_status_is_consistent_across_release_docs() -> None:
         in root
     )
     assert "issue #42 — implemented" in docs
-    assert (
-        "#43 Meridian proficiency attention summaries — implemented"
-        in root
-    )
+    assert "#43 Meridian proficiency attention summaries — implemented" in root
     assert (
         "#44 ScoreForm/Quillan/Concord cross-producer "
         "proficiency scenarios — implemented" in root
