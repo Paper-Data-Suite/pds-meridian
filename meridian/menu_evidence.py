@@ -754,10 +754,7 @@ def _render_technical(output: TextIO, review: NewEvidenceReview) -> None:
         output,
         f"class_id: {review.class_id}",
         f"grade_item_id: {review.grade_item_id}",
-        (
-            "work: "
-            f"{review.work.module_id}/{review.work.class_id}/{review.work.work_id}"
-        ),
+        (f"work: {review.work.module_id}/{review.work.class_id}/{review.work.work_id}"),
         f"publication_id: {review.publication_id}",
         f"cache_key: {review.cache_key}",
         f"snapshot_sha256: {review.snapshot_digest}",
@@ -909,11 +906,7 @@ def _positive_int(value: str, label: str) -> int:
 def _reason_codes(raw: str) -> tuple[str, ...]:
     if not raw.strip():
         return ()
-    return tuple(
-        value.strip()
-        for value in raw.split(",")
-        if value.strip()
-    )
+    return tuple(value.strip() for value in raw.split(",") if value.strip())
 
 
 def _teacher_disposition(value: str) -> TeacherEligibilityDisposition:
@@ -1053,9 +1046,7 @@ def _author_eligibility(
     decision = preview.decision
     policy = decision.policy
     policy_label = (
-        "none"
-        if policy is None
-        else f"{policy.policy_id} / {policy.policy_version}"
+        "none" if policy is None else f"{policy.policy_id} / {policy.policy_version}"
     )
     clear_fn()
     print_menu_header(output, "Review Eligibility Before Write")
@@ -1600,11 +1591,14 @@ def _standards_scope(
     standards: StandardsActionDependencies,
     input_fn: InputFunction,
     output: TextIO,
-) -> tuple[
-    Path,
-    AuthorizedEvidenceContext,
-    StandardsReviewProjection,
-] | None:
+) -> (
+    tuple[
+        Path,
+        AuthorizedEvidenceContext,
+        StandardsReviewProjection,
+    ]
+    | None
+):
     write_lines(
         output,
         "Standards association uses one exact authorized evidence item.",
@@ -1726,9 +1720,7 @@ def _author_standards_association(
         operation = _standards_operation(read_choice(input_fn, "Operation: "))
         print("1. Associated", file=output)
         print("2. Not associated", file=output)
-        disposition = _standards_disposition(
-            read_choice(input_fn, "Disposition: ")
-        )
+        disposition = _standards_disposition(read_choice(input_fn, "Disposition: "))
         print("1. Producer declared", file=output)
         print("2. Explicit teacher association", file=output)
         basis = _standards_basis(read_choice(input_fn, "Basis: "))

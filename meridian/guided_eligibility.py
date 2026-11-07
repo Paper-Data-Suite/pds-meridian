@@ -301,11 +301,7 @@ def discover_guided_eligibility_grade_items(
 
     raw: list[tuple[str, str, str | None]] = []
     for row in review.items:
-        if (
-            row.selected_revision is None
-            or row.status != "active"
-            or row.title is None
-        ):
+        if row.selected_revision is None or row.status != "active" or row.title is None:
             continue
         membership = _matching_membership(row, work)
         if membership is None:

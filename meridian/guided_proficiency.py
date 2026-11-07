@@ -136,9 +136,7 @@ PersistenceCommitter: TypeAlias = Callable[
     ..., CalculationResultPersistenceWorkflowResult
 ]
 SelectionPreviewer: TypeAlias = Callable[..., CalculationResultSelectionPreview]
-SelectionCommitter: TypeAlias = Callable[
-    ..., CalculationResultSelectionWorkflowResult
-]
+SelectionCommitter: TypeAlias = Callable[..., CalculationResultSelectionWorkflowResult]
 CurrentResultLoader: TypeAlias = Callable[
     [Path, str, str, str, str],
     StoredStandardProficiencyResult | None,
@@ -159,15 +157,11 @@ class GuidedProficiencyDependencies:
     profile_loader: ProfileLoader = load_current_mapping_profile
     scale_loader: ScaleLoader = load_current_proficiency_scale
     preview_builder: PreviewBuilder = build_bounded_calculation_preview
-    persistence_previewer: PersistencePreviewer = (
-        preview_calculation_result_persistence
-    )
+    persistence_previewer: PersistencePreviewer = preview_calculation_result_persistence
     persistence_committer: PersistenceCommitter = (
         commit_calculation_result_persistence_preview
     )
-    selection_previewer: SelectionPreviewer = (
-        preview_calculation_result_selection
-    )
+    selection_previewer: SelectionPreviewer = preview_calculation_result_selection
     selection_committer: SelectionCommitter = (
         commit_calculation_result_selection_preview
     )
@@ -207,9 +201,7 @@ def _policy_choices(
                 reference=stored.reference,
             )
         )
-    return tuple(
-        sorted(choices, key=lambda choice: choice.display_label.casefold())
-    )
+    return tuple(sorted(choices, key=lambda choice: choice.display_label.casefold()))
 
 
 def _mapping_label(stored: StoredNativeValueMappingProfile) -> str:
@@ -249,9 +241,7 @@ def _mapping_choices(
                 reference=stored.reference,
             )
         )
-    return tuple(
-        sorted(choices, key=lambda choice: choice.display_label.casefold())
-    )
+    return tuple(sorted(choices, key=lambda choice: choice.display_label.casefold()))
 
 
 def _selected_evidence_item(

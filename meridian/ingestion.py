@@ -128,9 +128,7 @@ CanonicalPublicationState: TypeAlias = Literal[
     "historical",
     "withdrawn_historical",
 ]
-AuthorizationOperation: TypeAlias = Literal[
-    "project_evidence", "read_projection_cache"
-]
+AuthorizationOperation: TypeAlias = Literal["project_evidence", "read_projection_cache"]
 CandidateDriftField: TypeAlias = Literal[
     "work",
     "source_record",
@@ -606,9 +604,7 @@ class CanonicalPublicationContext:
                 "publication must be a Core PublicationRecord."
             )
         if self.publication.publication_kind == "academic_result_set":
-            if not isinstance(
-                self.referenced_registration, AcademicWorkRegistration
-            ):
+            if not isinstance(self.referenced_registration, AcademicWorkRegistration):
                 raise IngestionValidationError(
                     "academic context requires its referenced registration."
                 )
@@ -673,9 +669,7 @@ class PublicationAuthorizationRequest:
                 "authorization publication must be a PublicationRecord."
             )
         if self.publication.publication_kind == "academic_result_set":
-            if not isinstance(
-                self.referenced_registration, AcademicWorkRegistration
-            ):
+            if not isinstance(self.referenced_registration, AcademicWorkRegistration):
                 raise IngestionValidationError(
                     "academic authorization requires the referenced registration."
                 )
@@ -796,9 +790,7 @@ class PreparedPublicationInvocation:
 
     def __post_init__(self) -> None:
         if not isinstance(self.candidate, PublicationCandidate):
-            raise IngestionValidationError(
-                "candidate must be a PublicationCandidate."
-            )
+            raise IngestionValidationError("candidate must be a PublicationCandidate.")
         if not isinstance(self.canonical_context, CanonicalPublicationContext):
             raise IngestionValidationError(
                 "canonical_context must be a CanonicalPublicationContext."
@@ -830,32 +822,24 @@ class PreparedPublicationInvocation:
                 "prepared invocation requires compatible producer contracts."
             )
         if not isinstance(self.adapter_match, AdapterMatch):
-            raise IngestionValidationError(
-                "adapter_match must be an AdapterMatch."
-            )
+            raise IngestionValidationError("adapter_match must be an AdapterMatch.")
         object.__setattr__(
             self,
             "producer_reader_version",
             _single_line(self.producer_reader_version, "producer_reader_version"),
         )
-        if not isinstance(
-            self.authorization_request, PublicationAuthorizationRequest
-        ):
+        if not isinstance(self.authorization_request, PublicationAuthorizationRequest):
             raise IngestionValidationError(
                 "authorization_request must be a PublicationAuthorizationRequest."
             )
         expected_authorization_request = PublicationAuthorizationRequest(
             publication=self.canonical_context.publication,
-            referenced_registration=(
-                self.canonical_context.referenced_registration
-            ),
+            referenced_registration=(self.canonical_context.referenced_registration),
             withdrawal=self.canonical_context.withdrawal,
             canonical_state=self.canonical_context.canonical_state,
             operation="project_evidence",
             purpose_id=self.authorization_request.purpose_id,
-            requested_student_ids=(
-                self.authorization_request.requested_student_ids
-            ),
+            requested_student_ids=(self.authorization_request.requested_student_ids),
         )
         if self.authorization_request != expected_authorization_request:
             raise IngestionValidationError(
@@ -881,12 +865,10 @@ class PreparedPublicationInvocation:
                 "projection_request must preserve the exact resolved reader version."
             )
         if (
-            self.projection_request.publication
-            != self.canonical_context.publication
+            self.projection_request.publication != self.canonical_context.publication
             or self.projection_request.registration
             != self.canonical_context.referenced_registration
-            or self.projection_request.withdrawal
-            != self.canonical_context.withdrawal
+            or self.projection_request.withdrawal != self.canonical_context.withdrawal
         ):
             raise IngestionValidationError(
                 "projection_request must preserve the canonical context exactly."
@@ -899,9 +881,7 @@ def discover_publication_candidates(
 ) -> PublicationDiscoveryResult:
     """Query Core's disposable catalog without promoting rows to authority."""
     if not isinstance(request, PublicationDiscoveryRequest):
-        raise IngestionValidationError(
-            "request must be a PublicationDiscoveryRequest."
-        )
+        raise IngestionValidationError("request must be a PublicationDiscoveryRequest.")
     try:
         rows = query_publication_catalog(workspace_root, request.query)
     except AcademicCatalogNotFoundError as error:
@@ -944,9 +924,7 @@ def compare_candidate_to_canonical(
     if not isinstance(candidate, PublicationCandidate):
         raise IngestionValidationError("candidate must be a PublicationCandidate.")
     if not isinstance(context, CanonicalPublicationContext):
-        raise IngestionValidationError(
-            "context must be a CanonicalPublicationContext."
-        )
+        raise IngestionValidationError("context must be a CanonicalPublicationContext.")
     row = candidate.catalog_publication
     publication = context.publication
     referenced = context.referenced_registration
@@ -1324,9 +1302,7 @@ def _series_observation(
         head_publication_id=members[-1].publication.publication_id,
         target_state=state,
         successor_publication_id=(
-            None
-            if is_head
-            else members[target_index + 1].publication.publication_id
+            None if is_head else members[target_index + 1].publication.publication_id
         ),
     )
 

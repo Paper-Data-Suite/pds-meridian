@@ -216,15 +216,11 @@ class GuidedStandardsDependencies:
     association_history_loader: AssociationHistoryLoader = (
         list_standard_evidence_association_revisions
     )
-    authoring_previewer: AuthoringPreviewer = (
-        preview_standards_association_authoring
-    )
+    authoring_previewer: AuthoringPreviewer = preview_standards_association_authoring
     authoring_committer: AuthoringCommitter = (
         commit_standards_association_authoring_preview
     )
-    selection_previewer: SelectionPreviewer = (
-        preview_standards_association_selection
-    )
+    selection_previewer: SelectionPreviewer = preview_standards_association_selection
     selection_committer: SelectionCommitter = (
         commit_standards_association_selection_preview
     )

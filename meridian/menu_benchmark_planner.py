@@ -70,9 +70,9 @@ class _Cancelled(Exception):
 class BenchmarkPlannerMenuServices:
     workspace_resolver: Callable[[], Path] = resolve_workspace_root
     roster_loader: Callable[[str | Path, str], Roster] = load_class_roster
-    latest_loader: Callable[
-        [str | Path, str, str], StoredBenchmarkPlanRevision
-    ] = load_latest_benchmark_plan_revision
+    latest_loader: Callable[[str | Path, str, str], StoredBenchmarkPlanRevision] = (
+        load_latest_benchmark_plan_revision
+    )
     history_lister: Callable[[str | Path, str, str], tuple[int, ...]] = (
         list_benchmark_plan_revisions
     )
@@ -132,8 +132,10 @@ def _students(
         raise BenchmarkPlanAuthoringError(
             "Student selection must use displayed numbers."
         ) from error
-    if not indexes or len(indexes) != len(set(indexes)) or any(
-        number < 1 or number > len(students) for number in indexes
+    if (
+        not indexes
+        or len(indexes) != len(set(indexes))
+        or any(number < 1 or number > len(students) for number in indexes)
     ):
         raise BenchmarkPlanAuthoringError(
             "Student selections must be distinct and valid."
@@ -158,7 +160,9 @@ def _standards(
         print("No producer-supported standard summaries available.", file=output)
         return ()
     judgments: dict[str, TeacherStandardJudgment] = {
-        "s": "strong", "c": "challenging", "u": "unclassified"
+        "s": "strong",
+        "c": "challenging",
+        "u": "unclassified",
     }
     selected: list[TeacherStandardAssessment] = []
     while len(selected) < len(choices) and _yes(
@@ -183,9 +187,10 @@ def _standards(
         basis = _answer(input_fn, "Evidence basis (blank if unclassified): ")
         comparable = False
         if judgment != "unclassified":
-            comparable = _answer(
-                input_fn, "Confirm this is comparable evidence (type YES): "
-            ) == "YES"
+            comparable = (
+                _answer(input_fn, "Confirm this is comparable evidence (type YES): ")
+                == "YES"
+            )
         selected.append(
             TeacherStandardAssessment(standard_id, judgment, basis, comparable)
         )
@@ -225,8 +230,7 @@ def _responses(
     responses: list[InstructionalResponse] = []
     while len(responses) < 10 and _yes(input_fn, "Add a teaching response? (y/N): "):
         print(
-            "Response: 1 Reteach, 2 Revisit, 3 Small group, "
-            "4 Enrichment, 5 Extension",
+            "Response: 1 Reteach, 2 Revisit, 3 Small group, 4 Enrichment, 5 Extension",
             file=output,
         )
         selected = _answer(input_fn, "Response number: ")
@@ -240,13 +244,15 @@ def _responses(
         reassess = _date(input_fn, "Reassessment date (optional): ")
         rework = _comma_items(input_fn, "Rework item(s), if any (comma separated): ")
         retest = _comma_items(input_fn, "Retest target(s), if any (comma separated): ")
-        status = _answer(
-            input_fn,
-            "Status (planned/in_progress/completed/paused/cancelled; blank=planned): ",
-        ) or "planned"
-        if status not in {
-            "planned", "in_progress", "completed", "paused", "cancelled"
-        }:
+        status = (
+            _answer(
+                input_fn,
+                "Status (planned/in_progress/completed/paused/cancelled; "
+                "blank=planned): ",
+            )
+            or "planned"
+        )
+        if status not in {"planned", "in_progress", "completed", "paused", "cancelled"}:
             raise BenchmarkPlanAuthoringError("Unsupported response status.")
         reflection = _answer(input_fn, "Teacher reflection (optional): ")
         responses.append(
@@ -254,7 +260,10 @@ def _responses(
                 response_id=f"response_{len(responses) + 1}",
                 response_kind=cast(
                     Literal[
-                        "reteach", "revisit", "small_group", "enrichment",
+                        "reteach",
+                        "revisit",
+                        "small_group",
+                        "enrichment",
                         "extension",
                     ],
                     kind,
@@ -268,7 +277,10 @@ def _responses(
                 retest_targets=retest,
                 status=cast(
                     Literal[
-                        "planned", "in_progress", "completed", "paused",
+                        "planned",
+                        "in_progress",
+                        "completed",
+                        "paused",
                         "cancelled",
                     ],
                     status,
@@ -295,9 +307,9 @@ def _follow_up(
     standards_raw = _answer(
         input_fn, "Standards still needing attention (comma separated): "
     )
-    standards = tuple(sorted(set(
-        part.strip() for part in standards_raw.split(",") if part.strip()
-    )))
+    standards = tuple(
+        sorted(set(part.strip() for part in standards_raw.split(",") if part.strip()))
+    )
     strategy = _answer(input_fn, "Additional support strategy: ")
     observations = _answer(input_fn, "Teacher observations: ")
     source = _answer(
@@ -305,19 +317,25 @@ def _follow_up(
     )
     comparison = (
         _answer(input_fn, "Explicit comparison basis for this evidence: ")
-        if source else None
+        if source
+        else None
     )
     return TargetedInstructionResult(
-        tool, reassess_date, results, remaining, standards, strategy, observations,
-        source or None, comparison,
+        tool,
+        reassess_date,
+        results,
+        remaining,
+        standards,
+        strategy,
+        observations,
+        source or None,
+        comparison,
     )
 
 
 def _keep_saved(input_fn: Input, section: str) -> bool:
     """Default to keeping an existing section unless explicitly replaced."""
-    answer = _answer(
-        input_fn, f"Keep saved {section}? (Y/n, blank keeps): "
-    ).casefold()
+    answer = _answer(input_fn, f"Keep saved {section}? (Y/n, blank keeps): ").casefold()
     if answer not in {"", "y", "yes", "n", "no"}:
         raise BenchmarkPlanAuthoringError("Choose Y or N for saved notes.")
     return answer in {"", "y", "yes"}
@@ -554,7 +572,9 @@ def run_benchmark_planner_menu(
                 )
             try:
                 teacher_id = (
-                    latest.revision.teacher_id if latest is not None else _answer(
+                    latest.revision.teacher_id
+                    if latest is not None
+                    else _answer(
                         input_fn,
                         "Your local teacher identifier (letters/numbers/_/-): ",
                     )
@@ -564,7 +584,8 @@ def run_benchmark_planner_menu(
                     input_fn, stream, report, students, existing=existing_notes
                 )
                 planned = compose_teacher_benchmark_plan(
-                    report, annotations,
+                    report,
+                    annotations,
                     roster_student_ids=tuple(value for value, _ in students),
                 )
                 print("", "Unsaved teacher planning preview:", sep="\n", file=stream)
@@ -577,7 +598,8 @@ def run_benchmark_planner_menu(
                         )
                 print(
                     "Native assessment results have not changed. No SIS update or "
-                    "official approval is implied.", file=stream,
+                    "official approval is implied.",
+                    file=stream,
                 )
                 confirmation = _answer(
                     input_fn, "Type SAVE PLAN to append, or B to cancel: "

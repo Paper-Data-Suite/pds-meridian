@@ -784,9 +784,7 @@ def _exact_mapping(
     field_name: str,
 ) -> dict[str, object]:
     if not isinstance(value, Mapping):
-        raise HybridGradeResultSerializationError(
-            f"{field_name} must be an object."
-        )
+        raise HybridGradeResultSerializationError(f"{field_name} must be an object.")
     mapping = dict(value)
     if frozenset(mapping) != keys:
         raise HybridGradeResultSerializationError(
@@ -839,17 +837,13 @@ def _reject_json_constant(value: str) -> object:
 
 def _required_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise HybridGradeResultSerializationError(
-            f"{field_name} must be a string."
-        )
+        raise HybridGradeResultSerializationError(f"{field_name} must be a string.")
     return value
 
 
 def _required_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise HybridGradeResultSerializationError(
-            f"{field_name} must be an integer."
-        )
+        raise HybridGradeResultSerializationError(f"{field_name} must be an integer.")
     return value
 
 
@@ -887,9 +881,7 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
 
 def _aware_utc(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime) or value.tzinfo is None:
-        raise HybridGradeResultValidationError(
-            f"{field_name} must be timezone-aware."
-        )
+        raise HybridGradeResultValidationError(f"{field_name} must be timezone-aware.")
     offset = value.utcoffset()
     if offset != timedelta(0):
         raise HybridGradeResultValidationError(
@@ -900,9 +892,7 @@ def _aware_utc(value: object, field_name: str) -> datetime:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise HybridGradeResultValidationError(
-            f"{field_name} must be a string."
-        )
+        raise HybridGradeResultValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
