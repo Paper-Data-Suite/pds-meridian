@@ -33,9 +33,7 @@ EXPECTED_CORE_REQUIREMENTS = frozenset(
 )
 CURRENT_CONCORD_VERSION = "0.3.2"
 CURRENT_CONCORD_RELEASE_TAG = "v0.3.2"
-CURRENT_CONCORD_RELEASE_COMMIT = (
-    "ba69d05148c625d3440d7d26ea07193715e237e3"
-)
+CURRENT_CONCORD_RELEASE_COMMIT = "ba69d05148c625d3440d7d26ea07193715e237e3"
 CURRENT_CONCORD_WHEEL_FILENAME = "pds_concord-0.3.2-py3-none-any.whl"
 CURRENT_CONCORD_WHEEL_SHA256 = (
     "825b27bc6142cc8bce8c3b9381a3337c4a55e983f6f3f2e7e4b1a10f980e83ce"
@@ -75,27 +73,20 @@ def verify_concord_wheel(path: str | Path, *, current: bool = False) -> None:
     """Authenticate an exact published legacy or current Concord wheel."""
     wheel = Path(path)
     filename = (
-        CURRENT_CONCORD_WHEEL_FILENAME
-        if current
-        else EXPECTED_CONCORD_WHEEL_FILENAME
+        CURRENT_CONCORD_WHEEL_FILENAME if current else EXPECTED_CONCORD_WHEEL_FILENAME
     )
     version = CURRENT_CONCORD_VERSION if current else EXPECTED_CONCORD_VERSION
     expected_sha256 = (
-        CURRENT_CONCORD_WHEEL_SHA256
-        if current
-        else EXPECTED_CONCORD_WHEEL_SHA256
+        CURRENT_CONCORD_WHEEL_SHA256 if current else EXPECTED_CONCORD_WHEEL_SHA256
     )
     if wheel.name != filename:
-        raise ConcordVerificationError(
-            f"Expected {filename!r}, got {wheel.name!r}."
-        )
+        raise ConcordVerificationError(f"Expected {filename!r}, got {wheel.name!r}.")
     if not wheel.is_file():
         raise ConcordVerificationError(f"Concord wheel does not exist: {wheel}")
     actual = _sha256(wheel)
     if actual != expected_sha256:
         raise ConcordVerificationError(
-            "Concord wheel SHA-256 mismatch: expected "
-            f"{expected_sha256}, got {actual}."
+            f"Concord wheel SHA-256 mismatch: expected {expected_sha256}, got {actual}."
         )
     try:
         with zipfile.ZipFile(wheel) as archive:

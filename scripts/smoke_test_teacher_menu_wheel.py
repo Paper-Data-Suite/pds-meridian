@@ -74,12 +74,7 @@ def _assert_menu_exit(
 
 
 def _tree(root: Path) -> tuple[str, ...]:
-    return tuple(
-        sorted(
-            path.relative_to(root).as_posix()
-            for path in root.rglob("*")
-        )
-    )
+    return tuple(sorted(path.relative_to(root).as_posix() for path in root.rglob("*")))
 
 
 def run_prepared_smoke(

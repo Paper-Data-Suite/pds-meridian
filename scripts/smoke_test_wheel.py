@@ -9,8 +9,8 @@ import tempfile
 import venv
 from pathlib import Path
 
-SCOREFORM_STANDARDS_IDENTITY_PROGRAM = (
-    Path(__file__).with_name("smoke_program_scoreform_standards_identity.py")
+SCOREFORM_STANDARDS_IDENTITY_PROGRAM = Path(__file__).with_name(
+    "smoke_program_scoreform_standards_identity.py"
 )
 
 
@@ -120,7 +120,7 @@ def run_core_foundation_prepared_smoke(
         "work=work, producer_contract_version='assignment_v1', "
         "title='Synthetic Work', work_kind='assignment', "
         "academic_intent='summative', lifecycle='active', source_records=())); "
-        "data=b'{\"schema_version\":\"synthetic_manifest_v1\"}\\n'; "
+        'data=b\'{"schema_version":"synthetic_manifest_v1"}\\n\'; '
         "relative='classes/class_2026/modules/synthetic/work/work_1/"
         "exports/manifests/academic_results/1.json'; "
         "manifest=workspace.joinpath(*relative.split('/')); "
@@ -196,7 +196,6 @@ def smoke_test(
         _run([str(python), "-m", "pip", "check"], outside)
 
         run_core_foundation_prepared_smoke(python, meridian, root, outside)
-
 
     if scoreform_wheel is not None:
         _scoreform_adapter_smoke(meridian_wheel, core_wheel, scoreform_wheel)
@@ -387,9 +386,7 @@ def run_concord_adapter_prepared_smoke(python: Path, outside: Path) -> None:
 def _concord_adapter_smoke(
     meridian_wheel: Path, core_wheel: Path, concord_wheel: Path
 ) -> None:
-    with tempfile.TemporaryDirectory(
-        prefix="pds-meridian-concord-smoke-"
-    ) as raw_temp:
+    with tempfile.TemporaryDirectory(prefix="pds-meridian-concord-smoke-") as raw_temp:
         root = Path(raw_temp)
         environment = root / "venv"
         outside = root / "outside"

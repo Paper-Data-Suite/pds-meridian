@@ -21,9 +21,7 @@ EXPECTED_QUILLAN_WHEEL_SHA256 = (
 EXPECTED_READER_MEMBER = "quillan/academic_result_reader.py"
 CURRENT_QUILLAN_VERSION = "0.10.6"
 CURRENT_QUILLAN_RELEASE_TAG = "v0.10.6"
-CURRENT_QUILLAN_RELEASE_COMMIT = (
-    "93cf0ae84887d79377e6f77c1d0c818af24688a5"
-)
+CURRENT_QUILLAN_RELEASE_COMMIT = "93cf0ae84887d79377e6f77c1d0c818af24688a5"
 CURRENT_QUILLAN_WHEEL_FILENAME = "quillan-0.10.6-py3-none-any.whl"
 CURRENT_QUILLAN_WHEEL_SHA256 = (
     "7dbe975c969e60cfda9a8489154450f95c4dc58a8d75afcfad92e7a3c026afbb"
@@ -62,27 +60,20 @@ def _wheel_metadata(archive: zipfile.ZipFile) -> Message:
 def verify_quillan_wheel(path: str | Path, *, current: bool = False) -> None:
     wheel = Path(path)
     filename = (
-        CURRENT_QUILLAN_WHEEL_FILENAME
-        if current
-        else EXPECTED_QUILLAN_WHEEL_FILENAME
+        CURRENT_QUILLAN_WHEEL_FILENAME if current else EXPECTED_QUILLAN_WHEEL_FILENAME
     )
     version = CURRENT_QUILLAN_VERSION if current else EXPECTED_QUILLAN_VERSION
     expected_sha256 = (
-        CURRENT_QUILLAN_WHEEL_SHA256
-        if current
-        else EXPECTED_QUILLAN_WHEEL_SHA256
+        CURRENT_QUILLAN_WHEEL_SHA256 if current else EXPECTED_QUILLAN_WHEEL_SHA256
     )
     if wheel.name != filename:
-        raise QuillanVerificationError(
-            f"Expected {filename!r}, got {wheel.name!r}."
-        )
+        raise QuillanVerificationError(f"Expected {filename!r}, got {wheel.name!r}.")
     if not wheel.is_file():
         raise QuillanVerificationError(f"Quillan wheel does not exist: {wheel}")
     actual = _sha256(wheel)
     if actual != expected_sha256:
         raise QuillanVerificationError(
-            "Quillan wheel SHA-256 mismatch: expected "
-            f"{expected_sha256}, got {actual}."
+            f"Quillan wheel SHA-256 mismatch: expected {expected_sha256}, got {actual}."
         )
     try:
         with zipfile.ZipFile(wheel) as archive:
