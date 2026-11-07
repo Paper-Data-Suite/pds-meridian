@@ -1,4 +1,5 @@
 """Issue #117 Slice 2: explicit, fail-closed teacher-local policy authoring."""
+
 from __future__ import annotations
 
 import json
@@ -58,20 +59,45 @@ def _request(
 ) -> PublicationAuthorizationRequest:
     work = ModuleWorkRef(producer, class_id, "assignment_1")
     registration = AcademicWorkRegistration(
-        "1", "academic_work_registration", work, 1,
-        "assignment_contract_v1", "Benchmark", "assessment", "summative",
-        "active", NOW, NOW, (),
+        "1",
+        "academic_work_registration",
+        work,
+        1,
+        "assignment_contract_v1",
+        "Benchmark",
+        "assessment",
+        "summative",
+        "active",
+        NOW,
+        NOW,
+        (),
     )
     publication = PublicationRecord(
-        "1", "publication_record", publication_id, work, None,
-        "academic_result_set", ("points",), "results", 1,
+        "1",
+        "publication_record",
+        publication_id,
+        work,
+        None,
+        "academic_result_set",
+        ("points",),
+        "results",
+        1,
         "academic_result_manifest_v1",
         f"classes/{class_id}/modules/{producer}/work/assignment_1/result.json",
-        "sha256", "a" * 64, NOW, 1, None,
+        "sha256",
+        "a" * 64,
+        NOW,
+        1,
+        None,
     )
     return PublicationAuthorizationRequest(
-        publication, registration, None, "current_selectable",
-        operation, purpose, students,  # type: ignore[arg-type]
+        publication,
+        registration,
+        None,
+        "current_selectable",
+        operation,
+        purpose,
+        students,  # type: ignore[arg-type]
     )
 
 
@@ -79,12 +105,16 @@ def test_preview_is_read_only_and_requires_specific_scope(tmp_path: Path) -> Non
     path = default_authorization_policy_path(tmp_path)
     with pytest.raises(PublicationAuthorizationSetupError, match="must not be empty"):
         preview_publication_access(
-            tmp_path, class_id="class_1", producer_module_ids=("scoreform",),
+            tmp_path,
+            class_id="class_1",
+            producer_module_ids=("scoreform",),
             publication_ids=(),
         )
     with pytest.raises(PublicationAuthorizationSetupError, match="not both"):
         preview_publication_access(
-            tmp_path, class_id="class_1", producer_module_ids=("scoreform",),
+            tmp_path,
+            class_id="class_1",
+            producer_module_ids=("scoreform",),
             publication_ids=("pub_11111111111111111111111111111111",),
             include_future_publications=True,
         )
@@ -117,7 +147,10 @@ def test_confirmation_is_required_and_policy_is_atomic(tmp_path: Path) -> None:
 @pytest.mark.parametrize("purpose", ["review_evidence", "teacher_reporting"])
 @pytest.mark.parametrize("producer", ["scoreform", "quillan", "concord"])
 def test_scope_is_enforced_for_each_producer_and_protected_operation(
-    tmp_path: Path, producer: str, operation: str, purpose: str,
+    tmp_path: Path,
+    producer: str,
+    operation: str,
+    purpose: str,
 ) -> None:
     plan = _plan(tmp_path, producers=(producer,))
     authorizer = commit_publication_access(plan, confirmation="AUTHORIZE")
@@ -129,13 +162,19 @@ def test_scope_is_enforced_for_each_producer_and_protected_operation(
     ).allowed
     assert not authorizer.authorize(
         _request(
-            producer, students=(), operation=operation, purpose=purpose,
+            producer,
+            students=(),
+            operation=operation,
+            purpose=purpose,
             publication_id="pub_22222222222222222222222222222222",
         )
     ).allowed
     assert not authorizer.authorize(
         _request(
-            producer, students=(), operation=operation, purpose=purpose,
+            producer,
+            students=(),
+            operation=operation,
+            purpose=purpose,
             class_id="class_2",
         )
     ).allowed
@@ -148,7 +187,9 @@ def test_future_scope_is_opt_in_and_remains_producer_bounded(tmp_path: Path) -> 
     for producer in ("scoreform", "quillan", "concord"):
         assert authorizer.authorize(
             _request(
-                producer, students=(), operation="project_evidence",
+                producer,
+                students=(),
+                operation="project_evidence",
                 publication_id="pub_22222222222222222222222222222222",
             )
         ).allowed
@@ -174,7 +215,9 @@ def test_existing_restricted_grant_survives_and_no_implicit_widening(
     assert after.grants[0] == first.grants[0]
     assert not after.authorize(
         _request(
-            "quillan", students=(), operation="project_evidence",
+            "quillan",
+            students=(),
+            operation="project_evidence",
             publication_id="pub_33333333333333333333333333333333",
         )
     ).allowed
@@ -192,7 +235,8 @@ def test_existing_restricted_grant_survives_and_no_implicit_widening(
 def test_stale_preview_cannot_overwrite_existing_policy(tmp_path: Path) -> None:
     plan_a = _plan(tmp_path)
     plan_b = _plan(
-        tmp_path, producers=("quillan",),
+        tmp_path,
+        producers=("quillan",),
         publications=("pub_22222222222222222222222222222222",),
     )
     commit_publication_access(plan_a, confirmation="AUTHORIZE")
@@ -214,7 +258,8 @@ def test_invalid_policy_is_not_overwritten(tmp_path: Path) -> None:
 
 
 def test_alternate_policy_configuration_is_not_silently_replaced(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv(
         AUTHORIZATION_POLICY_ENVIRONMENT_VARIABLE,
@@ -241,7 +286,8 @@ def test_saved_policy_round_trips_through_existing_loader(tmp_path: Path) -> Non
     plan = _plan(tmp_path)
     saved = commit_publication_access(plan, confirmation="AUTHORIZE")
     loaded = load_publication_authorizer(
-        default_authorization_policy_path(tmp_path), workspace_root=tmp_path,
+        default_authorization_policy_path(tmp_path),
+        workspace_root=tmp_path,
     )
     assert loaded == saved
 
@@ -255,14 +301,16 @@ def test_existing_student_restricted_grant_remains_restricted(tmp_path: Path) ->
         "policy_id": "teacher_local",
         "policy_version": "1",
         "workspace_root": str(tmp_path.resolve()),
-        "grants": [{
-            "class_id": "class_1",
-            "operations": ["project_evidence", "read_projection_cache"],
-            "purpose_ids": ["review_evidence"],
-            "producer_module_ids": ["quillan"],
-            "publication_ids": [],
-            "student_ids": ["student_1"],
-        }],
+        "grants": [
+            {
+                "class_id": "class_1",
+                "operations": ["project_evidence", "read_projection_cache"],
+                "purpose_ids": ["review_evidence"],
+                "producer_module_ids": ["quillan"],
+                "publication_ids": [],
+                "student_ids": ["student_1"],
+            }
+        ],
     }
     path.write_text(json.dumps(old_policy), encoding="utf-8")
     plan = _plan(tmp_path)

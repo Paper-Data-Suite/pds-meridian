@@ -1,4 +1,5 @@
 """#117 Slice 4: truthful preflight readiness, no protected evidence reads."""
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -50,11 +51,16 @@ def _dataset(producer: str):
 
 
 def _teacher_grant(
-    root: Path, producer: str, *, student_ids: tuple[str, ...] = (),
+    root: Path,
+    producer: str,
+    *,
+    student_ids: tuple[str, ...] = (),
     class_id: str = "english_12_pd2",
 ) -> TeacherLocalPublicationAuthorizer:
     return TeacherLocalPublicationAuthorizer(
-        root, "teacher_local", "1",
+        root,
+        "teacher_local",
+        "1",
         (
             PublicationAuthorizationGrant(
                 class_id=class_id,
@@ -71,7 +77,8 @@ def _teacher_grant(
 @pytest.mark.parametrize("producer", ["scoreform", "quillan", "concord"])
 def test_no_provider_never_claims_teacher_ready(producer: str) -> None:
     item = project_teacher_evidence_inbox(
-        _dataset(producer), authorizer=None,
+        _dataset(producer),
+        authorizer=None,
     ).items[0]
     assert item.actionability == "blocked"
     assert item.status_code == "access_not_configured"
@@ -80,11 +87,13 @@ def test_no_provider_never_claims_teacher_ready(producer: str) -> None:
 
 @pytest.mark.parametrize("producer", ["scoreform", "quillan", "concord"])
 def test_exact_whole_assignment_grant_is_preflight_ready(
-    tmp_path: Path, producer: str,
+    tmp_path: Path,
+    producer: str,
 ) -> None:
     local = _teacher_grant(tmp_path, producer)
     item = project_teacher_evidence_inbox(
-        _dataset(producer), authorizer=local,
+        _dataset(producer),
+        authorizer=local,
     ).items[0]
     assert item.actionability == "ready"
     assert item.status_code == "ready_to_review"
@@ -92,11 +101,13 @@ def test_exact_whole_assignment_grant_is_preflight_ready(
 
 @pytest.mark.parametrize("producer", ["scoreform", "quillan", "concord"])
 def test_student_restricted_grant_cannot_preflight_whole_assignment(
-    tmp_path: Path, producer: str,
+    tmp_path: Path,
+    producer: str,
 ) -> None:
     local = _teacher_grant(tmp_path, producer, student_ids=("student_1",))
     item = project_teacher_evidence_inbox(
-        _dataset(producer), authorizer=local,
+        _dataset(producer),
+        authorizer=local,
     ).items[0]
     assert item.status_code == "access_not_granted"
     assert item.actionability == "blocked"
@@ -104,12 +115,19 @@ def test_student_restricted_grant_cannot_preflight_whole_assignment(
 
 @pytest.mark.parametrize("producer", ["scoreform", "quillan", "concord"])
 def test_unrelated_class_grant_does_not_preflight_ready(
-    tmp_path: Path, producer: str,
+    tmp_path: Path,
+    producer: str,
 ) -> None:
     local = _teacher_grant(tmp_path, producer, class_id="other_class")
-    assert project_teacher_evidence_inbox(
-        _dataset(producer), authorizer=local,
-    ).items[0].status_code == "access_not_granted"
+    assert (
+        project_teacher_evidence_inbox(
+            _dataset(producer),
+            authorizer=local,
+        )
+        .items[0]
+        .status_code
+        == "access_not_granted"
+    )
 
 
 def test_preflight_requests_exact_review_scope_without_reading_manifest() -> None:
@@ -123,7 +141,8 @@ def test_preflight_requests_exact_review_scope_without_reading_manifest() -> Non
             return PublicationAuthorizationDecision(True, "local", "1")
 
     item = project_teacher_evidence_inbox(
-        _dataset("quillan"), authorizer=Recorder(),
+        _dataset("quillan"),
+        authorizer=Recorder(),
     ).items[0]
     assert item.status_code == "ready_to_review"
     assert [request.operation for request in seen] == [
@@ -158,7 +177,8 @@ def test_reader_incompatibility_is_not_misdiagnosed_as_authorization() -> None:
     original = _dataset("scoreform").observations[0]
     unavailable = replace(
         _ready_support("scoreform"),
-        reader_state="unavailable", overall_state="support_unavailable",
+        reader_state="unavailable",
+        overall_state="support_unavailable",
         installed_reader_version=None,
     )
     item = project_teacher_evidence_inbox(
@@ -169,13 +189,15 @@ def test_reader_incompatibility_is_not_misdiagnosed_as_authorization() -> None:
 
 
 def test_legacy_pure_projection_preserves_compatibility_diagnostics() -> None:
-    assert project_teacher_evidence_inbox(
-        _dataset("concord")
-    ).items[0].status_code == "ready_to_review"
+    assert (
+        project_teacher_evidence_inbox(_dataset("concord")).items[0].status_code
+        == "ready_to_review"
+    )
 
 
 def test_installed_inbox_loader_carries_authorizer_into_readiness(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     catalog = _dataset("concord")
     calls: list[object] = []
@@ -199,7 +221,8 @@ def test_installed_inbox_loader_carries_authorizer_into_readiness(
 
 def test_teacher_menu_explains_actionable_recovery_without_opaque_ids() -> None:
     inbox = project_teacher_evidence_inbox(
-        _dataset("scoreform"), authorizer=None,
+        _dataset("scoreform"),
+        authorizer=None,
     )
     output = StringIO()
     _render_class_list(output, inbox, TeacherSessionContext())

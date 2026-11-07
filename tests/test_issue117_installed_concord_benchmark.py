@@ -24,7 +24,8 @@ def test_teacher_reporting_is_explicitly_authorized_only() -> None:
 
 
 def test_wrapper_uses_existing_prepared_concord_process(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     calls: list[tuple[list[str], Path, dict[str, str]]] = []
 
@@ -45,7 +46,9 @@ def test_wrapper_uses_existing_prepared_concord_process(
     assert len(calls) == 1
     command, cwd, env = calls[0]
     assert command == [
-        "candidate-python", str(wrapper.PROGRAM.resolve()), str(workspace)
+        "candidate-python",
+        str(wrapper.PROGRAM.resolve()),
+        str(workspace),
     ]
     assert cwd == outside
     assert "PYTHONPATH" not in env
@@ -58,17 +61,19 @@ def test_concord_matrix_wires_one_additional_process_not_new_matrix() -> None:
         encoding="utf-8"
     )
     assert runner.count("run_concord_benchmark_prepared_smoke(") == 1
-    assert runner.index('"concord-adapter"') < runner.index(
-        '"issue117-concord-benchmark"'
-    ) < runner.index("DependencyMatrixId.ALL_ADAPTERS")
+    assert (
+        runner.index('"concord-adapter"')
+        < runner.index('"issue117-concord-benchmark"')
+        < runner.index("DependencyMatrixId.ALL_ADAPTERS")
+    )
     assert runner.count("matrix_for(DependencyMatrixId.CONCORD)") == 1
     assert runner.count("with PreparedInstalledEnvironment(") == 6
 
 
 def test_installed_concord_manifest_includes_shared_and_individual_evidence() -> None:
-    source = Path(
-        "scripts/smoke_program_concord_benchmark_issue117.py"
-    ).read_text(encoding="utf-8")
+    source = Path("scripts/smoke_program_concord_benchmark_issue117.py").read_text(
+        encoding="utf-8"
+    )
     for required in (
         'version("pds-concord") != "0.3.2"',
         'version("pds-core") != "0.6.6"',
@@ -89,9 +94,9 @@ def test_installed_concord_manifest_includes_shared_and_individual_evidence() ->
 
 
 def test_concord_qualifier_is_separate_from_scoreform_quillan() -> None:
-    program = Path(
-        "scripts/smoke_program_concord_benchmark_issue117.py"
-    ).read_text(encoding="utf-8")
+    program = Path("scripts/smoke_program_concord_benchmark_issue117.py").read_text(
+        encoding="utf-8"
+    )
     assert "_assert_installed_origin(concord)" in program
     assert "_assert_installed_origin(meridian)" in program
     assert "_assert_installed_origin(pds_core)" in program

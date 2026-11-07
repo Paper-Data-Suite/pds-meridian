@@ -1,4 +1,5 @@
 """Issue #117 Slice 3: teacher access setup and same-session activation."""
+
 from __future__ import annotations
 
 import io
@@ -83,9 +84,13 @@ def _item(producer: str, title: str, publication_id: str) -> TeacherEvidenceInbo
 
 
 def _inbox(*items: TeacherEvidenceInboxItem) -> TeacherEvidenceInbox:
-    return TeacherEvidenceInbox((TeacherEvidenceClassGroup(
-        "english_12_pd2", "2026-2027", "english_12_pd2", tuple(items)
-    ),))
+    return TeacherEvidenceInbox(
+        (
+            TeacherEvidenceClassGroup(
+                "english_12_pd2", "2026-2027", "english_12_pd2", tuple(items)
+            ),
+        )
+    )
 
 
 def test_class_discovery_uses_existing_valid_directories(tmp_path: Path) -> None:
@@ -105,7 +110,9 @@ def test_class_discovery_uses_existing_valid_directories(tmp_path: Path) -> None
     ],
 )
 def test_teacher_can_authorize_all_current_and_future_producer_evidence(
-    tmp_path: Path, option: str, expected: tuple[str, ...],
+    tmp_path: Path,
+    option: str,
+    expected: tuple[str, ...],
 ) -> None:
     root = _workspace(tmp_path)
     authorized, display = _run(root, "2", option, "AUTHORIZE", "")
@@ -130,7 +137,12 @@ def test_authorize_one_current_publication_by_title_not_id(tmp_path: Path) -> No
     root = _workspace(tmp_path)
     item = _item("quillan", "College Essay", "pub_11111111111111111111111111111111")
     authorized, display = _run(
-        root, "2", "5", "1", "AUTHORIZE", "",
+        root,
+        "2",
+        "5",
+        "1",
+        "AUTHORIZE",
+        "",
         inbox_loader=lambda _root, _deps: _inbox(item),
     )
     assert authorized is not None
@@ -154,13 +166,20 @@ def test_stale_published_selection_is_not_authorized(tmp_path: Path) -> None:
             return _inbox(item)
         return _inbox(
             replace(
-                item, canonical_state="historical",
-                status_code="no_longer_current", actionability="blocked",
+                item,
+                canonical_state="historical",
+                status_code="no_longer_current",
+                actionability="blocked",
             )
         )
 
     authorized, display = _run(
-        root, "2", "5", "1", "AUTHORIZE", "",
+        root,
+        "2",
+        "5",
+        "1",
+        "AUTHORIZE",
+        "",
         inbox_loader=changing_loader,
     )
     assert authorized is None
@@ -169,7 +188,8 @@ def test_stale_published_selection_is_not_authorized(tmp_path: Path) -> None:
 
 
 def test_alternate_configuration_blocks_save_and_preserves_external_policy(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     root = _workspace(tmp_path)
     monkeypatch.setenv(
@@ -195,12 +215,14 @@ def test_saved_policy_contains_no_student_payload(tmp_path: Path) -> None:
     data = json.loads(default_authorization_policy_path(root).read_text("utf-8"))
     assert data["grants"][0]["student_ids"] == []
     assert set(data["grants"][0]["purpose_ids"]) == {
-        "review_evidence", "teacher_reporting",
+        "review_evidence",
+        "teacher_reporting",
     }
 
 
 def test_main_menu_activation_recomposes_authorizer_in_same_session(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     root = _workspace(tmp_path)
     authorized, _ = _run(root, "2", "4", "AUTHORIZE", "")
@@ -209,7 +231,8 @@ def test_main_menu_activation_recomposes_authorizer_in_same_session(
 
     actions = [lambda: None for _ in range(9)]
     deps = main_menu.TeacherMenuDependencies(
-        *actions, setup_evidence_access=lambda: authorized,
+        *actions,
+        setup_evidence_access=lambda: authorized,
     )
 
     def fake_default(**kwargs):
@@ -218,8 +241,13 @@ def test_main_menu_activation_recomposes_authorizer_in_same_session(
         return deps
 
     monkeypatch.setattr(main_menu, "default_teacher_menu_dependencies", fake_default)
-    assert main_menu.run_menu(
-        dependencies=deps, input_fn=_script("A", "Q"),
-        output=io.StringIO(), clear_fn=lambda: None,
-    ) == 0
+    assert (
+        main_menu.run_menu(
+            dependencies=deps,
+            input_fn=_script("A", "Q"),
+            output=io.StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
     assert called == [authorized]

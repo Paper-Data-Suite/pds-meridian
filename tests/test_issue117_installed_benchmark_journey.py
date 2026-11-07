@@ -34,16 +34,16 @@ def test_installed_smoke_runs_benchmark_after_guided_evidence() -> None:
         encoding="utf-8"
     )
     journey = source[source.index("def main(") :]
-    assert journey.index("_run_teacher_journey(") < journey.index(
-        "setup_installed_benchmark_records("
-    ) < journey.index("run_installed_benchmark_teacher_journey(")
+    assert (
+        journey.index("_run_teacher_journey(")
+        < journey.index("setup_installed_benchmark_records(")
+        < journey.index("run_installed_benchmark_teacher_journey(")
+    )
     assert 'version("pds-core") != "0.6.6"' in source
 
 
 def test_benchmark_uses_authoritative_stores_and_normal_menu() -> None:
-    source = Path("scripts/installed_benchmark_helpers.py").read_text(
-        encoding="utf-8"
-    )
+    source = Path("scripts/installed_benchmark_helpers.py").read_text(encoding="utf-8")
     required = (
         "write_class_metadata(",
         "write_academic_period_calendar(",
@@ -81,8 +81,6 @@ def test_six_matrices_remain_without_new_installed_environment() -> None:
 
 
 def test_exact_installed_wheel_guard_remains_protected() -> None:
-    verify = Path("scripts/verify_core_wheel.py").read_text(
-        encoding="utf-8"
-    )
+    verify = Path("scripts/verify_core_wheel.py").read_text(encoding="utf-8")
     assert 'EXPECTED_CORE_VERSION = "0.6.6"' in verify
     assert "d6d21e426092b0329bcfd69b6fbee44c345edc46794a914d847d5ea73a2b7301" in verify

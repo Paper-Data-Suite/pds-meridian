@@ -167,9 +167,7 @@ def test_multiple_narrow_grants_do_not_join_into_wide_authority(
     assert not authorizer.authorize(
         _request("quillan", operation, ("student_1", "student_2"))
     ).allowed
-    assert authorizer.authorize(
-        _request("quillan", operation, ("student_2",))
-    ).allowed
+    assert authorizer.authorize(_request("quillan", operation, ("student_2",))).allowed
 
 
 @pytest.mark.parametrize("operation", OPERATIONS)
@@ -224,6 +222,4 @@ def test_loaded_student_restricted_policy_denies_whole_assignment(
     )
     authorizer = load_publication_authorizer(policy_path, workspace_root=tmp_path)
     assert not authorizer.authorize(_request("concord", operation, ())).allowed
-    assert authorizer.authorize(
-        _request("concord", operation, ("student_1",))
-    ).allowed
+    assert authorizer.authorize(_request("concord", operation, ("student_1",))).allowed
