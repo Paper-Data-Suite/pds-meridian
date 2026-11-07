@@ -95,8 +95,9 @@ def test_nested_explanations_follow_exact_historical_references() -> None:
     assert set(period_nested) == {"revision"}
 
 
-def test_planning_explanations_have_exact_identity_targets_not_current_aliases(
-) -> None:
+def test_planning_explanations_have_exact_identity_targets_not_current_aliases() -> (
+    None
+):
     derivation_fields = tuple(
         field.name for field in fields(PlanningSignalDerivationTraceTarget)
     )
@@ -142,8 +143,9 @@ def test_planning_attention_separates_current_review_from_historical_state() -> 
     }
 
 
-def test_planning_attention_rejects_impossible_currentness_review_combinations(
-) -> None:
+def test_planning_attention_rejects_impossible_currentness_review_combinations() -> (
+    None
+):
     with pytest.raises(PlanningAttentionIntegrityError):
         PlanningAttentionScopeState(
             policy_id="policy-a",
