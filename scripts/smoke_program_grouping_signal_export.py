@@ -698,11 +698,14 @@ def _run_preview_review_acceptance(
         CLASS_ID,
         derivation_id,
     ) == (1,)
-    assert get_current_grouping_signal_review_revision(
-        workspace,
-        CLASS_ID,
-        derivation_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_review_revision(
+            workspace,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
 
     selected = select_grouping_signal_review_revision(
         workspace,
@@ -739,7 +742,6 @@ def _run_preview_review_acceptance(
     assert list_grouping_signal_ids(workspace, CLASS_ID) == ()
 
 
-
 def _run_export_acceptance(
     workspace: Path,
     derivation_reference: GroupingSignalDerivationReference,
@@ -759,8 +761,7 @@ def _run_export_acceptance(
     assert stored.signal.source.module_id == "meridian"
     assert stored.signal.source.snapshot_id == derivation_reference.derivation_id
     assert (
-        stored.signal.source.snapshot_digest
-        == derivation_reference.derivation_sha256
+        stored.signal.source.snapshot_digest == derivation_reference.derivation_sha256
     )
     receipt = load_grouping_signal_export_receipt(
         workspace,
@@ -778,10 +779,9 @@ def _run_export_acceptance(
     assert document.representation_scope == "complete_signal"
     reconstructed = grouping_signal_csv_to_signal_set(document)
     assert reconstructed == stored.signal
-    assert (
-        grouping_signal_set_to_json_bytes(reconstructed)
-        == grouping_signal_set_to_json_bytes(stored.signal)
-    )
+    assert grouping_signal_set_to_json_bytes(
+        reconstructed
+    ) == grouping_signal_set_to_json_bytes(stored.signal)
 
     replay = export_grouping_signal(
         workspace,
@@ -792,9 +792,13 @@ def _run_export_acceptance(
     )
     assert replay.core.write_result.disposition == "existing"
     assert replay.receipt.disposition == "existing"
-    assert export_grouping_signal_csv(
-        workspace, CLASS_ID, signal_set_id, csv_path
-    ).disposition == "existing"
+    assert (
+        export_grouping_signal_csv(
+            workspace, CLASS_ID, signal_set_id, csv_path
+        ).disposition
+        == "existing"
+    )
+
 
 def main() -> None:
     assert importlib.util.find_spec("scoreform") is None

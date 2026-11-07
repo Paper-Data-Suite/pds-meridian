@@ -615,7 +615,6 @@ def _run_generation_acceptance(
     assert list_grouping_signal_ids(workspace, CLASS_ID) == ()
 
 
-
 def main() -> None:
     assert importlib.util.find_spec("scoreform") is None
     assert importlib.util.find_spec("quillan") is None
