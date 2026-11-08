@@ -354,6 +354,15 @@ def execute_batch_with_sealed_progress(
             dependencies=dependencies,
         )
     store = BatchEligibilityProgressStore(workspace_root, plan.class_id)
+
+    def seal_before_apply(
+        reviewed_plan: BatchEligibilityReviewPlan,
+        reviewed_item: BatchEligibilityPlanItem,
+        action: PreparedGuidedAction,
+    ) -> None:
+        # #125-D ignores the callback result; the durable seal is the side effect.
+        store.seal(reviewed_plan, reviewed_item, action)
+
     return execute_batch_eligibility_plan(
         store.root,
         plan,
@@ -361,7 +370,7 @@ def execute_batch_with_sealed_progress(
         prepared=prepared,
         grade_item=grade_item,
         dependencies=dependencies,
-        before_apply=store.seal,
+        before_apply=seal_before_apply,
     )
 
 

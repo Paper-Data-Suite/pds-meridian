@@ -392,7 +392,7 @@ def build_assessment_eligibility_review(
         if label is None:
             # Unknown roster attribution: retain source identity, not a guessed name.
             label = "Unmatched " + row.target_kind.replace("_", " ").capitalize()
-        elif display_counts[row.student_id, label] > 1:
+        elif row.student_id is not None and display_counts[row.student_id, label] > 1:
             base_label = label
             label += " · " + row.result_kind.replace("_", " ").capitalize()
             if (
@@ -400,7 +400,7 @@ def build_assessment_eligibility_review(
                 and row.standard_ids
             ):
                 label += " · " + ", ".join(row.standard_ids)
-        item = AssessmentEligibilityItem(
+        eligibility_item = AssessmentEligibilityItem(
             source=row.source,
             student_id=row.student_id,
             evidence_label=label,
@@ -421,11 +421,11 @@ def build_assessment_eligibility_review(
         ] += 1
         exceptions.extend(problems)
         if row.student_id is None:
-            shared.append(item)
+            shared.append(eligibility_item)
         elif not known:
-            unmatched.append(item)
+            unmatched.append(eligibility_item)
         else:
-            per_student[row.student_id].append(item)
+            per_student[row.student_id].append(eligibility_item)
 
     students: list[AssessmentEligibilityStudent] = []
     for record in roster.students:

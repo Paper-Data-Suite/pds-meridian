@@ -486,9 +486,7 @@ def _exceptions(
         decision = _choice_or_defer(input_fn=input_fn, output=output, clear_fn=clear_fn)
         if decision == "back":
             continue
-        disposition = cast(
-            DispositionOrDefer, None if decision == "defer" else decision
-        )
+        disposition = None if decision == "defer" else decision
         reasons = () if disposition in {None, "included"} else _MANUAL_REASON
         if raw == "1":
             student = students[selected_index]
