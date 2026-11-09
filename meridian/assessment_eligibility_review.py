@@ -246,6 +246,17 @@ def _classify(
             or row.selected_eligibility_disposition is None
         ):
             mark("eligibility_selection_unverifiable", "stop")
+        # A displayed status is not authority when its selected decision
+        # disagrees, or when non-Included evidence claims operative inclusion.
+        # Preserve that conflict as a stop, never an eligible batch candidate.
+        pointer_conflict = (
+            status in {"included", "excluded", "pending", "unsupported"}
+            and row.selected_eligibility_disposition is not None
+            and row.selected_eligibility_disposition != status
+        )
+        operative_conflict = row.operative_included and status != "included"
+        if pointer_conflict or operative_conflict:
+            mark("eligibility_resolution_inconsistent", "stop")
         if status == "included" and not row.operative_included:
             mark("included_not_operative", "review-individual")
         if row.selected_eligibility_disposition in {"superseded", "withdrawn"}:
