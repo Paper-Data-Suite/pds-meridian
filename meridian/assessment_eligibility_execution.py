@@ -360,6 +360,7 @@ def execute_batch_eligibility_plan(
                 grade_item,
                 item_id=item.source.item_id,
                 dependencies=dependencies,
+                exact_item_only=True,
             )
             if (
                 context.row.source != item.source

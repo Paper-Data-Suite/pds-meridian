@@ -361,18 +361,34 @@ def load_guided_eligibility_context(
     *,
     item_id: str,
     dependencies: GuidedEligibilityDependencies,
+    exact_item_only: bool = False,
 ) -> GuidedEligibilityContext:
     """Reload current Grade Item/eligibility state for one hidden evidence item."""
 
     try:
         authorized = prepared.authorized
         work = authorized.current_context.publication.work
-        review = dependencies.evidence_review_loader(
-            Path(workspace_root),
-            work.class_id,
-            grade_item.grade_item_id,
-            authorized,
-        )
+        if (
+            exact_item_only
+            and dependencies.evidence_review_loader is _load_evidence_review
+        ):
+            # The reviewed batch has already fixed an exact source ID. Preserve
+            # injected review loaders for race/fault tests; ordinary UI reviews
+            # remain complete. This is not teacher-facing aggregate coverage.
+            review = project_new_evidence_review(
+                Path(workspace_root),
+                work.class_id,
+                grade_item.grade_item_id,
+                authorized,
+                target_item_id=item_id,
+            )
+        else:
+            review = dependencies.evidence_review_loader(
+                Path(workspace_root),
+                work.class_id,
+                grade_item.grade_item_id,
+                authorized,
+            )
     except (NewEvidenceWorkflowError, OSError, ValueError) as error:
         raise GuidedEligibilityActionError(
             "Eligibility review state could not be loaded safely."

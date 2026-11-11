@@ -129,11 +129,14 @@ def preview_new_evidence_eligibility_revision(
     _validate_request(review, authorized_snapshot, item_id, disposition, reason_codes)
     reviewed_row = _find_reviewed_row(review, item_id)
 
+    # Recheck exactly the reviewed source and its current membership; unrelated
+    # evidence rows need not trigger a class-wide filesystem traversal.
     fresh_review = project_new_evidence_review(
         workspace_root,
         review.class_id,
         review.grade_item_id,
         authorized_snapshot,
+        target_item_id=item_id,
     )
     fresh_row = _find_reviewed_row(fresh_review, item_id)
     _require_same_reviewed_basis(review, fresh_review, reviewed_row, fresh_row)
