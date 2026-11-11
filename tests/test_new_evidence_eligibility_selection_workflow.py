@@ -148,10 +148,15 @@ def _install_preview_dependencies(
     authorized = _authorized()
     target = _target(target_revision)
     membership = _membership()
+
+    def project_exact_target(*_args: object, **kwargs: object) -> NewEvidenceReview:
+        assert kwargs == {"target_item_id": ITEM_ID}
+        return _review(selected_revision=selected_revision)
+
     monkeypatch.setattr(
         workflow,
         "project_new_evidence_review",
-        lambda *args: _review(selected_revision=selected_revision),
+        project_exact_target,
     )
     monkeypatch.setattr(
         workflow,
