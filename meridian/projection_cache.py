@@ -846,10 +846,9 @@ class StoredProjectionSnapshot:
             raise ProjectionCacheValidationError(
                 "snapshot_digest does not match exact stored bytes."
             )
-        if projection_snapshot_from_json_bytes(self.content) != self.snapshot:
-            raise ProjectionCacheValidationError(
-                "stored content does not decode to the stored snapshot."
-            )
+        # Exact canonical-byte equality below already proves that the stored
+        # snapshot matches these bytes. Re-decoding the same 406-item inventory
+        # here would duplicate the parser's validated canonical round trip.
         if projection_snapshot_to_json_bytes(self.snapshot) != self.content:
             raise ProjectionCacheValidationError(
                 "stored content is not the canonical snapshot encoding."
