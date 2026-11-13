@@ -114,6 +114,128 @@ def _enumerate_replaceable(
     )
 
 
+def _review_exception_queue(
+    review: AssessmentEligibilityReview,
+    *,
+    input_fn: InputFunction,
+    output: TextIO,
+    clear_fn: ClearFunction,
+    force: bool = False,
+) -> bool:
+    """Show an authorized, paginated exception queue before any batch selection.
+
+    Only approved display labels are rendered; raw IDs and protected evidence
+    from outside the requested student scope are never printed. This is read
+    only and neither confirms nor prepares an eligibility action.
+    """
+    issues = getattr(review, "exceptions", ())
+    if not issues and not force:
+        return True
+    allowed_students = {
+        student.student_id: student.display_label
+        for student in review.students
+        if student.within_requested_authorization
+    }
+    outside_students = {
+        student.student_id
+        for student in review.students
+        if not student.within_requested_authorization
+    }
+    labels = {
+        item.source.item_id: item.evidence_label
+        for student in review.students
+        if student.within_requested_authorization
+        for item in student.items
+    }
+    # These rows have no student mapping. Their already-authorized generic
+    # label is useful, but their raw source identity is not teacher display.
+    labels.update(
+        (item.source.item_id, item.evidence_label)
+        for item in (*review.shared_items, *review.unmatched_items)
+    )
+    route_labels = {
+        "review-source": "Review source/publication",
+        "review-roster": "Review Core roster",
+        "grade-items": "Review Grade Item setup",
+        "review-eligibility": "Review existing eligibility",
+        "review-attempts": "Review attempts (#126)",
+        "review-individual": "Review individual evidence",
+        "stop": "Stop; inspect exact source integrity",
+    }
+    page = 0
+    while True:
+        total_pages = max(1, (len(issues) + _PAGE - 1) // _PAGE)
+        start = page * _PAGE
+        end = min(start + _PAGE, len(issues))
+        clear_fn()
+        print_menu_header(output, "Assessment Exceptions — Read-Only Queue")
+        write_lines(
+            output,
+            f"Class: {review.class_label or 'Current class'}",
+            f"Assessment: {review.assessment_title or 'Selected assessment'}",
+            f"Source: {review.source_status}; membership: {review.membership_state}",
+            f"Exceptions: {len(issues)} conditions; page {page + 1}/{total_pages}",
+            f"No result (never zero): {review.no_result_student_count}",
+            (
+                "Outside requested authorization: "
+                f"{review.outside_authorization_scope_count}"
+            ),
+            f"Unmatched evidence: {len(review.unmatched_items)}; "
+            f"shared/non-student: {len(review.shared_items)}",
+            "",
+            "Current evidence status counts (not grades):",
+        )
+        for status, count in review.status_counts:
+            write_lines(output, f"  {status.replace('_', ' ')}: {count}")
+        write_lines(output, "", "EXCEPTIONS — REVIEW BEFORE BATCH ACTION")
+        if not issues:
+            write_lines(output, "No exception conditions observed.")
+        for index in range(start, end):
+            issue = issues[index]
+            if issue.student_id in outside_students:
+                subject = "Outside requested evidence scope"
+            else:
+                subject = allowed_students.get(
+                    issue.student_id or "", "Unmatched/shared evidence"
+                )
+            item_id = issue.source.item_id if issue.source is not None else None
+            evidence = (
+                f" / {labels[item_id]}"
+                if item_id is not None
+                and item_id in labels
+                and issue.student_id not in outside_students
+                else ""
+            )
+            route = route_labels.get(issue.route, "Stop; inspect exact source")
+            write_lines(
+                output,
+                f"{index + 1}. {subject}{evidence}: "
+                f"{issue.code.replace('_', ' ')} — {route}",
+            )
+        write_lines(
+            output,
+            "",
+            "No academic records or eligibility decisions have been changed.",
+            "N. Next page  P. Previous page",
+            "D. Continue to exact batch selection (not Apply)",
+            "B. Cancel assessment review",
+        )
+        print_standard_navigation(output, back=False)
+        raw = read_choice(input_fn).strip()
+        if _back(raw):
+            return False
+        if raw.casefold() == "d":
+            return True
+        if raw.casefold() == "n" and page + 1 < total_pages:
+            page += 1
+            continue
+        if raw.casefold() == "p" and page:
+            page -= 1
+            continue
+        write_lines(output, "Choose N, P, D, B, M, or Q; other inputs do nothing.")
+        pause_for_user(input_fn)
+
+
 def _choose_source_ids(
     review: AssessmentEligibilityReview,
     *,
@@ -151,7 +273,7 @@ def _choose_source_ids(
             "I. Select individual safe evidence items by numbered pages",
             "E. Select previously decided items for explicit replacement",
             "R. Recover an earlier #122 action after restarting Meridian",
-            "V. Review roster and exception counts",
+            "V. Review complete exception queue and roster coverage",
             "",
         )
         print_standard_navigation(output)
@@ -172,15 +294,9 @@ def _choose_source_ids(
         if raw.casefold() == "a" and candidates:
             return tuple(item_id for item_id, _, _ in candidates)
         if raw.casefold() == "v":
-            write_lines(
-                output,
-                f"No result (not zero): {review.no_result_student_count}",
-                f"Outside authorization: {review.outside_authorization_scope_count}",
-                f"Unmatched items: {len(review.unmatched_items)}",
-                f"Shared items: {len(review.shared_items)}",
-                "Ineligible/ambiguous items cannot be selected implicitly.",
+            _review_exception_queue(
+                review, input_fn=input_fn, output=output, clear_fn=clear_fn, force=True
             )
-            pause_for_user(input_fn)
             continue
         if raw.casefold() == "s":
             students = tuple(
@@ -646,6 +762,10 @@ def run_assessment_eligibility_menu(
             "No eligibility state was changed.",
         )
         pause_for_user(input_fn)
+        return
+    if not _review_exception_queue(
+        review, input_fn=input_fn, output=output, clear_fn=clear_fn
+    ):
         return
     selected = _choose_source_ids(
         review,
