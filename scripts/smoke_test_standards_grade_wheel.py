@@ -11,9 +11,7 @@ from pathlib import Path
 
 PROGRAM = Path(__file__).with_name("smoke_program_standards_grade.py")
 RELOAD_PROGRAM = Path(__file__).with_name("smoke_program_standards_grade_reload.py")
-PROFILE_PROGRAM = Path(__file__).with_name(
-    "smoke_program_profile_constrained_grade.py"
-)
+PROFILE_PROGRAM = Path(__file__).with_name("smoke_program_profile_constrained_grade.py")
 PROFILE_RELOAD_PROGRAM = Path(__file__).with_name(
     "smoke_program_profile_constrained_grade_reload.py"
 )

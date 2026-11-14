@@ -244,13 +244,10 @@ def test_write_uses_period_scoped_canonical_path_and_does_not_select(
     assert result.disposition == "created"
     period_key = grade_policy_activation_period_key(CLASS_ID, PERIOD1)
     assert result.stored.relative_path == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        f"ga/{period_key}/1.json"
+        f"classes/synthetic_class_2026/modules/meridian/ga/{period_key}/1.json"
     )
     assert len(f"{result.stored.relative_path}.sha256") <= 130
-    assert get_current_grade_policy_activation_revision(
-        root, CLASS_ID, PERIOD1
-    ) is None
+    assert get_current_grade_policy_activation_revision(root, CLASS_ID, PERIOD1) is None
 
 
 def test_exact_retry_is_idempotent_and_collision_conflicts(tmp_path: Path) -> None:
@@ -281,12 +278,11 @@ def test_history_is_contiguous_and_preserved(tmp_path: Path) -> None:
             decision="deactivate",
         ),
     )
-    assert list_grade_policy_activation_revisions(
-        root, CLASS_ID, PERIOD1
-    ) == (1, 2)
-    assert load_grade_policy_activation_revision(
-        root, CLASS_ID, PERIOD1, 1
-    ).content == first
+    assert list_grade_policy_activation_revisions(root, CLASS_ID, PERIOD1) == (1, 2)
+    assert (
+        load_grade_policy_activation_revision(root, CLASS_ID, PERIOD1, 1).content
+        == first
+    )
 
 
 def test_activation_requires_exact_calendar_and_period(tmp_path: Path) -> None:
@@ -329,9 +325,7 @@ def test_deactivate_validates_period_without_requiring_policy(tmp_path: Path) ->
 def test_selection_is_explicit_cas_and_can_reselect_history(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     stored_policy = write_policy(root)
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
     write_grade_policy_activation_revision(
         root, activation(None, revision=2, decision="deactivate")
     )
@@ -375,9 +369,9 @@ def test_unconfigured_deactivated_and_activated_are_distinct(tmp_path: Path) -> 
     select_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )
-    assert resolve_grade_policy_activation(
-        root, CLASS_ID, PERIOD1
-    ).status == "deactivated"
+    assert (
+        resolve_grade_policy_activation(root, CLASS_ID, PERIOD1).status == "deactivated"
+    )
 
     write_grade_policy_activation_revision(
         root, activation(stored_policy.reference, revision=2)
@@ -385,9 +379,9 @@ def test_unconfigured_deactivated_and_activated_are_distinct(tmp_path: Path) -> 
     select_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1, 2, expected_current_revision=1
     )
-    assert resolve_grade_policy_activation(
-        root, CLASS_ID, PERIOD1
-    ).status == "activated"
+    assert (
+        resolve_grade_policy_activation(root, CLASS_ID, PERIOD1).status == "activated"
+    )
 
 
 def test_policy_family_current_change_does_not_change_period_activation(
@@ -417,9 +411,7 @@ def test_policy_family_current_change_does_not_change_period_activation(
         2,
         expected_current_revision=1,
     )
-    assert get_current_grade_policy_revision(
-        root, CLASS_ID, "course_grade_policy"
-    ) == 2
+    assert get_current_grade_policy_revision(root, CLASS_ID, "course_grade_policy") == 2
     resolved = resolve_grade_policy_activation(root, CLASS_ID, PERIOD1)
     assert resolved.policy_reference == p1.reference
     assert resolved.policy_reference != p2.reference
@@ -434,9 +426,10 @@ def test_new_policy_revision_does_not_activate_automatically(tmp_path: Path) -> 
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )
     write_grade_policy_revision(root, policy(item_reference, revision=2))
-    assert resolve_grade_policy_activation(
-        root, CLASS_ID, PERIOD1
-    ).policy_reference == p1.reference
+    assert (
+        resolve_grade_policy_activation(root, CLASS_ID, PERIOD1).policy_reference
+        == p1.reference
+    )
 
 
 def test_periods_are_independent_and_have_no_inheritance(tmp_path: Path) -> None:
@@ -448,12 +441,13 @@ def test_periods_are_independent_and_have_no_inheritance(tmp_path: Path) -> None
     select_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )
-    assert resolve_grade_policy_activation(
-        root, CLASS_ID, PERIOD1
-    ).status == "activated"
-    assert resolve_grade_policy_activation(
-        root, CLASS_ID, PERIOD2
-    ).status == "unconfigured"
+    assert (
+        resolve_grade_policy_activation(root, CLASS_ID, PERIOD1).status == "activated"
+    )
+    assert (
+        resolve_grade_policy_activation(root, CLASS_ID, PERIOD2).status
+        == "unconfigured"
+    )
 
 
 def test_calendar_revision_can_change_only_through_new_activation_revision(
@@ -468,9 +462,12 @@ def test_calendar_revision_can_change_only_through_new_activation_revision(
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )
     write_calendar(root, 2)
-    assert load_current_grade_policy_activation(
-        root, CLASS_ID, PERIOD1
-    ).decision.calendar_revision == 1
+    assert (
+        load_current_grade_policy_activation(
+            root, CLASS_ID, PERIOD1
+        ).decision.calendar_revision
+        == 1
+    )
 
     write_grade_policy_activation_revision(
         root,
@@ -480,17 +477,18 @@ def test_calendar_revision_can_change_only_through_new_activation_revision(
             calendar_revision=2,
         ),
     )
-    assert load_current_grade_policy_activation(
-        root, CLASS_ID, PERIOD1
-    ).decision.calendar_revision == 1
+    assert (
+        load_current_grade_policy_activation(
+            root, CLASS_ID, PERIOD1
+        ).decision.calendar_revision
+        == 1
+    )
 
 
 def test_selection_stale_cas_fails(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     stored_policy = write_policy(root)
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
     select_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )
@@ -503,9 +501,7 @@ def test_selection_stale_cas_fails(tmp_path: Path) -> None:
 def test_revision_and_pointer_tampering_fail_closed(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     stored_policy = write_policy(root)
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
     select_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )
@@ -524,12 +520,8 @@ def test_revision_and_pointer_tampering_fail_closed(tmp_path: Path) -> None:
 def test_revision_digest_tampering_fails(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     stored_policy = write_policy(root)
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
-    digest = grade_policy_activation_revision_digest_path(
-        root, CLASS_ID, PERIOD1, 1
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
+    digest = grade_policy_activation_revision_digest_path(root, CLASS_ID, PERIOD1, 1)
     digest.write_text("0" * 64 + "\n", encoding="ascii")
     with pytest.raises(GradePolicyActivationStorageIntegrityError):
         load_grade_policy_activation_revision(root, CLASS_ID, PERIOD1, 1)
@@ -541,21 +533,15 @@ def test_noncanonical_sidecar_and_bounded_read_fail(tmp_path: Path) -> None:
     created = write_grade_policy_activation_revision(
         root, activation(stored_policy.reference)
     )
-    digest = grade_policy_activation_revision_digest_path(
-        root, CLASS_ID, PERIOD1, 1
-    )
-    digest.write_bytes(
-        (created.stored.activation_sha256 + "\r\n").encode("ascii")
-    )
+    digest = grade_policy_activation_revision_digest_path(root, CLASS_ID, PERIOD1, 1)
+    digest.write_bytes((created.stored.activation_sha256 + "\r\n").encode("ascii"))
     with pytest.raises(
         GradePolicyActivationStorageIntegrityError,
         match="not canonical",
     ):
         load_grade_policy_activation_revision(root, CLASS_ID, PERIOD1, 1)
 
-    digest.write_text(
-        created.stored.activation_sha256 + "\n", encoding="ascii"
-    )
+    digest.write_text(created.stored.activation_sha256 + "\n", encoding="ascii")
     with pytest.raises(GradePolicyActivationStorageTooLargeError):
         load_grade_policy_activation_revision(
             root,
@@ -569,9 +555,7 @@ def test_noncanonical_sidecar_and_bounded_read_fail(tmp_path: Path) -> None:
 def test_unexpected_entry_and_lock_fail_closed(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     stored_policy = write_policy(root)
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
     relation = grade_policy_activation_directory(root, CLASS_ID, PERIOD1)
     (relation / "notes.txt").write_text("unexpected", encoding="utf-8")
     with pytest.raises(GradePolicyActivationStorageIntegrityError):
@@ -588,13 +572,10 @@ def test_unexpected_entry_and_lock_fail_closed(tmp_path: Path) -> None:
 
 def test_relative_path_is_platform_neutral(tmp_path: Path) -> None:
     make_workspace(tmp_path)
-    path = grade_policy_activation_revision_relative_path(
-        CLASS_ID, PERIOD1, 3
-    )
+    path = grade_policy_activation_revision_relative_path(CLASS_ID, PERIOD1, 3)
     period_key = grade_policy_activation_period_key(CLASS_ID, PERIOD1)
     assert path == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        f"ga/{period_key}/3.json"
+        f"classes/synthetic_class_2026/modules/meridian/ga/{period_key}/3.json"
     )
     assert "\\" not in path
 
@@ -615,21 +596,20 @@ def test_long_period_id_uses_bounded_activation_key(tmp_path: Path) -> None:
     assert len(period_key) == 67
     assert relation.name == period_key
     assert long_period.period_id not in relation.as_posix()
-    assert long_period.school_year not in relation.relative_to(
-        root / "classes" / CLASS_ID / "modules" / "meridian"
-    ).as_posix()
+    assert (
+        long_period.school_year
+        not in relation.relative_to(
+            root / "classes" / CLASS_ID / "modules" / "meridian"
+        ).as_posix()
+    )
 
 
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlink unsupported")
 def test_symlinked_revision_is_rejected(tmp_path: Path) -> None:
     root = make_workspace(tmp_path)
     stored_policy = write_policy(root)
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
-    path = grade_policy_activation_revision_path(
-        root, CLASS_ID, PERIOD1, 1
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
+    path = grade_policy_activation_revision_path(root, CLASS_ID, PERIOD1, 1)
     outside = tmp_path / "outside.json"
     outside.write_bytes(path.read_bytes())
     path.unlink()
@@ -646,18 +626,11 @@ def test_activation_does_not_mutate_policy_or_core_state(tmp_path: Path) -> None
     stored_policy = write_policy(root)
     policy_before = stored_policy.content
     calendar_path = (
-        root
-        / "settings"
-        / "academic_periods"
-        / "2026-2027"
-        / "revisions"
-        / "1.json"
+        root / "settings" / "academic_periods" / "2026-2027" / "revisions" / "1.json"
     )
     calendar_before = calendar_path.read_bytes()
 
-    write_grade_policy_activation_revision(
-        root, activation(stored_policy.reference)
-    )
+    write_grade_policy_activation_revision(root, activation(stored_policy.reference))
     select_grade_policy_activation_revision(
         root, CLASS_ID, PERIOD1, 1, expected_current_revision=None
     )

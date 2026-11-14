@@ -95,9 +95,7 @@ def _assert_isolated_install() -> None:
 
     source_root = Path(os.environ["PDS_MERIDIAN_SMOKE_SOURCE_ROOT"]).resolve()
     if Path.cwd().resolve().is_relative_to(source_root):
-        raise RuntimeError(
-            "Installed #43 smoke is running inside the source checkout."
-        )
+        raise RuntimeError("Installed #43 smoke is running inside the source checkout.")
 
     import pds_core
 
@@ -135,9 +133,7 @@ def _installed_profile() -> ModuleOperationsProfile:
 
     diagnostics = diagnose_core_providers(provider_kind="module_operations")
     if len(diagnostics) != 1:
-        raise RuntimeError(
-            "Installed #43 smoke expected one operations diagnostic."
-        )
+        raise RuntimeError("Installed #43 smoke expected one operations diagnostic.")
     diagnostic = diagnostics[0]
     if (
         diagnostic.code != "provider.valid"
@@ -151,9 +147,7 @@ def _installed_profile() -> ModuleOperationsProfile:
 
     profile = diagnostic.validated_profile
     if not isinstance(profile, ModuleOperationsProfile):
-        raise RuntimeError(
-            "Core did not return a validated ModuleOperationsProfile."
-        )
+        raise RuntimeError("Core did not return a validated ModuleOperationsProfile.")
     if profile.module_id != "meridian":
         raise RuntimeError("Installed operations profile has wrong module_id.")
     if profile.supported_core_operations_contract_versions != frozenset({"1"}):
@@ -184,9 +178,7 @@ def _assert_attention_report(
         return
 
     matches = tuple(
-        summary
-        for summary in report.summaries
-        if summary.code == expected_code
+        summary for summary in report.summaries if summary.code == expected_code
     )
     if len(matches) != 1:
         raise RuntimeError(
@@ -251,9 +243,7 @@ def _invoke_attention(
             "Installed readiness did not validate alongside #43 attention."
         )
     if attention.code != "module_operations.evaluated":
-        raise RuntimeError(
-            "Core did not classify Meridian attention as evaluated."
-        )
+        raise RuntimeError("Core did not classify Meridian attention as evaluated.")
     if not isinstance(attention.report, ModuleAttentionReport):
         raise RuntimeError("Core did not return a ModuleAttentionReport.")
     return attention.report
@@ -301,18 +291,13 @@ def _assert_cli(workspace: Path, *, expected_code: str) -> None:
         )
     payload = json.loads(first_json.stdout)
     items = payload["items"]
-    matches = tuple(
-        item for item in items if item["code"] == expected_code
-    )
+    matches = tuple(item for item in items if item["code"] == expected_code)
     if (
         payload["evaluation"] != "evaluated"
         or payload["scope"]["class_id"] != CLASS_ID
         or len(matches) != 1
         or matches[0]["count"] != 1
-        or any(
-            item["class_id"] not in {None, CLASS_ID}
-            for item in items
-        )
+        or any(item["class_id"] not in {None, CLASS_ID} for item in items)
     ):
         raise RuntimeError(
             "Installed Meridian attention JSON CLI returned wrong state."
@@ -357,9 +342,7 @@ def _assert_cli(workspace: Path, *, expected_code: str) -> None:
         )
     empty_payload = json.loads(empty.stdout)
     if empty_payload["evaluation"] != "evaluated" or empty_payload["items"] != []:
-        raise RuntimeError(
-            "Installed CLI confused successful empty with unavailable."
-        )
+        raise RuntimeError("Installed CLI confused successful empty with unavailable.")
 
     missing_workspace = workspace.parent / "missing-workspace"
     unavailable = _run_cli(
@@ -378,9 +361,7 @@ def _assert_cli(workspace: Path, *, expected_code: str) -> None:
         or unavailable.stderr
         != "Meridian attention scope could not be inspected safely.\n"
     ):
-        raise RuntimeError(
-            "Installed CLI did not fail closed for a missing workspace."
-        )
+        raise RuntimeError("Installed CLI did not fail closed for a missing workspace.")
 
 
 def main() -> None:
@@ -390,9 +371,7 @@ def main() -> None:
 
     workspace = Path("workspace").resolve()
     if not workspace.is_dir():
-        raise RuntimeError(
-            "Representative #39 smoke workspace was not created first."
-        )
+        raise RuntimeError("Representative #39 smoke workspace was not created first.")
 
     derivation_ids = list_grouping_signal_derivation_ids(workspace, CLASS_ID)
     if len(derivation_ids) != 1:
@@ -513,17 +492,13 @@ def main() -> None:
 
     after_provider = _tree_state(workspace)
     if before != after_provider:
-        raise RuntimeError(
-            "Installed Core attention invocation mutated the workspace."
-        )
+        raise RuntimeError("Installed Core attention invocation mutated the workspace.")
 
     _assert_cli(workspace, expected_code=expected_code)
 
     after_cli = _tree_state(workspace)
     if before != after_cli:
-        raise RuntimeError(
-            "Installed Meridian attention CLI mutated the workspace."
-        )
+        raise RuntimeError("Installed Meridian attention CLI mutated the workspace.")
 
     print("Installed Meridian attention smoke passed.")
 

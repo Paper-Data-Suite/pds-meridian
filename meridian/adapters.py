@@ -113,9 +113,7 @@ ProducerReaderCompatibilityReason = Literal[
 _READER_COMPATIBILITY_MODES: Final = frozenset(
     {"contract", "legacy_exact", "unsupported", "unavailable"}
 )
-_READER_SUPPORT_STATES: Final = frozenset(
-    {"supported", "unsupported", "unavailable"}
-)
+_READER_SUPPORT_STATES: Final = frozenset({"supported", "unsupported", "unavailable"})
 _READER_COMPATIBILITY_REASONS: Final = frozenset(
     {
         "reader.distribution_unavailable",
@@ -350,9 +348,7 @@ def _distribution_name(
 ) -> str:
     text = _single_line(value, field_name)
     if _DISTRIBUTION_NAME.fullmatch(text) is None:
-        raise AdapterValidationError(
-            f"{field_name} must be a valid distribution name."
-        )
+        raise AdapterValidationError(f"{field_name} must be a valid distribution name.")
     return text
 
 
@@ -497,22 +493,16 @@ class ProducerReaderCompatibility:
             raise AdapterValidationError(
                 "producer reader compatibility reason_code is invalid."
             )
-        if (
-            self.runtime_identity is not None
-            and not isinstance(
-                self.runtime_identity,
-                ProducerReaderRuntimeIdentity,
-            )
+        if self.runtime_identity is not None and not isinstance(
+            self.runtime_identity,
+            ProducerReaderRuntimeIdentity,
         ):
             raise AdapterValidationError(
                 "runtime_identity must be a ProducerReaderRuntimeIdentity or None."
             )
-        if (
-            self.contract_identity is not None
-            and not isinstance(
-                self.contract_identity,
-                ProducerReaderContractIdentity,
-            )
+        if self.contract_identity is not None and not isinstance(
+            self.contract_identity,
+            ProducerReaderContractIdentity,
         ):
             raise AdapterValidationError(
                 "contract_identity must be a ProducerReaderContractIdentity or None."
@@ -520,8 +510,7 @@ class ProducerReaderCompatibility:
         if self.mode == "legacy_exact":
             if (
                 self.support_state != "supported"
-                or self.reason_code
-                != "reader.metadata_absent_legacy_exact_supported"
+                or self.reason_code != "reader.metadata_absent_legacy_exact_supported"
                 or self.runtime_identity is None
                 or self.contract_identity is not None
             ):
@@ -743,12 +732,8 @@ class AdapterDescriptor:
             "producer_reader_distribution",
             _distribution_name(self.producer_reader_distribution),
         )
-        reader_contracts = _reader_contracts(
-            self.supported_producer_reader_contracts
-        )
-        legacy_versions = _legacy_exact_versions(
-            self.legacy_exact_reader_versions
-        )
+        reader_contracts = _reader_contracts(self.supported_producer_reader_contracts)
+        legacy_versions = _legacy_exact_versions(self.legacy_exact_reader_versions)
         compatibility_alias = self.supported_producer_reader_versions
         if compatibility_alias is not None:
             alias_versions = _exact_versions(compatibility_alias)
@@ -921,9 +906,7 @@ def declared_reader_support_for_descriptor(
     the existing exact-version runtime gate unchanged.
     """
     if not isinstance(profile, PublicationProducerProfile):
-        raise AdapterValidationError(
-            "profile must be a PublicationProducerProfile."
-        )
+        raise AdapterValidationError("profile must be a PublicationProducerProfile.")
     if not isinstance(descriptor, AdapterDescriptor):
         raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
     try:
@@ -994,9 +977,7 @@ def resolve_producer_reader_compatibility(
     manifest contract.
     """
     if not isinstance(profile, PublicationProducerProfile):
-        raise AdapterValidationError(
-            "profile must be a PublicationProducerProfile."
-        )
+        raise AdapterValidationError("profile must be a PublicationProducerProfile.")
     if not isinstance(descriptor, AdapterDescriptor):
         raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
 
@@ -1136,9 +1117,7 @@ def resolve_producer_reader_version(
             adapter_id=descriptor.adapter_id,
             distribution_name=descriptor.producer_reader_distribution,
             installed_version=runtime.installed_distribution_version,
-            supported_versions=tuple(
-                sorted(descriptor.legacy_exact_reader_versions)
-            ),
+            supported_versions=tuple(sorted(descriptor.legacy_exact_reader_versions)),
         )
 
     return runtime.installed_distribution_version
@@ -1151,9 +1130,7 @@ def projection_identity_from_descriptor(
     """Return the exact evidence projection identity for one reader version."""
     if not isinstance(descriptor, AdapterDescriptor):
         raise AdapterValidationError("descriptor must be an AdapterDescriptor.")
-    version = _single_line(
-        producer_reader_version, "producer_reader_version"
-    )
+    version = _single_line(producer_reader_version, "producer_reader_version")
     return ProjectionIdentity(
         projection_id=descriptor.adapter_id,
         projection_contract_version=descriptor.projection_contract_version,
@@ -1184,9 +1161,7 @@ def validate_projected_inventory(
             ),
         )
     if not isinstance(request, AdapterProjectionRequest):
-        raise AdapterValidationError(
-            "request must be an AdapterProjectionRequest."
-        )
+        raise AdapterValidationError("request must be an AdapterProjectionRequest.")
     expected_projection = projection_identity_from_descriptor(
         descriptor, producer_reader_version
     )
@@ -1226,9 +1201,7 @@ def _validated_adapter(value: object) -> ProducerAdapter:
         )
     descriptor = value.descriptor
     if not isinstance(descriptor, AdapterDescriptor):
-        raise AdapterRegistryError(
-            "adapter descriptor must be an AdapterDescriptor."
-        )
+        raise AdapterRegistryError("adapter descriptor must be an AdapterDescriptor.")
     if not callable(value.project):
         raise AdapterRegistryError("adapter project must be callable.")
     return value
@@ -1326,11 +1299,7 @@ class AdapterRegistry:
         if not isinstance(key, AdapterKey):
             raise AdapterValidationError("key must be an AdapterKey.")
         return next(
-            (
-                binding
-                for binding in self._bindings
-                if binding.descriptor.key == key
-            ),
+            (binding for binding in self._bindings if binding.descriptor.key == key),
             None,
         )
 
@@ -1381,9 +1350,7 @@ class AdapterRegistry:
     ) -> EvidenceInventory:
         """Select, check reader compatibility, project, and enforce the contract."""
         if not isinstance(request, AdapterProjectionRequest):
-            raise AdapterValidationError(
-                "request must be an AdapterProjectionRequest."
-            )
+            raise AdapterValidationError("request must be an AdapterProjectionRequest.")
         match = self.select(request.publication, request.registration)
         reader_version = resolve_producer_reader_version(
             match.descriptor,

@@ -58,9 +58,7 @@ CLASS_ID = "synthetic_class_2026"
 SCHOOL_YEAR = "2026-2027"
 ITEM_ID = "unit1_assessment"
 WORK = ModuleWorkRef(module_id="scoreform", class_id=CLASS_ID, work_id="test_1")
-OTHER_WORK = ModuleWorkRef(
-    module_id="quillan", class_id=CLASS_ID, work_id="essay_1"
-)
+OTHER_WORK = ModuleWorkRef(module_id="quillan", class_id=CLASS_ID, work_id="essay_1")
 CREATED = datetime(2026, 8, 25, 12, tzinfo=UTC)
 
 
@@ -281,9 +279,7 @@ def test_missing_registration_and_cancelled_registration_are_rejected(
     )
     write_registration(root, cancelled, lifecycle="cancelled")
     with pytest.raises(GradeItemMembershipDependencyError, match="cancelled"):
-        write_grade_item_membership_revision(
-            root, membership(digest, work=cancelled)
-        )
+        write_grade_item_membership_revision(root, membership(digest, work=cancelled))
 
 
 def test_period_school_year_missing_period_and_cancelled_period_are_rejected(
@@ -334,9 +330,10 @@ def test_canonical_path_and_relative_path(tmp_path: Path) -> None:
     assert stored.path == grade_item_membership_revision_path(
         root, CLASS_ID, ITEM_ID, WORK, 1
     )
-    assert grade_item_membership_revision_relative_path(
-        CLASS_ID, ITEM_ID, WORK, 1
-    ) == stored.relative_path
+    assert (
+        grade_item_membership_revision_relative_path(CLASS_ID, ITEM_ID, WORK, 1)
+        == stored.relative_path
+    )
 
 
 def test_long_membership_identity_uses_one_bounded_relation_key(
@@ -466,12 +463,14 @@ def test_current_selection_is_explicit_and_historical_reselection_is_allowed(
     write_grade_item_membership_revision(
         root, membership(digest, revision=2, disposition="excluded")
     )
-    assert get_current_grade_item_membership_revision(
-        root, CLASS_ID, ITEM_ID, WORK
-    ) is None
-    assert load_current_grade_item_membership_decision(
-        root, CLASS_ID, ITEM_ID, WORK
-    ) is None
+    assert (
+        get_current_grade_item_membership_revision(root, CLASS_ID, ITEM_ID, WORK)
+        is None
+    )
+    assert (
+        load_current_grade_item_membership_decision(root, CLASS_ID, ITEM_ID, WORK)
+        is None
+    )
 
     selected2 = select_grade_item_membership_revision(
         root,
@@ -607,15 +606,17 @@ def test_work_relationship_listing_and_selected_included_query_are_deterministic
 
 def test_no_decision_is_distinct_from_explicit_excluded(tmp_path: Path) -> None:
     root, digest = prepared(tmp_path)
-    assert load_current_grade_item_membership_decision(
-        root, CLASS_ID, ITEM_ID, WORK
-    ) is None
+    assert (
+        load_current_grade_item_membership_decision(root, CLASS_ID, ITEM_ID, WORK)
+        is None
+    )
     write_grade_item_membership_revision(
         root, membership(digest, disposition="excluded")
     )
-    assert load_current_grade_item_membership_decision(
-        root, CLASS_ID, ITEM_ID, WORK
-    ) is None
+    assert (
+        load_current_grade_item_membership_decision(root, CLASS_ID, ITEM_ID, WORK)
+        is None
+    )
     select_grade_item_membership_revision(
         root,
         CLASS_ID,
@@ -624,9 +625,7 @@ def test_no_decision_is_distinct_from_explicit_excluded(tmp_path: Path) -> None:
         1,
         expected_current_membership_revision=None,
     )
-    current = load_current_grade_item_membership_decision(
-        root, CLASS_ID, ITEM_ID, WORK
-    )
+    current = load_current_grade_item_membership_decision(root, CLASS_ID, ITEM_ID, WORK)
     assert current is not None
     assert current.decision.decision == "excluded"
 
@@ -640,9 +639,7 @@ def test_same_work_can_participate_in_different_grade_items(tmp_path: Path) -> N
         root, membership(digest2, grade_item_id="other_item")
     )
     assert list_grade_item_membership_work_refs(root, CLASS_ID, ITEM_ID) == (WORK,)
-    assert list_grade_item_membership_work_refs(
-        root, CLASS_ID, "other_item"
-    ) == (WORK,)
+    assert list_grade_item_membership_work_refs(root, CLASS_ID, "other_item") == (WORK,)
 
 
 def test_membership_subtree_does_not_break_grade_item_history_or_selection(

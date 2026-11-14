@@ -107,9 +107,7 @@ class AcademicPeriodCalculationPreviewProjection:
 
     @property
     def inputs_sha256(self) -> str:
-        return academic_period_proficiency_aggregation_inputs_sha256(
-            self.inputs
-        )
+        return academic_period_proficiency_aggregation_inputs_sha256(self.inputs)
 
     @property
     def status(self) -> str:

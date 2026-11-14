@@ -91,9 +91,7 @@ def test_preview_freezes_exact_ready_candidate_without_write(
         lambda *args, **kwargs: pytest.fail("preview must not write"),
     )
 
-    preview = workflow.preview_planning_signal_derivation_persistence(
-        reviewed
-    )
+    preview = workflow.preview_planning_signal_derivation_persistence(reviewed)
 
     assert preview.readiness is reviewed
     assert preview.candidate is reviewed.generation.snapshot
@@ -117,9 +115,7 @@ def test_preview_rejects_blocked_readiness(
         workflow.PlanningSignalDerivationPersistenceScopeError,
         match="readiness is blocked",
     ):
-        workflow.preview_planning_signal_derivation_persistence(
-            readiness(ready=False)
-        )
+        workflow.preview_planning_signal_derivation_persistence(readiness(ready=False))
 
 
 def test_preview_requires_candidate_to_bind_selected_policy(
@@ -147,9 +143,7 @@ def test_commit_rebuilds_readiness_and_writes_exact_reviewed_snapshot(
 ) -> None:
     install_types(monkeypatch)
     reviewed = readiness()
-    preview = workflow.preview_planning_signal_derivation_persistence(
-        reviewed
-    )
+    preview = workflow.preview_planning_signal_derivation_persistence(reviewed)
     monkeypatch.setattr(
         workflow,
         "project_planning_signal_readiness",
@@ -194,9 +188,7 @@ def test_commit_rejects_new_blocker_before_write(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     install_types(monkeypatch)
-    preview = workflow.preview_planning_signal_derivation_persistence(
-        readiness()
-    )
+    preview = workflow.preview_planning_signal_derivation_persistence(readiness())
     monkeypatch.setattr(
         workflow,
         "project_planning_signal_readiness",
@@ -223,9 +215,7 @@ def test_commit_rejects_policy_change_before_write(
 ) -> None:
     install_types(monkeypatch)
     reviewed = readiness()
-    preview = workflow.preview_planning_signal_derivation_persistence(
-        reviewed
-    )
+    preview = workflow.preview_planning_signal_derivation_persistence(reviewed)
     changed_policy = SimpleNamespace(
         reference=SimpleNamespace(
             class_id="class_2026",
@@ -264,9 +254,7 @@ def test_commit_rejects_candidate_change_before_write(
 ) -> None:
     install_types(monkeypatch)
     reviewed = readiness()
-    preview = workflow.preview_planning_signal_derivation_persistence(
-        reviewed
-    )
+    preview = workflow.preview_planning_signal_derivation_persistence(reviewed)
     fresh = readiness(
         snapshot=candidate(fingerprint="f" * 64),
         policy=reviewed.policy,

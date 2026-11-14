@@ -69,9 +69,7 @@ def test_slice3_runtime_and_contract_identity_are_distinct_models() -> None:
         reader_contract_version="scoreform_academic_result_reader_v1",
     )
     assert runtime.installed_distribution_version == "0.13.0"
-    assert contract.reader_contract_version == (
-        "scoreform_academic_result_reader_v1"
-    )
+    assert contract.reader_contract_version == ("scoreform_academic_result_reader_v1")
 
 
 @pytest.mark.parametrize(
@@ -98,10 +96,13 @@ def test_slice3_bounded_legacy_versions_resolve_as_legacy_exact(
         ),
     )
     assert result.contract_identity is None
-    assert resolve_producer_reader_version(
-        descriptor,
-        lambda _distribution: legacy_version,
-    ) == legacy_version
+    assert (
+        resolve_producer_reader_version(
+            descriptor,
+            lambda _distribution: legacy_version,
+        )
+        == legacy_version
+    )
 
 
 @pytest.mark.parametrize(
@@ -120,9 +121,7 @@ def test_slice3_contract_advertising_releases_are_not_accepted_early(
     )
     assert result.mode == "unsupported"
     assert result.support_state == "unsupported"
-    assert result.reason_code == (
-        "reader.metadata_absent_legacy_exact_unsupported"
-    )
+    assert result.reason_code == ("reader.metadata_absent_legacy_exact_unsupported")
     assert result.contract_identity is None
     with pytest.raises(ProducerReaderVersionUnsupportedError):
         resolve_producer_reader_version(
@@ -148,9 +147,7 @@ def test_slice3_nearby_versions_are_not_inferred(
         lambda _distribution: unknown_version,
     )
     assert result.mode == "unsupported"
-    assert result.reason_code == (
-        "reader.metadata_absent_legacy_exact_unsupported"
-    )
+    assert result.reason_code == ("reader.metadata_absent_legacy_exact_unsupported")
 
 
 def test_slice3_unavailable_distribution_has_stable_result_and_old_exception() -> None:

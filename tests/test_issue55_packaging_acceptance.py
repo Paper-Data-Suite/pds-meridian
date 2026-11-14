@@ -13,9 +13,7 @@ RUNTIME_MODULES = (
     "meridian/reporting_snapshot_comparison.py",
     "meridian/reporting_snapshot_cli.py",
 )
-PRODUCER_ROOTS = frozenset(
-    {"scoreform", "quillan", "concord", "portia", "vitrine"}
-)
+PRODUCER_ROOTS = frozenset({"scoreform", "quillan", "concord", "portia", "vitrine"})
 
 
 def _import_roots(path: Path) -> frozenset[str]:

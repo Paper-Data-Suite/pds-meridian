@@ -32,9 +32,7 @@ from tests.test_grouping_signal_export_eligibility import (
 
 
 def _seed(tmp_path: Path):
-    root, stored_preview, stored_review = _seed_selected_accepted_review(
-        tmp_path
-    )
+    root, stored_preview, stored_review = _seed_selected_accepted_review(tmp_path)
     return (
         root,
         stored_preview,
@@ -85,9 +83,7 @@ def test_core_export_writes_exact_reviewed_signal_and_preserves_partial_coverage
         stored.signal.source.snapshot_digest
         == stored_review.review.derivation_reference.derivation_sha256
     )
-    assert list_grouping_signal_ids(root, CLASS_ID) == (
-        "reading_mp1_export_001",
-    )
+    assert list_grouping_signal_ids(root, CLASS_ID) == ("reading_mp1_export_001",)
 
 
 def test_exact_core_export_retry_is_idempotent_existing(tmp_path: Path) -> None:
@@ -111,9 +107,7 @@ def test_exact_core_export_retry_is_idempotent_existing(tmp_path: Path) -> None:
     assert first.write_result.disposition == "created"
     assert second.write_result.disposition == "existing"
     assert first.write_result.stored == second.write_result.stored
-    assert list_grouping_signal_ids(root, CLASS_ID) == (
-        "reading_mp1_export_retry",
-    )
+    assert list_grouping_signal_ids(root, CLASS_ID) == ("reading_mp1_export_retry",)
 
 
 def test_same_core_identity_with_different_bytes_fails_closed(
@@ -212,9 +206,7 @@ def test_final_revalidation_failure_prevents_core_write(
     root, _, _, derivation_id = _seed(tmp_path)
     calls: list[str] = []
 
-    original_revalidate = (
-        export_workflow.revalidate_grouping_signal_export_eligibility
-    )
+    original_revalidate = export_workflow.revalidate_grouping_signal_export_eligibility
 
     def blocked_revalidate(workspace_root, expected):
         calls.append("revalidate")

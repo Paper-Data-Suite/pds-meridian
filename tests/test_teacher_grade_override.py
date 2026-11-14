@@ -386,9 +386,12 @@ def test_canonical_round_trip_and_reference_digest() -> None:
 
     reference = teacher_grade_override_reference(value)
     assert reference.override_sha256 == hashlib.sha256(content).hexdigest()
-    assert teacher_grade_override_reference_from_dict(
-        teacher_grade_override_reference_to_dict(reference)
-    ) == reference
+    assert (
+        teacher_grade_override_reference_from_dict(
+            teacher_grade_override_reference_to_dict(reference)
+        )
+        == reference
+    )
 
 
 def test_withdrawal_round_trip_is_canonical() -> None:
@@ -396,20 +399,20 @@ def test_withdrawal_round_trip_is_canonical() -> None:
     content = teacher_grade_override_decision_to_json_bytes(value)
 
     assert teacher_grade_override_decision_from_json_bytes(content) == value
-    assert teacher_grade_override_decision_to_json_bytes(
-        teacher_grade_override_decision_from_json_bytes(content)
-    ) == content
+    assert (
+        teacher_grade_override_decision_to_json_bytes(
+            teacher_grade_override_decision_from_json_bytes(content)
+        )
+        == content
+    )
 
 
 def test_duplicate_unknown_missing_and_noncanonical_json_fail() -> None:
     value = override_decision()
-    canonical = teacher_grade_override_decision_to_json_bytes(value).decode(
-        "utf-8"
-    )
+    canonical = teacher_grade_override_decision_to_json_bytes(value).decode("utf-8")
     duplicate = canonical.replace(
         '  "class_id": "synthetic_class_2026",',
-        '  "class_id": "synthetic_class_2026",\n'
-        '  "class_id": "synthetic_class_2026",',
+        '  "class_id": "synthetic_class_2026",\n  "class_id": "synthetic_class_2026",',
         1,
     ).encode("utf-8")
     with pytest.raises(

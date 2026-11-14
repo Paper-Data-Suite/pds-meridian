@@ -67,9 +67,7 @@ def test_issue61_current_preview_uses_snapshot_policy_history_not_current_lookup
 
     assert authority.activation == decision
     assert authority.policy == value
-    assert activation_revisions == [
-        snapshot.activation_reference.activation_revision
-    ]
+    assert activation_revisions == [snapshot.activation_reference.activation_revision]
     assert policy_revisions == [snapshot.policy_reference.policy_revision]
 
 
@@ -243,10 +241,7 @@ def test_issue61_standards_explanation_requests_exact_historical_revisions(
         effective=standards_support._effective(snapshot),
     )
 
-    assert [
-        (target.selection, target.result_revision)
-        for target in requested
-    ] == [
+    assert [(target.selection, target.result_revision) for target in requested] == [
         ("revision", 3),
         ("revision", 2),
     ]
@@ -306,9 +301,7 @@ def test_issue61_hybrid_component_fingerprint_drift_fails_closed(
 ) -> None:
     value, decision, snapshot = hybrid_support._snapshot()
     hybrid_support._stub_component_builders(monkeypatch, snapshot)
-    exact = hybrid_support.calculate_conventional_grade(
-        snapshot.inputs.conventional
-    )
+    exact = hybrid_support.calculate_conventional_grade(snapshot.inputs.conventional)
     changed = replace(
         exact,
         calculation_fingerprint="f" * 64,

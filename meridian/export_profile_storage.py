@@ -48,15 +48,11 @@ DEFAULT_MAXIMUM_EXPORT_PROFILE_DIGEST_BYTES: Final[int] = 128
 MAXIMUM_EXPORT_PROFILE_SELECTION_RATIONALE_LENGTH: Final[int] = 2000
 
 ExportProfileWriteDisposition: TypeAlias = Literal["created", "existing"]
-ExportProfileSelectionDisposition: TypeAlias = Literal[
-    "created", "updated", "existing"
-]
+ExportProfileSelectionDisposition: TypeAlias = Literal["created", "updated", "existing"]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _SELECTION_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -212,9 +208,7 @@ class ExportProfileRevisionWriteResult:
 
     def __post_init__(self) -> None:
         if self.disposition not in {"created", "existing"}:
-            raise ExportProfileStorageValidationError(
-                "write disposition is invalid."
-            )
+            raise ExportProfileStorageValidationError("write disposition is invalid.")
         if not isinstance(self.stored, StoredExportProfileRevision):
             raise ExportProfileStorageValidationError(
                 "stored must be StoredExportProfileRevision."
@@ -325,10 +319,7 @@ class ExportProfileCurrentSelection:
                 selection_revision=previous.selection_revision,
                 selection_sha256=previous.selection_sha256,
             )
-            if (
-                previous.class_id != class_id
-                or previous.profile_id != profile_id
-            ):
+            if previous.class_id != class_id or previous.profile_id != profile_id:
                 raise ExportProfileStorageValidationError(
                     "prior selection family must match current selection."
                 )
@@ -472,10 +463,9 @@ def export_profile_directory(
     class_id: str,
     profile_id: str,
 ) -> Path:
-    return (
-        export_profiles_directory(workspace_root, class_id)
-        / export_profile_path_key(class_id, profile_id)
-    )
+    return export_profiles_directory(
+        workspace_root, class_id
+    ) / export_profile_path_key(class_id, profile_id)
 
 
 def export_profile_revisions_directory(
@@ -493,11 +483,14 @@ def export_profile_revision_path(
     profile_revision: int,
 ) -> Path:
     revision = _positive_int(profile_revision, "profile_revision")
-    return export_profile_revisions_directory(
-        workspace_root,
-        class_id,
-        profile_id,
-    ) / f"{revision}.json"
+    return (
+        export_profile_revisions_directory(
+            workspace_root,
+            class_id,
+            profile_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def export_profile_revision_digest_path(
@@ -525,8 +518,7 @@ def export_profile_current_path(
     profile_id: str,
 ) -> Path:
     return (
-        export_profile_directory(workspace_root, class_id, profile_id)
-        / "current.json"
+        export_profile_directory(workspace_root, class_id, profile_id) / "current.json"
     )
 
 
@@ -920,9 +912,7 @@ def export_profile_selection_from_dict(data: object) -> ExportProfileCurrentSele
     )
     rationale = mapping["rationale"]
     if rationale is not None and not isinstance(rationale, str):
-        raise ExportProfileStorageValidationError(
-            "rationale must be a string or null."
-        )
+        raise ExportProfileStorageValidationError("rationale must be a string or null.")
     return ExportProfileCurrentSelection(
         schema_version=_require_str(mapping["schema_version"], "schema_version"),
         record_type=_require_str(mapping["record_type"], "record_type"),
@@ -1076,9 +1066,7 @@ def select_export_profile(
             "profile_reference must be ExportProfileReference."
         )
     if not isinstance(actor, ExportProfileActor):
-        raise ExportProfileStorageValidationError(
-            "actor must be ExportProfileActor."
-        )
+        raise ExportProfileStorageValidationError("actor must be ExportProfileActor.")
     if expected_current is not None and not isinstance(
         expected_current,
         ExportProfileSelectionReference,
@@ -1125,9 +1113,7 @@ def select_export_profile(
             return ExportProfileSelectionResult("existing", current, selected)
 
         selection_revision = (
-            1
-            if current is None
-            else current.selection.selection_revision + 1
+            1 if current is None else current.selection.selection_revision + 1
         )
         candidate = ExportProfileCurrentSelection(
             schema_version=EXPORT_PROFILE_SELECTION_SCHEMA_VERSION,
@@ -1579,9 +1565,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ExportProfileStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ExportProfileStorageValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -1590,9 +1574,7 @@ def _identifier(value: object, field_name: str) -> str:
 
 def _bounded_text(value: object, field_name: str, maximum: int) -> str:
     if not isinstance(value, str):
-        raise ExportProfileStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ExportProfileStorageValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise ExportProfileStorageValidationError(
             f"{field_name} must be nonblank without surrounding whitespace."
@@ -1602,8 +1584,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise ExportProfileStorageValidationError(
             f"{field_name} must be single-line and free of control characters."
@@ -1640,9 +1621,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise ExportProfileStorageValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise ExportProfileStorageValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise ExportProfileStorageValidationError(
             f"{field_name} must be timezone-aware."
@@ -1663,17 +1642,13 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ExportProfileStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ExportProfileStorageValidationError(f"{field_name} must be a string.")
     return value
 
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ExportProfileStorageValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise ExportProfileStorageValidationError(f"{field_name} must be an integer.")
     return value
 
 

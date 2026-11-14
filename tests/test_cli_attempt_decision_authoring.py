@@ -203,15 +203,18 @@ def test_preview_resolves_native_selectors_and_does_not_write(
         lambda *args, **kwargs: pytest.fail("preview must not commit"),
     )
 
-    assert cli.main(
-        _arguments(
-            "--select-identifier",
-            "second",
-            "--select-sequence",
-            "1",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(
+                "--select-identifier",
+                "second",
+                "--select-sequence",
+                "1",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     kwargs = observed["kwargs"]
@@ -249,10 +252,13 @@ def test_authorization_is_exactly_student_scoped(
         lambda *args, **kwargs: _preview(()),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     _, kwargs = observed["inspect"]
@@ -271,21 +277,23 @@ def test_duplicate_selectors_for_same_candidate_are_rejected(
         lambda *args: _derivation(),
     )
 
-    assert cli.main(
-        _arguments(
-            "--select-sequence",
-            "1",
-            "--select-identifier",
-            "first",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            _arguments(
+                "--select-sequence",
+                "1",
+                "--select-identifier",
+                "first",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "decision_authoring_invalid" in captured.err
     assert captured.err == (
-        "error: "
-        "teacher_workflow.attempt_decisions.decision_authoring_invalid\n"
+        "error: teacher_workflow.attempt_decisions.decision_authoring_invalid\n"
     )
 
 
@@ -300,16 +308,18 @@ def test_unmatched_selector_is_rejected(
         lambda *args: _derivation(),
     )
 
-    assert cli.main(
-        _arguments("--select-sequence", "9"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            _arguments("--select-sequence", "9"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "decision_authoring_invalid" in captured.err
     assert captured.err == (
-        "error: "
-        "teacher_workflow.attempt_decisions.decision_authoring_invalid\n"
+        "error: teacher_workflow.attempt_decisions.decision_authoring_invalid\n"
     )
 
 
@@ -342,10 +352,13 @@ def test_confirm_write_commits_preview_but_does_not_select(
         commit,
     )
 
-    assert cli.main(
-        _arguments("--select-sequence", "1", "--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--select-sequence", "1", "--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [
@@ -372,20 +385,21 @@ def test_json_output_preserves_exact_selected_candidate_identity(
     monkeypatch.setattr(
         cli,
         "preview_attempt_decision_authoring",
-        lambda *args, **kwargs: _preview(
-            (derivation.candidates[1].attempt,)
-        ),
+        lambda *args, **kwargs: _preview((derivation.candidates[1].attempt,)),
     )
 
-    assert cli.main(
-        _arguments(
-            "--select-identifier",
-            "second",
-            "--format",
-            "json",
-        ),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(
+                "--select-identifier",
+                "second",
+                "--format",
+                "json",
+            ),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "preview"

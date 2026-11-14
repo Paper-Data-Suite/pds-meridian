@@ -42,9 +42,7 @@ class ExclusionEligibilitySelectionScopeError(
     code = "teacher_workflow.exclusions.eligibility_selection_invalid"
 
 
-class ExclusionEligibilitySelectionStaleError(
-    ExclusionEligibilitySelectionError
-):
+class ExclusionEligibilitySelectionStaleError(ExclusionEligibilitySelectionError):
     """Raised when reviewed state changed before current selection."""
 
     code = "teacher_workflow.exclusions.eligibility_selection_stale"
@@ -257,10 +255,8 @@ def commit_exclusion_eligibility_selection_preview(
     if (
         membership is None
         or membership.decision.decision != "included"
-        or membership.decision.membership_revision
-        != preview.membership_revision
-        or membership.decision_sha256
-        != preview.membership_revision_sha256
+        or membership.decision.membership_revision != preview.membership_revision
+        or membership.decision_sha256 != preview.membership_revision_sha256
     ):
         raise ExclusionEligibilitySelectionStaleError(
             "Grade Item membership changed after eligibility selection preview."
@@ -294,9 +290,7 @@ def commit_exclusion_eligibility_selection_preview(
             decision.source,
             decision.eligibility_revision,
             authorized_snapshot=authorized_snapshot,
-            expected_current_eligibility_revision=(
-                preview.expected_current_revision
-            ),
+            expected_current_eligibility_revision=(preview.expected_current_revision),
         )
     except (
         EvidenceEligibilityDependencyError,

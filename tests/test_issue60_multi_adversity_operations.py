@@ -188,9 +188,7 @@ def test_simultaneous_source_adversities_preserve_distinct_authorities(
     root = workspace.mixed.root
     original = scenario.grade_item_result
 
-    old_scoreform_publication = workspace.mixed.publications[
-        "scoreform"
-    ].publication_id
+    old_scoreform_publication = workspace.mixed.publications["scoreform"].publication_id
     successor = supersede_scoreform(workspace.mixed)
     withdraw_quillan(workspace.mixed)
 
@@ -356,10 +354,7 @@ def test_ready_and_stale_grade_attention_are_valid_simultaneously(
     assert attention.report.summaries[0].count == 1
     assert attention.report.summaries[0].class_id == standards.CLASS_ID
     assert attention.report.summaries[0].action is not None
-    assert (
-        attention.report.summaries[0].action.action_id
-        == "open_preview_grades"
-    )
+    assert attention.report.summaries[0].action.action_id == "open_preview_grades"
 
     # Both operations remain read-only. Structural readiness and academic
     # attention are simultaneous, independent facts.

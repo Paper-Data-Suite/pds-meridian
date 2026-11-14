@@ -94,9 +94,7 @@ def standards_configuration(
     return StandardsBasedGradeConfiguration(
         target_scale=SCALE,
         standards=(StandardGradeParticipation(STANDARD_ID, Decimal("1")),),
-        conversions=(
-            ProficiencyGradeConversion("proficient", Decimal(grade_value)),
-        ),
+        conversions=(ProficiencyGradeConversion("proficient", Decimal(grade_value)),),
         aggregation_strategy="weighted_mean",
         minimum_calculated_results=1,
     )

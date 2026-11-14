@@ -133,9 +133,7 @@ def grouping_policy(
             ),
             standard_id=STANDARD_ID,
             source_policy=(
-                academic_period_proficiency_aggregation_policy_reference(
-                    source_policy
-                )
+                academic_period_proficiency_aggregation_policy_reference(source_policy)
             ),
             target_scale=proficiency_scale_reference(target_scale),
         ),
@@ -240,11 +238,14 @@ def test_exact_academic_dependencies_persist_select_and_replay(
 
     created = write_grouping_signal_policy_revision(workspace, value)
     assert created.disposition == "created"
-    assert get_current_grouping_signal_policy_revision(
-        workspace,
-        CLASS_ID,
-        value.policy_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_policy_revision(
+            workspace,
+            CLASS_ID,
+            value.policy_id,
+        )
+        is None
+    )
 
     replay = write_grouping_signal_policy_revision(workspace, value)
     assert replay.disposition == "existing"

@@ -3,8 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def test_standards_grade_architecture_freezes_issue51_authority_and_arithmetic(
-) -> None:
+def test_standards_grade_architecture_freezes_issue51_authority_and_arithmetic() -> (
+    None
+):
     text = Path("docs/architecture/standards-grade-calculation.md").read_text(
         encoding="utf-8"
     )
@@ -42,9 +43,9 @@ def test_issue51_repository_handoffs_and_installed_boundary_are_documented() -> 
     readme = Path("README").read_text(encoding="utf-8")
     docs = Path("docs/README.md").read_text(encoding="utf-8")
     changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
-    architecture = Path(
-        "docs/architecture/standards-grade-calculation.md"
-    ).read_text(encoding="utf-8")
+    architecture = Path("docs/architecture/standards-grade-calculation.md").read_text(
+        encoding="utf-8"
+    )
     for text in (readme, docs, changelog):
         assert "Issue #51" in text
         assert "standards-based" in text.lower()

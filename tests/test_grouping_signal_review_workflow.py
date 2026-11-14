@@ -35,8 +35,8 @@ NOW = datetime(2026, 8, 31, 18, 0, tzinfo=UTC)
 
 def _seed(tmp_path: Path):
     workspace, scale = _seed_workspace(tmp_path)
-    grade_item_basis, membership, membership_sha256 = (
-        _seed_current_grade_item_result(workspace, scale)
+    grade_item_basis, membership, membership_sha256 = _seed_current_grade_item_result(
+        workspace, scale
     )
     policy_id = _seed_period_result_and_grouping_policy(
         workspace,
@@ -88,16 +88,22 @@ def test_recording_review_does_not_select_it_and_selected_applicability_is_curre
     derivation_id = recorded.stored.review.derivation_reference.derivation_id
 
     assert recorded.disposition == "created"
-    assert get_current_grouping_signal_review_revision(
-        root,
-        CLASS_ID,
-        derivation_id,
-    ) is None
-    assert assess_selected_grouping_signal_review_applicability(
-        root,
-        CLASS_ID,
-        derivation_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_review_revision(
+            root,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
+    assert (
+        assess_selected_grouping_signal_review_applicability(
+            root,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
 
     select_grouping_signal_review_revision(
         root,
@@ -114,6 +120,7 @@ def test_recording_review_does_not_select_it_and_selected_applicability_is_curre
     assert applicability is not None
     assert applicability.status == "current"
     assert applicability.reason_codes == ()
+
 
 def test_acceptance_rechecks_live_currentness_but_rejection_remains_available(
     tmp_path: Path,
@@ -164,4 +171,3 @@ def test_acceptance_rechecks_live_currentness_but_rejection_remains_available(
         reviewed_at=NOW,
     )
     assert rejected.stored.review.decision == "rejected"
-

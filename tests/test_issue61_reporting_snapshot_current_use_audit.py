@@ -64,20 +64,26 @@ def test_issue61_predecessor_metadata_never_selects_current_use(
 
     assert second.snapshot.predecessor is not None
     assert second.snapshot.predecessor.relationship == relationship
-    assert get_current_reporting_snapshot_selection_reference(
-        root,
-        selection_support.CLASS_ID,
-        definition.reference.definition_id,
-        selection_support.PERIOD,
-        1,
-    ) is None
-    assert load_current_reporting_snapshot(
-        root,
-        selection_support.CLASS_ID,
-        definition.reference.definition_id,
-        selection_support.PERIOD,
-        1,
-    ) is None
+    assert (
+        get_current_reporting_snapshot_selection_reference(
+            root,
+            selection_support.CLASS_ID,
+            definition.reference.definition_id,
+            selection_support.PERIOD,
+            1,
+        )
+        is None
+    )
+    assert (
+        load_current_reporting_snapshot(
+            root,
+            selection_support.CLASS_ID,
+            definition.reference.definition_id,
+            selection_support.PERIOD,
+            1,
+        )
+        is None
+    )
 
 
 def test_issue61_current_use_is_explicit_digest_bound_and_historical(
@@ -155,8 +161,8 @@ def test_issue61_wrong_snapshot_digest_cannot_become_current(
 def test_issue61_selection_never_rewrites_frozen_snapshot_or_grade_state(
     tmp_path: Path,
 ) -> None:
-    root, _, first_snapshot, second_snapshot = (
-        selection_support._setup_snapshots(tmp_path)
+    root, _, first_snapshot, second_snapshot = selection_support._setup_snapshots(
+        tmp_path
     )
     original_content = first_snapshot.content
     original_digest = first_snapshot.snapshot_sha256
@@ -214,13 +220,16 @@ def test_issue61_freeze_persists_history_without_selecting_current_use(
 
     assert calls == 2
     assert stored.snapshot.definition_reference == definition.reference
-    assert get_current_reporting_snapshot_selection_reference(
-        root,
-        freeze_support.CLASS_ID,
-        definition.reference.definition_id,
-        freeze_support.PERIOD,
-        1,
-    ) is None
+    assert (
+        get_current_reporting_snapshot_selection_reference(
+            root,
+            freeze_support.CLASS_ID,
+            definition.reference.definition_id,
+            freeze_support.PERIOD,
+            1,
+        )
+        is None
+    )
 
 
 def test_issue61_comparison_is_descriptive_and_snapshot_neutral() -> None:

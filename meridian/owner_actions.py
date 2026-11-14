@@ -214,9 +214,7 @@ def _validate_catalog() -> None:
 
 _validate_catalog()
 
-_ACTION_BY_DESTINATION: Final = {
-    item.destination_id: item for item in _OWNER_ACTIONS
-}
+_ACTION_BY_DESTINATION: Final = {item.destination_id: item for item in _OWNER_ACTIONS}
 _ACTION_BY_ID: Final = {item.action_id: item for item in _OWNER_ACTIONS}
 
 

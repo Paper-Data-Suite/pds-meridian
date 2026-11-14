@@ -115,9 +115,10 @@ def test_profile_contracts_are_frozen_and_canonicalized() -> None:
     assert value.groups[0].standard_ids == tuple(
         sorted((STANDARD_A, STANDARD_B, STANDARD_C))
     )
-    assert tuple(
-        item.predicate_id for item in value.bands[0].predicates
-    ) == ("all_focus_meeting", "three_focus_exceeding")
+    assert tuple(item.predicate_id for item in value.bands[0].predicates) == (
+        "all_focus_meeting",
+        "three_focus_exceeding",
+    )
 
     with pytest.raises(FrozenInstanceError):
         value.fallback_band_id = "other"  # type: ignore[misc]

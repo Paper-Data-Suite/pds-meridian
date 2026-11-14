@@ -130,16 +130,8 @@ def catalog_row(
         pub.published_at,
         pub.academic_work_registration_revision,
         "active" if pub.publication_kind == "academic_result_set" else None,
-        (
-            current_revision
-            if pub.publication_kind == "academic_result_set"
-            else None
-        ),
-        (
-            current_lifecycle
-            if pub.publication_kind == "academic_result_set"
-            else None
-        ),
+        (current_revision if pub.publication_kind == "academic_result_set" else None),
+        (current_lifecycle if pub.publication_kind == "academic_result_set" else None),
         pub.supersedes_publication_id,
         is_head,
         withdrawn is not None,
@@ -397,9 +389,7 @@ def test_authorization_decision_invariants() -> None:
             True, "district_policy", "1", ("authorization.denied",)
         )
     with pytest.raises(ingestion.PublicationAuthorizationError):
-        ingestion.PublicationAuthorizationDecision(
-            False, "district_policy", "1", ()
-        )
+        ingestion.PublicationAuthorizationDecision(False, "district_policy", "1", ())
 
 
 def test_authorization_request_sorts_students() -> None:
@@ -489,16 +479,12 @@ def test_prepare_accepts_supported_reader_contract_without_version_allowlist(
     monkeypatch.setattr(
         ingestion, "verify_publication_manifest", lambda root, value: manifest
     )
-    adapter = SyntheticAdapter(
-        reader_contracts=frozenset({"synthetic_reader_v1"})
-    )
+    adapter = SyntheticAdapter(reader_contracts=frozenset({"synthetic_reader_v1"}))
 
     result = ingestion.prepare_publication_invocation(
         tmp_path,
         candidate(pub),
-        producer_registry=profile_registry(
-            reader_contract="synthetic_reader_v1"
-        ),
+        producer_registry=profile_registry(reader_contract="synthetic_reader_v1"),
         adapter_registry=AdapterRegistry((adapter,)),
         authorizer=AllowAuthorizer(),
         authorization_purpose_id="grading_import",
@@ -514,9 +500,7 @@ def test_prepare_explicit_unsupported_contract_fails_before_version_or_manifest(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     patch_context(monkeypatch)
-    adapter = SyntheticAdapter(
-        reader_contracts=frozenset({"synthetic_reader_v1"})
-    )
+    adapter = SyntheticAdapter(reader_contracts=frozenset({"synthetic_reader_v1"}))
     authorizer = AllowAuthorizer()
     resolver_called = False
     manifest_called = False
@@ -537,9 +521,7 @@ def test_prepare_explicit_unsupported_contract_fails_before_version_or_manifest(
         ingestion.prepare_publication_invocation(
             "workspace",
             candidate(),
-            producer_registry=profile_registry(
-                reader_contract="synthetic_reader_v2"
-            ),
+            producer_registry=profile_registry(reader_contract="synthetic_reader_v2"),
             adapter_registry=AdapterRegistry((adapter,)),
             authorizer=authorizer,
             authorization_purpose_id="grading_import",
@@ -605,10 +587,13 @@ def test_candidate_drift_stops_before_profile_and_manifest(
 ) -> None:
     pub = publication()
     patch_context(monkeypatch, pub=pub)
-    stale = replace(catalog_row(pub), manifest_path=(
+    stale = replace(
+        catalog_row(pub),
+        manifest_path=(
             "classes/class_2026/modules/synthetic/work/work_1/"
             "exports/manifests/academic_results/stale.json"
-        ))
+        ),
+    )
     adapter = SyntheticAdapter()
     with pytest.raises(ingestion.CandidateDriftError) as caught:
         ingestion.prepare_publication_invocation(
@@ -795,9 +780,7 @@ def test_missing_referenced_registration_is_explicit(
     def missing(root: object, work: object, revision: int) -> AcademicWorkRegistration:
         raise ingestion.AcademicWorkRegistrationNotFoundError("missing")
 
-    monkeypatch.setattr(
-        ingestion, "load_academic_work_registration_revision", missing
-    )
+    monkeypatch.setattr(ingestion, "load_academic_work_registration_revision", missing)
     with pytest.raises(ingestion.PublicationRegistrationMissingError):
         ingestion._load_canonical_context("workspace", pub.publication_id)
 
@@ -1004,8 +987,7 @@ def test_core_catalog_and_canonical_preparation_integration(
     )
     assert len(discovered.candidates) == 1
     assert (
-        discovered.candidates[0].publication_id
-        == published.publication.publication_id
+        discovered.candidates[0].publication_id == published.publication.publication_id
     )
 
     adapter = SyntheticAdapter()

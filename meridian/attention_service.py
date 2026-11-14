@@ -54,11 +54,7 @@ class MeridianAttentionInspection:
             )
         for name in ("evaluated_class_count", "failed_scope_count"):
             value = getattr(self, name)
-            if (
-                isinstance(value, bool)
-                or not isinstance(value, int)
-                or value < 0
-            ):
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
                 raise MeridianAttentionValidationError(
                     f"inspection {name} must be a nonnegative integer."
                 )

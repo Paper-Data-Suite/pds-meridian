@@ -10,9 +10,9 @@ def test_issue51_installed_smoke_is_exact_and_fresh_process() -> None:
     program = Path("scripts/smoke_program_standards_grade.py").read_text(
         encoding="utf-8"
     )
-    reload_program = Path(
-        "scripts/smoke_program_standards_grade_reload.py"
-    ).read_text(encoding="utf-8")
+    reload_program = Path("scripts/smoke_program_standards_grade_reload.py").read_text(
+        encoding="utf-8"
+    )
 
     for token in (
         'metadata.version("pds-core") == "0.6.6"',

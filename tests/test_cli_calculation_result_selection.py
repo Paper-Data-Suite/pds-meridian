@@ -155,9 +155,7 @@ def test_confirm_select_commits_exact_preview(
     assert cli.main(_arguments("--confirm-select")) == 0
     output = capsys.readouterr().out
 
-    assert observed == [
-        (("synthetic-workspace", preview), {})
-    ]
+    assert observed == [(("synthetic-workspace", preview), {})]
     assert "confirmation supplied: yes" in output
     assert "Result selection committed: revision 2 (updated)" in output
     assert "previous current result revision: 1" in output
@@ -179,9 +177,7 @@ def test_json_output_preserves_selection_authoring_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json")
-    ) == 0
+    assert cli.main(_arguments("--confirm-select", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "selected"

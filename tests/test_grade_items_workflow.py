@@ -168,9 +168,11 @@ def test_membership_review_preserves_explicit_period_and_basis(
         ),
     )
 
-    membership = workflow.project_grade_items_review(
-        "workspace", CLASS_ID
-    ).items[0].memberships[0]
+    membership = (
+        workflow.project_grade_items_review("workspace", CLASS_ID)
+        .items[0]
+        .memberships[0]
+    )
 
     assert membership.latest_persisted_revision == 3
     assert membership.selected_revision == 2
@@ -209,9 +211,11 @@ def test_membership_history_without_selector_is_not_a_decision(
         lambda *args: None,
     )
 
-    membership = workflow.project_grade_items_review(
-        "workspace", CLASS_ID
-    ).items[0].memberships[0]
+    membership = (
+        workflow.project_grade_items_review("workspace", CLASS_ID)
+        .items[0]
+        .memberships[0]
+    )
 
     assert membership.latest_persisted_revision == 2
     assert membership.selected_revision is None
@@ -293,7 +297,8 @@ def test_review_is_deterministic_and_weighting_is_metadata_only(
     assert review.membership_included_count == 1
     assert review.membership_excluded_count == 1
     item_payloads = {
-        item["grade_item_id"]: item for item in payload["items"]  # type: ignore[index]
+        item["grade_item_id"]: item
+        for item in payload["items"]  # type: ignore[index]
     }
     assert item_payloads[GRADE_ITEM_ID]["weighting"] == {
         "category_id": "summative",

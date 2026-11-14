@@ -28,9 +28,7 @@ from meridian.grade_items import GradeItemWorkReference
 CLASS_ID = "synthetic_class_2026"
 ITEM_ID = "unit1_assessment"
 WORK = ModuleWorkRef(module_id="scoreform", class_id=CLASS_ID, work_id="test_1")
-OTHER_WORK = ModuleWorkRef(
-    module_id="quillan", class_id=CLASS_ID, work_id="essay_1"
-)
+OTHER_WORK = ModuleWorkRef(module_id="quillan", class_id=CLASS_ID, work_id="essay_1")
 DIGEST = "a" * 64
 DECIDED = datetime(2026, 8, 25, 12, tzinfo=UTC)
 ASSIGNMENT = GradeItemAcademicPeriodAssignment(
@@ -209,10 +207,14 @@ def test_json_schema_rejects_missing_unknown_duplicate_and_noncanonical_bytes() 
         grade_item_membership_decision_from_dict(unknown)
 
     canonical = grade_item_membership_decision_to_json_bytes(value)
-    duplicate = canonical.decode("utf-8").replace(
-        '  "actor_id": "teacher_local",',
-        '  "actor_id": "teacher_local",\n  "actor_id": "teacher_local",',
-    ).encode("utf-8")
+    duplicate = (
+        canonical.decode("utf-8")
+        .replace(
+            '  "actor_id": "teacher_local",',
+            '  "actor_id": "teacher_local",\n  "actor_id": "teacher_local",',
+        )
+        .encode("utf-8")
+    )
     with pytest.raises(GradeItemMembershipSerializationError, match="duplicate"):
         grade_item_membership_decision_from_json_bytes(duplicate)
 
@@ -226,8 +228,6 @@ def test_grade_item_digest_and_assignment_revision_are_exact() -> None:
         decision(grade_item_digest="ABC")
     with pytest.raises(GradeItemMembershipValidationError, match="positive integer"):
         GradeItemAcademicPeriodAssignment(
-            period=AcademicPeriodRef(
-                school_year="2026-2027", period_id="mp1"
-            ),
+            period=AcademicPeriodRef(school_year="2026-2027", period_id="mp1"),
             calendar_revision=0,
         )

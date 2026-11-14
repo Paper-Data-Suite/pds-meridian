@@ -87,9 +87,7 @@ def test_replay_detects_timezone_representation_difference(
     native = first.provenance.native
     timestamp = native.timestamps[0]
 
-    shifted_value = timestamp.value.astimezone(
-        timezone(timedelta(hours=5, minutes=45))
-    )
+    shifted_value = timestamp.value.astimezone(timezone(timedelta(hours=5, minutes=45)))
     assert shifted_value == timestamp.value
     assert shifted_value.isoformat() != timestamp.value.isoformat()
 
@@ -244,7 +242,6 @@ def test_cache_purpose_mismatch_fails_before_protected_bytes(
     assert opened_paths == []
 
 
-
 def test_release_facing_descriptions_match_v03_grade_reporting_scope() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     cli = Path("meridian/cli.py").read_text(encoding="utf-8")
@@ -256,10 +253,7 @@ def test_release_facing_descriptions_match_v03_grade_reporting_scope() -> None:
     )
     assert f'description = "{expected}"' in pyproject
     assert "publication-ingestion and typed-evidence" in cli
-    assert (
-        "Meridian v0.4.1 implements Issue #115"
-        in readme
-    )
+    assert "Meridian v0.4.1 implements Issue #115" in readme
     assert "conventional, standards-based, profile-constrained, and hybrid Grades" in (
         readme
     )
@@ -267,9 +261,7 @@ def test_release_facing_descriptions_match_v03_grade_reporting_scope() -> None:
 
 
 def test_durable_release_audit_is_indexed_and_validation_guarded() -> None:
-    audit = Path("docs/development/v0.1.1-release-audit.md").read_text(
-        encoding="utf-8"
-    )
+    audit = Path("docs/development/v0.1.1-release-audit.md").read_text(encoding="utf-8")
     index = Path("docs/README.md").read_text(encoding="utf-8")
     checker = Path("scripts/check_documentation.py").read_text(encoding="utf-8")
 
@@ -280,15 +272,12 @@ def test_durable_release_audit_is_indexed_and_validation_guarded() -> None:
     assert "all eight GitHub Actions matrix jobs" in checker
 
 
-
 def test_historical_releases_remain_finalized_while_v031_is_candidate() -> None:
     version_source = Path("meridian/_version.py").read_text(encoding="utf-8")
     package_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
-    audit = Path("docs/development/v0.1.1-release-audit.md").read_text(
-        encoding="utf-8"
-    )
+    audit = Path("docs/development/v0.1.1-release-audit.md").read_text(encoding="utf-8")
 
     assert '__version__: Final[str] = "0.4.2"' in version_source
     assert 'EXPECTED_VERSION = "0.4.2"' in package_checker

@@ -75,7 +75,9 @@ def test_gathers_verified_identities_and_displays_labels_only() -> None:
     )
     assert prepared is not None
     assert prepared.identifiers() == {
-        "class": "class_10", "period": "mp1", "student": "student_b"
+        "class": "class_10",
+        "period": "mp1",
+        "student": "student_b",
     }
     assert "English 10 - Period 2" in output.getvalue()
     assert "Alex Green - Record A" in output.getvalue()
@@ -167,13 +169,16 @@ def test_indistinguishable_display_labels_fail_closed() -> None:
                 ReportOption("b", "English 10"),
             )
 
-    assert collect_guided_report_selection(
-        REPORT_GUIDES[0],
-        catalog=AmbiguousCatalog(),
-        input_fn=ScriptedInput(""),
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) is None
+    assert (
+        collect_guided_report_selection(
+            REPORT_GUIDES[0],
+            catalog=AmbiguousCatalog(),
+            input_fn=ScriptedInput(""),
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        is None
+    )
 
 
 def test_option_fields_cannot_contain_control_characters() -> None:
@@ -193,13 +198,16 @@ def test_unavailable_scope_returns_no_selection() -> None:
             return ()
 
     output = StringIO()
-    assert collect_guided_report_selection(
-        REPORT_GUIDES[3],
-        catalog=EmptyCatalog(),
-        input_fn=ScriptedInput(""),
-        output=output,
-        clear_fn=lambda: None,
-    ) is None
+    assert (
+        collect_guided_report_selection(
+            REPORT_GUIDES[3],
+            catalog=EmptyCatalog(),
+            input_fn=ScriptedInput(""),
+            output=output,
+            clear_fn=lambda: None,
+        )
+        is None
+    )
     assert "No report was generated or changed." in output.getvalue()
 
 
@@ -222,25 +230,31 @@ def test_stale_option_is_rejected_and_offered_again() -> None:
             return (ReportOption("class_10", "English 10"),)
 
     output = StringIO()
-    assert collect_guided_report_selection(
-        REPORT_GUIDES[0],
-        catalog=MovingCatalog(),
-        input_fn=ScriptedInput("1", "", "b"),
-        output=output,
-        clear_fn=lambda: None,
-    ) is None
+    assert (
+        collect_guided_report_selection(
+            REPORT_GUIDES[0],
+            catalog=MovingCatalog(),
+            input_fn=ScriptedInput("1", "", "b"),
+            output=output,
+            clear_fn=lambda: None,
+        )
+        is None
+    )
     assert "The choices changed. Please select again." in output.getvalue()
 
 
 def test_invalid_number_is_reprompted_without_selecting() -> None:
     output = StringIO()
-    assert collect_guided_report_selection(
-        REPORT_GUIDES[6],
-        catalog=Catalog(),
-        input_fn=ScriptedInput("99", "", "b"),
-        output=output,
-        clear_fn=lambda: None,
-    ) is None
+    assert (
+        collect_guided_report_selection(
+            REPORT_GUIDES[6],
+            catalog=Catalog(),
+            input_fn=ScriptedInput("99", "", "b"),
+            output=output,
+            clear_fn=lambda: None,
+        )
+        is None
+    )
     assert "Choose a number from the list" in output.getvalue()
 
 

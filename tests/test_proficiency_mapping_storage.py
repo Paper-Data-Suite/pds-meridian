@@ -133,16 +133,10 @@ def test_canonical_relative_paths() -> None:
     )
     assert proficiency_scale_revision_relative_path(
         CLASS_ID, "course_proficiency", 1
-    ) == (
-        "classes/synthetic_class_2026/modules/meridian/prof/s/"
-        f"{scale_key}/1.json"
-    )
+    ) == (f"classes/synthetic_class_2026/modules/meridian/prof/s/{scale_key}/1.json")
     assert mapping_profile_revision_relative_path(
         CLASS_ID, "course_proficiency", "quillan_024", 1
-    ) == (
-        "classes/synthetic_class_2026/modules/meridian/prof/p/"
-        f"{profile_key}/1.json"
-    )
+    ) == (f"classes/synthetic_class_2026/modules/meridian/prof/p/{profile_key}/1.json")
 
 
 def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
@@ -166,12 +160,15 @@ def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
     assert long_scale_id not in stored_scale.relative_path
     assert len(stored_scale.relative_path) <= 127
     assert len(f"{stored_scale.relative_path}.sha256") <= 134
-    assert load_proficiency_scale_revision(
-        workspace,
-        CLASS_ID,
-        long_scale_id,
-        1,
-    ).scale.scale_id == long_scale_id
+    assert (
+        load_proficiency_scale_revision(
+            workspace,
+            CLASS_ID,
+            long_scale_id,
+            1,
+        ).scale.scale_id
+        == long_scale_id
+    )
     assert list_proficiency_scale_ids(
         workspace,
         CLASS_ID,
@@ -197,13 +194,16 @@ def test_long_scale_and_profile_ids_use_bounded_keys_and_round_trip(
     assert long_profile_id not in stored_profile.relative_path
     assert len(stored_profile.relative_path) <= 127
     assert len(f"{stored_profile.relative_path}.sha256") <= 134
-    assert load_mapping_profile_revision(
-        workspace,
-        CLASS_ID,
-        long_scale_id,
-        long_profile_id,
-        1,
-    ).profile.profile_id == long_profile_id
+    assert (
+        load_mapping_profile_revision(
+            workspace,
+            CLASS_ID,
+            long_scale_id,
+            long_profile_id,
+            1,
+        ).profile.profile_id
+        == long_profile_id
+    )
     assert list_mapping_profile_ids(
         workspace,
         CLASS_ID,
@@ -217,9 +217,12 @@ def test_scale_write_is_immutable_and_does_not_auto_select(tmp_path: Path) -> No
     assert written.disposition == "created"
     replay = write_proficiency_scale_revision(workspace, scale())
     assert replay.disposition == "existing"
-    assert get_current_proficiency_scale_revision(
-        workspace, CLASS_ID, "course_proficiency"
-    ) is None
+    assert (
+        get_current_proficiency_scale_revision(
+            workspace, CLASS_ID, "course_proficiency"
+        )
+        is None
+    )
     with pytest.raises(ProficiencyMappingStorageConflictError):
         write_proficiency_scale_revision(
             workspace, replace(scale(), title="Changed in place")
@@ -237,9 +240,7 @@ def test_scale_selection_is_explicit_cas_and_historical(tmp_path: Path) -> None:
         1,
         expected_current_scale_revision=None,
     )
-    current = load_current_proficiency_scale(
-        workspace, CLASS_ID, "course_proficiency"
-    )
+    current = load_current_proficiency_scale(workspace, CLASS_ID, "course_proficiency")
     assert current is not None
     assert current.scale.scale_revision == 1
     with pytest.raises(ProficiencyMappingStorageConflictError, match="Expected"):
@@ -264,9 +265,12 @@ def test_scale_selection_is_explicit_cas_and_historical(tmp_path: Path) -> None:
         1,
         expected_current_scale_revision=2,
     )
-    assert get_current_proficiency_scale_revision(
-        workspace, CLASS_ID, "course_proficiency"
-    ) == 1
+    assert (
+        get_current_proficiency_scale_revision(
+            workspace, CLASS_ID, "course_proficiency"
+        )
+        == 1
+    )
 
 
 def test_profile_requires_exact_persisted_target_scale(tmp_path: Path) -> None:
@@ -277,9 +281,12 @@ def test_profile_requires_exact_persisted_target_scale(tmp_path: Path) -> None:
     value = profile(stored_scale.scale)
     written = write_mapping_profile_revision(workspace, value)
     assert written.disposition == "created"
-    assert get_current_mapping_profile_revision(
-        workspace, CLASS_ID, "course_proficiency", "quillan_024"
-    ) is None
+    assert (
+        get_current_mapping_profile_revision(
+            workspace, CLASS_ID, "course_proficiency", "quillan_024"
+        )
+        is None
+    )
 
 
 def test_profile_write_select_revision_and_replay(tmp_path: Path) -> None:
@@ -303,9 +310,12 @@ def test_profile_write_select_revision_and_replay(tmp_path: Path) -> None:
     assert current.profile.profile_revision == 1
     second = profile(target, revision=2)
     write_mapping_profile_revision(workspace, second)
-    assert get_current_mapping_profile_revision(
-        workspace, CLASS_ID, target.scale_id, first.profile_id
-    ) == 1
+    assert (
+        get_current_mapping_profile_revision(
+            workspace, CLASS_ID, target.scale_id, first.profile_id
+        )
+        == 1
+    )
     select_mapping_profile_revision(
         workspace,
         CLASS_ID,
@@ -314,9 +324,12 @@ def test_profile_write_select_revision_and_replay(tmp_path: Path) -> None:
         2,
         expected_current_profile_revision=1,
     )
-    assert load_mapping_profile_revision(
-        workspace, CLASS_ID, target.scale_id, first.profile_id, 1
-    ).profile == first
+    assert (
+        load_mapping_profile_revision(
+            workspace, CLASS_ID, target.scale_id, first.profile_id, 1
+        ).profile
+        == first
+    )
 
 
 def test_scale_pointer_tamper_fails_closed(tmp_path: Path) -> None:
@@ -329,9 +342,7 @@ def test_scale_pointer_tamper_fails_closed(tmp_path: Path) -> None:
         1,
         expected_current_scale_revision=None,
     )
-    pointer = proficiency_scale_current_path(
-        workspace, CLASS_ID, "course_proficiency"
-    )
+    pointer = proficiency_scale_current_path(workspace, CLASS_ID, "course_proficiency")
     data = json.loads(pointer.read_text(encoding="utf-8"))
     data["scale_sha256"] = "0" * 64
     pointer.write_bytes(
@@ -346,9 +357,7 @@ def test_revision_digest_tamper_fails_closed(tmp_path: Path) -> None:
     stored = write_proficiency_scale_revision(workspace, scale()).stored
     stored.path.write_bytes(stored.content + b" ")
     with pytest.raises(ProficiencyMappingStorageIntegrityError, match="digest"):
-        load_proficiency_scale_revision(
-            workspace, CLASS_ID, "course_proficiency", 1
-        )
+        load_proficiency_scale_revision(workspace, CLASS_ID, "course_proficiency", 1)
 
 
 def test_unexpected_scale_entry_fails_closed(tmp_path: Path) -> None:
@@ -356,17 +365,13 @@ def test_unexpected_scale_entry_fails_closed(tmp_path: Path) -> None:
     stored = write_proficiency_scale_revision(workspace, scale()).stored
     (stored.path.parent / "latest.json").write_text("{}", encoding="utf-8")
     with pytest.raises(ProficiencyMappingStorageIntegrityError, match="unexpected"):
-        load_proficiency_scale_revision(
-            workspace, CLASS_ID, "course_proficiency", 1
-        )
+        load_proficiency_scale_revision(workspace, CLASS_ID, "course_proficiency", 1)
 
 
 def test_symlinked_scale_pointer_fails_closed(tmp_path: Path) -> None:
     workspace = root(tmp_path)
     write_proficiency_scale_revision(workspace, scale())
-    pointer = proficiency_scale_current_path(
-        workspace, CLASS_ID, "course_proficiency"
-    )
+    pointer = proficiency_scale_current_path(workspace, CLASS_ID, "course_proficiency")
     target = tmp_path / "pointer.json"
     target.write_text("{}", encoding="utf-8")
     try:

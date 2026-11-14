@@ -364,9 +364,7 @@ def _capture_standards_state(
         root,
         target,
         source,
-        current_basis_sha256=standards_grade_calculation_input_sha256(
-            assembly.inputs
-        ),
+        current_basis_sha256=standards_grade_calculation_input_sha256(assembly.inputs),
         current_activation_reference=assembly.activation.reference,
         current_policy_reference=assembly.policy.reference,
     )
@@ -436,9 +434,7 @@ def _capture_hybrid_state(
         root,
         target,
         source,
-        current_basis_sha256=hybrid_grade_calculation_input_sha256(
-            assembly.inputs
-        ),
+        current_basis_sha256=hybrid_grade_calculation_input_sha256(assembly.inputs),
         current_activation_reference=assembly.activation.reference,
         current_policy_reference=assembly.policy.reference,
     )

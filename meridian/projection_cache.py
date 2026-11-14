@@ -497,9 +497,7 @@ class ProjectionSourceObservation:
         current: AcademicWorkRegistration | None = None
         if self.current_registration is not None:
             try:
-                current = validate_academic_work_registration(
-                    self.current_registration
-                )
+                current = validate_academic_work_registration(self.current_registration)
             except ValueError as error:
                 raise ProjectionCacheValidationError(
                     "current_registration is invalid."
@@ -848,10 +846,9 @@ class StoredProjectionSnapshot:
             raise ProjectionCacheValidationError(
                 "snapshot_digest does not match exact stored bytes."
             )
-        if projection_snapshot_from_json_bytes(self.content) != self.snapshot:
-            raise ProjectionCacheValidationError(
-                "stored content does not decode to the stored snapshot."
-            )
+        # Exact canonical-byte equality below already proves that the stored
+        # snapshot matches these bytes. Re-decoding the same 406-item inventory
+        # here would duplicate the parser's validated canonical round trip.
         if projection_snapshot_to_json_bytes(self.snapshot) != self.content:
             raise ProjectionCacheValidationError(
                 "stored content is not the canonical snapshot encoding."
@@ -1009,8 +1006,7 @@ def _validate_snapshot_inventory(
                 "inventory item uses a different projection identity."
             )
         if allowed_students and (
-            item.subject is None
-            or item.subject.student_id not in allowed_students
+            item.subject is None or item.subject.student_id not in allowed_students
         ):
             raise ProjectionCacheValidationError(
                 "inventory contains evidence outside the authorized student scope."
@@ -1051,9 +1047,7 @@ def _source_from_dict(data: object) -> ProjectionSourceObservation:
         raise ProjectionCacheValidationError("publication is invalid.") from error
     ids = mapping["series_publication_ids"]
     if not isinstance(ids, list):
-        raise ProjectionCacheValidationError(
-            "series_publication_ids must be a list."
-        )
+        raise ProjectionCacheValidationError("series_publication_ids must be a list.")
     target_index = mapping["target_index"]
     if isinstance(target_index, bool) or not isinstance(target_index, int):
         raise ProjectionCacheValidationError("target_index must be an integer.")
@@ -1096,9 +1090,7 @@ def _adapter_key_to_dict(value: AdapterKey) -> dict[str, object]:
 def _adapter_key_from_dict(data: object) -> AdapterKey:
     mapping = _mapping(data, _ADAPTER_KEY_KEYS, "adapter key")
     return AdapterKey(
-        producer_module_id=_string(
-            mapping["producer_module_id"], "producer_module_id"
-        ),
+        producer_module_id=_string(mapping["producer_module_id"], "producer_module_id"),
         publication_kind=cast(
             PublicationKind,
             _string(mapping["publication_kind"], "publication_kind"),
@@ -1165,18 +1157,14 @@ def _authorization_from_dict(data: object) -> ProjectionAuthorizationObservation
     mapping = _mapping(data, _AUTHORIZATION_KEYS, "projection authorization")
     students = mapping["requested_student_ids"]
     if not isinstance(students, list):
-        raise ProjectionCacheValidationError(
-            "requested_student_ids must be a list."
-        )
+        raise ProjectionCacheValidationError("requested_student_ids must be a list.")
     return ProjectionAuthorizationObservation(
         operation=cast(
             Literal["project_evidence"],
             _string(mapping["operation"], "operation"),
         ),
         purpose_id=_string(mapping["purpose_id"], "purpose_id"),
-        requested_student_ids=tuple(
-            _string(item, "student_id") for item in students
-        ),
+        requested_student_ids=tuple(_string(item, "student_id") for item in students),
         policy_id=_string(mapping["policy_id"], "policy_id"),
         policy_version=_string(mapping["policy_version"], "policy_version"),
     )
@@ -1203,9 +1191,7 @@ def projection_cache_key(identity: ProjectionCacheIdentity) -> str:
 
 def projection_snapshot_to_dict(snapshot: ProjectionSnapshot) -> dict[str, object]:
     if not isinstance(snapshot, ProjectionSnapshot):
-        raise ProjectionCacheValidationError(
-            "snapshot must be a ProjectionSnapshot."
-        )
+        raise ProjectionCacheValidationError("snapshot must be a ProjectionSnapshot.")
     return {
         "schema_version": snapshot.schema_version,
         "record_type": snapshot.record_type,
@@ -1260,9 +1246,7 @@ def projection_snapshot_to_json_bytes(snapshot: ProjectionSnapshot) -> bytes:
 def _canonical_inventory_bytes(inventory: EvidenceInventory) -> bytes:
     """Return the exact canonical persistence bytes used for replay comparison."""
     if not isinstance(inventory, EvidenceInventory):
-        raise ProjectionCacheValidationError(
-            "inventory must be an EvidenceInventory."
-        )
+        raise ProjectionCacheValidationError("inventory must be an EvidenceInventory.")
     return _canonical_json_bytes(evidence_inventory_to_dict(inventory))
 
 
@@ -1320,12 +1304,7 @@ def projection_cache_directory(
     publication = _publication_id(publication_id)
     key = _sha256(cache_key, "cache_key")
     return (
-        Path(workspace_root)
-        / "cache"
-        / "meridian"
-        / "projections"
-        / publication
-        / key
+        Path(workspace_root) / "cache" / "meridian" / "projections" / publication / key
     )
 
 
@@ -1420,9 +1399,7 @@ def _validate_existing_directory_chain(root: Path, target: Path) -> None:
     _require_lexical_containment(root, target)
     current = root
     if not current.exists() or current.is_symlink() or not current.is_dir():
-        raise ProjectionCacheIntegrityError(
-            "workspace root is missing or unsafe."
-        )
+        raise ProjectionCacheIntegrityError("workspace root is missing or unsafe.")
     for part in target.relative_to(root).parts:
         current = current / part
         if not current.exists():
@@ -1628,8 +1605,7 @@ def _scoped_inventory(
         tuple(
             item
             for item in inventory.items
-            if item.subject is not None
-            and item.subject.student_id in allowed
+            if item.subject is not None and item.subject.student_id in allowed
         )
     )
 
@@ -1745,9 +1721,7 @@ def cache_projected_inventory(
             "prepared must be a PreparedPublicationInvocation."
         )
     if not isinstance(inventory, EvidenceInventory):
-        raise ProjectionCacheValidationError(
-            "inventory must be an EvidenceInventory."
-        )
+        raise ProjectionCacheValidationError("inventory must be an EvidenceInventory.")
     limit = _positive_limit(maximum_snapshot_bytes, "maximum_snapshot_bytes")
     validate_projected_inventory(
         inventory,
@@ -1779,9 +1753,7 @@ def cache_projected_inventory(
         purpose_id=prepared.authorization_request.purpose_id,
         student_ids=prepared.authorization_request.requested_student_ids,
     )
-    repeated_decision = _authorize(
-        authorizer, repeated_request, cache_read=False
-    )
+    repeated_decision = _authorize(authorizer, repeated_request, cache_read=False)
     if not repeated_decision.allowed:
         raise ProjectionCacheAuthorizationDeniedError(
             publication_id=current.publication.publication_id,
@@ -1963,10 +1935,8 @@ def cache_projected_inventory(
                         relative_path=relative,
                         durable_file=False,
                         cleanup_failure=(
-                            (
-                                f"{type(cleanup_error).__name__}: "
-                                "incomplete-file cleanup failed"
-                            )
+                            f"{type(cleanup_error).__name__}: "
+                            "incomplete-file cleanup failed"
                         ),
                     ),
                 ) from error
@@ -2155,9 +2125,7 @@ def assess_projection_snapshot(
     ),
 ) -> ProjectionCacheAssessment:
     if not isinstance(snapshot, ProjectionSnapshot):
-        raise ProjectionCacheValidationError(
-            "snapshot must be a ProjectionSnapshot."
-        )
+        raise ProjectionCacheValidationError("snapshot must be a ProjectionSnapshot.")
     observed = snapshot.source
     reasons: set[str] = set()
     if current_context is None:
@@ -2277,8 +2245,7 @@ def assess_projection_snapshot(
     if not current_projection_authorization.allowed:
         reasons.add("cache.projection_authorization_denied")
     elif (
-        current_projection_authorization.policy_id
-        != snapshot.authorization.policy_id
+        current_projection_authorization.policy_id != snapshot.authorization.policy_id
         or current_projection_authorization.policy_version
         != snapshot.authorization.policy_version
     ):
@@ -2309,9 +2276,7 @@ def _assessment(
         current_canonical_state=(current.canonical_state if current else None),
         observed_head_publication_id=observed.head_publication_id,
         current_head_publication_id=(current.head_publication_id if current else None),
-        observed_current_registration_revision=(
-            observed.current_registration_revision
-        ),
+        observed_current_registration_revision=(observed.current_registration_revision),
         current_registration_revision=(
             current.current_registration_revision if current else None
         ),

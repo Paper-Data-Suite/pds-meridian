@@ -134,12 +134,8 @@ def _stale_reasons(
     if source.roster_basis != current.roster_basis:
         reasons.add("roster_membership_changed")
 
-    source_by_student = {
-        item.student_id: item for item in source.student_derivations
-    }
-    current_by_student = {
-        item.student_id: item for item in current.student_derivations
-    }
+    source_by_student = {item.student_id: item for item in source.student_derivations}
+    current_by_student = {item.student_id: item for item in current.student_derivations}
     if set(source_by_student) != set(current_by_student):
         reasons.add("source_resolution_changed")
 
@@ -166,6 +162,4 @@ def _stale_reasons(
     ):
         reasons.add("source_resolution_changed")
 
-    return tuple(
-        reason for reason in _STALE_REASON_ORDER if reason in reasons
-    )
+    return tuple(reason for reason in _STALE_REASON_ORDER if reason in reasons)

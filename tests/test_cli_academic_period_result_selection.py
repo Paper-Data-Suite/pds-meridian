@@ -70,8 +70,7 @@ def test_workflow_help_exposes_academic_period_result_select(
     output = " ".join(capsys.readouterr().out.split())
     assert "academic-period-result-select" in output
     assert (
-        "Preview or select one persisted Academic Period proficiency result"
-        in output
+        "Preview or select one persisted Academic Period proficiency result" in output
     )
 
 
@@ -168,9 +167,7 @@ def test_json_result_preserves_selection_authoring_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json")
-    ) == 0
+    assert cli.main(_arguments("--confirm-select", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "selected"

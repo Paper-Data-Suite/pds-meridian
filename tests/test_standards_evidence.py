@@ -203,9 +203,12 @@ def test_standard_id_matches_core_required_text_semantics() -> None:
     durable = "  https://standards.example/" + "x" * 1200 + "?a=1:b.2  "
     value = replace(decision(), standard_id=durable)
     assert value.standard_id == durable.strip()
-    assert standard_evidence_association_from_json_bytes(
-        standard_evidence_association_to_json_bytes(value)
-    ) == value
+    assert (
+        standard_evidence_association_from_json_bytes(
+            standard_evidence_association_to_json_bytes(value)
+        )
+        == value
+    )
     padded_key = standard_evidence_association_key(
         value.class_id, value.grade_item_id, value.source, durable
     )
@@ -323,10 +326,7 @@ def test_builder_orders_deterministically_and_calculates_nothing() -> None:
 def test_builder_rejects_an_over_limit_explicit_candidate_set() -> None:
     with pytest.raises(StandardsEvidenceValidationError, match="finite maximum"):
         build(
-            *(
-                candidate()
-                for _ in range(MAXIMUM_STANDARD_AGGREGATION_CANDIDATES + 1)
-            )
+            *(candidate() for _ in range(MAXIMUM_STANDARD_AGGREGATION_CANDIDATES + 1))
         )
 
 
@@ -348,9 +348,7 @@ def test_resolved_candidate_rejects_incoherent_provenance() -> None:
     with pytest.raises(StandardsEvidenceValidationError, match="membership reference"):
         replace(
             value,
-            membership_reference=AggregationDecisionReference(
-                "eligibility", 1, SHA
-            ),
+            membership_reference=AggregationDecisionReference("eligibility", 1, SHA),
         )
     with pytest.raises(StandardsEvidenceValidationError, match="association reference"):
         replace(value, association_reference=None)
@@ -379,9 +377,7 @@ def test_entry_and_canonical_decoder_reject_impossible_provenance() -> None:
     with pytest.raises(StandardsEvidenceValidationError, match="membership reference"):
         replace(
             entry,
-            membership_reference=AggregationDecisionReference(
-                "eligibility", 1, SHA
-            ),
+            membership_reference=AggregationDecisionReference("eligibility", 1, SHA),
         )
     with pytest.raises(StandardsEvidenceValidationError, match="requires exact"):
         replace(entry, association_reference=None)
@@ -429,8 +425,6 @@ def test_aggregation_decoder_rejects_cross_scope_entry_tampering() -> None:
     )
     other_class = standard_aggregation_inputs_to_json_bytes(
         build(wrong_reference)
-    ).replace(
-        b'"class_id": "synthetic_class_2026"', b'"class_id": "other_class"', 1
-    )
+    ).replace(b'"class_id": "synthetic_class_2026"', b'"class_id": "other_class"', 1)
     with pytest.raises(StandardsEvidenceValidationError, match="source class"):
         standard_aggregation_inputs_from_json_bytes(other_class)

@@ -63,9 +63,7 @@ def _write_deps(
                 written_revision=1,
             )
         ),
-        membership_selection_previewer=lambda *_args: (
-            membership_selection_preview
-        ),
+        membership_selection_previewer=lambda *_args: membership_selection_preview,
         membership_selection_committer=lambda *_args: (
             log.append("membership-select")
             or SimpleNamespace(

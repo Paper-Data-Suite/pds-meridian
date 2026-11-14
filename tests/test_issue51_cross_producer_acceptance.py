@@ -301,8 +301,7 @@ def test_cross_producer_proficiency_flows_through_selected_period_result_to_grad
     assert current is not None
     assert current.reference == written.stored.reference
     assert (
-        calculate_standards_grade(current.snapshot.inputs)
-        == current.snapshot.outcome
+        calculate_standards_grade(current.snapshot.inputs) == current.snapshot.outcome
     )
 
     payload = standards_grade_result_snapshot_to_json_bytes(current.snapshot)

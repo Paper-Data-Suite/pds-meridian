@@ -84,9 +84,7 @@ def _resolution(
                 eligibility_revision=2,
                 membership_revision=reviewed_membership,
                 reason_codes=(
-                    ()
-                    if disposition == "included"
-                    else ("eligibility.teacher_review",)
+                    () if disposition == "included" else ("eligibility.teacher_review",)
                 ),
                 rationale=(
                     None

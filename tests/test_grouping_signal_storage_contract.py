@@ -158,11 +158,14 @@ def test_core_storage_rejects_conflicting_immutable_identity(
 
     assert json_path.read_bytes() == historical_json
     assert digest_path.read_bytes() == historical_digest
-    assert load_grouping_signal(
-        tmp_path,
-        original.class_id,
-        original.signal_set_id,
-    ).signal == original
+    assert (
+        load_grouping_signal(
+            tmp_path,
+            original.class_id,
+            original.signal_set_id,
+        ).signal
+        == original
+    )
 
 
 def test_core_storage_listing_is_deterministic_and_class_scoped(
@@ -186,10 +189,13 @@ def test_core_storage_listing_is_deterministic_and_class_scoped(
         tmp_path,
         "synthetic_class_other",
     ) == ("other_class_signal",)
-    assert list_grouping_signal_ids(
-        tmp_path,
-        "synthetic_class_empty",
-    ) == ()
+    assert (
+        list_grouping_signal_ids(
+            tmp_path,
+            "synthetic_class_empty",
+        )
+        == ()
+    )
 
 
 def test_core_storage_detects_canonical_byte_tampering_without_repair(

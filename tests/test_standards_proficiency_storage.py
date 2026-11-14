@@ -140,10 +140,7 @@ def test_policy_relative_path_is_class_local_and_scale_independent() -> None:
         CLASS_ID,
         "course_policy",
         1,
-    ) == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        f"sp/p/{policy_key}/1.json"
-    )
+    ) == (f"classes/synthetic_class_2026/modules/meridian/sp/p/{policy_key}/1.json")
 
 
 def test_long_policy_id_uses_bounded_key_and_round_trips(
@@ -167,12 +164,15 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
     assert long_policy_id not in stored.relative_path
     assert len(stored.relative_path) <= 125
     assert len(f"{stored.relative_path}.sha256") <= 132
-    assert load_standard_proficiency_policy_revision(
-        workspace,
-        CLASS_ID,
-        long_policy_id,
-        1,
-    ).policy.policy_id == long_policy_id
+    assert (
+        load_standard_proficiency_policy_revision(
+            workspace,
+            CLASS_ID,
+            long_policy_id,
+            1,
+        ).policy.policy_id
+        == long_policy_id
+    )
     assert list_standard_proficiency_policy_ids(
         workspace,
         CLASS_ID,
@@ -392,10 +392,7 @@ def test_policy_pointer_tamper_fails_closed(tmp_path: Path) -> None:
     data = json.loads(pointer.read_text(encoding="utf-8"))
     data["policy_sha256"] = "0" * 64
     pointer.write_bytes(
-        (
-            json.dumps(data, sort_keys=True, indent=2)
-            + "\n"
-        ).encode("utf-8")
+        (json.dumps(data, sort_keys=True, indent=2) + "\n").encode("utf-8")
     )
 
     with pytest.raises(

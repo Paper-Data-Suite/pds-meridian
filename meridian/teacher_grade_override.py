@@ -198,9 +198,7 @@ class TeacherGradeOverrideDecision:
 
     def __post_init__(self) -> None:
         if self.schema_version != TEACHER_GRADE_OVERRIDE_SCHEMA_VERSION:
-            raise TeacherGradeOverrideValidationError(
-                'schema_version must be "1".'
-            )
+            raise TeacherGradeOverrideValidationError('schema_version must be "1".')
         if self.record_type != TEACHER_GRADE_OVERRIDE_RECORD_TYPE:
             raise TeacherGradeOverrideValidationError(
                 'record_type must be "meridian_teacher_grade_override".'
@@ -473,18 +471,12 @@ def grade_override_source_result_reference_from_dict(
     try:
         if family == "conventional":
             reference: GradeResultReference = (
-                conventional_grade_result_reference_from_dict(
-                    mapping["reference"]
-                )
+                conventional_grade_result_reference_from_dict(mapping["reference"])
             )
         elif family == "standards_based":
-            reference = standards_grade_result_reference_from_dict(
-                mapping["reference"]
-            )
+            reference = standards_grade_result_reference_from_dict(mapping["reference"])
         else:
-            reference = hybrid_grade_result_reference_from_dict(
-                mapping["reference"]
-            )
+            reference = hybrid_grade_result_reference_from_dict(mapping["reference"])
     except ValueError as error:
         raise TeacherGradeOverrideValidationError(
             f"source_result.reference is invalid: {error}"
@@ -907,13 +899,9 @@ def _exact_mapping(
     label: str,
 ) -> Mapping[str, object]:
     if not isinstance(data, Mapping):
-        raise TeacherGradeOverrideValidationError(
-            f"{label} must be an object."
-        )
+        raise TeacherGradeOverrideValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise TeacherGradeOverrideValidationError(
-            f"{label} keys must be strings."
-        )
+        raise TeacherGradeOverrideValidationError(f"{label} keys must be strings.")
     actual = frozenset(cast(Mapping[str, object], data).keys())
     if actual != keys:
         missing = sorted(keys - actual)
@@ -931,9 +919,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be a string."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -946,9 +932,7 @@ def _bounded_text(
     maximum: int,
 ) -> str:
     if not isinstance(value, str):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be a string."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise TeacherGradeOverrideValidationError(
             f"{field_name} must be nonblank without surrounding whitespace."
@@ -958,8 +942,7 @@ def _bounded_text(
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise TeacherGradeOverrideValidationError(
             f"{field_name} must be single-line and free of control characters."
@@ -987,17 +970,11 @@ def _optional_positive_int(
 
 def _nonnegative_decimal(value: object, field_name: str) -> Decimal:
     if not isinstance(value, Decimal):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be a Decimal."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be a Decimal.")
     if not value.is_finite():
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be finite."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be finite.")
     if value < 0:
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be nonnegative."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be nonnegative.")
     return Decimal(_decimal_text(value, field_name, allow_zero=True))
 
 
@@ -1031,9 +1008,7 @@ def _decimal_from_text(
     allow_zero: bool,
 ) -> Decimal:
     if not isinstance(value, str):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be decimal text."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be decimal text.")
     try:
         parsed = Decimal(value)
     except InvalidOperation as error:
@@ -1041,9 +1016,7 @@ def _decimal_from_text(
             f"{field_name} must be valid decimal text."
         ) from error
     if not parsed.is_finite():
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be finite."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be finite.")
     if parsed < 0 or (not allow_zero and parsed == 0):
         requirement = "nonnegative" if allow_zero else "greater than zero"
         raise TeacherGradeOverrideValidationError(
@@ -1054,9 +1027,7 @@ def _decimal_from_text(
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise TeacherGradeOverrideValidationError(
             f"{field_name} must be timezone-aware."
@@ -1086,17 +1057,13 @@ def _period_from_dict(value: object) -> AcademicPeriodRef:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be a string."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be a string.")
     return value
 
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise TeacherGradeOverrideValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise TeacherGradeOverrideValidationError(f"{field_name} must be an integer.")
     return value
 
 

@@ -56,9 +56,7 @@ def test_issue61_reporting_selector_scope_uses_one_bounded_opaque_key() -> None:
     )
 
     assert len(key) == STORAGE_PATH_KEY_MAX_LENGTH
-    assert relative == (
-        f"classes/english_12/modules/meridian/rs/{key}/current.json"
-    )
+    assert relative == (f"classes/english_12/modules/meridian/rs/{key}/current.json")
     assert "quarter_grade_report" not in relative
     assert "2026-2027" not in relative
     assert "mp1" not in relative

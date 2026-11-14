@@ -68,11 +68,7 @@ def _item(
     value: object,
     standards: tuple[str, ...] = (),
 ) -> object:
-    subject = (
-        None
-        if student_id is None
-        else SimpleNamespace(student_id=student_id)
-    )
+    subject = None if student_id is None else SimpleNamespace(student_id=student_id)
     return SimpleNamespace(
         item_id=item_id,
         subject=subject,

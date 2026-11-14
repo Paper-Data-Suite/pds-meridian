@@ -118,23 +118,17 @@ class GroupingSignalDerivationSerializationError(GroupingSignalDerivationError):
 class GroupingSignalDerivationBlockedError(GroupingSignalDerivationError):
     """Raised when selected policy semantics block a pure class derivation."""
 
-    blocking_students: tuple[
-        tuple[str, GroupingSignalDerivationSourceState], ...
-    ]
+    blocking_students: tuple[tuple[str, GroupingSignalDerivationSourceState], ...]
 
     def __init__(
         self,
-        blocking_students: Iterable[
-            tuple[str, GroupingSignalDerivationSourceState]
-        ],
+        blocking_students: Iterable[tuple[str, GroupingSignalDerivationSourceState]],
     ) -> None:
         blockers = tuple(sorted(blocking_students, key=lambda item: item[0]))
         if not blockers:
             raise ValueError("blocking_students must not be empty.")
         self.blocking_students = blockers
-        summary = ", ".join(
-            f"{student_id}:{state}" for student_id, state in blockers
-        )
+        summary = ", ".join(f"{student_id}:{state}" for student_id, state in blockers)
         super().__init__(f"grouping-signal derivation is blocked: {summary}")
 
 
@@ -191,8 +185,7 @@ class GroupingSignalResolvedStudentResult:
         if result is not None:
             if not isinstance(result, AcademicPeriodProficiencyResultSnapshot):
                 raise GroupingSignalDerivationValidationError(
-                    "result must be an AcademicPeriodProficiencyResultSnapshot "
-                    "or None."
+                    "result must be an AcademicPeriodProficiencyResultSnapshot or None."
                 )
             try:
                 reference = academic_period_proficiency_result_reference(result)
@@ -416,9 +409,7 @@ def grouping_signal_roster_basis(
         _identifier(item, "student_id") for item in exact_student_ids
     )
     if not exact_student_ids:
-        raise GroupingSignalDerivationValidationError(
-            "student_ids must not be empty."
-        )
+        raise GroupingSignalDerivationValidationError("student_ids must not be empty.")
     if len(set(exact_student_ids)) != len(exact_student_ids):
         raise GroupingSignalDerivationValidationError(
             "student_ids must not contain duplicates."
@@ -464,9 +455,7 @@ def grouping_signal_derivation_calculation_fingerprint(
             "student_id": item.student_id,
             "source_state": item.source_state,
             "source_result": (
-                academic_period_proficiency_result_reference_to_dict(
-                    item.source_result
-                )
+                academic_period_proficiency_result_reference_to_dict(item.source_result)
                 if item.source_result is not None
                 else None
             ),
@@ -542,9 +531,7 @@ def derive_grouping_signal_snapshot(
         )
 
     resolved = _resolved_students(resolved_students, roster_basis)
-    level_positions = {
-        level.level_id: level.position for level in exact_scale.levels
-    }
+    level_positions = {level.level_id: level.position for level in exact_scale.levels}
     student_derivations: list[GroupingSignalStudentDerivation] = []
     blockers: list[tuple[str, GroupingSignalDerivationSourceState]] = []
 
@@ -592,8 +579,7 @@ def derive_grouping_signal_snapshot(
         level_id = result.outcome.proficiency_level_id
         if level_id is None or level_id not in level_positions:
             raise GroupingSignalDerivationValidationError(
-                "calculated #35 result must identify a level on the exact target "
-                "scale."
+                "calculated #35 result must identify a level on the exact target scale."
             )
         scale_position = level_positions[level_id]
         band = _band_for_position(exact_policy, scale_position)
@@ -659,9 +645,7 @@ def grouping_signal_derivation_snapshot_to_dict(
         "policy_reference": grouping_signal_derivation_policy_reference_to_dict(
             snapshot.policy_reference
         ),
-        "roster_basis": grouping_signal_roster_basis_to_dict(
-            snapshot.roster_basis
-        ),
+        "roster_basis": grouping_signal_roster_basis_to_dict(snapshot.roster_basis),
         "dimension_id": snapshot.dimension_id,
         "band_count": snapshot.band_count,
         "student_derivations": [
@@ -693,14 +677,11 @@ def grouping_signal_derivation_snapshot_from_dict(
         policy_reference=grouping_signal_derivation_policy_reference_from_dict(
             mapping["policy_reference"]
         ),
-        roster_basis=grouping_signal_roster_basis_from_dict(
-            mapping["roster_basis"]
-        ),
+        roster_basis=grouping_signal_roster_basis_from_dict(mapping["roster_basis"]),
         dimension_id=_require_str(mapping["dimension_id"], "dimension_id"),
         band_count=_require_int(mapping["band_count"], "band_count"),
         student_derivations=tuple(
-            grouping_signal_student_derivation_from_dict(item)
-            for item in student_data
+            grouping_signal_student_derivation_from_dict(item) for item in student_data
         ),
         calculation_fingerprint=_require_str(
             mapping["calculation_fingerprint"],
@@ -844,9 +825,7 @@ def grouping_signal_student_derivation_to_dict(
         "source_state": value.source_state,
         "disposition": value.disposition,
         "source_result": (
-            academic_period_proficiency_result_reference_to_dict(
-                value.source_result
-            )
+            academic_period_proficiency_result_reference_to_dict(value.source_result)
             if value.source_result is not None
             else None
         ),
@@ -1033,9 +1012,7 @@ def _disposition(value: object) -> GroupingSignalDerivationDisposition:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalDerivationValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalDerivationValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -1132,9 +1109,7 @@ def _exact_mapping(
     label: str,
 ) -> dict[str, object]:
     if not isinstance(data, dict):
-        raise GroupingSignalDerivationValidationError(
-            f"{label} must be a JSON object."
-        )
+        raise GroupingSignalDerivationValidationError(f"{label} must be a JSON object.")
     keys = frozenset(data)
     if keys != expected_keys:
         missing = sorted(expected_keys - keys)
@@ -1160,9 +1135,7 @@ def _require_list(value: object, field_name: str) -> list[object]:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalDerivationValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalDerivationValidationError(f"{field_name} must be a string.")
     return value
 
 

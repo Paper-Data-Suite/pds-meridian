@@ -215,9 +215,7 @@ class GradeReportPreview:
             raise GradePreviewTargetError(
                 "report preview must not contain duplicate exact Grade targets."
             )
-        canonical = tuple(
-            sorted(self.rows, key=lambda row: _target_key(row.target))
-        )
+        canonical = tuple(sorted(self.rows, key=lambda row: _target_key(row.target)))
         if canonical != self.rows:
             raise GradePreviewTargetError(
                 "report preview rows must use deterministic canonical target order."
@@ -307,7 +305,7 @@ def grade_report_preview_to_dict(value: GradeReportPreview) -> dict[str, object]
                 ),
             }
             for row in value.rows
-        ]
+        ],
     }
 
 
@@ -333,15 +331,11 @@ def _report_summary(
         base_calculated_count=sum(
             item.base_result_status == "calculated" for item in common
         ),
-        base_blocked_count=sum(
-            item.base_result_status == "blocked" for item in common
-        ),
+        base_blocked_count=sum(item.base_result_status == "blocked" for item in common),
         base_insufficient_count=sum(
             item.base_result_status == "insufficient" for item in common
         ),
-        current_count=sum(
-            item.base_freshness_status == "current" for item in common
-        ),
+        current_count=sum(item.base_freshness_status == "current" for item in common),
         stale_count=sum(item.base_freshness_status == "stale" for item in common),
         effective_numeric_count=sum(
             item.effective_grade is not None for item in common

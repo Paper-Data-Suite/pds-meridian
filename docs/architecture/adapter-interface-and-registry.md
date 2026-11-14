@@ -246,6 +246,7 @@ reported as `adapters.capability_unsupported`, not adapter-missing.
 @property
 def descriptor(self) -> AdapterDescriptor: ...
 
+
 def project(self, request: AdapterProjectionRequest) -> EvidenceInventory: ...
 ```
 

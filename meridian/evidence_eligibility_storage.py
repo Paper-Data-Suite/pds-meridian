@@ -69,9 +69,7 @@ EvidenceEligibilityResolutionStatus: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -414,9 +412,12 @@ def evidence_eligibility_revision_path(
     eligibility_revision: int,
 ) -> Path:
     revision = _positive_int(eligibility_revision, "eligibility_revision")
-    return evidence_eligibility_revisions_directory(
-        workspace_root, class_id, grade_item_id, source
-    ) / f"{revision}.json"
+    return (
+        evidence_eligibility_revisions_directory(
+            workspace_root, class_id, grade_item_id, source
+        )
+        / f"{revision}.json"
+    )
 
 
 def evidence_eligibility_revision_digest_path(
@@ -446,9 +447,12 @@ def evidence_eligibility_current_path(
     grade_item_id: str,
     source: EvidenceSourceReference,
 ) -> Path:
-    return evidence_eligibility_source_directory(
-        workspace_root, class_id, grade_item_id, source
-    ) / "current.json"
+    return (
+        evidence_eligibility_source_directory(
+            workspace_root, class_id, grade_item_id, source
+        )
+        / "current.json"
+    )
 
 
 def evidence_eligibility_revision_relative_path(
@@ -470,10 +474,7 @@ def evidence_eligibility_revision_relative_path(
         item,
         validated,
     )
-    return (
-        f"classes/{class_value}/modules/meridian/elig/"
-        f"{key}/{revision}.json"
-    )
+    return f"classes/{class_value}/modules/meridian/elig/{key}/{revision}.json"
 
 
 def observe_evidence_source_state(
@@ -849,10 +850,7 @@ def list_evidence_eligibility_sources(
             class_value,
             source_dir,
         )
-        if (
-            decision.grade_item_id != item
-            or decision.source.work != validated_work
-        ):
+        if decision.grade_item_id != item or decision.source.work != validated_work:
             continue
         list_evidence_eligibility_revisions(
             root,
@@ -1077,9 +1075,7 @@ def select_evidence_eligibility_revision(
         current = _load_current_selection(
             root, class_value, item, validated_source, missing_ok=True
         )
-        current_revision = (
-            current.eligibility_revision if current is not None else None
-        )
+        current_revision = current.eligibility_revision if current is not None else None
         if current_revision != expected:
             raise EvidenceEligibilityStorageConflictError(
                 "Expected current eligibility revision does not match stored selection."
@@ -1141,9 +1137,7 @@ def resolve_current_evidence_eligibility(
         workspace_root, class_id, grade_item_id, validated_source
     )
     try:
-        current_source = observe_evidence_source_state(
-            workspace_root, validated_source
-        )
+        current_source = observe_evidence_source_state(workspace_root, validated_source)
     except EvidenceEligibilityDependencyError:
         return EvidenceEligibilityResolution(
             status="source_unverifiable",
@@ -1309,9 +1303,7 @@ def _current_selection_from_json_bytes(
             eligibility_revision=_positive_int(
                 decoded["eligibility_revision"], "eligibility_revision"
             ),
-            decision_sha256=_pointer_str(
-                decoded["decision_sha256"], "decision_sha256"
-            ),
+            decision_sha256=_pointer_str(decoded["decision_sha256"], "decision_sha256"),
         )
     except EvidenceEligibilityStorageValidationError as error:
         raise EvidenceEligibilityStorageIntegrityError(
@@ -1730,9 +1722,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _work(value: object) -> ModuleWorkRef:
     if not isinstance(value, ModuleWorkRef):
-        raise EvidenceEligibilityStorageValidationError(
-            "work must be a ModuleWorkRef."
-        )
+        raise EvidenceEligibilityStorageValidationError("work must be a ModuleWorkRef.")
     try:
         return validate_module_work_ref(value)
     except RoutingModelError as error:

@@ -114,9 +114,7 @@ def _scale() -> ScoringScaleProjection:
 
 def _criterion_set(full: bool) -> CriterionSetProjection:
     criterion_ids = (
-        ("criterion_local", "criterion_standard")
-        if full
-        else ("criterion_local",)
+        ("criterion_local", "criterion_standard") if full else ("criterion_local",)
     )
     return CriterionSetProjection(
         criterion_set_id="criterion_set_1",

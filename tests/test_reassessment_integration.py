@@ -82,14 +82,10 @@ def decision() -> ReassessmentDecision:
         work=WORK,
         student_id="student_1",
         attempt_selection=AttemptSelectionDecisionReference(1, ATTEMPT_DIGEST),
-        policy=ReassessmentPolicyReference(
-            "teacher_reassessment", 1, POLICY_DIGEST
-        ),
+        policy=ReassessmentPolicyReference("teacher_reassessment", 1, POLICY_DIGEST),
         mode="replace",
         contributing_attempts=(attempt(2),),
-        replacement_relationships=(
-            ReplacementRelationship(attempt(2), (attempt(1),)),
-        ),
+        replacement_relationships=(ReplacementRelationship(attempt(2), (attempt(1),)),),
         combinations=(),
         recency_order=(),
         decision_revision=1,
@@ -306,10 +302,6 @@ def test_no_native_value_or_timestamp_drives_relationship_choice() -> None:
     reverse = replace(
         decision(),
         contributing_attempts=(attempt(1),),
-        replacement_relationships=(
-            ReplacementRelationship(attempt(1), (attempt(2),)),
-        ),
+        replacement_relationships=(ReplacementRelationship(attempt(1), (attempt(2),)),),
     )
-    storage._validate_relationships_against_selected(
-        reverse, (attempt(1), attempt(2))
-    )
+    storage._validate_relationships_against_selected(reverse, (attempt(1), attempt(2)))

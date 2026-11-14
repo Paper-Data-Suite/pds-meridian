@@ -43,15 +43,10 @@ class PlanningSignalCoreExportCommitDependencyError(
 ):
     """Raised when canonical Core/export state cannot be reconciled safely."""
 
-    code = (
-        "teacher_workflow.create_planning_signal."
-        "core_export_commit_dependency_error"
-    )
+    code = "teacher_workflow.create_planning_signal.core_export_commit_dependency_error"
 
 
-class PlanningSignalCoreExportCommitStaleError(
-    PlanningSignalCoreExportCommitError
-):
+class PlanningSignalCoreExportCommitStaleError(PlanningSignalCoreExportCommitError):
     """Raised when exact selected-review authorization changed before export."""
 
     code = "teacher_workflow.create_planning_signal.core_export_commit_stale"
@@ -76,10 +71,7 @@ class PlanningSignalCoreExportCommitPartialSuccessError(
 ):
     """Core is durable and exact, but Meridian receipt persistence failed."""
 
-    code = (
-        "teacher_workflow.create_planning_signal."
-        "core_export_commit_partial_success"
-    )
+    code = "teacher_workflow.create_planning_signal.core_export_commit_partial_success"
 
     signal_set_id: str
     core_digest_algorithm: str

@@ -130,9 +130,7 @@ AcademicPeriodProficiencyStalenessReason: TypeAlias = Literal[
     "algorithm_changed",
 ]
 
-_ACADEMIC_PERIOD_MEMBERSHIP_SCOPES: Final[
-    tuple[AcademicPeriodMembershipScope, ...]
-] = (
+_ACADEMIC_PERIOD_MEMBERSHIP_SCOPES: Final[tuple[AcademicPeriodMembershipScope, ...]] = (
     "direct",
     "descendants",
 )
@@ -230,9 +228,7 @@ _SCALE_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
 )
 _ACTOR_KEYS: Final[frozenset[str]] = frozenset({"kind", "actor_id"})
 
-_TARGET_PERIOD_KEYS: Final[frozenset[str]] = frozenset(
-    {"period", "calendar_revision"}
-)
+_TARGET_PERIOD_KEYS: Final[frozenset[str]] = frozenset({"period", "calendar_revision"})
 _GRADE_ITEM_BASIS_KEYS: Final[frozenset[str]] = frozenset(
     {
         "class_id",
@@ -535,7 +531,6 @@ class AcademicPeriodProficiencyAggregationPolicyReference:
         )
 
 
-
 @dataclass(frozen=True, slots=True)
 class AcademicPeriodProficiencyTarget:
     "Exact Core Academic Period Calendar revision and period target."
@@ -700,8 +695,6 @@ class ResolvedAcademicPeriodProficiencyCandidate:
             _validate_result_membership_provenance(memberships, result)
 
 
-
-
 @dataclass(frozen=True, slots=True)
 class AcademicPeriodProficiencyAggregationInputEntry:
     "One exact Grade Item candidate normalized for later pure #35 calculation."
@@ -747,8 +740,7 @@ class AcademicPeriodProficiencyAggregationInputEntry:
             StandardProficiencyResultReference,
         ):
             raise AcademicPeriodProficiencyValidationError(
-                "result_reference must be a StandardProficiencyResultReference "
-                "or None."
+                "result_reference must be a StandardProficiencyResultReference or None."
             )
         has_result = result_reference is not None
         algorithm_version = self.result_algorithm_version
@@ -800,8 +792,7 @@ class AcademicPeriodProficiencyAggregationInputEntry:
                 )
             if (
                 result_reference.class_id != self.grade_item.class_id
-                or result_reference.grade_item_id
-                != self.grade_item.grade_item_id
+                or result_reference.grade_item_id != self.grade_item.grade_item_id
             ):
                 raise AcademicPeriodProficiencyValidationError(
                     "result_reference must match the exact Grade Item basis scope."
@@ -951,7 +942,6 @@ class AcademicPeriodProficiencyAggregationInputs:
         return academic_period_proficiency_aggregation_inputs_sha256(self)
 
 
-
 @dataclass(frozen=True, slots=True)
 class AcademicPeriodProficiencyInsufficiencyReason:
     "Structured reason why one exact #35 calculation cannot yield proficiency."
@@ -1055,9 +1045,7 @@ class AcademicPeriodProficiencyEntryExplanation:
         level_id = self.proficiency_level_id
         if level_id is not None:
             level_id = _identifier(level_id, "proficiency_level_id")
-        mismatch = _optional_scope_mismatch_reason(
-            self.period_scope_mismatch_reason
-        )
+        mismatch = _optional_scope_mismatch_reason(self.period_scope_mismatch_reason)
 
         if status == "calculated":
             if reference is None or level_id is None or mismatch is not None:
@@ -1186,10 +1174,7 @@ class AcademicPeriodProficiencyCalculationOutcome:
             "period_scope_mismatch_count",
         )
         if (
-            calculated_count
-            + insufficient_count
-            + missing_count
-            + mismatch_count
+            calculated_count + insufficient_count + missing_count + mismatch_count
             != candidate_count
         ):
             raise AcademicPeriodProficiencyValidationError(
@@ -1198,8 +1183,7 @@ class AcademicPeriodProficiencyCalculationOutcome:
 
         level_counts = tuple(self.level_counts)
         if any(
-            not isinstance(item, StandardProficiencyLevelCount)
-            for item in level_counts
+            not isinstance(item, StandardProficiencyLevelCount) for item in level_counts
         ):
             raise AcademicPeriodProficiencyValidationError(
                 "level_counts contains an invalid level count."
@@ -1244,9 +1228,7 @@ class AcademicPeriodProficiencyCalculationOutcome:
             raise AcademicPeriodProficiencyValidationError(
                 "explanation_entries must use deterministic Grade Item ordering."
             )
-        explanation_status_counts = Counter(
-            item.status for item in explanations
-        )
+        explanation_status_counts = Counter(item.status for item in explanations)
         if (
             explanation_status_counts.get("calculated", 0) != calculated_count
             or explanation_status_counts.get("insufficient_evidence", 0)
@@ -1326,10 +1308,7 @@ class AcademicPeriodProficiencyCalculationOutcome:
 
 def is_academic_period_membership_scope(value: object) -> bool:
     "Return whether *value* is one exact #35 period-membership scope."
-    return (
-        isinstance(value, str)
-        and value in _ACADEMIC_PERIOD_MEMBERSHIP_SCOPES
-    )
+    return isinstance(value, str) and value in _ACADEMIC_PERIOD_MEMBERSHIP_SCOPES
 
 
 def is_period_result_handling(value: object) -> bool:
@@ -1385,9 +1364,7 @@ def academic_period_proficiency_aggregation_policy_reference(
         class_id=value.class_id,
         policy_id=value.policy_id,
         policy_revision=value.policy_revision,
-        policy_sha256=academic_period_proficiency_aggregation_policy_sha256(
-            value
-        ),
+        policy_sha256=academic_period_proficiency_aggregation_policy_sha256(value),
     )
 
 
@@ -1549,8 +1526,6 @@ def academic_period_proficiency_aggregation_policy_reference_from_dict(
         ),
         policy_sha256=_require_str(mapping["policy_sha256"], "policy_sha256"),
     )
-
-
 
 
 def academic_period_proficiency_membership_basis_from_decision(
@@ -1777,7 +1752,6 @@ def build_academic_period_proficiency_aggregation_inputs(
     )
 
 
-
 def resolve_academic_period_proficiency_scope(
     target_period: AcademicPeriodProficiencyTarget,
     calendar: AcademicPeriodCalendar,
@@ -1844,8 +1818,7 @@ def resolve_academic_period_proficiency_scope(
         )
 
     if any(
-        membership.academic_period.period.school_year
-        != target.period.school_year
+        membership.academic_period.period.school_year != target.period.school_year
         for membership in membership_values
     ):
         return AcademicPeriodProficiencyScopeResolution(
@@ -1854,8 +1827,7 @@ def resolve_academic_period_proficiency_scope(
         )
 
     if any(
-        membership.academic_period.calendar_revision
-        != target.calendar_revision
+        membership.academic_period.calendar_revision != target.calendar_revision
         for membership in membership_values
     ):
         return AcademicPeriodProficiencyScopeResolution(
@@ -1864,8 +1836,7 @@ def resolve_academic_period_proficiency_scope(
         )
 
     membership_period_ids = tuple(
-        membership.academic_period.period.period_id
-        for membership in membership_values
+        membership.academic_period.period.period_id for membership in membership_values
     )
     missing_period_ids = sorted(
         {period_id for period_id in membership_period_ids if period_id not in by_id}
@@ -1873,16 +1844,13 @@ def resolve_academic_period_proficiency_scope(
     if missing_period_ids:
         raise AcademicPeriodProficiencyValidationError(
             "membership basis references a period missing from the exact "
-            "calendar revision: "
-            + ", ".join(missing_period_ids)
-            + "."
+            "calendar revision: " + ", ".join(missing_period_ids) + "."
         )
 
     target_period_id = target.period.period_id
     if scope == "direct":
         eligible = all(
-            period_id == target_period_id
-            for period_id in membership_period_ids
+            period_id == target_period_id for period_id in membership_period_ids
         )
     else:
         eligible = all(
@@ -1975,9 +1943,7 @@ def academic_period_proficiency_membership_basis_to_dict(
         "grade_item_id": value.grade_item_id,
         "grade_item_revision": value.grade_item_revision,
         "grade_item_revision_sha256": value.grade_item_revision_sha256,
-        "work_reference": grade_item_work_reference_to_dict(
-            value.work_reference
-        ),
+        "work_reference": grade_item_work_reference_to_dict(value.work_reference),
         "membership_revision": value.membership_revision,
         "membership_sha256": value.membership_sha256,
         "academic_period": academic_period_proficiency_target_to_dict(
@@ -1995,9 +1961,7 @@ def academic_period_proficiency_membership_basis_from_dict(
         "Academic Period proficiency membership basis",
     )
     try:
-        work_reference = grade_item_work_reference_from_dict(
-            mapping["work_reference"]
-        )
+        work_reference = grade_item_work_reference_from_dict(mapping["work_reference"])
     except GradeItemValidationError as error:
         raise AcademicPeriodProficiencyValidationError(
             f"membership work_reference is invalid: {error}"
@@ -2192,8 +2156,6 @@ def academic_period_proficiency_aggregation_inputs_sha256(
     return hashlib.sha256(
         academic_period_proficiency_aggregation_inputs_to_json_bytes(value)
     ).hexdigest()
-
-
 
 
 @dataclass(frozen=True, slots=True)
@@ -2617,7 +2579,6 @@ def calculate_academic_period_proficiency(
     )
 
 
-
 def create_academic_period_proficiency_result_snapshot(
     inputs: AcademicPeriodProficiencyAggregationInputs,
     outcome: AcademicPeriodProficiencyCalculationOutcome,
@@ -2723,9 +2684,7 @@ def academic_period_proficiency_result_snapshot_to_dict(
         "supersedes_revision": value.supersedes_revision,
         "algorithm_version": value.algorithm_version,
         "calculation_fingerprint": value.calculation_fingerprint,
-        "inputs": academic_period_proficiency_aggregation_inputs_to_dict(
-            value.inputs
-        ),
+        "inputs": academic_period_proficiency_aggregation_inputs_to_dict(value.inputs),
         "inputs_sha256": value.inputs_sha256,
         "policy_reference": (
             academic_period_proficiency_aggregation_policy_reference_to_dict(
@@ -3007,9 +2966,7 @@ def academic_period_proficiency_calculation_outcome_to_dict(
             else {
                 "kind": value.tie_resolution.kind,
                 "rule": value.tie_resolution.rule,
-                "candidate_level_ids": list(
-                    value.tie_resolution.candidate_level_ids
-                ),
+                "candidate_level_ids": list(value.tie_resolution.candidate_level_ids),
                 "selected_level_id": value.tie_resolution.selected_level_id,
             }
         ),
@@ -3254,9 +3211,7 @@ def _apply_academic_period_median_strategy(
         reason = None
     else:
         selected = None
-        reason = AcademicPeriodProficiencyInsufficiencyReason(
-            "unresolved_even_median"
-        )
+        reason = AcademicPeriodProficiencyInsufficiencyReason("unresolved_even_median")
     return (
         selected,
         StandardProficiencyTieResolution(
@@ -3282,11 +3237,7 @@ def _apply_academic_period_mode_strategy(
     maximum = max(counts.values())
     candidates = tuple(
         sorted(
-            (
-                level_id
-                for level_id, count in counts.items()
-                if count == maximum
-            ),
+            (level_id for level_id, count in counts.items() if count == maximum),
             key=positions.__getitem__,
         )
     )
@@ -3306,9 +3257,7 @@ def _apply_academic_period_mode_strategy(
         reason = None
     else:
         selected = None
-        reason = AcademicPeriodProficiencyInsufficiencyReason(
-            "unresolved_mode_tie"
-        )
+        reason = AcademicPeriodProficiencyInsufficiencyReason("unresolved_mode_tie")
     return (
         selected,
         StandardProficiencyTieResolution(
@@ -3367,9 +3316,7 @@ def _academic_period_explanation_entry_to_dict(
         "result_reference": (
             None
             if value.result_reference is None
-            else standard_proficiency_result_reference_to_dict(
-                value.result_reference
-            )
+            else standard_proficiency_result_reference_to_dict(value.result_reference)
         ),
         "proficiency_level_id": value.proficiency_level_id,
         "period_scope_mismatch_reason": value.period_scope_mismatch_reason,
@@ -3530,11 +3477,8 @@ def _optional_result_status(
         "calculated",
         "insufficient_evidence",
     }:
-        raise AcademicPeriodProficiencyValidationError(
-            "unsupported #34 result status."
-        )
+        raise AcademicPeriodProficiencyValidationError("unsupported #34 result status.")
     return cast(StandardProficiencyCalculationStatus, value)
-
 
 
 def _academic_period_calculation_status(
@@ -3550,10 +3494,7 @@ def _academic_period_calculation_status(
 def _academic_period_insufficiency_kind(
     value: object,
 ) -> AcademicPeriodProficiencyInsufficiencyKind:
-    if (
-        not isinstance(value, str)
-        or value not in _ACADEMIC_PERIOD_INSUFFICIENCY_KINDS
-    ):
+    if not isinstance(value, str) or value not in _ACADEMIC_PERIOD_INSUFFICIENCY_KINDS:
         raise AcademicPeriodProficiencyValidationError(
             "unsupported Academic Period proficiency insufficiency reason."
         )
@@ -3574,7 +3515,6 @@ def _tie_rule(value: object) -> Literal["lower", "higher", "insufficient"]:
             "unsupported Academic Period proficiency tie rule."
         )
     return value
-
 
 
 def _validate_result_membership_provenance(
@@ -3671,7 +3611,6 @@ def _validated_memberships_for_grade_item(
     return typed
 
 
-
 def _strategy(value: object) -> StandardProficiencyStrategy:
     if not isinstance(value, str) or value not in _STRATEGIES:
         raise AcademicPeriodProficiencyValidationError(
@@ -3737,7 +3676,6 @@ def _identifier(value: object, field_name: str) -> str:
         raise AcademicPeriodProficiencyValidationError(str(error)) from error
 
 
-
 def _standard_id(value: object) -> str:
     try:
         return normalize_standard_id(value)
@@ -3787,8 +3725,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} exceeds the maximum length of {maximum}."
         )
     if any(
-        character in "\r\n\0"
-        or unicodedata.category(character) == "Cc"
+        character in "\r\n\0" or unicodedata.category(character) == "Cc"
         for character in value
     ):
         raise AcademicPeriodProficiencyValidationError(
@@ -3841,8 +3778,7 @@ def _academic_period_staleness_reasons(
             "freshness reasons must not contain duplicates."
         )
     invalid = sorted(
-        set(cast(tuple[str, ...], raw))
-        - _ACADEMIC_PERIOD_STALENESS_REASON_SET
+        set(cast(tuple[str, ...], raw)) - _ACADEMIC_PERIOD_STALENESS_REASON_SET
     )
     if invalid:
         raise AcademicPeriodProficiencyValidationError(
@@ -3854,7 +3790,6 @@ def _academic_period_staleness_reasons(
         for reason in _ACADEMIC_PERIOD_STALENESS_REASON_ORDER
         if reason in selected
     )
-
 
 
 def _sha256(value: object, field_name: str) -> str:
@@ -3927,13 +3862,9 @@ def _exact_mapping(
     label: str,
 ) -> Mapping[str, object]:
     if not isinstance(data, Mapping):
-        raise AcademicPeriodProficiencyValidationError(
-            f"{label} must be an object."
-        )
+        raise AcademicPeriodProficiencyValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise AcademicPeriodProficiencyValidationError(
-            f"{label} keys must be strings."
-        )
+        raise AcademicPeriodProficiencyValidationError(f"{label} keys must be strings.")
     actual = frozenset(cast(str, key) for key in data)
     if actual != expected_keys:
         missing = sorted(expected_keys - actual)
@@ -3987,9 +3918,7 @@ def _optional_int(value: object, field_name: str) -> int | None:
 
 def _require_list(value: object, field_name: str) -> list[object]:
     if not isinstance(value, list):
-        raise AcademicPeriodProficiencyValidationError(
-            f"{field_name} must be a list."
-        )
+        raise AcademicPeriodProficiencyValidationError(f"{field_name} must be a list.")
     return value
 
 

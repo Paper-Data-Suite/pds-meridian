@@ -97,9 +97,7 @@ def inspect_academic_period_attention_for_class(
             active_school_year=active_school_year,
         )
         stale_count = sum(
-            1
-            for stored in selected
-            if _current_result_is_stale(workspace_root, stored)
+            1 for stored in selected if _current_result_is_stale(workspace_root, stored)
         )
     except (
         AcademicPeriodProficiencyStorageError,
@@ -247,9 +245,7 @@ def assess_selected_academic_period_proficiency_result_freshness(
             workspace_root,
             period.school_year,
         )
-        calendar_changed = (
-            current_calendar != snapshot.target_period.calendar_revision
-        )
+        calendar_changed = current_calendar != snapshot.target_period.calendar_revision
 
         policy_ref = snapshot.policy_reference
         current_policy = load_current_academic_period_proficiency_policy(
@@ -267,9 +263,7 @@ def assess_selected_academic_period_proficiency_result_freshness(
             snapshot.class_id,
             scale_ref.scale_id,
         )
-        scale_changed = (
-            current_scale is None or current_scale.reference != scale_ref
-        )
+        scale_changed = current_scale is None or current_scale.reference != scale_ref
 
         for entry in snapshot.inputs.entries:
             current_grade_item = load_current_grade_item_revision(
@@ -282,8 +276,7 @@ def assess_selected_academic_period_proficiency_result_freshness(
             else:
                 revision = current_grade_item.revision
                 if (
-                    revision.grade_item_revision
-                    != entry.grade_item.grade_item_revision
+                    revision.grade_item_revision != entry.grade_item.grade_item_revision
                     or current_grade_item.revision_sha256
                     != entry.grade_item.grade_item_revision_sha256
                 ):
@@ -308,8 +301,7 @@ def assess_selected_academic_period_proficiency_result_freshness(
                     != basis.grade_item_revision_sha256
                     or decision.work_reference != basis.work_reference
                     or decision.membership_revision != basis.membership_revision
-                    or current_membership.decision_sha256
-                    != basis.membership_sha256
+                    or current_membership.decision_sha256 != basis.membership_sha256
                     or assignment is None
                     or assignment.period != basis.academic_period.period
                     or assignment.calendar_revision
@@ -374,6 +366,7 @@ def _current_result_is_stale(
         ).status
         == "stale"
     )
+
 
 def _read_pointer(path: Path) -> dict[str, object]:
     try:

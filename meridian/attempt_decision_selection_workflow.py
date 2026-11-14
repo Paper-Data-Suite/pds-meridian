@@ -37,9 +37,7 @@ class AttemptDecisionSelectionScopeError(
     code = "teacher_workflow.attempt_decisions.decision_selection_invalid"
 
 
-class AttemptDecisionSelectionStaleError(
-    AttemptDecisionSelectionWorkflowError
-):
+class AttemptDecisionSelectionStaleError(AttemptDecisionSelectionWorkflowError):
     """Raised when reviewed decision dependencies changed before selection."""
 
     code = "teacher_workflow.attempt_decisions.decision_selection_stale"
@@ -59,9 +57,7 @@ class AttemptDecisionSelectionPreview:
 
     def __post_init__(self) -> None:
         if not isinstance(self.work, ModuleWorkRef):
-            raise AttemptDecisionSelectionScopeError(
-                "work must be a ModuleWorkRef."
-            )
+            raise AttemptDecisionSelectionScopeError("work must be a ModuleWorkRef.")
         if self.work.class_id != self.class_id:
             raise AttemptDecisionSelectionScopeError(
                 "work.class_id must match class_id."
@@ -147,10 +143,8 @@ def _validate_live_target_dependencies(
     if (
         membership is None
         or membership.decision.decision != "included"
-        or membership.decision.membership_revision
-        != decision.membership_revision
-        or membership.decision_sha256
-        != decision.membership_revision_sha256
+        or membership.decision.membership_revision != decision.membership_revision
+        or membership.decision_sha256 != decision.membership_revision_sha256
     ):
         raise AttemptDecisionSelectionStaleError(
             "Target decision membership basis is not current and included."
@@ -324,13 +318,9 @@ def commit_attempt_decision_selection_preview(
         preview.student_id,
         preview.target_revision,
         authorized_snapshot=authorized_snapshot,
-        expected_current_decision_revision=(
-            preview.expected_current_decision_revision
-        ),
+        expected_current_decision_revision=(preview.expected_current_decision_revision),
     )
     return AttemptDecisionSelectionWorkflowResult(
         selection_result=selection,
-        previous_current_decision_revision=(
-            preview.expected_current_decision_revision
-        ),
+        previous_current_decision_revision=(preview.expected_current_decision_revision),
     )

@@ -6,9 +6,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_issue56_architecture_document_freezes_export_boundary() -> None:
-    text = (
-        ROOT / "docs" / "architecture" / "reporting-exports.md"
-    ).read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "architecture" / "reporting-exports.md").read_text(
+        encoding="utf-8"
+    )
 
     required = (
         "exact immutable ReportingSnapshot",

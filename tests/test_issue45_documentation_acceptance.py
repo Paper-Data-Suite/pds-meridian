@@ -9,9 +9,7 @@ NEXT = "#46 final v0.2.0 audit — implemented; release preparation qualified"
 
 
 def test_issue45_documentation_is_release_guarded() -> None:
-    checker = Path("scripts/check_documentation.py").read_text(
-        encoding="utf-8"
-    )
+    checker = Path("scripts/check_documentation.py").read_text(encoding="utf-8")
     sdist = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     assert DOC in checker
     assert DOC in sdist
@@ -22,14 +20,8 @@ def test_issue45_handoff_is_current() -> None:
     targets = (
         Path("README"),
         Path("docs/README.md"),
-        Path(
-            "docs/architecture/"
-            "teacher-eligibility-proficiency-planning-workflows.md"
-        ),
-        Path(
-            "docs/architecture/"
-            "proficiency-planning-export-explanation-traces.md"
-        ),
+        Path("docs/architecture/teacher-eligibility-proficiency-planning-workflows.md"),
+        Path("docs/architecture/proficiency-planning-export-explanation-traces.md"),
         Path("docs/architecture/proficiency-attention-summaries.md"),
         Path("docs/architecture/cross-producer-proficiency-scenarios.md"),
         Path(DOC),
@@ -71,6 +63,5 @@ def test_issue45_is_linked_from_release_docs() -> None:
 
     changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
     assert (
-        "Issue #45 installed proficiency and signal-export acceptance "
-        "without Concord"
+        "Issue #45 installed proficiency and signal-export acceptance without Concord"
     ) in changelog

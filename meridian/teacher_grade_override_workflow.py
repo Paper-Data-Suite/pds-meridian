@@ -144,9 +144,7 @@ class TeacherGradeOverrideSourceIntegrityError(TeacherGradeOverrideWorkflowError
     code = "teacher_workflow.grade_override.source_integrity_invalid"
 
 
-class TeacherGradeOverrideSourceCurrentnessError(
-    TeacherGradeOverrideWorkflowError
-):
+class TeacherGradeOverrideSourceCurrentnessError(TeacherGradeOverrideWorkflowError):
     """Raised when the existing family freshness basis cannot be established."""
 
     code = "teacher_workflow.grade_override.source_currentness_unavailable"

@@ -68,10 +68,9 @@ def test_csv_export_uses_exact_stored_core_complete_signal_round_trip(
     reconstructed = grouping_signal_csv_to_signal_set(document)
     stored = load_grouping_signal(root, CLASS_ID, signal_set_id)
     assert reconstructed == stored.signal
-    assert (
-        grouping_signal_set_to_json_bytes(reconstructed)
-        == grouping_signal_set_to_json_bytes(stored.signal)
-    )
+    assert grouping_signal_set_to_json_bytes(
+        reconstructed
+    ) == grouping_signal_set_to_json_bytes(stored.signal)
     assert stored == exported.core.write_result.stored
 
 

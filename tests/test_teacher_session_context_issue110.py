@@ -176,16 +176,19 @@ def test_normal_child_return_preserves_context_until_terminal_exit() -> None:
     def grade_items() -> None:
         observed.append(session.active_work)
 
-    assert run_menu(
-        dependencies=_dependencies(
-            session,
-            review_new_evidence=review,
-            manage_grade_items=grade_items,
-        ),
-        input_fn=ScriptedInput("1", "2", "q"),
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(
+                session,
+                review_new_evidence=review,
+                manage_grade_items=grade_items,
+            ),
+            input_fn=ScriptedInput("1", "2", "q"),
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert observed == [_work()]
     assert session.active_class_id is None
@@ -203,16 +206,19 @@ def test_return_to_main_menu_preserves_context_until_terminal_exit() -> None:
     def grade_items() -> None:
         observed.append(session.active_work)
 
-    assert run_menu(
-        dependencies=_dependencies(
-            session,
-            review_new_evidence=review,
-            manage_grade_items=grade_items,
-        ),
-        input_fn=ScriptedInput("1", "2", "q"),
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(
+                session,
+                review_new_evidence=review,
+                manage_grade_items=grade_items,
+            ),
+            input_fn=ScriptedInput("1", "2", "q"),
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert observed == [_work()]
     assert session.active_class_id is None
@@ -226,12 +232,15 @@ def test_quit_from_child_discards_process_local_context() -> None:
         _populate(session)
         raise QuitPDS()
 
-    assert run_menu(
-        dependencies=_dependencies(session, review_new_evidence=review),
-        input_fn=ScriptedInput("1"),
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(session, review_new_evidence=review),
+            input_fn=ScriptedInput("1"),
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert session.active_class_id is None
     assert session.active_work is None
@@ -249,12 +258,15 @@ def test_terminal_exit_discards_existing_context(error: BaseException) -> None:
         _ = prompt
         raise error
 
-    assert run_menu(
-        dependencies=_dependencies(session),
-        input_fn=input_fn,
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(session),
+            input_fn=input_fn,
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert session.active_class_id is None
     assert session.active_work is None

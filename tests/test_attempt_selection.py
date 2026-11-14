@@ -130,7 +130,9 @@ def decision(
     chosen = (
         (values[0].attempt,)
         if selected is None and values
-        else () if selected is None else selected
+        else ()
+        if selected is None
+        else selected
     )
     return AttemptSelectionDecision(
         schema_version=ATTEMPT_SELECTION_DECISION_SCHEMA_VERSION,
@@ -161,10 +163,9 @@ def test_exact_attempt_identity_changes_with_snapshot() -> None:
     first = attempt(1)
     second = attempt(1, digest="7" * 64)
     assert first != second
-    assert (
-        attempt_observation_reference_to_json_bytes(first)
-        != attempt_observation_reference_to_json_bytes(second)
-    )
+    assert attempt_observation_reference_to_json_bytes(
+        first
+    ) != attempt_observation_reference_to_json_bytes(second)
 
 
 def test_native_identity_supports_identifier_or_sequence_but_not_empty() -> None:
@@ -322,22 +323,26 @@ def test_subject_key_is_deterministic_and_scope_specific() -> None:
     assert first == attempt_subject_key(CLASS_ID, GRADE_ITEM_ID, WORK, "student_1")
     assert first != attempt_subject_key(CLASS_ID, GRADE_ITEM_ID, WORK, "student_2")
     assert len(first) == 64
-    assert first == hashlib.sha256(
-        json.dumps(
-            {
-                "class_id": CLASS_ID,
-                "grade_item_id": GRADE_ITEM_ID,
-                "student_id": "student_1",
-                "work": {
+    assert (
+        first
+        == hashlib.sha256(
+            json.dumps(
+                {
                     "class_id": CLASS_ID,
-                    "module_id": "scoreform",
-                    "work_id": "test_1",
+                    "grade_item_id": GRADE_ITEM_ID,
+                    "student_id": "student_1",
+                    "work": {
+                        "class_id": CLASS_ID,
+                        "module_id": "scoreform",
+                        "work_id": "test_1",
+                    },
                 },
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-            allow_nan=False,
-            separators=(",", ": "),
-        ).encode() + b"\n"
-    ).hexdigest()
+                ensure_ascii=False,
+                sort_keys=True,
+                indent=2,
+                allow_nan=False,
+                separators=(",", ": "),
+            ).encode()
+            + b"\n"
+        ).hexdigest()
+    )

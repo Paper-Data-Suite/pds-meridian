@@ -286,9 +286,7 @@ def prepare_guided_evidence_projection(
     """Prepare whole-assignment evidence without teacher-entered infrastructure IDs."""
 
     if not isinstance(work, ModuleWorkRef):
-        raise GuidedProjectionPreparationError(
-            "The selected work context is invalid."
-        )
+        raise GuidedProjectionPreparationError("The selected work context is invalid.")
     if not isinstance(publication_id, str) or not publication_id:
         raise GuidedProjectionPreparationError(
             "The selected publication context is invalid."

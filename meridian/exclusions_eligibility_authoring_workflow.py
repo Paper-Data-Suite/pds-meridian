@@ -41,12 +41,8 @@ ExclusionAcademicDisposition: TypeAlias = Literal[
     "unsupported",
 ]
 
-_ACADEMIC_DISPOSITIONS = frozenset(
-    {"included", "excluded", "pending", "unsupported"}
-)
-_WITHDRAWN_SOURCE_STATES = frozenset(
-    {"withdrawn", "withdrawn_superseded"}
-)
+_ACADEMIC_DISPOSITIONS = frozenset({"included", "excluded", "pending", "unsupported"})
+_WITHDRAWN_SOURCE_STATES = frozenset({"withdrawn", "withdrawn_superseded"})
 
 
 class ExclusionEligibilityAuthoringError(RuntimeError):
@@ -63,9 +59,7 @@ class ExclusionEligibilityAuthoringScopeError(
     code = "teacher_workflow.exclusions.eligibility_authoring_invalid"
 
 
-class ExclusionEligibilityAuthoringStaleError(
-    ExclusionEligibilityAuthoringError
-):
+class ExclusionEligibilityAuthoringStaleError(ExclusionEligibilityAuthoringError):
     """Raised when reviewed state changed before immutable authoring."""
 
     code = "teacher_workflow.exclusions.eligibility_authoring_stale"
@@ -120,10 +114,7 @@ class ExclusionEligibilityAuthoringResult:
 
     @property
     def selection_changed_during_write(self) -> bool:
-        return (
-            self.selected_revision_before_write
-            != self.selected_revision_after_write
-        )
+        return self.selected_revision_before_write != self.selected_revision_after_write
 
     @property
     def selection_action(self) -> str:
@@ -218,9 +209,7 @@ def preview_exclusion_eligibility_authoring(
             membership_revision=membership.decision.membership_revision,
             membership_revision_sha256=membership.decision_sha256,
             eligibility_revision=next_revision,
-            supersedes_revision=(
-                None if next_revision == 1 else next_revision - 1
-            ),
+            supersedes_revision=(None if next_revision == 1 else next_revision - 1),
             disposition=disposition,
             actor=EvidenceDecisionActor(kind="teacher", actor_id=actor_id),
             policy=EvidenceEligibilityPolicyReference(
@@ -290,10 +279,8 @@ def commit_exclusion_eligibility_authoring_preview(
     if (
         membership is None
         or membership.decision.decision != "included"
-        or membership.decision.membership_revision
-        != preview.membership_revision
-        or membership.decision_sha256
-        != preview.membership_revision_sha256
+        or membership.decision.membership_revision != preview.membership_revision
+        or membership.decision_sha256 != preview.membership_revision_sha256
     ):
         raise ExclusionEligibilityAuthoringStaleError(
             "Grade Item membership changed after preview."
@@ -394,8 +381,7 @@ def _validate_request(
         )
     if disposition != "included" and not reason_codes:
         raise ExclusionEligibilityAuthoringScopeError(
-            "A non-included academic disposition requires at least one "
-            "reason code."
+            "A non-included academic disposition requires at least one reason code."
         )
 
 

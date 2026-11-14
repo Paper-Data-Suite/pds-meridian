@@ -118,9 +118,7 @@ class ReportingSnapshotSelectionConflictError(ReportingSnapshotSelectionError):
     code = "reporting_snapshot.selection_conflict"
 
 
-class ReportingSnapshotSelectionLockError(
-    ReportingSnapshotSelectionConflictError
-):
+class ReportingSnapshotSelectionLockError(ReportingSnapshotSelectionConflictError):
     """Raised when another selector writer owns the exact scope."""
 
     code = "reporting_snapshot.selection_locked"
@@ -132,9 +130,7 @@ class ReportingSnapshotSelectionIntegrityError(ReportingSnapshotSelectionError):
     code = "reporting_snapshot.selection_integrity_failed"
 
 
-class ReportingSnapshotSelectionTooLargeError(
-    ReportingSnapshotSelectionReadError
-):
+class ReportingSnapshotSelectionTooLargeError(ReportingSnapshotSelectionReadError):
     """Raised when current selector bytes exceed the configured bound."""
 
     code = "reporting_snapshot.selection_too_large"
@@ -560,20 +556,21 @@ def reporting_snapshot_selection_from_json_bytes(
 def reporting_snapshot_selection_sha256(
     value: ReportingSnapshotCurrentSelection,
 ) -> str:
-    return hashlib.sha256(
-        reporting_snapshot_selection_to_json_bytes(value)
-    ).hexdigest()
+    return hashlib.sha256(reporting_snapshot_selection_to_json_bytes(value)).hexdigest()
 
 
 def reporting_snapshot_selections_directory(
     workspace_root: str | Path,
     class_id: str,
 ) -> Path:
-    return class_module_dir(
-        workspace_root,
-        _identifier(class_id, "class_id"),
-        "meridian",
-    ) / "rs"
+    return (
+        class_module_dir(
+            workspace_root,
+            _identifier(class_id, "class_id"),
+            "meridian",
+        )
+        / "rs"
+    )
 
 
 def reporting_snapshot_selection_scope_key(
@@ -623,13 +620,16 @@ def reporting_snapshot_selection_current_path(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
 ) -> Path:
-    return reporting_snapshot_selection_scope_directory(
-        workspace_root,
-        class_id,
-        definition_id,
-        target_period,
-        calendar_revision,
-    ) / "current.json"
+    return (
+        reporting_snapshot_selection_scope_directory(
+            workspace_root,
+            class_id,
+            definition_id,
+            target_period,
+            calendar_revision,
+        )
+        / "current.json"
+    )
 
 
 def reporting_snapshot_selection_relative_path(
@@ -645,10 +645,7 @@ def reporting_snapshot_selection_relative_path(
         target_period,
         calendar_revision,
     )
-    return (
-        f"classes/{class_value}/modules/meridian/rs/"
-        f"{scope_key}/current.json"
-    )
+    return f"classes/{class_value}/modules/meridian/rs/{scope_key}/current.json"
 
 
 def get_current_reporting_snapshot_selection_reference(
@@ -796,9 +793,7 @@ def select_reporting_snapshot(
         snapshot_sha256=snapshot_reference.snapshot_sha256,
     )
     if not isinstance(actor, ReportingActor):
-        raise ReportingSnapshotSelectionValidationError(
-            "actor must be ReportingActor."
-        )
+        raise ReportingSnapshotSelectionValidationError("actor must be ReportingActor.")
     selected_actor = ReportingActor(actor.kind, actor.actor_id)
     selected_rationale = _optional_bounded_text(
         rationale,

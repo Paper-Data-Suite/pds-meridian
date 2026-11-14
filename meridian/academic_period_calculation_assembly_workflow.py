@@ -288,9 +288,7 @@ def build_bounded_academic_period_calculation_preview(
             candidates=tuple(resolved),
         )
     except AcademicPeriodProficiencyValidationError as error:
-        raise AcademicPeriodCalculationAssemblyDependencyError(
-            str(error)
-        ) from error
+        raise AcademicPeriodCalculationAssemblyDependencyError(str(error)) from error
 
     calculation = build_academic_period_calculation_preview_projection(
         workspace_root,
@@ -373,8 +371,7 @@ def _validate_candidate_spec(
         )
     _validate_sha(spec.grade_item_revision_sha256, "grade_item_revision_sha256")
     if not isinstance(spec.memberships, tuple) or any(
-        not isinstance(item, AcademicPeriodMembershipSpec)
-        for item in spec.memberships
+        not isinstance(item, AcademicPeriodMembershipSpec) for item in spec.memberships
     ):
         raise AcademicPeriodCalculationAssemblyScopeError(
             "candidate memberships must be a tuple of exact "

@@ -300,10 +300,7 @@ def test_blocked_evidence_explains_reason_without_replacing_work_selection() -> 
 
     assert session.active_class_id == "english_10_pd4"
     assert session.active_work == existing
-    assert (
-        session.active_publication_id
-        == "pub_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-    )
+    assert session.active_publication_id == "pub_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
     rendered = output.getvalue()
     assert "Evidence Not Ready" in rendered

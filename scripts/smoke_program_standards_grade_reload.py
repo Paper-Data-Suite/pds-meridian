@@ -114,8 +114,7 @@ def main() -> int:
         "Fresh-process result digest changed.",
     )
     _require(
-        current.snapshot.calculation_fingerprint
-        == baseline["calculation_fingerprint"],
+        current.snapshot.calculation_fingerprint == baseline["calculation_fingerprint"],
         "Fresh-process calculation fingerprint changed.",
     )
     _require(

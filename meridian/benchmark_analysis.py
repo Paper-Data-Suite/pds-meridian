@@ -104,10 +104,14 @@ class BenchmarkStudentResult:
             raise BenchmarkAnalysisError("result_status is invalid.")
         if self.result_status == "not_assessed" and self.tested:
             raise BenchmarkAnalysisError("a not-assessed student cannot be tested.")
-        if self.result_status in {
-            "invalid_unresolved",
-            "insufficient_evidence",
-        } and not self.tested:
+        if (
+            self.result_status
+            in {
+                "invalid_unresolved",
+                "insufficient_evidence",
+            }
+            and not self.tested
+        ):
             raise BenchmarkAnalysisError(
                 "invalid or insufficient results require an observed test attempt."
             )
@@ -154,9 +158,7 @@ class BenchmarkStandardObservation:
     comparable: bool = False
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self, "standard_id", _text(self.standard_id, "standard_id")
-        )
+        object.__setattr__(self, "standard_id", _text(self.standard_id, "standard_id"))
         if type(self.assessed_students) is not int or self.assessed_students < 0:
             raise BenchmarkAnalysisError("assessed_students must be nonnegative.")
         if (

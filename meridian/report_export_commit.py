@@ -161,9 +161,7 @@ class CommittedReportExport:
                     "copyable export requires exact text and no destination path."
                 )
         else:
-            raise ReportExportCommitValidationError(
-                "artifact disposition is invalid."
-            )
+            raise ReportExportCommitValidationError("artifact disposition is invalid.")
 
 
 def file_export_destination(path: str | Path) -> ReportExportCommitDestination:
@@ -205,9 +203,7 @@ def commit_report_export(
             "destination must be ReportExportCommitDestination."
         )
     if not isinstance(actor, ReportExportActor):
-        raise ReportExportCommitValidationError(
-            "actor must be ReportExportActor."
-        )
+        raise ReportExportCommitValidationError("actor must be ReportExportActor.")
 
     try:
         rebuilt = build_export_preview(

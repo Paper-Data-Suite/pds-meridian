@@ -249,9 +249,7 @@ def test_total_points_explains_items_formula_and_recorded_provenance(
         None,
         Decimal("20"),
     )
-    policy = _policy(
-        ConventionalGradeConfiguration("total_points", (essay, quiz), ())
-    )
+    policy = _policy(ConventionalGradeConfiguration("total_points", (essay, quiz), ()))
     source = ConventionalGradeProvenanceReference(
         "source",
         "opaque:publication:cache:item",
@@ -296,9 +294,7 @@ def test_total_points_explains_items_formula_and_recorded_provenance(
     assert result.items[0].earned == Decimal("8")
     assert result.items[0].possible == Decimal("10")
     assert result.items[0].percentage == Decimal("80")
-    assert result.items[0].provenance[0].reference_key == (
-        "opaque:membership:key"
-    )
+    assert result.items[0].provenance[0].reference_key == ("opaque:membership:key")
     assert {item.kind for item in result.items[0].provenance} == {
         "source",
         "membership",
@@ -342,9 +338,7 @@ def test_weighted_items_explains_policy_zero_as_zero_not_missing(
         effective=_effective(snapshot),
     )
 
-    by_id = {
-        item.grade_item.reference.grade_item_id: item for item in result.items
-    }
+    by_id = {item.grade_item.reference.grade_item_id: item for item in result.items}
     assert by_id["quiz"].source_state == "missing"
     assert by_id["quiz"].action == "zero"
     assert by_id["quiz"].percentage == Decimal("0")

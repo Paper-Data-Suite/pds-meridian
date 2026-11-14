@@ -90,9 +90,7 @@ class GuidedAttemptPolicyPreset:
     maximum_selected: int | None
 
 
-DEFAULT_GUIDED_ATTEMPT_POLICIES: Final[
-    tuple[GuidedAttemptPolicyPreset, ...]
-] = (
+DEFAULT_GUIDED_ATTEMPT_POLICIES: Final[tuple[GuidedAttemptPolicyPreset, ...]] = (
     GuidedAttemptPolicyPreset(
         title="Select exactly one attempt",
         description="Use one explicit attempt for this student.",
@@ -210,24 +208,24 @@ class GuidedAttemptDependencies:
     policy_authoring_previewer: Callable[..., AttemptPolicyAuthoringPreview] = (
         preview_attempt_policy_authoring
     )
-    policy_authoring_committer: Callable[
-        ..., AttemptPolicyAuthoringResult
-    ] = commit_attempt_policy_authoring_preview
+    policy_authoring_committer: Callable[..., AttemptPolicyAuthoringResult] = (
+        commit_attempt_policy_authoring_preview
+    )
     policy_selection_previewer: Callable[..., AttemptPolicySelectionPreview] = (
         preview_attempt_policy_selection
     )
-    policy_selection_committer: Callable[
-        ..., AttemptPolicySelectionWorkflowResult
-    ] = commit_attempt_policy_selection_preview
-    decision_authoring_previewer: Callable[
-        ..., AttemptDecisionAuthoringPreview
-    ] = preview_attempt_decision_authoring
-    decision_authoring_committer: Callable[
-        ..., AttemptDecisionAuthoringResult
-    ] = commit_attempt_decision_authoring_preview
-    decision_selection_previewer: Callable[
-        ..., AttemptDecisionSelectionPreview
-    ] = preview_attempt_decision_selection
+    policy_selection_committer: Callable[..., AttemptPolicySelectionWorkflowResult] = (
+        commit_attempt_policy_selection_preview
+    )
+    decision_authoring_previewer: Callable[..., AttemptDecisionAuthoringPreview] = (
+        preview_attempt_decision_authoring
+    )
+    decision_authoring_committer: Callable[..., AttemptDecisionAuthoringResult] = (
+        commit_attempt_decision_authoring_preview
+    )
+    decision_selection_previewer: Callable[..., AttemptDecisionSelectionPreview] = (
+        preview_attempt_decision_selection
+    )
     decision_selection_committer: Callable[
         ..., AttemptDecisionSelectionWorkflowResult
     ] = commit_attempt_decision_selection_preview

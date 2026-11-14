@@ -577,9 +577,7 @@ def test_direct_mp1_end_to_end_aggregation_is_reproducible(
         "calculated",
         "calculated",
     )
-    inputs_sha256 = academic_period_proficiency_aggregation_inputs_sha256(
-        period_inputs
-    )
+    inputs_sha256 = academic_period_proficiency_aggregation_inputs_sha256(period_inputs)
     assert period_inputs.sha256 == inputs_sha256
 
     outcome = calculate_academic_period_proficiency(
@@ -1086,7 +1084,6 @@ def test_explicit_mp1_reconciliation_requires_new_atomic_grade_item_result(
     )
     assert reloaded_result_v1.content == historical_result.content
     assert reloaded_result_v1.result_sha256 == historical_result.result_sha256
-
 
 
 def test_explicit_mp2_reconciliation_requires_new_atomic_grade_item_result(
@@ -2012,14 +2009,12 @@ def test_noncontributing_missing_and_insufficient_preserve_low_result(
     work_c = ModuleWorkRef("synthetic", CLASS_ID, "synthetic_c")
     _write_registration(root, work_c, "Synthetic assessment C")
 
-    basis_low, membership_low, membership_low_sha = (
-        _persist_grade_item_and_membership(
-            root,
-            GRADE_ITEM_A,
-            "Low Grade Item",
-            WORK_A,
-            1,
-        )
+    basis_low, membership_low, membership_low_sha = _persist_grade_item_and_membership(
+        root,
+        GRADE_ITEM_A,
+        "Low Grade Item",
+        WORK_A,
+        1,
     )
     basis_missing, membership_missing, membership_missing_sha = (
         _persist_grade_item_and_membership(
@@ -2254,12 +2249,8 @@ def test_noncontributing_missing_and_insufficient_preserve_low_result(
         "blocking_missing_result",
         "blocking_insufficient_result",
     )
-    assert blocking_outcome.insufficiency_reasons[0].grade_item_ids == (
-        GRADE_ITEM_B,
-    )
-    assert blocking_outcome.insufficiency_reasons[1].grade_item_ids == (
-        grade_item_c,
-    )
+    assert blocking_outcome.insufficiency_reasons[0].grade_item_ids == (GRADE_ITEM_B,)
+    assert blocking_outcome.insufficiency_reasons[1].grade_item_ids == (grade_item_c,)
     assert tuple(item.status for item in blocking_outcome.explanation_entries) == (
         "calculated",
         "missing_result",

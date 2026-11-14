@@ -194,9 +194,7 @@ def test_commit_selects_exact_target_with_membership_cas(
             grade_item_id=grade_item_id,
             work=work,
             membership_revision=membership_revision,
-            expected_current_membership_revision=(
-                expected_current_membership_revision
-            ),
+            expected_current_membership_revision=(expected_current_membership_revision),
         )
         selection = SimpleNamespace(membership_revision=1)
         return SimpleNamespace(

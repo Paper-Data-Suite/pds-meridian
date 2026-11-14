@@ -176,10 +176,13 @@ def test_exclusions_cli_uses_exact_authorization_scope_and_projection(
     monkeypatch.setattr(cli, "inspect_evidence_diagnostic", inspect)
     monkeypatch.setattr(cli, "build_exclusions_projection", build)
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     inspect_args, inspect_kwargs = observed["inspect"]
@@ -224,10 +227,13 @@ def test_exclusions_json_keeps_disposition_and_source_state_separate(
         lambda *args, **kwargs: _projection(),
     )
 
-    assert cli.main(
-        _arguments("--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["class_id"] == CLASS_ID
@@ -273,8 +279,11 @@ def test_exclusions_cli_does_not_mutate_eligibility_state(
     ):
         assert not hasattr(cli, name)
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     capsys.readouterr()

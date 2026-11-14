@@ -386,9 +386,7 @@ def _project_grade_item(
             "Grade Item collection returned an identity without revision history."
         )
     latest = history[-1]
-    selected = load_current_grade_item_revision(
-        workspace_root, class_id, grade_item_id
-    )
+    selected = load_current_grade_item_revision(workspace_root, class_id, grade_item_id)
     if selected is None:
         selected_revision = None
         selected_revision_sha256 = None
@@ -404,9 +402,7 @@ def _project_grade_item(
         selected_revision = revision.grade_item_revision
         selected_revision_sha256 = selected.revision_sha256
         selection_state = (
-            "selected_latest"
-            if selected_revision == latest
-            else "selected_historical"
+            "selected_latest" if selected_revision == latest else "selected_historical"
         )
         title = revision.title
         purpose = revision.purpose

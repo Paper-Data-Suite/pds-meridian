@@ -122,9 +122,7 @@ def test_missing_explicit_workspace_is_unavailable_and_not_created(
 ) -> None:
     root = tmp_path / "missing"
 
-    report = evaluate_meridian_readiness(
-        ModuleOperationsRequest(workspace_root=root)
-    )
+    report = evaluate_meridian_readiness(ModuleOperationsRequest(workspace_root=root))
 
     assert report.evaluation == "unavailable"
     assert report.ready is None
@@ -135,9 +133,7 @@ def test_existing_non_directory_workspace_is_not_ready(tmp_path: Path) -> None:
     root = tmp_path / "workspace-file"
     root.write_text("not a directory", encoding="utf-8")
 
-    report = evaluate_meridian_readiness(
-        ModuleOperationsRequest(workspace_root=root)
-    )
+    report = evaluate_meridian_readiness(ModuleOperationsRequest(workspace_root=root))
 
     assert report.evaluation == "evaluated"
     assert report.ready is False
@@ -190,9 +186,7 @@ def test_linked_workspace_is_unavailable(tmp_path: Path) -> None:
     link = tmp_path / "workspace-link"
     _make_directory_symlink(link, target)
 
-    report = evaluate_meridian_readiness(
-        ModuleOperationsRequest(workspace_root=link)
-    )
+    report = evaluate_meridian_readiness(ModuleOperationsRequest(workspace_root=link))
 
     assert report.evaluation == "unavailable"
     assert report.ready is None

@@ -80,9 +80,7 @@ def _basis() -> tuple[GradePreviewBasisEntry, ...]:
         GradePreviewBasisEntry("activation", "selected_activation", "1" * 64),
         GradePreviewBasisEntry("policy", "grade_policy", "2" * 64),
         GradePreviewBasisEntry("formula", "conventional_formula", "3" * 64),
-        GradePreviewBasisEntry(
-            "participation", "conventional_participation", "4" * 64
-        ),
+        GradePreviewBasisEntry("participation", "conventional_participation", "4" * 64),
         GradePreviewBasisEntry("evidence", "conventional_evidence_basis", "5" * 64),
         GradePreviewBasisEntry("weighting", "conventional_weighting", "6" * 64),
     )
@@ -127,9 +125,7 @@ def _observation(student_id: str = "student_001") -> GradePreviewObservation:
 
 
 def _definition_ref() -> ReportingDefinitionReference:
-    return ReportingDefinitionReference(
-        CLASS_ID, "quarter_grade_report", 1, "9" * 64
-    )
+    return ReportingDefinitionReference(CLASS_ID, "quarter_grade_report", 1, "9" * 64)
 
 
 def _build_request(*targets: GradePreviewTarget) -> ReportingSnapshotBuildRequest:
@@ -224,8 +220,7 @@ def test_snapshot_extracts_real_prior_basis_without_manufacturing_one() -> None:
     assert len(bases) == 1
     assert bases[0].observation == observation
     assert (
-        reporting_snapshot_prior_grade_basis(snapshot, observation.target)
-        == bases[0]
+        reporting_snapshot_prior_grade_basis(snapshot, observation.target) == bases[0]
     )
 
 
@@ -351,9 +346,7 @@ def test_current_observation_outside_snapshot_scope_is_rejected() -> None:
         base_result_reference=bad_source,
     )
     with pytest.raises(ReportingSnapshotComparisonValidationError, match="outside"):
-        compare_reporting_snapshot_to_current_observations(
-            _snapshot(prior), (current,)
-        )
+        compare_reporting_snapshot_to_current_observations(_snapshot(prior), (current,))
 
 
 def test_duplicate_current_exact_target_is_rejected() -> None:

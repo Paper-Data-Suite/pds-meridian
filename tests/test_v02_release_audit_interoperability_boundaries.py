@@ -114,8 +114,7 @@ def test_module_operations_profile_preserves_attention_and_adds_readiness() -> N
     assert profile.attention_provider is not None
 
 
-def test_reserved_weighting_metadata_is_not_executed_by_v02_calculation_or_planning(
-) -> None:
+def test_reserved_weighting_not_executed_by_v02_calculation_or_planning() -> None:
     package_root = _package_root()
     forbidden: list[tuple[str, int, str]] = []
 
@@ -131,12 +130,10 @@ def test_reserved_weighting_metadata_is_not_executed_by_v02_calculation_or_plann
     assert forbidden == []
 
 
-def test_v02_workflow_surface_does_not_expose_v03_override_or_reporting_tasks(
-) -> None:
+def test_v02_workflow_surface_does_not_expose_v03_override_or_reporting_tasks() -> None:
     task_ids = tuple(task.task_id for task in teacher_workflow_catalog().tasks)
 
     assert not any("override" in task_id for task_id in task_ids)
     assert not any(
-        "report" in task_id and "snapshot" in task_id
-        for task_id in task_ids
+        "report" in task_id and "snapshot" in task_id for task_id in task_ids
     )

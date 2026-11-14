@@ -150,9 +150,9 @@ class GuidedGradeItemBridgeDependencies:
     grade_item_selection_previewer: Callable[..., GradeItemSelectionPreview] = (
         preview_grade_item_selection
     )
-    grade_item_selection_committer: Callable[
-        ..., GradeItemSelectionWorkflowResult
-    ] = commit_grade_item_selection_preview
+    grade_item_selection_committer: Callable[..., GradeItemSelectionWorkflowResult] = (
+        commit_grade_item_selection_preview
+    )
     membership_authoring_previewer: Callable[
         ..., GradeItemMembershipAuthoringPreview
     ] = preview_grade_item_membership_authoring
@@ -272,8 +272,7 @@ def load_guided_grade_item_bridge_context(
             label=period.label,
             period_type=period.period_type,
             date_range=(
-                f"{period.start_date.isoformat()} to "
-                f"{period.end_date.isoformat()}"
+                f"{period.start_date.isoformat()} to {period.end_date.isoformat()}"
             ),
             display_label=(
                 f"{period.label} · {period.period_type.replace('_', ' ')} · "
@@ -512,9 +511,7 @@ def verify_current_membership_link(
     if row is None or row.selected_revision is None:
         return False
     matches = tuple(
-        membership
-        for membership in row.memberships
-        if membership.work == context.work
+        membership for membership in row.memberships if membership.work == context.work
     )
     return (
         len(matches) == 1

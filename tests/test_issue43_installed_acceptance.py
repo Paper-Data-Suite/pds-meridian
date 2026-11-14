@@ -4,22 +4,14 @@ from pathlib import Path
 
 
 def test_issue43_installed_smoke_is_release_guarded() -> None:
-    validator = Path("scripts/validate_repository.py").read_text(
-        encoding="utf-8"
-    )
-    sdist_checker = Path("scripts/check_sdist.py").read_text(
-        encoding="utf-8"
-    )
-    wrapper = Path("scripts/smoke_test_attention_wheel.py").read_text(
-        encoding="utf-8"
-    )
-    program = Path("scripts/smoke_program_attention.py").read_text(
-        encoding="utf-8"
-    )
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
+    wrapper = Path("scripts/smoke_test_attention_wheel.py").read_text(encoding="utf-8")
+    program = Path("scripts/smoke_program_attention.py").read_text(encoding="utf-8")
 
-    core_runner = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
+    core_runner = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "scripts.installed_qualification_runner" in validator
     assert "attention" in core_runner
@@ -50,9 +42,7 @@ def test_issue43_installed_smoke_is_release_guarded() -> None:
 
 
 def test_issue43_installed_smoke_checks_sibling_absence_and_privacy() -> None:
-    program = Path("scripts/smoke_program_attention.py").read_text(
-        encoding="utf-8"
-    )
+    program = Path("scripts/smoke_program_attention.py").read_text(encoding="utf-8")
 
     for sibling in (
         '"scoreform"',

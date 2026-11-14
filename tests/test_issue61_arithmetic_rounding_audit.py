@@ -198,9 +198,7 @@ def test_issue61_hybrid_exclusion_renormalizes_explicitly_and_uses_unrounded() -
     value = hybrid_support.policy(
         conventional_weight="0.7",
         standards_weight="0.3",
-        state_treatment=hybrid_support.treatment(
-            insufficient_evidence="exclude"
-        ),
+        state_treatment=hybrid_support.treatment(insufficient_evidence="exclude"),
     )
     decision = hybrid_support.activation(value)
     conventional = hybrid_support.conventional_input(

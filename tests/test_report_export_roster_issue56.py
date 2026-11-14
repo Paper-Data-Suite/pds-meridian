@@ -132,12 +132,10 @@ def test_error_codes_preserve_roster_failure_distinctions() -> None:
         == "report_export.roster_subject_missing"
     )
     assert (
-        ReportExportRosterFieldMissingError.code
-        == "report_export.roster_field_missing"
+        ReportExportRosterFieldMissingError.code == "report_export.roster_field_missing"
     )
     assert (
-        ReportExportRosterIntegrityError.code
-        == "report_export.roster_integrity_failed"
+        ReportExportRosterIntegrityError.code == "report_export.roster_integrity_failed"
     )
 
 
@@ -225,8 +223,7 @@ def test_display_name_uses_public_core_preferred_name_semantics(tmp_path: Path) 
     assert observation is not None
     assert _value_map(observation, "student_001")["roster.display_name"] == "Avery Chen"
     assert (
-        _value_map(observation, "student_002")["roster.display_name"]
-        == "Jordy Rivera"
+        _value_map(observation, "student_002")["roster.display_name"] == "Jordy Rivera"
     )
 
 
@@ -239,9 +236,7 @@ def test_exact_optional_roster_field_can_be_blank(tmp_path: Path) -> None:
         ("student_001",),
     )
     assert observation is not None
-    assert _value_map(observation, "student_001") == {
-        "roster.extra:preferred_name": ""
-    }
+    assert _value_map(observation, "student_001") == {"roster.extra:preferred_name": ""}
 
 
 def test_missing_optional_roster_column_fails_closed(tmp_path: Path) -> None:
@@ -499,9 +494,12 @@ def test_observation_round_trips_canonically_and_reference_binds_exact_bytes(
         CLASS_ID,
         hashlib.sha256(encoded).hexdigest(),
     )
-    assert export_roster_observation_reference_from_dict(
-        export_roster_observation_reference_to_dict(reference)
-    ) == reference
+    assert (
+        export_roster_observation_reference_from_dict(
+            export_roster_observation_reference_to_dict(reference)
+        )
+        == reference
+    )
 
 
 def test_observation_mapping_rejects_unknown_fields(tmp_path: Path) -> None:

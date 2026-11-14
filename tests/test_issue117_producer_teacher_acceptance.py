@@ -73,7 +73,8 @@ def _input(*choices: str):
 
 
 def _published_workspace(
-    tmp_path: Path, producer: str,
+    tmp_path: Path,
+    producer: str,
 ) -> tuple[Path, ModuleWorkRef, str, str]:
     root = tmp_path / "workspace"
     root.mkdir()
@@ -204,11 +205,13 @@ def _grant(
 
 @pytest.mark.parametrize("producer", PRODUCERS)
 def test_canonical_to_actual_reader_to_teacher_review(
-    tmp_path: Path, producer: str,
+    tmp_path: Path,
+    producer: str,
 ) -> None:
     root, work, publication_id, title = _published_workspace(tmp_path, producer)
     diagnostics = default_diagnostics_dependencies(
-        workspace_root=root, authorizer=_grant(root, work),
+        workspace_root=root,
+        authorizer=_grant(root, work),
     )
     inbox = load_teacher_evidence_inbox(root, diagnostics)
     assert len(inbox.items) == 1
@@ -236,9 +239,7 @@ def test_canonical_to_actual_reader_to_teacher_review(
     session = TeacherSessionContext()
     run_teacher_evidence_inbox_menu(
         dependencies=replace(
-            default_teacher_evidence_inbox_menu_dependencies(
-                diagnostics=diagnostics
-            ),
+            default_teacher_evidence_inbox_menu_dependencies(diagnostics=diagnostics),
             workspace_resolver=lambda: root,
         ),
         session_context=session,
@@ -258,7 +259,8 @@ def test_canonical_to_actual_reader_to_teacher_review(
 
 @pytest.mark.parametrize("producer", PRODUCERS)
 def test_missing_cache_permission_never_claims_ready(
-    tmp_path: Path, producer: str,
+    tmp_path: Path,
+    producer: str,
 ) -> None:
     root, work, publication_id, _title = _published_workspace(tmp_path, producer)
     diagnostics = default_diagnostics_dependencies(
@@ -275,9 +277,7 @@ def test_missing_cache_permission_never_claims_ready(
     session = TeacherSessionContext()
     run_teacher_evidence_inbox_menu(
         dependencies=replace(
-            default_teacher_evidence_inbox_menu_dependencies(
-                diagnostics=diagnostics
-            ),
+            default_teacher_evidence_inbox_menu_dependencies(diagnostics=diagnostics),
             workspace_resolver=lambda: root,
         ),
         session_context=session,

@@ -77,9 +77,9 @@ def test_issue110_core_remains_only_unconditional_runtime_dependency() -> None:
 
 
 def test_issue110_smoke_program_requires_installed_package_origins() -> None:
-    source = Path(
-        "scripts/smoke_program_guided_evidence_issue110.py"
-    ).read_text(encoding="utf-8")
+    source = Path("scripts/smoke_program_guided_evidence_issue110.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "_assert_installed_origin(meridian)" in source
     assert "_assert_installed_origin(pds_core)" in source
@@ -91,12 +91,13 @@ def test_issue110_smoke_program_requires_installed_package_origins() -> None:
 
 
 def test_issue110_smoke_creates_producer_work_root_before_registration() -> None:
-    source = Path(
-        "scripts/smoke_program_guided_evidence_issue110.py"
-    ).read_text(encoding="utf-8")
+    source = Path("scripts/smoke_program_guided_evidence_issue110.py").read_text(
+        encoding="utf-8"
+    )
     setup = source[
-        source.index("def _setup_workspace(") :
-        source.index("def _run_teacher_journey(")
+        source.index("def _setup_workspace(") : source.index(
+            "def _run_teacher_journey("
+        )
     ]
 
     assert "work_root = module_work_dir(workspace, work)" in setup
@@ -106,9 +107,9 @@ def test_issue110_smoke_creates_producer_work_root_before_registration() -> None
 
 
 def test_issue110_smoke_uses_real_catalog_projection_and_guided_menu() -> None:
-    source = Path(
-        "scripts/smoke_program_guided_evidence_issue110.py"
-    ).read_text(encoding="utf-8")
+    source = Path("scripts/smoke_program_guided_evidence_issue110.py").read_text(
+        encoding="utf-8"
+    )
 
     for required in (
         "register_academic_work(",

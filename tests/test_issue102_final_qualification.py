@@ -10,8 +10,9 @@ from scripts.verify_core_wheel import (
 )
 
 
-def test_issue102_reused_acceptance_tracks_current_core_qualification_baseline(
-) -> None:
+def test_issue102_reused_acceptance_tracks_current_core_qualification_baseline() -> (
+    None
+):
     assert EXPECTED_CORE_VERSION == "0.6.6"
     assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.6-py3-none-any.whl"
     assert EXPECTED_CORE_WHEEL_SHA256 == (
@@ -20,8 +21,7 @@ def test_issue102_reused_acceptance_tracks_current_core_qualification_baseline(
 
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert (
-        "pds-core/releases/download/v0.6.6/pds_core-0.6.6-py3-none-any.whl"
-        in workflow
+        "pds-core/releases/download/v0.6.6/pds_core-0.6.6-py3-none-any.whl" in workflow
     )
     assert "pds_core-0.6.4-py3-none-any.whl" not in workflow
 
@@ -34,12 +34,12 @@ def test_issue102_runtime_core_floor_remains_compatible() -> None:
 
 
 def test_issue102_installed_acceptance_is_core_only_and_prepared() -> None:
-    core_programs = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
-    smoke = Path(
-        "scripts/smoke_program_storage_paths_issue102.py"
-    ).read_text(encoding="utf-8")
+    core_programs = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
+    smoke = Path("scripts/smoke_program_storage_paths_issue102.py").read_text(
+        encoding="utf-8"
+    )
 
     for token in (
         "smoke_program_storage_paths_issue102.py",
@@ -93,15 +93,15 @@ def test_issue102_release_guards_include_acceptance_and_documentation() -> None:
 
 
 def test_issue102_documentation_records_predeployment_contract() -> None:
-    document = Path(
-        "docs/architecture/canonical-storage-path-budgets.md"
-    ).read_text(encoding="utf-8")
+    document = Path("docs/architecture/canonical-storage-path-budgets.md").read_text(
+        encoding="utf-8"
+    )
     changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
     readme = Path("README").read_text(encoding="utf-8")
     docs_readme = Path("docs/README.md").read_text(encoding="utf-8")
-    matrix = Path(
-        "docs/development/installed-qualification-matrix.md"
-    ).read_text(encoding="utf-8")
+    matrix = Path("docs/development/installed-qualification-matrix.md").read_text(
+        encoding="utf-8"
+    )
 
     for token in (
         "logical identifier != filesystem component",

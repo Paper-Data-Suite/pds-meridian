@@ -41,9 +41,7 @@ class GroupingSignalExportEligibilityError(RuntimeError):
     """Base error for read-only #40 export eligibility."""
 
 
-class GroupingSignalExportEligibilityReadError(
-    GroupingSignalExportEligibilityError
-):
+class GroupingSignalExportEligibilityReadError(GroupingSignalExportEligibilityError):
     """Raised when exact #38/#39 authorization state cannot be read safely."""
 
 
@@ -61,11 +59,7 @@ class GroupingSignalExportBlockedError(GroupingSignalExportEligibilityError):
     ) -> None:
         self.code = code
         self.reason_codes = tuple(sorted(set(reason_codes)))
-        detail = (
-            ""
-            if not self.reason_codes
-            else f" ({', '.join(self.reason_codes)})"
-        )
+        detail = "" if not self.reason_codes else f" ({', '.join(self.reason_codes)})"
         super().__init__(f"Grouping-signal export blocked: {code}{detail}.")
 
 

@@ -70,9 +70,7 @@ def _snapshot(
         CLASS_ID,
         tuple(item.student_id for item in student_derivations),
     )
-    ordered = tuple(
-        sorted(student_derivations, key=lambda item: item.student_id)
-    )
+    ordered = tuple(sorted(student_derivations, key=lambda item: item.student_id))
     fingerprint = grouping_signal_derivation_calculation_fingerprint(
         policy_reference,
         roster,
@@ -159,8 +157,7 @@ def test_projection_builds_exact_minimal_core_signal() -> None:
     assert signal.dimensions[0].dimension_id == derivation.dimension_id
     assert signal.dimensions[0].band_count == derivation.band_count
     assert tuple(
-        (item.student_id, item.dimension_id, item.band)
-        for item in signal.student_bands
+        (item.student_id, item.dimension_id, item.band) for item in signal.student_bands
     ) == (
         ("student_1", "reading_planning", 1),
         ("student_2", "reading_planning", 2),
@@ -210,8 +207,7 @@ def test_projection_contains_no_private_academic_extension_fields() -> None:
     student_bands = payload["student_bands"]
     assert isinstance(student_bands, list)
     assert all(
-        isinstance(item, dict)
-        and set(item) == {"student_id", "dimension_id", "band"}
+        isinstance(item, dict) and set(item) == {"student_id", "dimension_id", "band"}
         for item in student_bands
     )
     serialized = repr(payload)

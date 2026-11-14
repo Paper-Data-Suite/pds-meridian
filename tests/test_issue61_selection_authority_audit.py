@@ -78,9 +78,9 @@ def test_issue61_explicit_attempt_decision_can_select_older_sequence() -> None:
     assert tuple(
         candidate.attempt.native.sequence for candidate in value.candidates
     ) == (1, 2)
-    assert tuple(
-        selected.native.sequence for selected in value.selected_attempts
-    ) == (1,)
+    assert tuple(selected.native.sequence for selected in value.selected_attempts) == (
+        1,
+    )
 
 
 def test_issue61_publication_successor_makes_old_attempt_basis_stale(
@@ -212,9 +212,7 @@ def test_issue61_explicit_replacement_can_prefer_lower_sequence() -> None:
     reverse = replace(
         reassessment_tests.decision(),
         contributing_attempts=(first,),
-        replacement_relationships=(
-            ReplacementRelationship(first, (second,)),
-        ),
+        replacement_relationships=(ReplacementRelationship(first, (second,)),),
     )
 
     reassessment_storage._validate_relationships_against_selected(

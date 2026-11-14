@@ -28,18 +28,16 @@ def test_issue60_installed_smoke_is_wired_only_into_all_adapters() -> None:
     )
     assert "run_issue60_cross_policy_prepared_smoke" in runner
     assert '"issue60-cross-policy-adversarial"' in runner
-    all_adapters = runner.index(
-        "matrix_for(DependencyMatrixId.ALL_ADAPTERS)"
-    )
+    all_adapters = runner.index("matrix_for(DependencyMatrixId.ALL_ADAPTERS)")
     issue60 = runner.index('"issue60-cross-policy-adversarial"')
     assert issue60 > all_adapters
     assert runner.count('"issue60-cross-policy-adversarial"') == 2
 
 
 def test_issue60_wrapper_reuses_prepared_environment_and_fresh_process() -> None:
-    wrapper = Path(
-        "scripts/smoke_test_cross_policy_adversarial_wheel.py"
-    ).read_text(encoding="utf-8")
+    wrapper = Path("scripts/smoke_test_cross_policy_adversarial_wheel.py").read_text(
+        encoding="utf-8"
+    )
     for token in (
         "run_prepared_smoke",
         '"pip", "check"',
@@ -57,9 +55,9 @@ def test_issue60_wrapper_reuses_prepared_environment_and_fresh_process() -> None
 
 
 def test_issue60_installed_program_covers_cross_policy_authorities() -> None:
-    program = Path(
-        "scripts/smoke_program_cross_policy_adversarial.py"
-    ).read_text(encoding="utf-8")
+    program = Path("scripts/smoke_program_cross_policy_adversarial.py").read_text(
+        encoding="utf-8"
+    )
     for token in (
         '"pds-core": "0.6.6"',
         '"scoreform": "0.13.0"',

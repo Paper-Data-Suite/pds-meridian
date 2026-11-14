@@ -37,9 +37,7 @@ DEFAULT_MAXIMUM_GROUPING_SIGNAL_PREVIEW_DIGEST_BYTES: Final[int] = 128
 GroupingSignalPreviewWriteDisposition: TypeAlias = Literal["created", "existing"]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
-_PREVIEW_JSON: Final[re.Pattern[str]] = re.compile(
-    r"^(gsp_[0-9a-f]{64})\.json$"
-)
+_PREVIEW_JSON: Final[re.Pattern[str]] = re.compile(r"^(gsp_[0-9a-f]{64})\.json$")
 _PREVIEW_DIGEST: Final[re.Pattern[str]] = re.compile(
     r"^(gsp_[0-9a-f]{64})\.json\.sha256$"
 )
@@ -60,9 +58,7 @@ class GroupingSignalPreviewStorageValidationError(
     code = "grouping_signal_preview.storage_invalid"
 
 
-class GroupingSignalPreviewStorageNotFoundError(
-    GroupingSignalPreviewStorageError
-):
+class GroupingSignalPreviewStorageNotFoundError(GroupingSignalPreviewStorageError):
     """Raised when one explicitly requested preview does not exist."""
 
     code = "grouping_signal_preview.not_found"
@@ -80,33 +76,25 @@ class GroupingSignalPreviewStorageWriteError(GroupingSignalPreviewStorageError):
     code = "grouping_signal_preview.write_failed"
 
 
-class GroupingSignalPreviewStorageConflictError(
-    GroupingSignalPreviewStorageError
-):
+class GroupingSignalPreviewStorageConflictError(GroupingSignalPreviewStorageError):
     """Raised for immutable identity/content collisions."""
 
     code = "grouping_signal_preview.conflict"
 
 
-class GroupingSignalPreviewStorageLockError(
-    GroupingSignalPreviewStorageConflictError
-):
+class GroupingSignalPreviewStorageLockError(GroupingSignalPreviewStorageConflictError):
     """Raised when another writer owns the class preview collection."""
 
     code = "grouping_signal_preview.locked"
 
 
-class GroupingSignalPreviewStorageIntegrityError(
-    GroupingSignalPreviewStorageError
-):
+class GroupingSignalPreviewStorageIntegrityError(GroupingSignalPreviewStorageError):
     """Raised when persisted preview state fails integrity checks."""
 
     code = "grouping_signal_preview.integrity_failed"
 
 
-class GroupingSignalPreviewStorageTooLargeError(
-    GroupingSignalPreviewStorageReadError
-):
+class GroupingSignalPreviewStorageTooLargeError(GroupingSignalPreviewStorageReadError):
     """Raised when persisted preview state exceeds bounded read limits."""
 
     code = "grouping_signal_preview.too_large"
@@ -137,9 +125,7 @@ class StoredGroupingSignalPreview:
                 "preview_sha256 does not match exact immutable content."
             )
         try:
-            decoded = grouping_signal_preview_snapshot_from_json_bytes(
-                self.content
-            )
+            decoded = grouping_signal_preview_snapshot_from_json_bytes(self.content)
         except (
             GroupingSignalPreviewSerializationError,
             GroupingSignalPreviewValidationError,
@@ -190,10 +176,7 @@ def grouping_signal_previews_directory(
     """Return the class-local Meridian #39 preview collection path."""
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "grouping_signal_previews"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "grouping_signal_previews"
     _require_containment(root, path)
     return path
 
@@ -205,10 +188,13 @@ def grouping_signal_preview_path(
 ) -> Path:
     """Return the canonical JSON path for one exact preview identity."""
     preview = _preview_id(preview_id)
-    return grouping_signal_previews_directory(
-        workspace_root,
-        class_id,
-    ) / f"{preview}.json"
+    return (
+        grouping_signal_previews_directory(
+            workspace_root,
+            class_id,
+        )
+        / f"{preview}.json"
+    )
 
 
 def grouping_signal_preview_relative_path(

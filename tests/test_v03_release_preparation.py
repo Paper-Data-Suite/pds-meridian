@@ -37,14 +37,14 @@ def test_v03_release_notes_are_packaged_and_audit_stays_repository_only() -> Non
 def test_v03_release_framing_preserves_history_and_names_current_siblings() -> None:
     readme = (ROOT / "README").read_text(encoding="utf-8")
     docs_readme = (ROOT / "docs/README.md").read_text(encoding="utf-8")
-    foundation = (
-        ROOT / "docs/development/package-foundation.md"
-    ).read_text(encoding="utf-8")
+    foundation = (ROOT / "docs/development/package-foundation.md").read_text(
+        encoding="utf-8"
+    )
     security = (ROOT / "Security.md").read_text(encoding="utf-8")
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    notes = (
-        ROOT / "docs/development/v0.3.0-release-notes.md"
-    ).read_text(encoding="utf-8")
+    notes = (ROOT / "docs/development/v0.3.0-release-notes.md").read_text(
+        encoding="utf-8"
+    )
 
     for document in (readme, docs_readme, foundation):
         assert "Core v0.6.5" in document
@@ -52,18 +52,9 @@ def test_v03_release_framing_preserves_history_and_names_current_siblings() -> N
         assert "Quillan v0.10.6" in document
         assert "Concord v0.3.2" in document
 
-    assert (
-        "Meridian v0.4.1 implements Issue #115"
-        in readme
-    )
-    assert (
-        "Meridian v0.4.1 implements Issue #115"
-        in docs_readme
-    )
-    assert (
-        "Meridian v0.4.1 implements Issue #115"
-        in foundation
-    )
+    assert "Meridian v0.4.1 implements Issue #115" in readme
+    assert "Meridian v0.4.1 implements Issue #115" in docs_readme
+    assert "Meridian v0.4.1 implements Issue #115" in foundation
     assert (
         "Security fixes for the v0.3 line target the latest `0.3.x` release."
         in security
@@ -76,9 +67,9 @@ def test_v03_release_framing_preserves_history_and_names_current_siblings() -> N
 
 
 def test_v03_release_state_records_completed_publication() -> None:
-    audit = (
-        ROOT / "docs/development/v0.3.0-release-audit.md"
-    ).read_text(encoding="utf-8")
+    audit = (ROOT / "docs/development/v0.3.0-release-audit.md").read_text(
+        encoding="utf-8"
+    )
     release_authorization = audit.split("## Release authorization", maxsplit=1)[1]
 
     assert "Candidate package version: **0.3.0**" in audit

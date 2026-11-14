@@ -91,9 +91,7 @@ def test_exact_export_json_preserves_core_receipt_and_student_semantics(
     )
     students = {item["student_id"]: item for item in payload["students"]}
     assert students["student_1"]["exported"] is True
-    assert students["student_2"]["noncontribution_reason"] == (
-        "insufficient_evidence"
-    )
+    assert students["student_2"]["noncontribution_reason"] == ("insufficient_evidence")
     assert students["student_3"]["noncontribution_reason"] == "missing_result"
 
 

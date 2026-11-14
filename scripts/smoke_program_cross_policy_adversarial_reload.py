@@ -285,8 +285,7 @@ def main() -> int:
         "Fresh-process profile exact scale authority was lost.",
     )
     _require(
-        calculate_standards_grade(profile_current.snapshot.inputs)
-        == profile_outcome,
+        calculate_standards_grade(profile_current.snapshot.inputs) == profile_outcome,
         "Fresh-process profile Grade does not reproduce.",
     )
 
@@ -397,9 +396,7 @@ def main() -> int:
         ),
         producer_registry=PublicationProducerRegistry((concord_profile(),)),
         adapter_registry=AdapterRegistry((ConcordAcademicResultAdapter(),)),
-        distribution_version_resolver=(
-            issue54.issue45.installed_distribution_version
-        ),
+        distribution_version_resolver=(issue54.issue45.installed_distribution_version),
     )
     _require(
         authorized.stored.snapshot_digest

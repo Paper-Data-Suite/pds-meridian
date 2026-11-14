@@ -299,18 +299,24 @@ def test_active_school_year_filters_replacement_attention(tmp_path: Path) -> Non
     root, predecessor, _ = _setup(tmp_path)
     _select(root, predecessor, None, 10)
 
-    assert inspect_grade_report_attention_for_class(
-        root,
-        CLASS_ID,
-        active_school_year="2025-2026",
-    ).items == ()
-    assert len(
+    assert (
         inspect_grade_report_attention_for_class(
             root,
             CLASS_ID,
-            active_school_year="2026-2027",
+            active_school_year="2025-2026",
         ).items
-    ) == 1
+        == ()
+    )
+    assert (
+        len(
+            inspect_grade_report_attention_for_class(
+                root,
+                CLASS_ID,
+                active_school_year="2026-2027",
+            ).items
+        )
+        == 1
+    )
 
 
 def test_corrupt_reporting_state_fails_closed(tmp_path: Path) -> None:

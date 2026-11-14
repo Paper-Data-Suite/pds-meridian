@@ -1,4 +1,5 @@
 """Issue #117: release-candidate identity and historical security notice."""
+
 from __future__ import annotations
 
 from pathlib import Path

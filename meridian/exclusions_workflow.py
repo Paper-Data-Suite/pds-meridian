@@ -171,9 +171,7 @@ def _row_from_resolution(
 ) -> ExclusionReviewRow:
     selected = resolution.selected
     decision = None if selected is None else selected.decision
-    selected_disposition = (
-        None if decision is None else decision.disposition
-    )
+    selected_disposition = None if decision is None else decision.disposition
     if selected_disposition is not None and selected_disposition not in {
         "included",
         "excluded",

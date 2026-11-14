@@ -189,8 +189,7 @@ def test_calendar_scope_and_algorithm_reasons_use_canonical_order() -> None:
         target_period=other_period,
         activation_reference=activation_reference,
         items=tuple(
-            replace(item, target_period=other_period)
-            for item in conventional.items
+            replace(item, target_period=other_period) for item in conventional.items
         ),
     )
     standards = snapshot.inputs.standards_based

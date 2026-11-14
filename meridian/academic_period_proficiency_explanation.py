@@ -277,10 +277,7 @@ def explain_academic_period_proficiency(
     stored = _resolve_target(workspace_root, target)
     snapshot = stored.snapshot
     current_revision = _current_result_revision(workspace_root, target)
-    if (
-        target.selection == "current"
-        and current_revision != snapshot.result_revision
-    ):
+    if target.selection == "current" and current_revision != snapshot.result_revision:
         raise ExplanationTraceIntegrityError(
             "Current #35 result selection changed during explanation resolution."
         )
@@ -380,15 +377,11 @@ def academic_period_proficiency_explanation_to_dict(
             "title": value.policy.title,
             "strategy": value.policy.strategy,
             "period_membership_scope": value.policy.period_membership_scope,
-            "minimum_calculated_results": (
-                value.policy.minimum_calculated_results
-            ),
+            "minimum_calculated_results": (value.policy.minimum_calculated_results),
             "mode_tie_rule": value.policy.mode_tie_rule,
             "median_even_rule": value.policy.median_even_rule,
             "missing_result_handling": value.policy.missing_result_handling,
-            "insufficient_result_handling": (
-                value.policy.insufficient_result_handling
-            ),
+            "insufficient_result_handling": (value.policy.insufficient_result_handling),
             "actor": {
                 "kind": value.policy.actor_kind,
                 "actor_id": value.policy.actor_id,
@@ -420,19 +413,14 @@ def academic_period_proficiency_explanation_to_dict(
             "rationale": value.scale.rationale,
         },
         "grade_items": [
-            _grade_item_explanation_to_dict(item)
-            for item in value.grade_items
+            _grade_item_explanation_to_dict(item) for item in value.grade_items
         ],
         "calculation": {
             "status": value.calculation.status,
             "proficiency_level_id": value.calculation.proficiency_level_id,
             "candidate_count": value.calculation.candidate_count,
-            "calculated_result_count": (
-                value.calculation.calculated_result_count
-            ),
-            "insufficient_result_count": (
-                value.calculation.insufficient_result_count
-            ),
+            "calculated_result_count": (value.calculation.calculated_result_count),
+            "insufficient_result_count": (value.calculation.insufficient_result_count),
             "missing_result_count": value.calculation.missing_result_count,
             "period_scope_mismatch_count": (
                 value.calculation.period_scope_mismatch_count
@@ -635,8 +623,7 @@ def _current_result_revision(
         )
     except AcademicPeriodProficiencyStorageError as error:
         raise ExplanationTraceIntegrityError(
-            "Current #35 result selection failed canonical verification: "
-            f"{error}"
+            f"Current #35 result selection failed canonical verification: {error}"
         ) from error
 
 
@@ -655,8 +642,7 @@ def _verify_class_scope(
         ) from error
     if (
         metadata.class_id != snapshot.class_id
-        or metadata.school_year
-        != snapshot.target_period.period.school_year
+        or metadata.school_year != snapshot.target_period.period.school_year
     ):
         raise ExplanationTraceIntegrityError(
             "Core class metadata does not match the exact #35 class and "
@@ -804,8 +790,7 @@ def _resolve_grade_items(
     calendar: AcademicPeriodCalendar,
 ) -> tuple[AcademicPeriodGradeItemExplanation, ...]:
     outcome_by_grade_item = {
-        item.grade_item_id: item
-        for item in snapshot.outcome.explanation_entries
+        item.grade_item_id: item for item in snapshot.outcome.explanation_entries
     }
     if len(outcome_by_grade_item) != len(snapshot.outcome.explanation_entries):
         raise ExplanationTraceIntegrityError(
@@ -844,14 +829,10 @@ def _resolve_grade_items(
                 contributed=outcome.contributed,
                 result_reference=entry.result_reference,
                 result_algorithm_version=entry.result_algorithm_version,
-                result_calculation_fingerprint=(
-                    entry.result_calculation_fingerprint
-                ),
+                result_calculation_fingerprint=(entry.result_calculation_fingerprint),
                 result_status=entry.result_status,
                 proficiency_level_id=entry.proficiency_level_id,
-                result_insufficiency_reasons=(
-                    entry.result_insufficiency_reasons
-                ),
+                result_insufficiency_reasons=(entry.result_insufficiency_reasons),
                 nested_grade_item_explanation=nested,
             )
         )
@@ -866,8 +847,7 @@ def _verify_entry_explanation(
         outcome.status != entry.status
         or outcome.result_reference != entry.result_reference
         or outcome.proficiency_level_id != entry.proficiency_level_id
-        or outcome.period_scope_mismatch_reason
-        != entry.period_scope_mismatch_reason
+        or outcome.period_scope_mismatch_reason != entry.period_scope_mismatch_reason
         or outcome.contributed != (entry.status == "calculated")
     ):
         raise ExplanationTraceIntegrityError(
@@ -938,12 +918,10 @@ def _resolve_memberships(
             decision.decision != "included"
             or assignment is None
             or decision.grade_item_revision != basis.grade_item_revision
-            or decision.grade_item_revision_sha256
-            != basis.grade_item_revision_sha256
+            or decision.grade_item_revision_sha256 != basis.grade_item_revision_sha256
             or decision.work_reference != basis.work_reference
             or assignment.period != basis.academic_period.period
-            or assignment.calendar_revision
-            != basis.academic_period.calendar_revision
+            or assignment.calendar_revision != basis.academic_period.calendar_revision
         ):
             raise ExplanationTraceIntegrityError(
                 "Exact Grade Item membership does not match the stored #35 basis."
@@ -988,8 +966,7 @@ def _verify_period_scope(
     if entry.status == "period_scope_mismatch":
         if (
             resolution.status != "period_scope_mismatch"
-            or resolution.mismatch_reason
-            != entry.period_scope_mismatch_reason
+            or resolution.mismatch_reason != entry.period_scope_mismatch_reason
         ):
             raise ExplanationTraceIntegrityError(
                 "Stored #35 period-scope mismatch does not match exact "
@@ -1036,12 +1013,10 @@ def _resolve_nested_grade_item_result(
         or child.standard_id != snapshot.standard_id
         or child.target_scale != snapshot.target_scale
         or child.algorithm_version != entry.result_algorithm_version
-        or child.calculation_fingerprint
-        != entry.result_calculation_fingerprint
+        or child.calculation_fingerprint != entry.result_calculation_fingerprint
         or child.outcome.status != entry.result_status
         or child.outcome.proficiency_level_id != entry.proficiency_level_id
-        or child.outcome.insufficiency_reasons
-        != entry.result_insufficiency_reasons
+        or child.outcome.insufficiency_reasons != entry.result_insufficiency_reasons
     ):
         raise ExplanationTraceIntegrityError(
             "Exact #34 result does not match the normalized #35 input."
@@ -1086,9 +1061,7 @@ def _grade_item_explanation_to_dict(
             "class_id": value.grade_item.class_id,
             "grade_item_id": value.grade_item.grade_item_id,
             "grade_item_revision": value.grade_item.grade_item_revision,
-            "grade_item_revision_sha256": (
-                value.grade_item.grade_item_revision_sha256
-            ),
+            "grade_item_revision_sha256": (value.grade_item.grade_item_revision_sha256),
             "title": value.grade_item.title,
             "purpose": value.grade_item.purpose,
             "status": value.grade_item.status,
@@ -1128,9 +1101,7 @@ def _grade_item_explanation_to_dict(
             }
         ),
         "result_algorithm_version": value.result_algorithm_version,
-        "result_calculation_fingerprint": (
-            value.result_calculation_fingerprint
-        ),
+        "result_calculation_fingerprint": (value.result_calculation_fingerprint),
         "result_status": value.result_status,
         "proficiency_level_id": value.proficiency_level_id,
         "result_insufficiency_reasons": [

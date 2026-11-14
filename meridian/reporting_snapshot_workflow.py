@@ -114,9 +114,7 @@ class ReportingSnapshotFreezePreview:
 
     def __post_init__(self) -> None:
         if not self.snapshot_id:
-            raise ReportingSnapshotWorkflowInputError(
-                "snapshot_id must be nonblank."
-            )
+            raise ReportingSnapshotWorkflowInputError("snapshot_id must be nonblank.")
         if len(self.build_request_sha256) != 64:
             raise ReportingSnapshotWorkflowInputError(
                 "build_request_sha256 must be a digest."
@@ -236,13 +234,11 @@ def _authorization_map(
     extra = sorted(supplied - required)
     if missing:
         raise ReportingSnapshotWorkflowAuthorizationError(
-            "One or more build-request projections are missing explicit "
-            "authorization."
+            "One or more build-request projections are missing explicit authorization."
         )
     if extra:
         raise ReportingSnapshotWorkflowInputError(
-            "One or more projection authorizations are not used by the "
-            "build request."
+            "One or more projection authorizations are not used by the build request."
         )
     return mapping
 
@@ -259,13 +255,9 @@ def _load_projection(
             "Live reporting projection access requires a deployment authorizer."
         )
     registry = dependencies.producer_registry
-    if (
-        dependencies.producer_registry_state != "available"
-        or registry is None
-    ):
+    if dependencies.producer_registry_state != "available" or registry is None:
         raise ReportingSnapshotWorkflowSourceError(
-            "Live reporting projection access requires an available "
-            "producer registry."
+            "Live reporting projection access requires an available producer registry."
         )
     try:
         authorized = load_authorized_projection_snapshot(
@@ -277,9 +269,7 @@ def _load_projection(
             requested_student_ids=authorization.student_ids,
             producer_registry=registry,
             adapter_registry=dependencies.adapter_registry,
-            distribution_version_resolver=(
-                dependencies.distribution_version_resolver
-            ),
+            distribution_version_resolver=(dependencies.distribution_version_resolver),
         )
     except ProjectionCacheError as error:
         raise ReportingSnapshotWorkflowSourceError(
@@ -377,9 +367,7 @@ def prepare_reporting_snapshot_freeze(
     return ReportingSnapshotFreezePreview(
         snapshot_id=snapshot_id,
         build_request=build_request,
-        build_request_sha256=reporting_snapshot_build_request_sha256(
-            build_request
-        ),
+        build_request_sha256=reporting_snapshot_build_request_sha256(build_request),
         authorizations=authorizations,
         live_report=report,
         live_report_sha256=hashlib.sha256(report_bytes).hexdigest(),

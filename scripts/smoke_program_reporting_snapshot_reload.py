@@ -59,15 +59,15 @@ def _encoded(data: bytes) -> str:
 
 def main() -> int:
     if len(sys.argv) != 2:
-        raise SystemExit(
-            "usage: smoke_program_reporting_snapshot_reload.py <root>"
-        )
+        raise SystemExit("usage: smoke_program_reporting_snapshot_reload.py <root>")
     issue54._verify_installed_composition()
     root = Path(sys.argv[1]).resolve()
     baseline = _mapping(
-        json.loads((root / "issue55-reporting-snapshot-baseline.json").read_text(
-            encoding="utf-8"
-        )),
+        json.loads(
+            (root / "issue55-reporting-snapshot-baseline.json").read_text(
+                encoding="utf-8"
+            )
+        ),
         "Issue #55 baseline must be an object.",
     )
     workspace = root / _text(baseline.get("workspace"), "workspace missing")

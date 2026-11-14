@@ -52,18 +52,14 @@ def test_real_core_workspace_projects_and_exactly_replays_three_producers(
     assert mixed.publications["quillan"].source_record is None
     assert mixed.publications["concord"].source_record == CONCORD_SOURCE
 
-    cache_keys = {
-        value.cached.stored.cache_key
-        for value in projected.values()
-    }
+    cache_keys = {value.cached.stored.cache_key for value in projected.values()}
     assert len(cache_keys) == 3
 
     for value in projected.values():
         assert value.cached.disposition == "created"
         assert value.cached.stored.snapshot.inventory == value.inventory
         assert all(
-            item.eligibility.status == "unevaluated"
-            for item in value.inventory.items
+            item.eligibility.status == "unevaluated" for item in value.inventory.items
         )
 
         replay = cache_projected_inventory(
@@ -96,20 +92,16 @@ def test_student_scope_keeps_exact_students_and_excludes_concord_group(
         assert cached_items, module_id
         assert all(item.subject is not None for item in cached_items)
         assert {
-            item.subject.student_id
-            for item in cached_items
-            if item.subject is not None
+            item.subject.student_id for item in cached_items if item.subject is not None
         } == {SHARED_STUDENT_ID}
 
     concord = projected["concord"]
     assert any(item.subject is None for item in concord.inventory.items)
     assert not any(
-        item.subject is None
-        for item in concord.cached.stored.snapshot.inventory.items
+        item.subject is None for item in concord.cached.stored.snapshot.inventory.items
     )
     assert [
-        item.result_kind
-        for item in concord.cached.stored.snapshot.inventory.items
+        item.result_kind for item in concord.cached.stored.snapshot.inventory.items
     ] == ["standard_backed_score"]
 
 
@@ -119,8 +111,7 @@ def test_supersession_withdrawal_and_unchanged_cache_state_are_isolated(
     mixed = build_mixed_workspace(tmp_path)
     projected = project_and_cache_all(mixed, prepare_all(mixed))
     original_bytes = {
-        module_id: value.cached.stored.content
-        for module_id, value in projected.items()
+        module_id: value.cached.stored.content for module_id, value in projected.items()
     }
 
     successor = supersede_scoreform(mixed)

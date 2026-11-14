@@ -153,9 +153,7 @@ def _change_entry(
     digest: str,
 ) -> GradePreviewObservation:
     entries = tuple(
-        replace(entry, sha256=digest)
-        if entry.dimension == dimension
-        else entry
+        replace(entry, sha256=digest) if entry.dimension == dimension else entry
         for entry in value.basis_entries
     )
     return replace(value, basis_entries=entries)

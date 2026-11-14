@@ -192,8 +192,7 @@ class ExportPreviewLogicalRow:
                 "logical row calculation_family is unsupported."
             )
         if not isinstance(self.values, tuple) or any(
-            value is not None and not isinstance(value, str)
-            for value in self.values
+            value is not None and not isinstance(value, str) for value in self.values
         ):
             raise ReportExportPreviewValidationError(
                 "logical row values must be a tuple of strings or None."
@@ -385,9 +384,7 @@ class BuiltExportPreview:
 
     def __post_init__(self) -> None:
         if not isinstance(self.preview, ExportPreview):
-            raise ReportExportPreviewValidationError(
-                "preview must be ExportPreview."
-            )
+            raise ReportExportPreviewValidationError("preview must be ExportPreview.")
         roster = self.roster_observation
         if self.preview.roster_observation_reference is None:
             if roster is not None:
@@ -408,9 +405,7 @@ class BuiltExportPreview:
                 )
         object.__setattr__(self, "roster_observation", roster)
         if type(self.payload) is not bytes:
-            raise ReportExportPreviewValidationError(
-                "payload must be immutable bytes."
-            )
+            raise ReportExportPreviewValidationError("payload must be immutable bytes.")
         if len(self.payload) != self.preview.payload_byte_length:
             raise ReportExportPreviewIntegrityError(
                 "payload byte length does not match preview."
@@ -482,9 +477,7 @@ def compose_export_preview(
         "schema_version": REPORT_EXPORT_PREVIEW_SCHEMA_VERSION,
         "record_type": REPORT_EXPORT_PREVIEW_RECORD_TYPE,
         "exporter_version": REPORT_EXPORTER_VERSION,
-        "snapshot_reference": reporting_snapshot_reference_to_dict(
-            snapshot_reference
-        ),
+        "snapshot_reference": reporting_snapshot_reference_to_dict(snapshot_reference),
         "profile_reference": export_profile_reference_to_dict(profile_reference),
         "roster_observation_reference": (
             None
@@ -611,9 +604,7 @@ def export_preview_from_dict(data: object) -> ExportPreview:
     snapshot_reference = reporting_snapshot_reference_from_dict(
         mapping["snapshot_reference"]
     )
-    profile_reference = export_profile_reference_from_dict(
-        mapping["profile_reference"]
-    )
+    profile_reference = export_profile_reference_from_dict(mapping["profile_reference"])
     roster_data = mapping["roster_observation_reference"]
     roster_reference = (
         None
@@ -692,9 +683,7 @@ def validate_export_preview(value: ExportPreview) -> ExportPreview:
     """Fully revalidate one immutable export preview."""
 
     if not isinstance(value, ExportPreview):
-        raise ReportExportPreviewValidationError(
-            "value must be ExportPreview."
-        )
+        raise ReportExportPreviewValidationError("value must be ExportPreview.")
     return ExportPreview(
         schema_version=value.schema_version,
         record_type=value.record_type,
@@ -752,9 +741,7 @@ def _roster_lookup(
     if roster is None:
         return {}
     return {
-        student.student_id: {
-            item.source_field: item.value for item in student.values
-        }
+        student.student_id: {item.source_field: item.value for item in student.values}
         for student in roster.students
     }
 
@@ -879,9 +866,7 @@ def _diagnostics(
         "stale_grade_rows": 0,
         "nonnumeric_effective_grade_rows": 0,
     }
-    if not any(
-        column.source_field == "target.calculation_family" for column in schema
-    ):
+    if not any(column.source_field == "target.calculation_family" for column in schema):
         student_counts: dict[str, int] = {}
         for row in report_preview.rows:
             student_id = row.target.student_id
@@ -917,9 +902,7 @@ def _preview_body_to_dict(value: ExportPreview) -> dict[str, object]:
         "snapshot_reference": reporting_snapshot_reference_to_dict(
             value.snapshot_reference
         ),
-        "profile_reference": export_profile_reference_to_dict(
-            value.profile_reference
-        ),
+        "profile_reference": export_profile_reference_to_dict(value.profile_reference),
         "roster_observation_reference": (
             None
             if value.roster_observation_reference is None
@@ -971,9 +954,7 @@ def _representation_from_dict(data: object) -> ExportRepresentation:
     if format_value not in {"csv", "tsv"}:
         raise ReportExportPreviewValidationError("format must be csv or tsv.")
     if line_ending not in {"lf", "crlf"}:
-        raise ReportExportPreviewValidationError(
-            "line_ending must be lf or crlf."
-        )
+        raise ReportExportPreviewValidationError("line_ending must be lf or crlf.")
     return ExportRepresentation(
         format=cast(Literal["csv", "tsv"], format_value),
         include_header=include_header,
@@ -1107,9 +1088,7 @@ def _exact_mapping(
     label: str,
 ) -> Mapping[str, object]:
     if not isinstance(data, dict):
-        raise ReportExportPreviewValidationError(
-            f"{label} must be a JSON object."
-        )
+        raise ReportExportPreviewValidationError(f"{label} must be a JSON object.")
     keys = set(data)
     if keys != expected_keys:
         missing = sorted(expected_keys - keys)
@@ -1127,9 +1106,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportExportPreviewValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportPreviewValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -1156,33 +1133,25 @@ def _positive_int(value: object, field_name: str) -> int:
 def _nonnegative_int(value: object, field_name: str) -> int:
     integer = _require_int(value, field_name)
     if integer < 0:
-        raise ReportExportPreviewValidationError(
-            f"{field_name} must be nonnegative."
-        )
+        raise ReportExportPreviewValidationError(f"{field_name} must be nonnegative.")
     return integer
 
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportExportPreviewValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportPreviewValidationError(f"{field_name} must be a string.")
     return value
 
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ReportExportPreviewValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise ReportExportPreviewValidationError(f"{field_name} must be an integer.")
     return value
 
 
 def _require_list(value: object, field_name: str) -> list[object]:
     if not isinstance(value, list):
-        raise ReportExportPreviewValidationError(
-            f"{field_name} must be a JSON array."
-        )
+        raise ReportExportPreviewValidationError(f"{field_name} must be a JSON array.")
     return value
 
 

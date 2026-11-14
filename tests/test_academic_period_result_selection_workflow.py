@@ -337,9 +337,7 @@ def test_commit_translates_cas_conflict_to_stale(
         workflow,
         "select_academic_period_proficiency_result_revision",
         lambda *args, **kwargs: (_ for _ in ()).throw(
-            workflow.AcademicPeriodProficiencyStorageConflictError(
-                "current changed"
-            )
+            workflow.AcademicPeriodProficiencyStorageConflictError("current changed")
         ),
     )
 

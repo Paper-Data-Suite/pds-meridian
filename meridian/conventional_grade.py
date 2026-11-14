@@ -65,9 +65,7 @@ from meridian.grade_policy_activation import (
 CONVENTIONAL_GRADE_ALGORITHM_VERSION: Final[str] = "1"
 MAXIMUM_CONVENTIONAL_GRADE_PROVENANCE_KEY_LENGTH: Final[int] = 512
 CONVENTIONAL_GRADE_RESULT_SCHEMA_VERSION: Final[str] = "1"
-CONVENTIONAL_GRADE_RESULT_RECORD_TYPE: Final[str] = (
-    "meridian_conventional_grade_result"
-)
+CONVENTIONAL_GRADE_RESULT_RECORD_TYPE: Final[str] = "meridian_conventional_grade_result"
 
 ConventionalGradeFreshnessStatus: TypeAlias = Literal["current", "stale"]
 ConventionalGradeStalenessReason: TypeAlias = Literal[
@@ -182,9 +180,7 @@ class ConventionalGradeProvenanceReference:
 
     def __post_init__(self) -> None:
         if self.kind not in _PROVENANCE_KINDS:
-            raise ConventionalGradeValidationError(
-                "provenance kind is not supported."
-            )
+            raise ConventionalGradeValidationError("provenance kind is not supported.")
         object.__setattr__(
             self,
             "reference_key",
@@ -671,9 +667,7 @@ class ConventionalGradeResultSnapshot:
             raise ConventionalGradeValidationError(
                 "inputs must be ConventionalGradeCalculationInput."
             )
-        exact_inputs_sha256 = conventional_grade_calculation_input_sha256(
-            self.inputs
-        )
+        exact_inputs_sha256 = conventional_grade_calculation_input_sha256(self.inputs)
         inputs_sha256 = _sha256(self.inputs_sha256, "inputs_sha256")
         if inputs_sha256 != exact_inputs_sha256:
             raise ConventionalGradeValidationError(
@@ -995,8 +989,7 @@ def _calculate_conventional_grade_in_context(
 
     fingerprint = conventional_grade_calculation_fingerprint(inputs)
     item_results = tuple(
-        _resolve_item_result(item, inputs.state_treatment)
-        for item in inputs.items
+        _resolve_item_result(item, inputs.state_treatment) for item in inputs.items
     )
     blocking_reasons = tuple(
         ConventionalGradeReason(
@@ -1038,8 +1031,7 @@ def _calculate_conventional_grade_in_context(
             contributions = [
                 category.contribution
                 for category in category_results
-                if category.status == "calculated"
-                and category.contribution is not None
+                if category.status == "calculated" and category.contribution is not None
             ]
             if contributions:
                 final_fraction = sum(contributions, Decimal("0"))
@@ -1307,9 +1299,7 @@ def _weighted_category_results(
             and item.earned is not None
             and item.possible is not None
         )
-        excluded = tuple(
-            item for item in members if item.action == "exclude"
-        )
+        excluded = tuple(item for item in members if item.action == "exclude")
         if blocked:
             results.append(
                 ConventionalGradeCategoryResult(
@@ -1470,9 +1460,7 @@ def conventional_grade_calculation_input_from_dict(
         activation_reference=_activation_reference_from_dict(
             mapping["activation_reference"]
         ),
-        policy_reference=_policy_reference_from_dict(
-            mapping["policy_reference"]
-        ),
+        policy_reference=_policy_reference_from_dict(mapping["policy_reference"]),
         configuration=_configuration_from_dict(mapping["configuration"]),
         state_treatment=_state_treatment_from_dict(mapping["state_treatment"]),
         rounding=_rounding_from_dict(mapping["rounding"]),
@@ -1545,9 +1533,7 @@ def conventional_grade_calculation_outcome_from_dict(
         activation_reference=_activation_reference_from_dict(
             mapping["activation_reference"]
         ),
-        policy_reference=_policy_reference_from_dict(
-            mapping["policy_reference"]
-        ),
+        policy_reference=_policy_reference_from_dict(mapping["policy_reference"]),
         mode=_require_str(mapping["mode"], "mode"),
         student_id=_require_str(mapping["student_id"], "student_id"),
         item_results=tuple(
@@ -1782,12 +1768,8 @@ def conventional_grade_result_snapshot_from_dict(
         activation_reference=_activation_reference_from_dict(
             mapping["activation_reference"]
         ),
-        policy_reference=_policy_reference_from_dict(
-            mapping["policy_reference"]
-        ),
-        outcome=conventional_grade_calculation_outcome_from_dict(
-            mapping["outcome"]
-        ),
+        policy_reference=_policy_reference_from_dict(mapping["policy_reference"]),
+        outcome=conventional_grade_calculation_outcome_from_dict(mapping["outcome"]),
         calculated_at=_datetime_from_text(
             mapping["calculated_at"],
             "calculated_at",
@@ -2133,9 +2115,7 @@ def _configuration_from_dict(data: object) -> ConventionalGradeConfiguration:
 def _participation_from_dict(data: object) -> GradePolicyItemParticipation:
     mapping = _exact_mapping(
         data,
-        frozenset(
-            {"grade_item", "category_id", "weight", "possible_points"}
-        ),
+        frozenset({"grade_item", "category_id", "weight", "possible_points"}),
         "Grade policy item participation",
     )
     return GradePolicyItemParticipation(
@@ -2558,9 +2538,7 @@ def _exact_mapping(
     if not isinstance(data, Mapping):
         raise ConventionalGradeValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise ConventionalGradeValidationError(
-            f"{label} keys must be strings."
-        )
+        raise ConventionalGradeValidationError(f"{label} keys must be strings.")
     mapping = cast(Mapping[str, object], data)
     actual = frozenset(mapping.keys())
     if actual != keys:
@@ -2579,17 +2557,13 @@ def _exact_mapping(
 
 def _require_list(value: object, field_name: str) -> list[object]:
     if not isinstance(value, list):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be a list."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be a list.")
     return value
 
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be a string.")
     return value
 
 
@@ -2601,9 +2575,7 @@ def _optional_str(value: object, field_name: str) -> str | None:
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be an integer.")
     return value
 
 
@@ -2642,8 +2614,7 @@ def _optional_decimal_from_text(
 
 def _string_tuple(value: object, field_name: str) -> tuple[str, ...]:
     return tuple(
-        _require_str(item, field_name)
-        for item in _require_list(value, field_name)
+        _require_str(item, field_name) for item in _require_list(value, field_name)
     )
 
 
@@ -2688,9 +2659,7 @@ def _staleness_reasons(
         raise ConventionalGradeValidationError(
             "freshness reasons must not contain duplicates."
         )
-    expected = tuple(
-        reason for reason in _STALENESS_REASON_ORDER if reason in reasons
-    )
+    expected = tuple(reason for reason in _STALENESS_REASON_ORDER if reason in reasons)
     if reasons != expected:
         raise ConventionalGradeValidationError(
             "freshness reasons are not in deterministic order."
@@ -2727,13 +2696,9 @@ def _native_number_to_decimal(value: int | float) -> Decimal:
 
 def _finite_decimal(value: object, field_name: str) -> Decimal:
     if not isinstance(value, Decimal):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be a Decimal."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be a Decimal.")
     if not value.is_finite():
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be finite."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be finite.")
     return value
 
 
@@ -2762,9 +2727,7 @@ def _optional_decimal_text(value: Decimal | None) -> str | None:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -2826,9 +2789,7 @@ def _reason_code(value: object) -> str:
 
 def _reason_codes(value: object) -> tuple[str, ...]:
     if isinstance(value, (str, bytes)):
-        raise ConventionalGradeValidationError(
-            "reason_codes must be an iterable."
-        )
+        raise ConventionalGradeValidationError("reason_codes must be an iterable.")
     try:
         items = tuple(cast(Iterable[object], value))
     except TypeError as error:
@@ -2841,9 +2802,7 @@ def _reason_codes(value: object) -> tuple[str, ...]:
 
 def _provenance(value: object) -> tuple[ConventionalGradeProvenanceReference, ...]:
     if isinstance(value, (str, bytes)):
-        raise ConventionalGradeValidationError(
-            "provenance must be an iterable."
-        )
+        raise ConventionalGradeValidationError("provenance must be an iterable.")
     try:
         items = tuple(cast(Iterable[object], value))
     except TypeError as error:
@@ -2851,8 +2810,7 @@ def _provenance(value: object) -> tuple[ConventionalGradeProvenanceReference, ..
             "provenance must be an iterable."
         ) from error
     if any(
-        not isinstance(item, ConventionalGradeProvenanceReference)
-        for item in items
+        not isinstance(item, ConventionalGradeProvenanceReference) for item in items
     ):
         raise ConventionalGradeValidationError(
             "provenance contains an invalid reference."
@@ -2879,9 +2837,7 @@ def _provenance(value: object) -> tuple[ConventionalGradeProvenanceReference, ..
 
 def _identifier_tuple(value: object, field_name: str) -> tuple[str, ...]:
     if isinstance(value, (str, bytes)):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be an iterable."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be an iterable.")
     try:
         items = tuple(cast(Iterable[object], value))
     except TypeError as error:
@@ -2908,9 +2864,7 @@ def _typed_tuple(
     field_name: str,
 ) -> tuple[_T, ...]:
     if isinstance(value, (str, bytes)):
-        raise ConventionalGradeValidationError(
-            f"{field_name} must be an iterable."
-        )
+        raise ConventionalGradeValidationError(f"{field_name} must be an iterable.")
     try:
         items = tuple(cast(Iterable[object], value))
     except TypeError as error:

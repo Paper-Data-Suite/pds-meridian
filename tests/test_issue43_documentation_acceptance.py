@@ -4,9 +4,7 @@ DOC = "docs/architecture/proficiency-attention-summaries.md"
 
 
 def test_issue43_documentation_is_release_guarded() -> None:
-    checker = Path("scripts/check_documentation.py").read_text(
-        encoding="utf-8"
-    )
+    checker = Path("scripts/check_documentation.py").read_text(encoding="utf-8")
     sdist = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
     assert DOC in checker
     assert DOC in sdist
@@ -17,19 +15,11 @@ def test_issue43_handoff_is_current() -> None:
     targets = (
         Path("README"),
         Path("docs/README.md"),
-        Path(
-            "docs/architecture/"
-            "teacher-eligibility-proficiency-planning-workflows.md"
-        ),
-        Path(
-            "docs/architecture/"
-            "proficiency-planning-export-explanation-traces.md"
-        ),
+        Path("docs/architecture/teacher-eligibility-proficiency-planning-workflows.md"),
+        Path("docs/architecture/proficiency-planning-export-explanation-traces.md"),
         Path(DOC),
     )
-    implemented = (
-        "#43 Meridian proficiency attention summaries — implemented"
-    )
+    implemented = "#43 Meridian proficiency attention summaries — implemented"
     issue44 = (
         "#44 ScoreForm/Quillan/Concord cross-producer proficiency "
         "scenarios — implemented"
@@ -44,8 +34,7 @@ def test_issue43_handoff_is_current() -> None:
         assert issue44 in text
         assert next_item in text
         assert (
-            "#46 final v0.2.0 audit — implemented; "
-            "release preparation qualified"
+            "#46 final v0.2.0 audit — implemented; release preparation qualified"
         ) in text
 
 
@@ -58,10 +47,7 @@ def test_issue43_docs_preserve_required_boundaries() -> None:
         "meridian_export_pending",
         "Successful empty evaluation remains distinct from",
         "readiness absent",
-        (
-            "Low proficiency is never translated into attention "
-            "severity or risk."
-        ),
+        ("Low proficiency is never translated into attention severity or risk."),
         "producer/Concord absence",
     ):
         assert required in text

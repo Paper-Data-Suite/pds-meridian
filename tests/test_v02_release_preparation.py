@@ -5,11 +5,13 @@ from pathlib import Path
 from scripts import check_sdist, verify_concord_wheel
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
 def test_v02_release_material_remains_historical() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    notes = (
-        ROOT / "docs/development/v0.2.0-release-notes.md"
-    ).read_text(encoding="utf-8")
+    notes = (ROOT / "docs/development/v0.2.0-release-notes.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "## 0.2.0 — 2026-09-07" in changelog
     assert "# pds-meridian v0.2.0 release notes" in notes
@@ -17,9 +19,7 @@ def test_v02_release_material_remains_historical() -> None:
 
 
 def test_concord_release_diagnostics_name_exact_v030() -> None:
-    source = (ROOT / "scripts/verify_concord_wheel.py").read_text(
-        encoding="utf-8"
-    )
+    source = (ROOT / "scripts/verify_concord_wheel.py").read_text(encoding="utf-8")
 
     assert verify_concord_wheel.EXPECTED_CONCORD_VERSION == "0.3.0"
     assert "version is not exactly 0.2.0" not in source
@@ -54,17 +54,18 @@ def test_v02_audit_and_release_notes_use_nonrecursive_hash_boundary() -> None:
     ):
         assert path in check_sdist.REQUIRED_MEMBERS
 
+
 def test_release_status_documents_v02_boundary() -> None:
     readme = (ROOT / "README").read_text(encoding="utf-8")
     docs_readme = (ROOT / "docs/README.md").read_text(encoding="utf-8")
     security = (ROOT / "Security.md").read_text(encoding="utf-8")
-    foundation = (
-        ROOT / "docs/development/package-foundation.md"
-    ).read_text(encoding="utf-8")
+    foundation = (ROOT / "docs/development/package-foundation.md").read_text(
+        encoding="utf-8"
+    )
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    notes = (
-        ROOT / "docs/development/v0.2.0-release-notes.md"
-    ).read_text(encoding="utf-8")
+    notes = (ROOT / "docs/development/v0.2.0-release-notes.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "#46 final v0.2.0 audit — implemented" in readme
     assert "#46 final v0.2.0 audit — implemented" in docs_readme
@@ -77,6 +78,7 @@ def test_release_status_documents_v02_boundary() -> None:
     assert "pds_meridian-0.2.0-py3-none-any.whl" in notes
     assert "pds_meridian-0.2.0.tar.gz" in notes
 
+
 def test_installed_smokes_do_not_pin_historical_meridian_release() -> None:
     stale: list[str] = []
     for path in sorted((ROOT / "scripts").glob("smoke*.py")):
@@ -88,8 +90,6 @@ def test_installed_smokes_do_not_pin_historical_meridian_release() -> None:
                 lines[max(0, index - 2) : min(len(lines), index + 3)]
             ).lower()
             if "meridian" in window or "pds-meridian" in window:
-                stale.append(
-                    f"{path.relative_to(ROOT)}:{index + 1}: {line.strip()}"
-                )
+                stale.append(f"{path.relative_to(ROOT)}:{index + 1}: {line.strip()}")
 
     assert stale == []

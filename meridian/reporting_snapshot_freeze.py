@@ -248,8 +248,7 @@ def extract_reporting_snapshot_provenance_bindings(
     _append_request_publication_bindings(bindings, build_request)
     if preview_requests is not None:
         if not isinstance(preview_requests, tuple) or any(
-            not isinstance(item, GradeReportPreviewRequest)
-            for item in preview_requests
+            not isinstance(item, GradeReportPreviewRequest) for item in preview_requests
         ):
             raise ReportingSnapshotFreezeValidationError(
                 "preview_requests must contain GradeReportPreviewRequest values."
@@ -271,9 +270,7 @@ def extract_reporting_snapshot_provenance_bindings(
         )
         bindings.extend(_rich_explanation_bindings(explanation))
 
-    unique: dict[
-        tuple[str, str, str], ReportingSnapshotProvenanceBinding
-    ] = {}
+    unique: dict[tuple[str, str, str], ReportingSnapshotProvenanceBinding] = {}
     for binding in bindings:
         key = (
             binding.authority_kind,
@@ -665,9 +662,7 @@ def _observation_bindings(
         _binding(
             "grade_policy_activation",
             "grade_policy_activation",
-            grade_policy_activation_reference_to_dict(
-                observation.activation_reference
-            ),
+            grade_policy_activation_reference_to_dict(observation.activation_reference),
         ),
         _binding(
             "grade_policy_revision",
@@ -1032,9 +1027,7 @@ def _json_mapping(data: bytes, label: str) -> Mapping[str, object]:
 
 
 def _mapping(value: object, label: str) -> Mapping[str, object]:
-    if not isinstance(value, Mapping) or any(
-        not isinstance(key, str) for key in value
-    ):
+    if not isinstance(value, Mapping) or any(not isinstance(key, str) for key in value):
         raise ReportingSnapshotFreezeIntegrityError(f"{label} must be an object.")
     return cast(Mapping[str, object], value)
 
@@ -1047,7 +1040,5 @@ def _list(value: object, label: str) -> list[object]:
 
 def _string(value: object, label: str) -> str:
     if not isinstance(value, str) or not value:
-        raise ReportingSnapshotFreezeIntegrityError(
-            f"{label} must be nonempty text."
-        )
+        raise ReportingSnapshotFreezeIntegrityError(f"{label} must be nonempty text.")
     return value

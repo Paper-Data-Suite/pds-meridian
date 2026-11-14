@@ -110,9 +110,7 @@ def blocked_candidate(code: str) -> object:
         blockers=(
             SimpleNamespace(
                 code=code,
-                student_id=(
-                    None if code == "no_selected_policy" else "student_001"
-                ),
+                student_id=(None if code == "no_selected_policy" else "student_001"),
                 source_result=None,
                 freshness_reasons=(),
             ),

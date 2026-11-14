@@ -146,9 +146,10 @@ def test_source_reference_is_exact_and_source_key_is_deterministic() -> None:
     first = evidence_source_key(value)
     second = evidence_source_key(source())
     assert first == second
-    assert first == hashlib.sha256(
-        evidence_source_reference_to_json_bytes(value)
-    ).hexdigest()
+    assert (
+        first
+        == hashlib.sha256(evidence_source_reference_to_json_bytes(value)).hexdigest()
+    )
     assert len(first) == 64
 
 
@@ -313,9 +314,12 @@ def test_canonical_json_round_trip_is_exact() -> None:
     payload = evidence_eligibility_decision_to_json_bytes(value)
     assert payload.endswith(b"\n")
     assert evidence_eligibility_decision_from_json_bytes(payload) == value
-    assert evidence_eligibility_decision_to_json_bytes(
-        evidence_eligibility_decision_from_json_bytes(payload)
-    ) == payload
+    assert (
+        evidence_eligibility_decision_to_json_bytes(
+            evidence_eligibility_decision_from_json_bytes(payload)
+        )
+        == payload
+    )
 
 
 def test_noncanonical_duplicate_missing_and_unknown_json_are_rejected() -> None:

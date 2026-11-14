@@ -73,19 +73,13 @@ def test_descriptor_is_exact_released_contract() -> None:
     assert descriptor.key.manifest_contract_version == (
         "concord_academic_result_manifest_v1"
     )
-    assert descriptor.key.producer_contract_version == (
-        "concord_academic_work_v1"
-    )
+    assert descriptor.key.producer_contract_version == ("concord_academic_work_v1")
     assert descriptor.key.source_record_kind == "activity"
-    assert descriptor.key.source_record_contract_version == (
-        "concord_activity_v1"
-    )
+    assert descriptor.key.source_record_contract_version == ("concord_activity_v1")
     assert descriptor.supported_capabilities == frozenset(
         {"criterion_scores", "moderated_scores", "standards_ratings"}
     )
-    assert descriptor.supported_producer_reader_versions == frozenset(
-        {"0.3.0"}
-    )
+    assert descriptor.supported_producer_reader_versions == frozenset({"0.3.0"})
 
 
 def test_import_registry_selection_and_group_help_dependencies_are_lazy() -> None:
@@ -315,17 +309,12 @@ def test_projection_preserves_group_history_scale_states_and_moderation() -> Non
     assert all("group_1" not in item.item_id for item in first.items)
     assert all(item.eligibility.status == "unevaluated" for item in first.items)
     assert all(
-        item.provenance.publication == request.publication
-        for item in first.items
+        item.provenance.publication == request.publication for item in first.items
     )
     assert all(
-        item.provenance.registration == request.registration
-        for item in first.items
+        item.provenance.registration == request.registration for item in first.items
     )
-    assert all(
-        item.provenance.withdrawal == request.withdrawal
-        for item in first.items
-    )
+    assert all(item.provenance.withdrawal == request.withdrawal for item in first.items)
 
     predecessor, current, standard, absent = first.items
     assert predecessor.subject is None
@@ -381,18 +370,15 @@ def test_projection_preserves_group_history_scale_states_and_moderation() -> Non
     predecessor_refs = predecessor.provenance.native.references
     current_refs = current.provenance.native.references
     assert any(
-        ref.kind == "score_current_state"
-        and ref.identifier == "superseded"
+        ref.kind == "score_current_state" and ref.identifier == "superseded"
         for ref in predecessor_refs
     )
     assert any(
-        ref.kind == "score_supersedes"
-        and ref.identifier == "score_001"
+        ref.kind == "score_supersedes" and ref.identifier == "score_001"
         for ref in current_refs
     )
     assert any(
-        ref.kind == "score_evidence_link"
-        and ref.identifier == "link_002"
+        ref.kind == "score_evidence_link" and ref.identifier == "link_002"
         for ref in current_refs
     )
     assert any(
@@ -406,9 +392,7 @@ def test_projection_preserves_group_history_scale_states_and_moderation() -> Non
         for ref in current_refs
     )
     moderation_subject_ids = {
-        ref.identifier
-        for ref in current_refs
-        if ref.kind == "moderation_subject_id"
+        ref.identifier for ref in current_refs if ref.kind == "moderation_subject_id"
     }
     assert moderation_subject_ids == {"student_1", "student_2"}
     assert current.subject is None
@@ -420,22 +404,18 @@ def test_projection_preserves_group_history_scale_states_and_moderation() -> Non
         for ref in standard_refs
     )
     assert any(
-        ref.kind == "score_basis"
-        and ref.identifier == "professional_judgment"
+        ref.kind == "score_basis" and ref.identifier == "professional_judgment"
         for ref in standard_refs
     )
     assert any(
         ref.kind == "score_current_state" and ref.identifier == "current"
         for ref in standard_refs
     )
-    assert standard.provenance.native.timestamps[1].value == NOW.replace(
-        minute=10
-    )
+    assert standard.provenance.native.timestamps[1].value == NOW.replace(minute=10)
 
     absent_refs = absent.provenance.native.references
     assert any(
-        ref.kind == "score_status_reason"
-        and ref.identifier == "absent"
+        ref.kind == "score_status_reason" and ref.identifier == "absent"
         for ref in absent_refs
     )
     assert [stamp.kind for stamp in absent.provenance.native.timestamps] == [
@@ -480,9 +460,7 @@ def test_content_dependent_capability_sets_are_exact(
         lambda _: "0.3.0",
     )
     assert inventory.items
-    assert all(
-        item.eligibility.status == "unevaluated" for item in inventory.items
-    )
+    assert all(item.eligibility.status == "unevaluated" for item in inventory.items)
     if mode == "local":
         assert len(inventory.items) == 1
         assert inventory.items[0].subject is None
@@ -632,6 +610,5 @@ def test_noncanonical_bytes_reader_import_failure_and_artifact_boundary(
     inventory = ConcordAcademicResultAdapter().project(canonical_request)
     assert len(inventory.items) == 4
     assert not any(
-        name.startswith("concord.academic_result_artifacts")
-        for name in sys.modules
+        name.startswith("concord.academic_result_artifacts") for name in sys.modules
     )

@@ -39,9 +39,7 @@ def test_preview_storage_is_content_addressed_and_idempotent(
     assert second.disposition == "existing"
     assert first.stored.reference == second.stored.reference
     assert first.stored.content == second.stored.content
-    assert list_grouping_signal_preview_ids(root, CLASS_ID) == (
-        preview.preview_id,
-    )
+    assert list_grouping_signal_preview_ids(root, CLASS_ID) == (preview.preview_id,)
     assert not (
         grouping_signal_previews_directory(root, CLASS_ID) / "current.json"
     ).exists()

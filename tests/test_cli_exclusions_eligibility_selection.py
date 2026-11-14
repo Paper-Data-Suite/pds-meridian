@@ -161,10 +161,13 @@ def test_preview_uses_exact_authorization_and_does_not_select(
         lambda *args, **kwargs: pytest.fail("preview must not select"),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     _, inspect_kwargs = observed["inspect"]
@@ -221,10 +224,13 @@ def test_confirm_select_commits_exact_preview_without_authoring(
         commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-select"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [
@@ -260,10 +266,13 @@ def test_json_output_preserves_selection_and_authoring_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "selected"

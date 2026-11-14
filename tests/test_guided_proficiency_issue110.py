@@ -57,12 +57,8 @@ def _prepared() -> GuidedProjectionResult:
         provenance=SimpleNamespace(
             producer_module_id=signature_fields["producer_module_id"],
             publication_kind=signature_fields["publication_kind"],
-            manifest_contract_version=signature_fields[
-                "manifest_contract_version"
-            ],
-            producer_contract_version=signature_fields[
-                "producer_contract_version"
-            ],
+            manifest_contract_version=signature_fields["manifest_contract_version"],
+            producer_contract_version=signature_fields["producer_contract_version"],
             projection=SimpleNamespace(
                 projection_id=signature_fields["projection_id"],
                 projection_contract_version=signature_fields[
@@ -71,9 +67,7 @@ def _prepared() -> GuidedProjectionResult:
                 producer_reader_distribution=signature_fields[
                     "producer_reader_distribution"
                 ],
-                producer_reader_version=signature_fields[
-                    "producer_reader_version"
-                ],
+                producer_reader_version=signature_fields["producer_reader_version"],
             ),
         ),
         result_kind="submitted_result",
@@ -92,9 +86,7 @@ def _prepared() -> GuidedProjectionResult:
                 stored=SimpleNamespace(
                     cache_key="c" * 64,
                     snapshot_digest="b" * 64,
-                    snapshot=SimpleNamespace(
-                        inventory=SimpleNamespace(items=(item,))
-                    ),
+                    snapshot=SimpleNamespace(inventory=SimpleNamespace(items=(item,))),
                 ),
             )
         ),

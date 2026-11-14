@@ -46,8 +46,15 @@ def test_all_nine_reports_have_an_advanced_direct_cli_route() -> None:
     )
     rendered = output.getvalue()
     for command in (
-        "reconciliation", "justify", "standards profile", "standards growth",
-        "evidence", "checkpoint", "readiness", "impact", "benchmark"
+        "reconciliation",
+        "justify",
+        "standards profile",
+        "standards growth",
+        "evidence",
+        "checkpoint",
+        "readiness",
+        "impact",
+        "benchmark",
     ):
         assert f"meridian reports {command} --help" in rendered
     assert "For advanced use" in rendered

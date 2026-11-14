@@ -74,12 +74,15 @@ def test_main_menu_is_low_density_and_has_only_valid_top_navigation() -> None:
     output = StringIO()
     clears: list[str] = []
 
-    assert run_menu(
-        dependencies=_dependencies([]),
-        input_fn=ScriptedInput("q"),
-        output=output,
-        clear_fn=lambda: clears.append("clear"),
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies([]),
+            input_fn=ScriptedInput("q"),
+            output=output,
+            clear_fn=lambda: clears.append("clear"),
+        )
+        == 0
+    )
 
     rendered = output.getvalue()
     for task in TEACHER_MENU_TASKS:
@@ -113,12 +116,15 @@ def test_numbered_choice_dispatches_by_symbolic_task_identity(
 ) -> None:
     calls: list[TeacherMenuTaskId] = []
 
-    assert run_menu(
-        dependencies=_dependencies(calls),
-        input_fn=ScriptedInput(choice, "q"),
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(calls),
+            input_fn=ScriptedInput(choice, "q"),
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert calls == [task_id]
 
@@ -127,12 +133,15 @@ def test_help_is_teacher_facing_and_redraws_main_menu() -> None:
     output = StringIO()
     clears: list[str] = []
 
-    assert run_menu(
-        dependencies=_dependencies([]),
-        input_fn=ScriptedInput("h", "", "q"),
-        output=output,
-        clear_fn=lambda: clears.append("clear"),
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies([]),
+            input_fn=ScriptedInput("h", "", "q"),
+            output=output,
+            clear_fn=lambda: clears.append("clear"),
+        )
+        == 0
+    )
 
     rendered = output.getvalue()
     assert "Meridian\nHelp" in rendered
@@ -146,12 +155,15 @@ def test_help_is_teacher_facing_and_redraws_main_menu() -> None:
 def test_invalid_choice_pauses_then_redraws() -> None:
     output = StringIO()
 
-    assert run_menu(
-        dependencies=_dependencies([]),
-        input_fn=ScriptedInput("x", "", "q"),
-        output=output,
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies([]),
+            input_fn=ScriptedInput("x", "", "q"),
+            output=output,
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert "Please choose 1-9, S, H, or Q." in output.getvalue()
 
@@ -159,15 +171,18 @@ def test_invalid_choice_pauses_then_redraws() -> None:
 def test_return_to_main_menu_unwinds_nested_task() -> None:
     calls: list[TeacherMenuTaskId] = []
 
-    assert run_menu(
-        dependencies=_dependencies(
-            calls,
-            override=("review-new-evidence", ReturnToMainMenu()),
-        ),
-        input_fn=ScriptedInput("1", "q"),
-        output=StringIO(),
-        clear_fn=lambda: None,
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(
+                calls,
+                override=("review-new-evidence", ReturnToMainMenu()),
+            ),
+            input_fn=ScriptedInput("1", "q"),
+            output=StringIO(),
+            clear_fn=lambda: None,
+        )
+        == 0
+    )
 
     assert calls == []
 
@@ -176,15 +191,18 @@ def test_quit_unwinds_nested_task_and_exits_cleanly() -> None:
     calls: list[TeacherMenuTaskId] = []
     clears: list[str] = []
 
-    assert run_menu(
-        dependencies=_dependencies(
-            calls,
-            override=("preview-grades", QuitPDS()),
-        ),
-        input_fn=ScriptedInput("4"),
-        output=StringIO(),
-        clear_fn=lambda: clears.append("clear"),
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies(
+                calls,
+                override=("preview-grades", QuitPDS()),
+            ),
+            input_fn=ScriptedInput("4"),
+            output=StringIO(),
+            clear_fn=lambda: clears.append("clear"),
+        )
+        == 0
+    )
 
     assert calls == []
     assert len(clears) == 2
@@ -197,24 +215,30 @@ def test_terminal_exit_signals_are_clean(error: BaseException) -> None:
         raise error
 
     clears: list[str] = []
-    assert run_menu(
-        dependencies=_dependencies([]),
-        input_fn=raising_input,
-        output=StringIO(),
-        clear_fn=lambda: clears.append("clear"),
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies([]),
+            input_fn=raising_input,
+            output=StringIO(),
+            clear_fn=lambda: clears.append("clear"),
+        )
+        == 0
+    )
     assert len(clears) == 2
 
 
 def test_main_menu_uses_clear_redraw_between_task_visits() -> None:
     clears: list[str] = []
 
-    assert run_menu(
-        dependencies=_dependencies([]),
-        input_fn=ScriptedInput("1", "q"),
-        output=StringIO(),
-        clear_fn=lambda: clears.append("clear"),
-    ) == 0
+    assert (
+        run_menu(
+            dependencies=_dependencies([]),
+            input_fn=ScriptedInput("1", "q"),
+            output=StringIO(),
+            clear_fn=lambda: clears.append("clear"),
+        )
+        == 0
+    )
 
     # Initial main screen, redraw after the task returns, then clean exit.
     assert len(clears) == 3

@@ -188,14 +188,17 @@ def test_issue53_nonfloating_withdrawal_and_reactivation_are_explicit(
     first_bytes = first_write.stored.content
     first_digest = first_write.stored.override_sha256
 
-    assert get_current_teacher_grade_override_reference(
-        root,
-        CLASS_ID,
-        STUDENT_ID,
-        PERIOD,
-        1,
-        first.calculation_family,
-    ) is None
+    assert (
+        get_current_teacher_grade_override_reference(
+            root,
+            CLASS_ID,
+            STUDENT_ID,
+            PERIOD,
+            1,
+            first.calculation_family,
+        )
+        is None
+    )
     before_selection = resolve_effective_grade(source_v1)
     assert before_selection.effective_grade == Decimal("80.00")
     assert before_selection.effective_source == "base"
@@ -247,14 +250,17 @@ def test_issue53_nonfloating_withdrawal_and_reactivation_are_explicit(
         rationale="Deliberately rebind through a new immutable decision.",
     )
     write_teacher_grade_override_revision(root, second)
-    assert load_current_teacher_grade_override(
-        root,
-        CLASS_ID,
-        STUDENT_ID,
-        PERIOD,
-        1,
-        second.calculation_family,
-    ).reference == selected_first.reference
+    assert (
+        load_current_teacher_grade_override(
+            root,
+            CLASS_ID,
+            STUDENT_ID,
+            PERIOD,
+            1,
+            second.calculation_family,
+        ).reference
+        == selected_first.reference
+    )
     _select_latest(root, second)
     selected_second = load_current_teacher_grade_override(
         root,

@@ -77,9 +77,7 @@ def _freeze_deps(
     return SnapshotFreezeDependencies(
         build_request_loader=lambda path: log.append(("load", path)) or _request(),
         requirements_loader=(
-            (lambda request: (requirement,))
-            if protected
-            else (lambda request: ())
+            (lambda request: (requirement,)) if protected else (lambda request: ())
         ),
         previewer=lambda *args: (
             log.append(("preview", args))
@@ -198,10 +196,7 @@ def test_freeze_requires_exact_freeze_confirmation() -> None:
         output=output,
         clear_fn=lambda: None,
     )
-    assert any(
-        isinstance(item, tuple) and item[0] == "commit"
-        for item in log
-    )
+    assert any(isinstance(item, tuple) and item[0] == "commit" for item in log)
     rendered = output.getvalue()
     assert "ReportingSnapshot frozen: snapshot_1" in rendered
     assert f"Snapshot sha256: {'c' * 64}" in rendered
@@ -227,8 +222,7 @@ def test_protected_freeze_collects_explicit_authorization_inputs() -> None:
         clear_fn=lambda: None,
     )
     preview_calls = [
-        item for item in log
-        if isinstance(item, tuple) and item[0] == "preview"
+        item for item in log if isinstance(item, tuple) and item[0] == "preview"
     ]
     assert len(preview_calls) == 1
     args = preview_calls[0][1]

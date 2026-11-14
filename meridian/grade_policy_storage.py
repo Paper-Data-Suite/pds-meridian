@@ -56,9 +56,7 @@ GradePolicySelectDisposition: TypeAlias = Literal["created", "updated", "existin
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -157,9 +155,7 @@ class StoredGradePolicyRevision:
             )
         digest = _sha256(self.policy_sha256, "policy_sha256")
         if type(self.content) is not bytes:
-            raise GradePolicyStorageValidationError(
-                "content must be immutable bytes."
-            )
+            raise GradePolicyStorageValidationError("content must be immutable bytes.")
         if hashlib.sha256(self.content).hexdigest() != digest:
             raise GradePolicyStorageValidationError(
                 "policy_sha256 does not match exact stored bytes."
@@ -213,9 +209,7 @@ class GradePolicyRevisionWriteResult:
 
     def __post_init__(self) -> None:
         if self.disposition not in {"created", "existing"}:
-            raise GradePolicyStorageValidationError(
-                "write disposition is invalid."
-            )
+            raise GradePolicyStorageValidationError("write disposition is invalid.")
         if not isinstance(self.stored, StoredGradePolicyRevision):
             raise GradePolicyStorageValidationError(
                 "stored must be a StoredGradePolicyRevision."
@@ -270,9 +264,7 @@ class GradePolicySelectionResult:
 
     def __post_init__(self) -> None:
         if self.disposition not in {"created", "updated", "existing"}:
-            raise GradePolicyStorageValidationError(
-                "selection disposition is invalid."
-            )
+            raise GradePolicyStorageValidationError("selection disposition is invalid.")
         if not isinstance(self.selection, GradePolicyCurrentSelection):
             raise GradePolicyStorageValidationError(
                 "selection must be a GradePolicyCurrentSelection."
@@ -334,9 +326,8 @@ def grade_policy_directory(
 ) -> Path:
     """Return one logical Grade-policy family's canonical root."""
     policy = _identifier(policy_id, "policy_id")
-    return (
-        grade_policies_directory(workspace_root, class_id)
-        / grade_policy_path_key(class_id, policy)
+    return grade_policies_directory(workspace_root, class_id) / grade_policy_path_key(
+        class_id, policy
     )
 
 
@@ -361,11 +352,14 @@ def grade_policy_revision_path(
 ) -> Path:
     """Return the canonical JSON path for one immutable policy revision."""
     revision = _positive_int(policy_revision, "policy_revision")
-    return grade_policy_revisions_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / f"{revision}.json"
+    return (
+        grade_policy_revisions_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def grade_policy_revision_digest_path(
@@ -394,11 +388,14 @@ def grade_policy_current_path(
     policy_id: str,
 ) -> Path:
     """Return the explicit family-current selector path."""
-    return grade_policy_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / "current.json"
+    return (
+        grade_policy_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / "current.json"
+    )
 
 
 def grade_policy_revision_relative_path(
@@ -410,10 +407,7 @@ def grade_policy_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     policy = _identifier(policy_id, "policy_id")
     revision = _positive_int(policy_revision, "policy_revision")
-    return (
-        f"{grade_policy_relative_directory(class_value, policy)}/"
-        f"{revision}.json"
-    )
+    return f"{grade_policy_relative_directory(class_value, policy)}/{revision}.json"
 
 
 def validate_grade_policy_dependencies(
@@ -473,12 +467,9 @@ def validate_grade_policy_dependencies(
             ) from error
         if stored_scale.scale_sha256 != scale_reference.scale_sha256:
             raise GradePolicyDependencyError(
-                "Exact proficiency-scale digest does not match Grade-policy "
-                "provenance."
+                "Exact proficiency-scale digest does not match Grade-policy provenance."
             )
-        expected_levels = {
-            level.level_id for level in stored_scale.scale.levels
-        }
+        expected_levels = {level.level_id for level in stored_scale.scale.levels}
         conversion_levels = {
             conversion.proficiency_level_id
             for conversion in standards_configuration.conversions
@@ -895,9 +886,7 @@ def select_grade_policy_revision(
             policy_value,
             missing_ok=True,
         )
-        current_revision = (
-            current.policy_revision if current is not None else None
-        )
+        current_revision = current.policy_revision if current is not None else None
         if current_revision != expected:
             raise GradePolicyStorageConflictError(
                 "Expected current Grade-policy revision does not match "
@@ -976,9 +965,7 @@ def _load_current_selection(
     if not relation.exists():
         if missing_ok:
             return None
-        raise GradePolicyStorageNotFoundError(
-            "Grade-policy family does not exist."
-        )
+        raise GradePolicyStorageNotFoundError("Grade-policy family does not exist.")
     _validate_existing_directory_chain(root, relation)
     _validate_policy_directory(relation)
     path = grade_policy_current_path(root, class_value, policy_value)
@@ -994,10 +981,7 @@ def _load_current_selection(
         missing_message="Grade-policy current pointer does not exist.",
     )
     selection = _current_selection_from_json_bytes(content)
-    if (
-        selection.class_id != class_value
-        or selection.policy_id != policy_value
-    ):
+    if selection.class_id != class_value or selection.policy_id != policy_value:
         raise GradePolicyStorageIntegrityError(
             "Grade-policy current pointer identity does not match its canonical path."
         )
@@ -1249,9 +1233,7 @@ def _root(workspace_root: str | Path) -> Path:
         )
     root = Path(os.path.abspath(os.fspath(workspace_root)))
     if not root.exists():
-        raise GradePolicyStorageNotFoundError(
-            "Workspace root does not exist."
-        )
+        raise GradePolicyStorageNotFoundError("Workspace root does not exist.")
     if root.is_symlink() or not root.is_dir():
         raise GradePolicyStorageIntegrityError(
             "Workspace root must be a real directory, not a symlink."
@@ -1444,9 +1426,7 @@ def _reject_json_constant(value: str) -> object:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradePolicyStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyStorageValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

@@ -55,10 +55,7 @@ class PlanningSignalCoreExportPreviewAuthorizationError(
 ):
     """Raised when selected #39 review state does not authorize export."""
 
-    code = (
-        "teacher_workflow.create_planning_signal."
-        "core_export_preview_not_authorized"
-    )
+    code = "teacher_workflow.create_planning_signal.core_export_preview_not_authorized"
 
     block_code: GroupingSignalExportBlockCode | None
     reason_codes: tuple[str, ...]
@@ -81,14 +78,11 @@ class PlanningSignalCoreExportPreviewDependencyError(
     """Raised when exact #38/#39/Core candidate state cannot be read safely."""
 
     code = (
-        "teacher_workflow.create_planning_signal."
-        "core_export_preview_dependency_error"
+        "teacher_workflow.create_planning_signal.core_export_preview_dependency_error"
     )
 
 
-class PlanningSignalCoreExportPreviewStaleError(
-    PlanningSignalCoreExportPreviewError
-):
+class PlanningSignalCoreExportPreviewStaleError(PlanningSignalCoreExportPreviewError):
     """Raised when export authorization changes while the preview is assembled."""
 
     code = "teacher_workflow.create_planning_signal.core_export_preview_stale"

@@ -36,9 +36,7 @@ GradeItemSelectionDisposition: TypeAlias = Literal["created", "updated", "existi
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -186,9 +184,7 @@ class GradeItemCurrentSelection:
 
     def __post_init__(self) -> None:
         if self.schema_version != GRADE_ITEM_CURRENT_SCHEMA_VERSION:
-            raise GradeItemStorageValidationError(
-                'current schema_version must be "1".'
-            )
+            raise GradeItemStorageValidationError('current schema_version must be "1".')
         if self.record_type != GRADE_ITEM_CURRENT_RECORD_TYPE:
             raise GradeItemStorageValidationError(
                 'current record_type must be "meridian_grade_item_current".'
@@ -221,9 +217,7 @@ class GradeItemSelectionResult:
 
     def __post_init__(self) -> None:
         if self.disposition not in {"created", "updated", "existing"}:
-            raise GradeItemStorageValidationError(
-                "selection disposition is invalid."
-            )
+            raise GradeItemStorageValidationError("selection disposition is invalid.")
         if not isinstance(self.selection, GradeItemCurrentSelection):
             raise GradeItemStorageValidationError(
                 "selection must be a GradeItemCurrentSelection."
@@ -271,10 +265,7 @@ def grade_item_relative_directory(
 
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
-    return (
-        f"classes/{class_value}/modules/meridian/gi/"
-        f"{grade_item_path_key(item)}"
-    )
+    return f"classes/{class_value}/modules/meridian/gi/{grade_item_path_key(item)}"
 
 
 def grade_item_directory(
@@ -304,9 +295,10 @@ def grade_item_revision_path(
 ) -> Path:
     """Return the exact canonical JSON path for one immutable revision."""
     revision = _positive_int(grade_item_revision, "grade_item_revision")
-    return grade_item_revisions_directory(
-        workspace_root, class_id, grade_item_id
-    ) / f"{revision}.json"
+    return (
+        grade_item_revisions_directory(workspace_root, class_id, grade_item_id)
+        / f"{revision}.json"
+    )
 
 
 def grade_item_revision_digest_path(
@@ -336,8 +328,7 @@ def grade_item_current_path(
 ) -> Path:
     """Return the explicit selected-revision pointer path."""
     return (
-        grade_item_directory(workspace_root, class_id, grade_item_id)
-        / "current.json"
+        grade_item_directory(workspace_root, class_id, grade_item_id) / "current.json"
     )
 
 
@@ -350,10 +341,7 @@ def grade_item_revision_relative_path(
     class_value = _identifier(class_id, "class_id")
     item = _identifier(grade_item_id, "grade_item_id")
     revision = _positive_int(grade_item_revision, "grade_item_revision")
-    return (
-        f"{grade_item_relative_directory(class_value, item)}/"
-        f"{revision}.json"
-    )
+    return f"{grade_item_relative_directory(class_value, item)}/{revision}.json"
 
 
 def load_grade_item_revision(
@@ -682,15 +670,9 @@ def select_grade_item_revision(
     _acquire_lock(lock)
     try:
         _validate_item_directory_entries(item_dir)
-        target = load_grade_item_revision(
-            root, class_value, item, revision_number
-        )
-        current = _load_current_selection(
-            root, class_value, item, missing_ok=True
-        )
-        current_revision = (
-            current.grade_item_revision if current is not None else None
-        )
+        target = load_grade_item_revision(root, class_value, item, revision_number)
+        current = _load_current_selection(root, class_value, item, missing_ok=True)
+        current_revision = current.grade_item_revision if current is not None else None
         if current_revision != expected:
             raise GradeItemStorageConflictError(
                 "Expected current Grade Item revision does not match stored selection."
@@ -807,20 +789,12 @@ def _current_selection_from_json_bytes(data: bytes) -> GradeItemCurrentSelection
     revision_value = decoded["grade_item_revision"]
     try:
         selection = GradeItemCurrentSelection(
-            schema_version=_pointer_str(
-                decoded["schema_version"], "schema_version"
-            ),
+            schema_version=_pointer_str(decoded["schema_version"], "schema_version"),
             record_type=_pointer_str(decoded["record_type"], "record_type"),
             class_id=_pointer_str(decoded["class_id"], "class_id"),
-            grade_item_id=_pointer_str(
-                decoded["grade_item_id"], "grade_item_id"
-            ),
-            grade_item_revision=_positive_int(
-                revision_value, "grade_item_revision"
-            ),
-            revision_sha256=_pointer_str(
-                decoded["revision_sha256"], "revision_sha256"
-            ),
+            grade_item_id=_pointer_str(decoded["grade_item_id"], "grade_item_id"),
+            grade_item_revision=_positive_int(revision_value, "grade_item_revision"),
+            revision_sha256=_pointer_str(decoded["revision_sha256"], "revision_sha256"),
         )
     except GradeItemStorageValidationError as error:
         raise GradeItemStorageIntegrityError(
@@ -1182,9 +1156,7 @@ def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 
 def _reject_json_constant(value: str) -> object:
-    raise GradeItemStorageIntegrityError(
-        f"Nonfinite JSON number is invalid: {value}."
-    )
+    raise GradeItemStorageIntegrityError(f"Nonfinite JSON number is invalid: {value}.")
 
 
 def _identifier(value: object, field_name: str) -> str:

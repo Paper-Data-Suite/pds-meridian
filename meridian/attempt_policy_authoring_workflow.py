@@ -33,9 +33,7 @@ class AttemptPolicyAuthoringWorkflowError(RuntimeError):
     code = "teacher_workflow.attempt_decisions.policy_authoring_error"
 
 
-class AttemptPolicyAuthoringScopeError(
-    AttemptPolicyAuthoringWorkflowError, ValueError
-):
+class AttemptPolicyAuthoringScopeError(AttemptPolicyAuthoringWorkflowError, ValueError):
     """Raised when an attempt-policy authoring request is invalid."""
 
     code = "teacher_workflow.attempt_decisions.policy_authoring_invalid"
@@ -159,9 +157,7 @@ def preview_attempt_policy_authoring(
 ) -> AttemptPolicyAuthoringPreview:
     """Build one exact explicit-selection policy revision without writing it."""
     if operation not in {"create", "revise"}:
-        raise AttemptPolicyAuthoringScopeError(
-            "operation must be create or revise."
-        )
+        raise AttemptPolicyAuthoringScopeError("operation must be create or revise.")
 
     history = list_attempt_selection_policy_revisions(
         workspace_root,

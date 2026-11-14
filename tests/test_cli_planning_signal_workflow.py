@@ -179,32 +179,22 @@ def test_generated_readiness_is_rendered_without_writes(
         "preview_planning_signal_derivation_persistence",
         lambda readiness: SimpleNamespace(
             derivation_id=readiness.candidate_derivation_id,
-            calculation_fingerprint=(
-                readiness.candidate_calculation_fingerprint
-            ),
+            calculation_fingerprint=(readiness.candidate_calculation_fingerprint),
             roster_student_count=readiness.roster_student_count,
-            contributing_student_count=(
-                readiness.contributing_student_count
-            ),
-            noncontributing_student_count=(
-                readiness.noncontributing_student_count
-            ),
+            contributing_student_count=(readiness.contributing_student_count),
+            noncontributing_student_count=(readiness.noncontributing_student_count),
         ),
     )
     monkeypatch.setattr(
         cli,
         "commit_planning_signal_derivation_persistence_preview",
-        lambda *args, **kwargs: pytest.fail(
-            "read-only readiness must not persist #38"
-        ),
+        lambda *args, **kwargs: pytest.fail("read-only readiness must not persist #38"),
     )
 
     assert cli.main(_arguments()) == 0
     output = capsys.readouterr().out
 
-    assert observed == [
-        (("synthetic-workspace", CLASS_ID, POLICY_ID), {})
-    ]
+    assert observed == [(("synthetic-workspace", CLASS_ID, POLICY_ID), {})]
     assert "Create Planning Signal — readiness" in output
     assert "selected #37 policy: reading_groups@2" in output
     assert "Academic Period: 2026-2027/mp1 @ calendar revision 4" in output
@@ -255,16 +245,10 @@ def test_json_output_preserves_all_write_boundaries(
         "preview_planning_signal_derivation_persistence",
         lambda readiness: SimpleNamespace(
             derivation_id=readiness.candidate_derivation_id,
-            calculation_fingerprint=(
-                readiness.candidate_calculation_fingerprint
-            ),
+            calculation_fingerprint=(readiness.candidate_calculation_fingerprint),
             roster_student_count=readiness.roster_student_count,
-            contributing_student_count=(
-                readiness.contributing_student_count
-            ),
-            noncontributing_student_count=(
-                readiness.noncontributing_student_count
-            ),
+            contributing_student_count=(readiness.contributing_student_count),
+            noncontributing_student_count=(readiness.noncontributing_student_count),
         ),
     )
 
