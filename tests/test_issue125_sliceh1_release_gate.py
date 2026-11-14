@@ -54,11 +54,20 @@ def test_ci_runs_validator_on_windows_and_ubuntu_python_matrix() -> None:
 
 def test_ledger_lists_all_18_criteria_and_keeps_a18_open() -> None:
     ledger = LEDGER.read_text(encoding="utf-8")
-    found = re.findall(r"^\| (A\d+) \|", ledger, flags=re.MULTILINE)
+    # Accept the original H1 table and the H3D4 descriptive criterion labels.
+    rows = [
+        line for line in ledger.splitlines() if re.match(r"^\| (?:\*\*)?A\d+\b", line)
+    ]
+    found = [re.match(r"^\| (?:\*\*)?(A\d+)\b", row).group(1) for row in rows]
     assert found == [f"A{i}" for i in range(1, 19)]
-    assert "**OPEN**" in ledger
+    a18 = rows[-1]
+    assert "Pending" in a18 or "OPEN" in a18
+    assert "**OPEN**" in ledger or "**Status: OPEN" in ledger
     assert "final PR SHA" in ledger
-    assert "not a release authorization" in ledger
+    assert (
+        "not a release authorization" in ledger
+        or "not a release or merge authorization" in ledger
+    )
     assert "29 students" in ledger and "406" in ledger
     assert "174" in ledger
 
