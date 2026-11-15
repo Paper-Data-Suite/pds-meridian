@@ -251,7 +251,7 @@ def test_notes_text_is_not_a_bulk_confirmation() -> None:
         clear_fn=lambda: None,
     )
     assert selected is None
-    assert "Choose A, S, I, E, R, V, B, M, or Q." in output.getvalue()
+    assert "Choose A, S, I, F, E, R, V, B, M, or Q." in output.getvalue()
     assert menu._numbers(":notes", 2, allow_many=True) is None
 
 
