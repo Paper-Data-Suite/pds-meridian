@@ -59,7 +59,7 @@ def test_distinct_current_statuses_are_neither_missing_nor_grades() -> None:
     output = _render(result)
     for status in statuses:
         assert f"eligibility {status.replace('_', ' ')}: 1" in output
-    assert "No result (never zero): 0" in output
+    assert "Projection coverage unavailable (never zero): 0" in output
     assert "Current evidence status counts (not grades)" in output
     assert "Review existing eligibility" in output
     assert menu._enumerate_candidates(result) == (
@@ -71,11 +71,12 @@ def test_distinct_current_statuses_are_neither_missing_nor_grades() -> None:
     )
 
 
-def test_no_returned_result_is_not_unsupported_or_zero() -> None:
+def test_absent_projection_is_not_unsupported_result_or_zero() -> None:
     row = _row_with_teacher_status(1, "unsupported")
     result = project((row,), roster(student(1), student(2)))
     output = _render(result)
-    assert "No result (never zero): 1" in output
+    assert "Projection coverage unavailable (never zero): 1" in output
+    assert "projection coverage unavailable" in output
     assert "eligibility unsupported: 1" in output
     assert "No academic records or eligibility decisions have been changed" in output
     assert "Sample2 Student" in output or "Sample2" in output
@@ -94,6 +95,70 @@ def test_withdrawn_source_never_becomes_batch_eligible() -> None:
     assert "Review source/publication" in output
     assert menu._enumerate_candidates(result) == ()
     assert menu._enumerate_replaceable(result) == ()
+
+
+@pytest.mark.parametrize(
+    ("status", "disposition", "operative"),
+    (
+        ("included_source_superseded", "included", True),
+        ("included_source_withdrawn", "included", False),
+        ("superseded", "superseded", False),
+        ("withdrawn", "withdrawn", False),
+    ),
+)
+def test_source_lifecycle_statuses_are_faithful_and_never_batch_safe(
+    status: str, disposition: str, operative: bool
+) -> None:
+    row = replace(
+        eligibility_row("student_01", 1, status=status, operative=operative),
+        selected_eligibility_revision=1,
+        selected_eligibility_disposition=disposition,
+    )
+    result = project((row,), roster(student(1)))
+    output = _render(result)
+    assert f"eligibility {status.replace('_', ' ')}: 1" in output
+    assert f"eligibility {status.replace('_', ' ')}" in output
+    assert "Review source/publication" in output
+    assert "eligibility resolution inconsistent" not in output
+    assert menu._enumerate_candidates(result) == ()
+    assert menu._enumerate_replaceable(result) == ()
+
+
+@pytest.mark.parametrize(
+    ("status", "route_label"),
+    (
+        ("membership_stale", "Review Grade Item setup"),
+        ("source_unverifiable", "Stop; inspect exact source integrity"),
+    ),
+)
+def test_uncertain_current_state_is_named_and_fails_closed(
+    status: str, route_label: str
+) -> None:
+    base = eligibility_row("student_01", 1, status=status)
+    row = (
+        replace(
+            base,
+            selected_eligibility_revision=1,
+            selected_eligibility_disposition="included",
+        )
+        if status == "membership_stale"
+        else base
+    )
+    result = project((row,), roster(student(1)))
+    output = _render(result)
+    assert f"eligibility {status.replace('_', ' ')}: 1" in output
+    assert route_label in output
+    assert menu._enumerate_candidates(result) == ()
+    assert menu._enumerate_replaceable(result) == ()
+
+
+def test_empty_projection_is_not_relabelled_as_no_returned_result() -> None:
+    result = project((), roster(student(1), student(2)))
+    output = _render(result)
+    assert "Projection coverage unavailable (never zero): 2" in output
+    assert "no projected evidence" in output
+    assert "no result returned" not in output.casefold()
+    assert menu._enumerate_candidates(result) == ()
 
 
 def test_membership_not_included_routes_to_grade_item_setup() -> None:

@@ -90,7 +90,7 @@ def test_29_by_6_source_cardinality_is_not_only_174_evidence_items() -> None:
     summary = project(tuple(rows), roster(*(student(i) for i in range(1, 30))))
     assert summary.projected_item_count == 29 * 6 * 2
     assert summary.candidate_item_count == 29 * 6 * 2
-    assert summary.no_result_student_count == 0
+    assert summary.coverage_unavailable_student_count == 0
     assert summary.exception_count == 0
     assert len(menu._enumerate_candidates(summary)) == 348
     assert len({item.source for s in summary.students for item in s.items}) == 348
@@ -236,7 +236,7 @@ def test_installed_scoreform_29_by_6_native_projection(
 
 
 @pytest.mark.skipif(not _NATIVE, reason="Needs installed native producer matrix")
-def test_installed_quillan_review_does_not_invent_missing_result_zeros(
+def test_installed_quillan_absent_roster_coverage_remains_unknown_not_zero(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from test_issue124_slicee2g3k_composite_canonical import ACTOR
@@ -258,9 +258,9 @@ def test_installed_quillan_review_does_not_invent_missing_result_zeros(
     assert grade_id is not None
     summary = _project_native(root, work, publication_id, grade_id)
     assert len(summary.students) == 29
-    assert summary.no_result_student_count == 28
-    assert sum(not s.no_result for s in summary.students) == 1
-    assert all(s.no_result for s in summary.students[1:])
+    assert summary.coverage_unavailable_student_count == 28
+    assert sum(not s.coverage_unavailable for s in summary.students) == 1
+    assert all(s.coverage_unavailable for s in summary.students[1:])
     assert not summary.shared_items
     assert not summary.unmatched_items
 

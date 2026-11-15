@@ -271,7 +271,7 @@ def test_denied_roster_scope_never_exposes_student_or_source_labels() -> None:
 
 def test_distinct_unavailable_statuses_do_not_claim_missing_result_is_zero() -> None:
     data = _with_issues(1)
-    data.no_result_student_count = 2
+    data.coverage_unavailable_student_count = 2
     data.outside_authorization_scope_count = 1
     data.status_counts = (
         ("eligibility_unsupported", 1),
@@ -285,11 +285,14 @@ def test_distinct_unavailable_statuses_do_not_claim_missing_result_is_zero() -> 
         clear_fn=lambda: None,
     )
     visible = output.getvalue()
-    assert "No result (never zero): 2" in visible
+    assert "Projection coverage unavailable (never zero): 2" in visible
     assert "Outside requested authorization: 1" in visible
     assert "eligibility unsupported: 1" in visible
     assert "eligibility no decision: 1" in visible
-    assert "0" not in visible.split("No result (never zero): 2", 1)[1].split("\n", 1)[0]
+    coverage_line = visible.split("Projection coverage unavailable (never zero): 2", 1)[
+        1
+    ].split("\n", 1)[0]
+    assert "0" not in coverage_line
 
 
 @pytest.mark.skipif(
@@ -325,7 +328,7 @@ def test_native_producer_exception_queue_is_read_only_and_source_accurate(
     content = display.getvalue()
     assert "Current evidence status counts (not grades):" in content
     assert "EXCEPTIONS — REVIEW BEFORE BATCH ACTION" in content
-    assert "No result (never zero)" in content
+    assert "Projection coverage unavailable (never zero)" in content
     assert "No academic records or eligibility decisions have been changed." in content
     assert "Type APPLY" not in content
     assert len(transcript.prompts) == 1

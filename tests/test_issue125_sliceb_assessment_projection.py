@@ -183,7 +183,7 @@ def test_29_by_6_roster_and_native_labels_are_read_only_and_complete() -> None:
     assert len(summary.students) == 29
     assert summary.projected_item_count == 174
     assert summary.candidate_item_count == 174
-    assert summary.no_result_student_count == 0
+    assert summary.coverage_unavailable_student_count == 0
     assert summary.exception_count == 0
     assert len({item.source for s in summary.students for item in s.items}) == 174
     assert summary.students[0].items[0].evidence_label == "Question 1"
@@ -197,15 +197,17 @@ def test_29_by_6_roster_and_native_labels_are_read_only_and_complete() -> None:
         summary.students[0].items = ()  # type: ignore[misc]
 
 
-def test_no_result_is_roster_observation_never_zero() -> None:
+def test_absent_roster_projection_is_unknown_never_zero_or_inferred() -> None:
     rows = (eligibility_row("student_01", 1),)
     summary = project(rows, roster(student(1), student(2)))
     assert len(summary.students) == 2
-    assert summary.students[1].no_result
-    assert summary.no_result_student_count == 1
-    assert any(issue.code == "no_result_in_publication" for issue in summary.exceptions)
+    assert summary.students[1].coverage_unavailable
+    assert summary.coverage_unavailable_student_count == 1
+    assert any(
+        issue.code == "projection_coverage_unavailable" for issue in summary.exceptions
+    )
     assert (
-        "No result returned in this publication (not a zero)"
+        "does not distinguish no returned result from not projected (never a zero)"
         in batch.render_assessment_eligibility_preview(summary)
     )
 
@@ -410,7 +412,7 @@ def test_narrow_requested_student_scope_not_misreported_as_missing() -> None:
         roster=students,
         requested_student_ids=("student_01",),
     )
-    assert summary.no_result_student_count == 0
+    assert summary.coverage_unavailable_student_count == 0
     assert summary.outside_authorization_scope_count == 1
     assert any(
         e.code == "outside_requested_authorization_scope" for e in summary.exceptions
@@ -419,6 +421,7 @@ def test_narrow_requested_student_scope_not_misreported_as_missing() -> None:
         "Outside requested evidence scope"
         in batch.render_assessment_eligibility_preview(summary)
     )
+    assert "Sample2 Student" not in batch.render_assessment_eligibility_preview(summary)
 
 
 def test_inconsistent_selected_pointer_evidence_cannot_be_batch_candidate() -> None:

@@ -97,7 +97,13 @@ class AssessmentEligibilityStudent:
     within_requested_authorization: bool
 
     @property
-    def no_result(self) -> bool:
+    def coverage_unavailable(self) -> bool:
+        """No authorized item was projected; the reason is not inferred.
+
+        The supported producer readers expose represented results, not a
+        complete roster-coverage assertion.  Absence therefore cannot prove
+        either "no returned result" or "not projected".
+        """
         return not self.items and self.within_requested_authorization
 
 
@@ -123,7 +129,7 @@ class AssessmentEligibilityReview:
     status_counts: tuple[tuple[str, int], ...]
     projected_item_count: int
     candidate_item_count: int
-    no_result_student_count: int
+    coverage_unavailable_student_count: int
     outside_authorization_scope_count: int
     class_label: str | None = None
     assessment_title: str | None = None
@@ -234,6 +240,17 @@ def _classify(
             mark("eligibility_resolution_missing", "stop")
         elif status in {"excluded", "pending", "unsupported"}:
             mark("previous_" + status, "review-eligibility")
+        elif status in {
+            "included_source_superseded",
+            "included_source_withdrawn",
+            "superseded",
+            "withdrawn",
+        }:
+            mark("eligibility_" + status, "review-source")
+        elif status == "membership_stale":
+            mark("eligibility_membership_stale", "grade-items")
+        elif status == "source_unverifiable":
+            mark("eligibility_source_unverifiable", "stop")
         elif status not in {"no_decision", "included"}:
             mark("eligibility_" + status, "review-individual")
         if status == "no_decision" and (
@@ -241,7 +258,18 @@ def _classify(
             or row.selected_eligibility_disposition is not None
         ):
             mark("eligibility_resolution_inconsistent", "stop")
-        if status in {"included", "excluded", "pending", "unsupported"} and (
+        selected_statuses = {
+            "included",
+            "included_source_superseded",
+            "included_source_withdrawn",
+            "excluded",
+            "pending",
+            "unsupported",
+            "superseded",
+            "withdrawn",
+            "membership_stale",
+        }
+        if status in selected_statuses and (
             row.selected_eligibility_revision is None
             or row.selected_eligibility_disposition is None
         ):
@@ -249,12 +277,29 @@ def _classify(
         # A displayed status is not authority when its selected decision
         # disagrees, or when non-Included evidence claims operative inclusion.
         # Preserve that conflict as a stop, never an eligible batch candidate.
-        pointer_conflict = (
-            status in {"included", "excluded", "pending", "unsupported"}
-            and row.selected_eligibility_disposition is not None
-            and row.selected_eligibility_disposition != status
+        expected_disposition = (
+            {
+                "included": "included",
+                "included_source_superseded": "included",
+                "included_source_withdrawn": "included",
+                "excluded": "excluded",
+                "pending": "pending",
+                "unsupported": "unsupported",
+                "superseded": "superseded",
+                "withdrawn": "withdrawn",
+            }.get(status)
+            if status is not None
+            else None
         )
-        operative_conflict = row.operative_included and status != "included"
+        pointer_conflict = (
+            expected_disposition is not None
+            and row.selected_eligibility_disposition is not None
+            and row.selected_eligibility_disposition != expected_disposition
+        )
+        operative_conflict = row.operative_included and status not in {
+            "included",
+            "included_source_superseded",
+        }
         if pointer_conflict or operative_conflict:
             mark("eligibility_resolution_inconsistent", "stop")
         if status == "included" and not row.operative_included:
@@ -463,7 +508,9 @@ def build_assessment_eligibility_review(
         elif not items:
             exceptions.append(
                 AssessmentEligibilityException(
-                    "no_result_in_publication", "review-source", record.student_id
+                    "projection_coverage_unavailable",
+                    "review-source",
+                    record.student_id,
                 )
             )
     if not students:
@@ -504,7 +551,9 @@ def build_assessment_eligibility_review(
         status_counts=tuple(sorted(counts.items())),
         projected_item_count=len(evidence.rows),
         candidate_item_count=candidates,
-        no_result_student_count=sum(student.no_result for student in students),
+        coverage_unavailable_student_count=sum(
+            student.coverage_unavailable for student in students
+        ),
         outside_authorization_scope_count=sum(
             not student.within_requested_authorization for student in students
         ),
@@ -601,7 +650,8 @@ def render_assessment_eligibility_preview(review: AssessmentEligibilityReview) -
         f"Academic Period: {review.academic_period_id or 'Not assigned'}",
         (
             f"Roster: {len(review.students)} students; "
-            f"{review.no_result_student_count} with no published result"
+            f"{review.coverage_unavailable_student_count} with unavailable "
+            "projection coverage"
         ),
         (
             "Outside requested evidence scope: "
@@ -627,18 +677,36 @@ def render_assessment_eligibility_preview(review: AssessmentEligibilityReview) -
         lines.append("None observed in this authorized projection.")
     else:
         names = {
-            student.student_id: student.display_label for student in review.students
+            student.student_id: student.display_label
+            for student in review.students
+            if student.within_requested_authorization
+        }
+        outside_students = {
+            student.student_id
+            for student in review.students
+            if not student.within_requested_authorization
         }
         for issue in review.exceptions:
-            who = names.get(issue.student_id or "", "Unmatched/shared evidence")
+            who = (
+                "Outside requested evidence scope"
+                if issue.student_id in outside_students
+                else names.get(issue.student_id or "", "Unmatched/shared evidence")
+            )
             lines.append(f"- {who}: {issue.code.replace('_', ' ')} — {issue.route}")
     lines.extend(("", "ROSTER COVERAGE AND CURRENT ELIGIBILITY"))
     for student in review.students:
-        lines.append(f"{student.display_label}: {len(student.items)} native items")
         if not student.within_requested_authorization:
-            lines.append("  Outside requested evidence scope (no availability claim).")
-        elif student.no_result:
-            lines.append("  No result returned in this publication (not a zero).")
+            lines.append(
+                "Outside requested evidence scope: protected row not displayed."
+            )
+            continue
+        lines.append(f"{student.display_label}: {len(student.items)} native items")
+        if student.coverage_unavailable:
+            lines.append(
+                "  No projected evidence is available. The producer contract "
+                "does not distinguish no returned result from not projected "
+                "(never a zero)."
+            )
         for item in student.items:
             status = item.eligibility_status or "no eligibility resolution"
             if item.operative_included:

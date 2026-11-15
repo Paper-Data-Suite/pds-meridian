@@ -56,7 +56,7 @@ def test_mixed_statuses_preserve_every_distinct_exception() -> None:
     view = _mixed_review()
     assert view.projected_item_count == 10
     assert len(view.students) == 4
-    assert view.no_result_student_count == 1
+    assert view.coverage_unavailable_student_count == 1
     assert view.candidate_item_count == 1
     assert len(view.shared_items) == 1
     assert len(view.unmatched_items) == 1
@@ -69,7 +69,7 @@ def test_mixed_statuses_preserve_every_distinct_exception() -> None:
         "multiple_items_same_native_target": 2,
         "unknown_roster_student": 1,
         "non_student_evidence": 1,
-        "no_result_in_publication": 1,
+        "projection_coverage_unavailable": 1,
     }
     assert {
         issue.route
@@ -84,7 +84,7 @@ def test_exception_summary_precedes_roster_and_hides_source_ids() -> None:
     assert text.index("EXCEPTIONS — REVIEW BEFORE ANY BATCH ACTION") < text.index(
         "ROSTER COVERAGE AND CURRENT ELIGIBILITY"
     )
-    assert "No result returned in this publication (not a zero)." in text
+    assert "does not distinguish no returned result from not projected" in text
     assert "SHARED / NON-STUDENT EVIDENCE" in text
     assert "UNMATCHED STUDENT ATTRIBUTION" in text
     for item_id in ("first_q1", "second_q1", "non_roster_id"):

@@ -118,7 +118,7 @@ def make_review(
         candidate_item_count=sum(
             item.candidate_for_explicit_review for item in all_items
         ),
-        no_result_student_count=0,
+        coverage_unavailable_student_count=0,
         outside_authorization_scope_count=0,
         class_label="English 12",
         assessment_title="Synthetic six-question check",

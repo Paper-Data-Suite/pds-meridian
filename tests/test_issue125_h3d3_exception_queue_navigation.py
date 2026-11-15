@@ -50,7 +50,7 @@ def test_exception_queue_pages_routes_and_canonical_ids_are_hidden() -> None:
     assert "Review attempts (#126)" in rendered
     assert "Review Core roster" in rendered
     assert "Synthetic English class" in rendered
-    assert "No result (never zero): 0" in rendered
+    assert "Projection coverage unavailable (never zero): 0" in rendered
     assert "eligibility no decision: 1" in rendered
     assert "s1-q1" not in rendered
     assert "exception_24" not in rendered
@@ -176,7 +176,7 @@ def test_manual_v_option_reopens_complete_queue() -> None:
 
 def test_no_exception_forced_view_shows_coverage() -> None:
     data = _with_issues(0)
-    data.no_result_student_count = 2
+    data.coverage_unavailable_student_count = 2
     data.outside_authorization_scope_count = 1
     output = StringIO()
     assert menu._review_exception_queue(
@@ -188,7 +188,7 @@ def test_no_exception_forced_view_shows_coverage() -> None:
     )
     rendered = output.getvalue()
     assert "No exception conditions observed" in rendered
-    assert "No result (never zero): 2" in rendered
+    assert "Projection coverage unavailable (never zero): 2" in rendered
     assert "Outside requested authorization: 1" in rendered
 
 

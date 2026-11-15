@@ -175,7 +175,10 @@ def _review_exception_queue(
             f"Assessment: {review.assessment_title or 'Selected assessment'}",
             f"Source: {review.source_status}; membership: {review.membership_state}",
             f"Exceptions: {len(issues)} conditions; page {page + 1}/{total_pages}",
-            f"No result (never zero): {review.no_result_student_count}",
+            (
+                "Projection coverage unavailable (never zero): "
+                f"{review.coverage_unavailable_student_count}"
+            ),
             (
                 "Outside requested authorization: "
                 f"{review.outside_authorization_scope_count}"

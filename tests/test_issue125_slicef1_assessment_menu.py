@@ -34,7 +34,7 @@ def review(
             for n in range(1, count + 1)
         ),
         exception_count=0,
-        no_result_student_count=0,
+        coverage_unavailable_student_count=0,
         outside_authorization_scope_count=0,
         shared_items=(),
         unmatched_items=(),
