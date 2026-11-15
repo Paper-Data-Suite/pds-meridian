@@ -236,6 +236,20 @@ def _review_exception_queue(
         pause_for_user(input_fn)
 
 
+def _filter_safe_candidates(
+    candidates: tuple[tuple[str, str, str], ...], label_query: str
+) -> tuple[tuple[str, str, str], ...]:
+    """Search only authorized candidate display labels, never canonical IDs."""
+    term = label_query.strip().casefold()
+    if not term or len(term) > 80 or any(ord(char) < 32 for char in term):
+        return ()
+    return tuple(
+        (item_id, student, label)
+        for item_id, student, label in candidates
+        if term in student.casefold() or term in label.casefold()
+    )
+
+
 def _choose_source_ids(
     review: AssessmentEligibilityReview,
     *,
@@ -271,6 +285,7 @@ def _choose_source_ids(
             "A. Explicitly select every safe candidate",
             "S. Select the safe items of specific students",
             "I. Select individual safe evidence items by numbered pages",
+            "F. Filter safe items by student or evidence label",
             "E. Select previously decided items for explicit replacement",
             "R. Recover an earlier #122 action after restarting Meridian",
             "V. Review complete exception queue and roster coverage",
@@ -280,6 +295,29 @@ def _choose_source_ids(
         raw = read_choice(input_fn).strip()
         if _back(raw):
             return None
+        if raw.casefold() == "f":
+            query = read_choice(input_fn, "Filter student or evidence label: ")
+            if _back(query):
+                continue
+            matched = _filter_safe_candidates(candidates, query)
+            if not matched:
+                write_lines(
+                    output,
+                    "No safe, authorized evidence matches that display label.",
+                    "No item was selected or changed.",
+                )
+                pause_for_user(input_fn)
+                continue
+            selected = _choose_paged_items(
+                matched,
+                input_fn=input_fn,
+                output=output,
+                clear_fn=clear_fn,
+                title="Filter Safe Evidence",
+            )
+            if selected:
+                return selected
+            continue
         if raw.casefold() == "r" and recovery_handler is not None:
             recovery_handler()
             continue
@@ -354,7 +392,7 @@ def _choose_source_ids(
             if selected:
                 return selected
             continue
-        write_lines(output, "Choose A, S, I, E, R, V, B, M, or Q.")
+        write_lines(output, "Choose A, S, I, F, E, R, V, B, M, or Q.")
         pause_for_user(input_fn)
 
 
