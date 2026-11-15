@@ -385,9 +385,7 @@ def test_installed_concord_evidence_only_cannot_fabricate_result_publication(
     output = StringIO()
     run_teacher_evidence_inbox_menu(
         dependencies=replace(
-            default_teacher_evidence_inbox_menu_dependencies(
-                diagnostics=diagnostics
-            ),
+            default_teacher_evidence_inbox_menu_dependencies(diagnostics=diagnostics),
             workspace_resolver=lambda: root,
         ),
         session_context=TeacherSessionContext(),

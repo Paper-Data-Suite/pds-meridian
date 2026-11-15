@@ -58,9 +58,7 @@ def test_duplicate_exact_source_identity_stops_before_teacher_selection(
     work = SimpleNamespace(class_id="class_synthetic")
     prepared = SimpleNamespace(
         authorized=SimpleNamespace(
-            current_context=SimpleNamespace(
-                publication=SimpleNamespace(work=work)
-            )
+            current_context=SimpleNamespace(publication=SimpleNamespace(work=work))
         )
     )
     monkeypatch.setattr(
@@ -182,9 +180,7 @@ def test_installed_unreadable_scoreform_scan_fails_before_result_publication() -
     assert "synthetic unreadable scan" not in rendered
 
 
-def _append_corrected_scoreform_attempt(
-    root: Path, current_publication_id: str
-) -> str:
+def _append_corrected_scoreform_attempt(root: Path, current_publication_id: str) -> str:
     from scoreform.academic_result_manifest_generation import (
         generate_academic_result_manifest,
     )
@@ -281,9 +277,7 @@ def test_installed_scoreform_corrected_attempt_teacher_walkthrough_is_exception_
         root,
         work,
         corrected_publication_id,
-        dependencies=default_guided_projection_dependencies(
-            diagnostics=diagnostics
-        ),
+        dependencies=default_guided_projection_dependencies(diagnostics=diagnostics),
     )
     review = project_assessment_eligibility_review(
         root,
