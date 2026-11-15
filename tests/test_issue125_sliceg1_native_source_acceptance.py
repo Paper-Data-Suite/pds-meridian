@@ -294,10 +294,28 @@ def test_installed_concord_group_is_not_student_attributed(
         assert len(summary.shared_items) == 1
         assert not summary.students[0].items
         assert not summary.shared_items[0].candidate_for_explicit_review
+        assert summary.shared_items[0].result_kind == "local_score"
+        assert summary.shared_items[0].target_kind == "concord_group"
+        assert summary.shared_items[0].student_id is None
+        output = StringIO()
+        assert menu._review_exception_queue(
+            summary,
+            input_fn=lambda _prompt="": "D",
+            output=output,
+            clear_fn=lambda: None,
+            force=True,
+        )
+        assert "shared/non-student: 1" in output.getvalue()
+        assert "Review individual evidence" in output.getvalue()
+        assert publication.publication_id not in output.getvalue()
     else:
         assert not summary.shared_items
         assert summary.candidate_item_count == 1
         assert len(summary.students[0].items) == 1
+        item = summary.students[0].items[0]
+        assert item.result_kind == "local_score"
+        assert item.target_kind == "core_student"
+        assert item.student_id == summary.students[0].student_id
 
 
 @pytest.mark.skipif(not _NATIVE, reason="Needs installed native producer matrix")
@@ -312,6 +330,7 @@ def test_installed_concord_evidence_only_cannot_fabricate_result_publication(
         publish_concord_academic_results,
     )
     from concord.academic_work_registration import register_concord_academic_work
+    from pds_core.academic_catalog import rebuild_academic_catalog
     from pds_core.publication_storage import get_current_publication_record
     from pds_core.routing_models import ModuleWorkRef
     from test_issue124_slicee2g3k_composite_canonical import CLASS
@@ -320,6 +339,20 @@ def test_installed_concord_evidence_only_cannot_fabricate_result_publication(
         _actor,
         _clock,
         _native_workspace,
+    )
+
+    from meridian.assessment_setup_correlation_storage import (
+        AssessmentSetupCorrelationStore,
+    )
+    from meridian.diagnostics import default_diagnostics_dependencies
+    from meridian.menu_teacher_evidence import (
+        default_teacher_evidence_inbox_menu_dependencies,
+        run_teacher_evidence_inbox_menu,
+    )
+    from meridian.teacher_action_receipts import TeacherActionReceiptStore
+    from meridian.teacher_session import TeacherSessionContext
+    from scripts.smoke_program_guided_evidence_issue110 import (
+        AllowInstalledAcceptance,
     )
 
     root = _native_workspace(tmp_path)
@@ -338,6 +371,37 @@ def test_installed_concord_evidence_only_cannot_fabricate_result_publication(
         )
         is None
     )
+    assert AssessmentSetupCorrelationStore(root, CLASS).list_records() == ()
+    assert TeacherActionReceiptStore(root, CLASS).list_receipts() == ()
+    rebuild_academic_catalog(root)
+    diagnostics = default_diagnostics_dependencies(
+        workspace_root=root, authorizer=AllowInstalledAcceptance()
+    )
+    before = {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+    output = StringIO()
+    run_teacher_evidence_inbox_menu(
+        dependencies=replace(
+            default_teacher_evidence_inbox_menu_dependencies(
+                diagnostics=diagnostics
+            ),
+            workspace_resolver=lambda: root,
+        ),
+        session_context=TeacherSessionContext(),
+        input_fn=lambda _prompt="": "B",
+        output=output,
+        clear_fn=lambda: None,
+    )
+    assert "No current academic evidence publications were found." in output.getvalue()
+    assert "activity_native" not in output.getvalue()
+    assert {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    } == before
     with pytest.raises(ConcordAcademicResultPublicationError):
         publish_concord_academic_results(
             GenerateAcademicResultManifestRequest(

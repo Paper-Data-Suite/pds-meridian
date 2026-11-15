@@ -34,6 +34,7 @@ from meridian.assessment_eligibility_recovery import (
 )
 from meridian.assessment_eligibility_review import (
     AssessmentEligibilityReview,
+    AssessmentEligibilityReviewScopeError,
     project_assessment_eligibility_review,
 )
 from meridian.diagnostics import DiagnosticsDependencies
@@ -796,6 +797,15 @@ def run_assessment_eligibility_menu(
             class_label=class_label,
             assessment_title=assessment_title,
         )
+    except AssessmentEligibilityReviewScopeError:
+        write_lines(
+            output,
+            "Assessment source integrity could not be verified.",
+            "Review the source/publication and roster identities before trying again.",
+            "No evidence entered batch selection and no eligibility state was changed.",
+        )
+        pause_for_user(input_fn)
+        return
     except Exception:
         write_lines(
             output,
