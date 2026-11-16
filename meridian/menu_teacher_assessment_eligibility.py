@@ -7,6 +7,7 @@ No generic confirmation, implicit zero, attempt selection, or Grade write.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import replace
 from functools import partial
@@ -33,6 +34,7 @@ from meridian.assessment_eligibility_recovery import (
     resume_sealed_eligibility_batch,
 )
 from meridian.assessment_eligibility_review import (
+    AssessmentEligibilityItem,
     AssessmentEligibilityReview,
     AssessmentEligibilityReviewScopeError,
     project_assessment_eligibility_review,
@@ -73,16 +75,40 @@ def _back(raw: str) -> bool:
     return not raw or parse_navigation_choice(raw) is NavigationChoice.BACK
 
 
+def _selection_evidence_label(
+    item: AssessmentEligibilityItem, *, duplicate: bool
+) -> str:
+    """Disambiguate visually identical native targets without exposing IDs."""
+    if not duplicate:
+        return item.evidence_label
+    result_kind = item.result_kind.replace("_", " ").capitalize()
+    return f"{item.evidence_label} · {result_kind}"
+
+
 def _enumerate_candidates(
     review: AssessmentEligibilityReview,
 ) -> tuple[tuple[str, str, str], ...]:
     """Exact candidate rows only; never include unknown/shared evidence."""
-    return tuple(
-        (item.source.item_id, student.display_label, item.evidence_label)
+    items = tuple(
+        (student, item)
         for student in review.students
         if student.within_requested_authorization
         for item in student.items
         if item.candidate_for_explicit_review
+    )
+    labels = Counter(
+        (student.student_id, item.evidence_label) for student, item in items
+    )
+    return tuple(
+        (
+            item.source.item_id,
+            student.display_label,
+            _selection_evidence_label(
+                item,
+                duplicate=labels[(student.student_id, item.evidence_label)] > 1,
+            ),
+        )
+        for student, item in items
     )
 
 
@@ -101,8 +127,8 @@ def _enumerate_replaceable(
         "previous_pending",
         "previous_unsupported",
     }
-    return tuple(
-        (item.source.item_id, student.display_label, item.evidence_label)
+    items = tuple(
+        (student, item)
         for student in review.students
         if student.within_requested_authorization
         for item in student.items
@@ -112,6 +138,20 @@ def _enumerate_replaceable(
         and getattr(item, "selected_eligibility_disposition", None)
         == item.eligibility_status
         and all(issue.code in allowed for issue in getattr(item, "exceptions", ()))
+    )
+    labels = Counter(
+        (student.student_id, item.evidence_label) for student, item in items
+    )
+    return tuple(
+        (
+            item.source.item_id,
+            student.display_label,
+            _selection_evidence_label(
+                item,
+                duplicate=labels[(student.student_id, item.evidence_label)] > 1,
+            ),
+        )
+        for student, item in items
     )
 
 
@@ -555,11 +595,27 @@ def _exceptions(
         for s in review.students
         if any(item.source.item_id in selected_ids for item in s.items)
     )
-    candidate_items = tuple(
-        (item.source.item_id, s.display_label, item.evidence_label)
+    candidate_rows = tuple(
+        (s, item)
         for s in students
         for item in s.items
         if item.source.item_id in selected_ids
+    )
+    candidate_labels = Counter(
+        (student.student_id, item.evidence_label) for student, item in candidate_rows
+    )
+    candidate_items = tuple(
+        (
+            item.source.item_id,
+            student.display_label,
+            _selection_evidence_label(
+                item,
+                duplicate=(
+                    candidate_labels[(student.student_id, item.evidence_label)] > 1
+                ),
+            ),
+        )
+        for student, item in candidate_rows
     )
     existing = {
         item_id
