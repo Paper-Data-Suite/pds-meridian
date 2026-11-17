@@ -225,4 +225,3 @@ python scripts/check_documentation.py
    roster size, device power state, or storage medium.
 5. The full repository validator was not repeated. It remains the later A18
    gate; A18 was not begun here.
-
