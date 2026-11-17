@@ -1,16 +1,17 @@
-# Issue #125 — acceptance ledger (H3D8 final-review candidate)
+# Issue #125 — acceptance ledger (A17 closure candidate)
 
 **Status: OPEN — not a release or merge authorization.** This is a factual
-reconciliation of observed synthetic qualifications through H3D7 at PR #144
-commit `7b4acd43b0e9d7336fa24a178754c075c4b5b741` (November 14, 2026).
-The ledger identifies evidence *and* the limits of that evidence. The final
-PR SHA CI and exact final local validator must pass before A18 can be qualified. No classroom
-identifiers, assessment results, teacher identities, or private records appear.
+reconciliation of observed synthetic qualifications through the A16 PR #144
+baseline `dd466ff5ca961103ead1770921dfd2032e899ab5` (November 16, 2026), plus
+the isolated local A17 candidate evidence recorded below. The ledger identifies
+evidence *and* the limits of that evidence. The final PR SHA CI and exact final
+local validator must pass before A18 can be qualified. No classroom identifiers,
+assessment results, teacher identities, or private records appear.
 
 **Review baseline:** [Meridian #125](https://github.com/Paper-Data-Suite/pds-meridian/issues/125)
 · [draft PR #144](https://github.com/Paper-Data-Suite/pds-meridian/pull/144)
-· [H3D6 eight-job green CI run 43617071896](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43617071896)
-· [H3D7 run 43637549995](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43637549995) (queued when this ledger was prepared).
+· [A16 integration eight-job green CI run 43984803358](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43984803358)
+for exact baseline `dd466ff5ca961103ead1770921dfd2032e899ab5`.
 
 Status meanings: **Qualified** = observed test or installed acceptance of the
 stated bounded case; **Partial** = some observed evidence, but an explicitly
@@ -37,8 +38,8 @@ not been completed. These are not binary issue-closure approvals.
 | **A14 — Producer semantics** | **Qualified, bounded** | Native official ScoreForm/Quillan/Concord synthetic source projection and per-producer decisions; scored vs evidence-only/group Concord distinctions are not silently made individual scores. Unsupported variants remain limitations, not invented results. |
 | **A15 — No collateral academic action** | **Qualified, bounded** | H3B2/H3C3C1 workspace inventories; H3D2 six native prewrite-fault variants had zero changes outside eligibility/receipts/private progress; H3D6 three installed early/middle/late real-lock variants also showed zero collateral changes. Inventory is limited to synthetic workspace, not all OS state. | |
 | **A16 — Classroom usability** | **Qualified** | A16 installed native benchmark used two independent fresh 29-student × six-question ScoreForm workspaces, each with 406 source items, exactly 174 correctness targets, and the same final 167 Include / 6 Exclude / 1 Pending outcomes. The real individual inbox/menu path measured **1,805 inputs, 1,631 screens, 174 confirmations, 174 repeated Grade Item/policy/attribution interactions, 1,345.371 s automated full-menu elapsed, and 37.229 s summed canonical applies**. The real assessment batch path measured **40 inputs, 38 screens, one `APPLY`, one Grade Item/policy/attribution interaction, 44.507 s automated full-menu elapsed, and 42.473 s sealed canonical execution**. Both produced 174 selected-current revision-1 decisions and receipts, entered zero evidence/Grade Item canonical IDs, left all 232 other source items untouched, and changed no collateral workspace domain. A display-only correction disambiguates same-question ScoreForm result kinds so teachers can select correctness without hidden ordering. Timings are single-run scripted Windows measurements, not human completion times or a claimed speedup ratio. Exact method, environment, hashes, results, and limitations: `docs/development/issue125-a16-usability-benchmark.md`. |
-| **A17 — Shared menu/navigation** | **Partial** | F1/F2/H3D3 and H3D5 source + isolated installed Core 0.6.6 (24/24) demonstrate B/M/Q unwinding, paginated read-only exception display, plain-text `NO_COLOR` without escape codes, inert `:notes` in unsupported prompts, and selection retaining exactly the reviewed Grade Item/assessment context. Optional Core v1 header and Notes-capability-available branches, individual/Advanced reentry and search/filter full installed menu walkthrough still require explicit verification; no Notes academic action or Core/Suite API change is claimed. | |
-| **A18 — Final full qualification** | **Pending** | H2 prior full validator: 5,777 passed, 65 skipped plus Ruff, mypy, docs, artifacts/Twine and six installed matrices; H3D3 exact candidate Meridian 0.4.2 wheel SHA-256 `f49cb077e7bab86b33a67c6473faddff33a8f74c4931d4796e1c4f73ecd56bfa` had 108/108 isolated installed regression checks. Confirmed **8/8** CI for H3D3 `43350235461`, H3D4-CI `43611029662`, H3D5 `43612579158`, and H3D6 `43617071896`. H3D7 exact-SHA run `43637549995` was queued during preparation. **H3D8 final PR SHA** remains to be established after this ledger commit; final clean-tree validator (`pytest`, Ruff, mypy, docs, wheel/sdist/Twine, installed official-release qualification), 8/8 exact-final-SHA CI and final acceptance/merge decision are required; earlier green SHAs do not substitute. | |
+| **A17 — Shared menu/navigation** | **Qualified, supported boundaries** | A17 focused source checks **115 passed, 1 explicit installed-native skip**; source-free official-wheel checks **116 passed, no skip** with Core 0.6.6, ScoreForm 0.13.0, Quillan 0.10.6, Concord 0.3.2 and Meridian 0.4.2 candidate SHA-256 `1f36d398d97e79052f198b7a72300bea701932b1b4544e1bb666bf5828cb26e4`. The real 29-student/406-item ScoreForm inbox walkthrough verifies B/M/Q boundaries, explicit exception/coverage review, bounded authorized display-label filter, failed-search safety, stable cross-page identity and cancellation, plain `NO_COLOR`, Advanced receipt recovery and individual re-entry with exact retained context, zero entered/rendered canonical IDs, unchanged receipts and a byte-identical workspace. Installed Core exposes shared navigation but no public module-facing header or Notes capability, so the qualified boundary is Meridian's plain header and inert `:notes`; no private Core API, Notes provider, Suite dependency, or academic action was added. Exact matrix and limitations: `docs/development/issue125-a17-acceptance-matrix.md`. | |
+| **A18 — Final full qualification** | **Pending** | The A16 integration baseline `dd466ff5ca961103ead1770921dfd2032e899ab5` passed all eight CI jobs in run `43984803358`. A17 is qualified only in its isolated local candidate and has not been integrated or run through exact-final-SHA CI. The final clean-tree validator (`pytest`, Ruff, mypy, docs, wheel/sdist/Twine, installed official-release qualification), 8/8 CI against the eventual last PR commit, and explicit acceptance/merge decision remain required; earlier green SHAs and focused A17 checks do not substitute. | |
 
 ## Native artifact identities and provenance
 
@@ -70,18 +71,17 @@ Local machine evidence directories (not shipped with the repository):
 CI qualification: H3D3 [43350235461](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43350235461),
 H3D4-CI [43611029662](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43611029662),
 H3D5 [43612579158](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43612579158),
-H3D6 [43617071896](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43617071896)
-all completed 8/8 green. H3D7 [43637549995](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43637549995)
-was queued when the H3D8 source was prepared. This is **not** the eventual H3D8 final-commit CI.
+H3D6 [43617071896](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43617071896),
+H3D7 [43637549995](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43637549995),
+and A16 integration [43984803358](https://github.com/Paper-Data-Suite/pds-meridian/actions/runs/43984803358)
+all completed 8/8 green at their recorded exact SHAs. These are **not** the
+eventual A18 final-commit CI.
 
 ## Remaining closure decisions, in order
 
-1. **A3/A4:** complete or explicitly triage outstanding teacher-facing not-projected vs unauthorized vs uncertain status and unavailable-scan/Concord source exception variants. H3D5 established the read-only route matrix, **not** all installed producer/authorization interactions.
-2. **A17:** verify optional Core header/Notes-capability-present branch, individual/Advanced reentry, and search/filter walkthrough, or record precise supported fallback limitations. Never introduce a new Notes provider or Suite dependency.
-3. **A16:** complete the teacher input/screen count and same-machine manual individual-review timing baseline **if** a credible comparator exists. Evidence already proves 174 exact selected-current decisions with one substantive confirmation, but it is not a quantified manual-to-batch speedup.
-4. **A11:** retain H3D6 and H3D7 as bounded true interprocess evidence (lock, corruption, conflicting selection/immutable revision and independent unrelated source). Do not claim untested power-loss, process-kill or OS-wide filesystem failure modes; no new CAS slice needed absent a reproducible defect.
-5. **A18:** run final **clean-tree** `scripts/validate_repository.py` once with pinned exact official Core/ScoreForm/Quillan/Concord wheel paths; capture actual full pytest, Ruff, mypy, docs, wheel+sdist, Twine, installed qualification, and wheel hashes. Verify 8/8 CI against the **last** PR commit after the ledger update. Do not treat earlier runs or prior-wheel qualification as an exact-final-SHA substitute.
-6. Keep PR #144 draft and Issue #125 open until genuine residuals are qualified or specifically accepted as limitations; require an explicit merge decision. Do not modify Core, Suite or producers under this ticket.
+1. **A11 boundary:** retain H3D6 and H3D7 as bounded true interprocess evidence (lock, corruption, conflicting selection/immutable revision and independent unrelated source). Do not claim untested power-loss, process-kill or OS-wide filesystem failure modes; no new CAS slice is required absent a reproducible defect.
+2. **A18:** after A17 integration, run final **clean-tree** `scripts/validate_repository.py` once with pinned exact official Core/ScoreForm/Quillan/Concord wheel paths; capture actual full pytest, Ruff, mypy, docs, wheel+sdist, Twine, installed qualification, and wheel hashes. Verify 8/8 CI against the **last** PR commit. Do not treat earlier runs or prior-wheel qualification as an exact-final-SHA substitute.
+3. Keep PR #144 draft and Issue #125 open until A18 and the explicit merge decision. Do not modify Core, Suite or producers under this ticket.
 
 ## Boundary of the ledger
 
