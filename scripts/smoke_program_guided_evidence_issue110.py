@@ -178,13 +178,7 @@ def _setup_workspace(
     if registration.registration.registration_revision != 1:
         raise AssertionError("Installed acceptance expected registration revision 1.")
 
-    manifest_path = (
-        work_root
-        / "exports"
-        / "manifests"
-        / "academic_results"
-        / "1.json"
-    )
+    manifest_path = work_root / "exports" / "manifests" / "academic_results" / "1.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_bytes(canonical)
     relative = manifest_path.relative_to(workspace).as_posix()
@@ -301,9 +295,7 @@ def main(argv: list[str] | None = None) -> int:
     if importlib.metadata.version("pds-core") != "0.6.6":
         raise AssertionError("Core installed version must be exactly 0.6.6.")
 
-    work, publication_id, title = _setup_workspace(
-        args.workspace, args.producer
-    )
+    work, publication_id, title = _setup_workspace(args.workspace, args.producer)
     _run_teacher_journey(
         args.workspace,
         args.producer,
@@ -327,7 +319,9 @@ def main(argv: list[str] | None = None) -> int:
         authorizer=AllowInstalledAcceptance(),
     )
     run_installed_benchmark_teacher_journey(
-        args.workspace, work, reporting_diagnostics,
+        args.workspace,
+        work,
+        reporting_diagnostics,
         publication_id=publication_id,
     )
     print(

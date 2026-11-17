@@ -134,8 +134,10 @@ class BenchmarkTeacherAnnotations:
             ("groups", self.groups, BenchmarkInstructionalGroup, 40),
             ("responses", self.responses, InstructionalResponse, 80),
         ):
-            if not isinstance(values, tuple) or len(values) > limit or any(
-                not isinstance(value, kind) for value in values
+            if (
+                not isinstance(values, tuple)
+                or len(values) > limit
+                or any(not isinstance(value, kind) for value in values)
             ):
                 raise BenchmarkPlanAuthoringError(f"{field} has invalid entries.")
         if self.follow_up is not None and not isinstance(
@@ -231,14 +233,24 @@ def compose_teacher_benchmark_plan(
         )
 
     rows = [
-        row for row in base_rows
+        row
+        for row in base_rows
         if not (
-            (annotations.responses and row.values[0] == _SECTIONS[2]
-             and row.values[2] == "No response recorded")
-            or (annotations.follow_up is not None and row.values[0] == _SECTIONS[3]
-                and row.values[2] == "No reassessment recorded")
-            or (annotations.interpretation and row.values[0] == _SECTIONS[1]
-                and row.values[1] == "Teacher interpretation")
+            (
+                annotations.responses
+                and row.values[0] == _SECTIONS[2]
+                and row.values[2] == "No response recorded"
+            )
+            or (
+                annotations.follow_up is not None
+                and row.values[0] == _SECTIONS[3]
+                and row.values[2] == "No reassessment recorded"
+            )
+            or (
+                annotations.interpretation
+                and row.values[0] == _SECTIONS[1]
+                and row.values[1] == "Teacher interpretation"
+            )
         )
     ]
     counter = 0
@@ -262,15 +274,20 @@ def compose_teacher_benchmark_plan(
 
     if annotations.interpretation:
         add(
-            _SECTIONS[1], "Teacher interpretation", "Patterns and observations",
-            annotations.interpretation, None,
+            _SECTIONS[1],
+            "Teacher interpretation",
+            "Patterns and observations",
+            annotations.interpretation,
+            None,
             "Teacher-authored interpretation; not a calculated result",
         )
     for judgment in sorted(annotations.standards, key=lambda item: item.standard_id):
         add(
-            _SECTIONS[1], judgment.standard_id,
+            _SECTIONS[1],
+            judgment.standard_id,
             f"Teacher judgment: {judgment.judgment.replace('_', ' ').title()}",
-            judgment.basis or None, None,
+            judgment.basis or None,
+            None,
             (
                 "Teacher confirmed comparable evidence"
                 if judgment.comparable_evidence_confirmed
@@ -279,7 +296,9 @@ def compose_teacher_benchmark_plan(
         )
     for group in sorted(annotations.groups, key=lambda item: item.group_id):
         add(
-            _SECTIONS[0], f"Optional group: {group.label}", "Members",
+            _SECTIONS[0],
+            f"Optional group: {group.label}",
+            "Members",
             f"{len(group.student_ids)} selected student(s)",
             f"roster={len(roster)}",
             f"Teacher-selected group; rationale={group.rationale}; "
@@ -287,8 +306,10 @@ def compose_teacher_benchmark_plan(
         )
     for response in sorted(annotations.responses, key=lambda item: item.response_id):
         add(
-            _SECTIONS[2], response.response_kind.replace("_", " ").title(),
-            response.target, response.strategy_resource,
+            _SECTIONS[2],
+            response.response_kind.replace("_", " ").title(),
+            response.target,
+            response.strategy_resource,
             f"students={len(response.student_ids)}",
             (
                 f"status={response.status}; "
@@ -302,8 +323,10 @@ def compose_teacher_benchmark_plan(
     follow_up = annotations.follow_up
     if follow_up is not None:
         add(
-            _SECTIONS[3], follow_up.reassessment_tool,
-            follow_up.reassessment_date.isoformat(), follow_up.follow_up_results,
+            _SECTIONS[3],
+            follow_up.reassessment_tool,
+            follow_up.reassessment_date.isoformat(),
+            follow_up.follow_up_results,
             (
                 "students_still_needing_support="
                 f"{len(follow_up.students_still_needing_support)}"
@@ -324,18 +347,30 @@ def compose_teacher_benchmark_plan(
     # clears previously authored responses or follow-up observations.
     if not any(row.values[0] == _SECTIONS[1] for row in rows):
         add(
-            _SECTIONS[1], "Standards / items", "No analysis supplied", None,
-            None, "No standard or item results were supplied by this assessment",
+            _SECTIONS[1],
+            "Standards / items",
+            "No analysis supplied",
+            None,
+            None,
+            "No standard or item results were supplied by this assessment",
         )
     if not any(row.values[0] == _SECTIONS[2] for row in rows):
         add(
-            _SECTIONS[2], "Teacher plan", "No response recorded", None,
-            None, "No teacher-authored response recorded",
+            _SECTIONS[2],
+            "Teacher plan",
+            "No response recorded",
+            None,
+            None,
+            "No teacher-authored response recorded",
         )
     if not any(row.values[0] == _SECTIONS[3] for row in rows):
         add(
-            _SECTIONS[3], "Follow-up", "No reassessment recorded", None,
-            None, "No follow-up evidence or completion inferred",
+            _SECTIONS[3],
+            "Follow-up",
+            "No reassessment recorded",
+            None,
+            None,
+            "No follow-up evidence or completion inferred",
         )
 
     return compose_teacher_report_preview(

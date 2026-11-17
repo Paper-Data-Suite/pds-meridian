@@ -29,7 +29,10 @@ from meridian.teacher_evidence_inbox import project_teacher_evidence_inbox
     ],
 )
 def test_partial_operation_grants_are_not_ready(
-    tmp_path: Path, producer: str, operation: str, expected: str,
+    tmp_path: Path,
+    producer: str,
+    operation: str,
+    expected: str,
 ) -> None:
     authorizer = TeacherLocalPublicationAuthorizer(
         tmp_path,
@@ -52,7 +55,8 @@ def test_partial_operation_grants_are_not_ready(
         publication_id="pub_11111111111111111111111111111111",
     )
     item = project_teacher_evidence_inbox(
-        _diagnostic(observation), authorizer=authorizer,
+        _diagnostic(observation),
+        authorizer=authorizer,
     ).items[0]
     assert item.status_code == expected
     assert item.actionability == "blocked"
@@ -63,7 +67,8 @@ def test_both_operations_checked_with_exact_whole_assignment_scope() -> None:
 
     class Recorder:
         def authorize(
-            self, request: PublicationAuthorizationRequest,
+            self,
+            request: PublicationAuthorizationRequest,
         ) -> PublicationAuthorizationDecision:
             seen.append(request)
             return PublicationAuthorizationDecision(True, "synthetic_policy", "1")
@@ -80,7 +85,8 @@ def test_both_operations_checked_with_exact_whole_assignment_scope() -> None:
     ).items[0]
     assert item.status_code == "ready_to_review"
     assert [request.operation for request in seen] == [
-        "project_evidence", "read_projection_cache"
+        "project_evidence",
+        "read_projection_cache",
     ]
     assert all(request.purpose_id == "review_evidence" for request in seen)
     assert all(request.requested_student_ids == () for request in seen)
@@ -125,7 +131,8 @@ def test_denied_first_operation_does_not_call_cache_authorizer() -> None:
 
     class Deny:
         def authorize(
-            self, request: PublicationAuthorizationRequest,
+            self,
+            request: PublicationAuthorizationRequest,
         ) -> PublicationAuthorizationDecision:
             seen.append(request.operation)
             return PublicationAuthorizationDecision(

@@ -105,10 +105,7 @@ def test_workflow_help_exposes_grade_items_review(
     output = capsys.readouterr().out
     normalized = " ".join(output.split())
     assert "grade-items" in normalized
-    assert (
-        "Review explicit Grade Item and membership selector state"
-        in normalized
-    )
+    assert "Review explicit Grade Item and membership selector state" in normalized
 
 
 def test_grade_items_json_is_deterministic_and_read_only(

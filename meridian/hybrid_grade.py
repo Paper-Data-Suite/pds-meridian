@@ -86,9 +86,7 @@ HybridGradeCalculationStatus: TypeAlias = Literal[
     "insufficient",
 ]
 
-_COMPONENT_KINDS: Final[frozenset[str]] = frozenset(
-    {"conventional", "standards_based"}
-)
+_COMPONENT_KINDS: Final[frozenset[str]] = frozenset({"conventional", "standards_based"})
 _COMPONENT_STATUSES: Final[frozenset[str]] = frozenset(
     {"calculated", "blocked", "insufficient"}
 )
@@ -160,9 +158,7 @@ class HybridGradeCalculationInput:
                 "state_treatment must be GradeStateTreatment."
             )
         if not isinstance(self.rounding, GradeRoundingPolicy):
-            raise HybridGradeValidationError(
-                "rounding must be GradeRoundingPolicy."
-            )
+            raise HybridGradeValidationError("rounding must be GradeRoundingPolicy.")
         if not isinstance(self.conventional, ConventionalGradeCalculationInput):
             raise HybridGradeValidationError(
                 "conventional must be ConventionalGradeCalculationInput."
@@ -221,10 +217,7 @@ class HybridGradeCalculationInput:
                 "conventional component configuration must exactly match the "
                 "hybrid policy."
             )
-        if (
-            self.standards_based.configuration
-            != self.configuration.standards_based
-        ):
+        if self.standards_based.configuration != self.configuration.standards_based:
             raise HybridGradeValidationError(
                 "standards component configuration must exactly match the "
                 "hybrid policy."
@@ -398,17 +391,23 @@ class HybridGradeCalculationOutcome:
             "student_id",
             _identifier(self.student_id, "student_id"),
         )
-        if not isinstance(
-            self.conventional_component,
-            HybridGradeComponentResult,
-        ) or self.conventional_component.component_kind != "conventional":
+        if (
+            not isinstance(
+                self.conventional_component,
+                HybridGradeComponentResult,
+            )
+            or self.conventional_component.component_kind != "conventional"
+        ):
             raise HybridGradeValidationError(
                 "conventional_component must identify the conventional component."
             )
-        if not isinstance(
-            self.standards_component,
-            HybridGradeComponentResult,
-        ) or self.standards_component.component_kind != "standards_based":
+        if (
+            not isinstance(
+                self.standards_component,
+                HybridGradeComponentResult,
+            )
+            or self.standards_component.component_kind != "standards_based"
+        ):
             raise HybridGradeValidationError(
                 "standards_component must identify the standards_based component."
             )
@@ -459,9 +458,7 @@ class HybridGradeCalculationOutcome:
                 raise HybridGradeValidationError(
                     "calculated hybrid outcome requires complete numeric values."
                 )
-            expected_weight = _sum_exact(
-                item.configured_weight for item in active
-            )
+            expected_weight = _sum_exact(item.configured_weight for item in active)
             expected_numerator = _sum_exact(
                 item.weighted_contribution
                 for item in active
@@ -594,9 +591,7 @@ def hybrid_grade_calculation_input_to_dict(
     """Serialize one exact hybrid calculation basis to JSON-native data."""
 
     if not isinstance(value, HybridGradeCalculationInput):
-        raise HybridGradeValidationError(
-            "value must be HybridGradeCalculationInput."
-        )
+        raise HybridGradeValidationError("value must be HybridGradeCalculationInput.")
     conventional = conventional_grade_calculation_input_to_dict(value.conventional)
     standards = standards_grade_calculation_input_to_dict(value.standards_based)
     return {
@@ -614,9 +609,7 @@ def hybrid_grade_calculation_input_to_dict(
             "conventional_weight": _decimal_to_text(
                 value.configuration.conventional_weight
             ),
-            "standards_weight": _decimal_to_text(
-                value.configuration.standards_weight
-            ),
+            "standards_weight": _decimal_to_text(value.configuration.standards_weight),
         },
         "state_treatment": conventional["state_treatment"],
         "rounding": conventional["rounding"],
@@ -649,9 +642,7 @@ def hybrid_grade_calculation_fingerprint(
     """Return a stable digest over hybrid authority and component algorithms."""
 
     if not isinstance(inputs, HybridGradeCalculationInput):
-        raise HybridGradeValidationError(
-            "inputs must be HybridGradeCalculationInput."
-        )
+        raise HybridGradeValidationError("inputs must be HybridGradeCalculationInput.")
     payload = {
         "algorithm_version": HYBRID_GRADE_ALGORITHM_VERSION,
         "component_algorithms": {
@@ -669,9 +660,7 @@ def calculate_hybrid_grade(
     """Purely calculate one bounded hybrid Academic Period Grade."""
 
     if not isinstance(inputs, HybridGradeCalculationInput):
-        raise HybridGradeValidationError(
-            "inputs must be HybridGradeCalculationInput."
-        )
+        raise HybridGradeValidationError("inputs must be HybridGradeCalculationInput.")
     fingerprint = hybrid_grade_calculation_fingerprint(inputs)
     conventional_outcome = calculate_conventional_grade(inputs.conventional)
     standards_outcome = calculate_standards_grade(inputs.standards_based)
@@ -724,9 +713,7 @@ def calculate_hybrid_grade(
 
     with localcontext() as context:
         context.prec = _calculation_precision(inputs, active)
-        active_weight = _sum_exact(
-            item.configured_weight for item in active
-        )
+        active_weight = _sum_exact(item.configured_weight for item in active)
         weighted_numerator = _sum_exact(
             item.weighted_contribution
             for item in active
@@ -755,9 +742,7 @@ def hybrid_grade_calculation_outcome_to_dict(
     """Serialize a pure hybrid outcome for diagnostics and persistence reuse."""
 
     if not isinstance(value, HybridGradeCalculationOutcome):
-        raise HybridGradeValidationError(
-            "value must be HybridGradeCalculationOutcome."
-        )
+        raise HybridGradeValidationError("value must be HybridGradeCalculationOutcome.")
     return {
         "status": value.status,
         "algorithm_version": value.algorithm_version,
@@ -883,13 +868,9 @@ def _component_result_to_dict(value: HybridGradeComponentResult) -> dict[str, ob
         "source_status": value.source_status,
         "action": value.action,
         "component_algorithm_version": value.component_algorithm_version,
-        "component_calculation_fingerprint": (
-            value.component_calculation_fingerprint
-        ),
+        "component_calculation_fingerprint": (value.component_calculation_fingerprint),
         "unrounded_grade": _optional_decimal_text(value.unrounded_grade),
-        "weighted_contribution": _optional_decimal_text(
-            value.weighted_contribution
-        ),
+        "weighted_contribution": _optional_decimal_text(value.weighted_contribution),
         "reason_codes": list(value.reason_codes),
     }
 
@@ -902,10 +883,7 @@ def _reason_to_dict(value: HybridGradeReason) -> dict[str, object]:
 
 
 def _sum_exact(values: Iterable[Decimal]) -> Decimal:
-    exact_values = tuple(
-        _finite_decimal(value, "sum value")
-        for value in values
-    )
+    exact_values = tuple(_finite_decimal(value, "sum value") for value in values)
     if not exact_values:
         return Decimal("0")
     with localcontext() as context:
@@ -946,15 +924,11 @@ def _round_final_grade(value: Decimal, policy: GradeRoundingPolicy) -> Decimal:
     try:
         rounding = _ROUNDING[policy.mode]
     except KeyError as error:
-        raise HybridGradeValidationError(
-            "unsupported Grade rounding mode."
-        ) from error
+        raise HybridGradeValidationError("unsupported Grade rounding mode.") from error
     with localcontext() as context:
         context.prec = max(
             64,
-            _decimal_precision(value)
-            + _decimal_precision(policy.quantum)
-            + 16,
+            _decimal_precision(value) + _decimal_precision(policy.quantum) + 16,
         )
         return value.quantize(policy.quantum, rounding=rounding)
 
@@ -1004,9 +978,7 @@ def _canonical_json_bytes(value: object) -> bytes:
 
 def _academic_period_ref(value: AcademicPeriodRef) -> AcademicPeriodRef:
     if not isinstance(value, AcademicPeriodRef):
-        raise HybridGradeValidationError(
-            "target_period must be an AcademicPeriodRef."
-        )
+        raise HybridGradeValidationError("target_period must be an AcademicPeriodRef.")
     try:
         return validate_academic_period_ref(value)
     except AcademicPeriodValidationError as error:
@@ -1024,9 +996,7 @@ def _identifier(value: object, field_name: str) -> str:
 
 def _positive_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise HybridGradeValidationError(
-            f"{field_name} must be a positive integer."
-        )
+        raise HybridGradeValidationError(f"{field_name} must be a positive integer.")
     return value
 
 
@@ -1041,9 +1011,7 @@ def _finite_decimal(value: object, field_name: str) -> Decimal:
 def _positive_decimal(value: object, field_name: str) -> Decimal:
     decimal_value = _finite_decimal(value, field_name)
     if decimal_value <= 0:
-        raise HybridGradeValidationError(
-            f"{field_name} must be greater than zero."
-        )
+        raise HybridGradeValidationError(f"{field_name} must be greater than zero.")
     return decimal_value
 
 
@@ -1085,7 +1053,5 @@ def _reason_codes(value: object) -> tuple[str, ...]:
     try:
         values = tuple(cast(Iterable[object], value))
     except TypeError as error:
-        raise HybridGradeValidationError(
-            "reason_codes must be an iterable."
-        ) from error
+        raise HybridGradeValidationError("reason_codes must be an iterable.") from error
     return tuple(_reason_code(item) for item in values)

@@ -50,16 +50,17 @@ def _baseline(*, changed_source: bool = False):
             BenchmarkStudentResult(
                 "student_1", "Alex One", True, True, "valid", "8/10", "meeting"
             ),
-            BenchmarkStudentResult(
-                "student_2", "Bo Two", True, True, "missing_result"
-            ),
+            BenchmarkStudentResult("student_2", "Bo Two", True, True, "missing_result"),
             BenchmarkStudentResult(
                 "student_3", "Cy Three", False, False, "not_assessed"
             ),
         ),
         standards=(
             BenchmarkStandardObservation(
-                "reading.analysis", 2, 1, "Native standard evidence",
+                "reading.analysis",
+                2,
+                1,
+                "Native standard evidence",
             ),
         ),
         source_references=(
@@ -76,29 +77,41 @@ def _annotations() -> BenchmarkTeacherAnnotations:
         interpretation="Students need practice citing relevant textual evidence.",
         standards=(
             TeacherStandardAssessment(
-                "reading.analysis", "challenging",
-                "Compared the valid native results from this administration.", True,
+                "reading.analysis",
+                "challenging",
+                "Compared the valid native results from this administration.",
+                True,
             ),
         ),
         groups=(
             BenchmarkInstructionalGroup(
-                "bubble_1", "Near threshold", ("student_1",),
+                "bubble_1",
+                "Near threshold",
+                ("student_1",),
                 "Teacher-selected group for discussion",
             ),
         ),
         responses=(
             InstructionalResponse(
-                "reteach_1", "small_group", "reading.analysis",
-                ("student_1",), "Model evidence selection and reasoning",
-                date(2026, 10, 20), date(2026, 10, 25),
-                ("item_3",), ("reading.analysis",),
+                "reteach_1",
+                "small_group",
+                "reading.analysis",
+                ("student_1",),
+                "Model evidence selection and reasoning",
+                date(2026, 10, 20),
+                date(2026, 10, 25),
+                ("item_3",),
+                ("reading.analysis",),
             ),
         ),
         follow_up=TargetedInstructionResult(
-            "Short constructed response", date(2026, 10, 25),
+            "Short constructed response",
+            date(2026, 10, 25),
             "New responses have not been scored for causal attribution.",
-            ("student_1",), ("reading.analysis",),
-            "One-to-one feedback", "Compare only like evidence.",
+            ("student_1",),
+            ("reading.analysis",),
+            "One-to-one feedback",
+            "Compare only like evidence.",
         ),
     )
 
@@ -134,10 +147,7 @@ def test_authoring_preserves_assessment_rows_and_native_proficiency() -> None:
         if item.values[6] == "no"
         and item.values[2] not in {"No response recorded", "No reassessment recorded"}
     )
-    native = [
-        row for row in drafted.rows
-        if row.values[1] == "Configured proficiency"
-    ]
+    native = [row for row in drafted.rows if row.values[1] == "Configured proficiency"]
     assert [(row.values[2], row.values[3]) for row in native] == [
         ("developing", None),
         ("meeting", "Alex One"),
@@ -147,10 +157,15 @@ def test_authoring_preserves_assessment_rows_and_native_proficiency() -> None:
     assert not any(row.values[2] == "No response recorded" for row in drafted.rows)
     assert not any(row.values[2] == "No reassessment recorded" for row in drafted.rows)
     markdown = render_teacher_report(drafted, "markdown").decode("utf-8")
-    for index, section in enumerate((
-        "Assessment Data", "Standards and Item Analysis",
-        "Instructional Response", "Results from Targeted Instruction",
-    ), start=1):
+    for index, section in enumerate(
+        (
+            "Assessment Data",
+            "Standards and Item Analysis",
+            "Instructional Response",
+            "Results from Targeted Instruction",
+        ),
+        start=1,
+    ):
         assert f"## {index}. {section}" in markdown
     assert "causally attributed" in markdown
     assert "officially submitted or approved" in markdown
@@ -171,44 +186,63 @@ def test_revising_same_draft_replaces_only_teacher_rows() -> None:
     )
     second = compose_teacher_benchmark_plan(
         first,
-        BenchmarkTeacherAnnotations(
-            interpretation="Now prioritize a different focus."
-        ),
+        BenchmarkTeacherAnnotations(interpretation="Now prioritize a different focus."),
         roster_student_ids=ROSTER,
     )
     assert "Now prioritize" in render_teacher_report(second, "markdown").decode()
-    assert "Model evidence selection" not in render_teacher_report(
-        second, "markdown"
-    ).decode()
+    assert (
+        "Model evidence selection"
+        not in render_teacher_report(second, "markdown").decode()
+    )
     assert any(row.values[2] == "No response recorded" for row in second.rows)
     assert any(row.values[2] == "No reassessment recorded" for row in second.rows)
     assert second.source_references == first.source_references
-    assert compose_teacher_benchmark_plan(
-        second,
-        BenchmarkTeacherAnnotations(interpretation="Now prioritize a different focus."),
-        roster_student_ids=ROSTER,
-    ).preview_sha256 == second.preview_sha256
+    assert (
+        compose_teacher_benchmark_plan(
+            second,
+            BenchmarkTeacherAnnotations(
+                interpretation="Now prioritize a different focus."
+            ),
+            roster_student_ids=ROSTER,
+        ).preview_sha256
+        == second.preview_sha256
+    )
 
 
 @pytest.mark.parametrize("field", ("groups", "responses", "follow_up"))
 def test_roster_boundary_rejects_outside_students(field: str) -> None:
     if field == "groups":
-        annotations = BenchmarkTeacherAnnotations(groups=(
-            BenchmarkInstructionalGroup(
-                "group_1", "Not in roster", ("outsider",), "Teacher selected"
-            ),
-        ))
+        annotations = BenchmarkTeacherAnnotations(
+            groups=(
+                BenchmarkInstructionalGroup(
+                    "group_1", "Not in roster", ("outsider",), "Teacher selected"
+                ),
+            )
+        )
     elif field == "responses":
-        annotations = BenchmarkTeacherAnnotations(responses=(
-            InstructionalResponse(
-                "response_1", "reteach", "reading.analysis", ("outsider",), "Practice"
-            ),
-        ))
+        annotations = BenchmarkTeacherAnnotations(
+            responses=(
+                InstructionalResponse(
+                    "response_1",
+                    "reteach",
+                    "reading.analysis",
+                    ("outsider",),
+                    "Practice",
+                ),
+            )
+        )
     else:
-        annotations = BenchmarkTeacherAnnotations(follow_up=TargetedInstructionResult(
-            "Quiz", date(2026, 10, 25), "Teacher observed results", ("outsider",),
-            (), "Additional support", "Notes",
-        ))
+        annotations = BenchmarkTeacherAnnotations(
+            follow_up=TargetedInstructionResult(
+                "Quiz",
+                date(2026, 10, 25),
+                "Teacher observed results",
+                ("outsider",),
+                (),
+                "Additional support",
+                "Notes",
+            )
+        )
     with pytest.raises(BenchmarkPlanAuthoringError):
         compose_teacher_benchmark_plan(
             _baseline(), annotations, roster_student_ids=ROSTER
@@ -224,9 +258,13 @@ def test_no_teacher_strong_judgment_without_comparable_basis() -> None:
 def test_unknown_standard_cannot_be_classified() -> None:
     with pytest.raises(BenchmarkPlanAuthoringError):
         compose_teacher_benchmark_plan(
-            _baseline(), BenchmarkTeacherAnnotations(standards=(
-                TeacherStandardAssessment("other.standard", "unclassified", ""),
-            )), roster_student_ids=ROSTER,
+            _baseline(),
+            BenchmarkTeacherAnnotations(
+                standards=(
+                    TeacherStandardAssessment("other.standard", "unclassified", ""),
+                )
+            ),
+            roster_student_ids=ROSTER,
         )
 
 
@@ -236,7 +274,9 @@ def test_duplicate_groups_rejected_and_empty_roster_not_inferred() -> None:
         BenchmarkTeacherAnnotations(groups=(group, group))
     with pytest.raises(BenchmarkPlanAuthoringError):
         compose_teacher_benchmark_plan(
-            _baseline(), _annotations(), roster_student_ids=(),
+            _baseline(),
+            _annotations(),
+            roster_student_ids=(),
         )
 
 
@@ -260,19 +300,22 @@ def test_first_save_and_append_only_second_revision(tmp_path: Path) -> None:
     )
     assert second.stored.revision.plan_revision == 2
     assert (
-        second.stored.revision.previous_revision_sha256
-        == first.stored.revision_sha256
+        second.stored.revision.previous_revision_sha256 == first.stored.revision_sha256
     )
     assert second.stored.revision.created_at == first.stored.revision.created_at
     assert list_benchmark_plan_revisions(tmp_path, "class_1", "plan_1") == (1, 2)
     historical = load_benchmark_plan_revision(tmp_path, "class_1", "plan_1", 1)
     assert historical.revision_sha256 == first.stored.revision_sha256
-    assert "Model evidence selection" in render_teacher_report(
-        historical.revision.report, "markdown"
-    ).decode()
-    assert load_latest_benchmark_plan_revision(
-        tmp_path, "class_1", "plan_1"
-    ).revision_sha256 == second.stored.revision_sha256
+    assert (
+        "Model evidence selection"
+        in render_teacher_report(historical.revision.report, "markdown").decode()
+    )
+    assert (
+        load_latest_benchmark_plan_revision(
+            tmp_path, "class_1", "plan_1"
+        ).revision_sha256
+        == second.stored.revision_sha256
+    )
 
 
 def test_save_refuses_stale_revision_and_existing_plan_without_anchor(
@@ -290,7 +333,9 @@ def test_save_rejects_changed_sources_and_modified_native_rows(tmp_path: Path) -
     first = _save(tmp_path, _annotations())
     with pytest.raises(BenchmarkPlanSourceChangedError):
         _save(
-            tmp_path, _annotations(), report=_baseline(changed_source=True),
+            tmp_path,
+            _annotations(),
+            report=_baseline(changed_source=True),
             expected_previous_revision_sha256=first.stored.revision_sha256,
         )
     changed = _baseline()
@@ -305,22 +350,34 @@ def test_save_rejects_changed_sources_and_modified_native_rows(tmp_path: Path) -
     from meridian.teacher_report import compose_teacher_report_preview
 
     forged = compose_teacher_report_preview(
-        report_kind=changed.report_kind, title=changed.title,
-        class_id=changed.class_id, target_period=changed.target_period,
+        report_kind=changed.report_kind,
+        title=changed.title,
+        class_id=changed.class_id,
+        target_period=changed.target_period,
         calendar_revision=changed.calendar_revision,
-        source_references=changed.source_references, generated_at=changed.generated_at,
-        summary=changed.summary, columns=changed.columns, rows=rows,
+        source_references=changed.source_references,
+        generated_at=changed.generated_at,
+        summary=changed.summary,
+        columns=changed.columns,
+        rows=rows,
         diagnostics=changed.diagnostics,
     )
     with pytest.raises(BenchmarkPlanSourceChangedError):
-        _save(tmp_path, _annotations(), report=forged,
-              expected_previous_revision_sha256=first.stored.revision_sha256)
+        _save(
+            tmp_path,
+            _annotations(),
+            report=forged,
+            expected_previous_revision_sha256=first.stored.revision_sha256,
+        )
 
 
 def test_no_source_references_or_naive_clock_cannot_save(tmp_path: Path) -> None:
     no_source = compose_benchmark_analysis(
-        class_id="class_1", target_period=AcademicPeriodRef("2026-2027", "mp1"),
-        calendar_revision=1, assessment_id="assessment_1", assessment_title="Synthetic",
+        class_id="class_1",
+        target_period=AcademicPeriodRef("2026-2027", "mp1"),
+        calendar_revision=1,
+        assessment_id="assessment_1",
+        assessment_title="Synthetic",
         proficiency_levels=("meeting",),
         students=(),
         source_references=(),
@@ -339,6 +396,9 @@ def test_save_rejects_changed_teacher_and_assessment_identity(tmp_path: Path) ->
         ("assessment_id", "other_assessment"),
     ):
         with pytest.raises(BenchmarkPlanSourceChangedError):
-            _save(tmp_path, _annotations(),
-                  expected_previous_revision_sha256=first.stored.revision_sha256,
-                  **{field: value})
+            _save(
+                tmp_path,
+                _annotations(),
+                expected_previous_revision_sha256=first.stored.revision_sha256,
+                **{field: value},
+            )

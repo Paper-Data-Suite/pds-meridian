@@ -524,9 +524,7 @@ def test_source_contract_preserves_all_supported_base_statuses(status: str) -> N
     )
 
     assert source.source_status == status
-    assert source.base_grade == (
-        Decimal("74.5") if status == "calculated" else None
-    )
+    assert source.base_grade == (Decimal("74.5") if status == "calculated" else None)
 
 
 def test_applicability_is_exact_reference_based_and_non_floating() -> None:
@@ -647,10 +645,13 @@ def test_authoring_preview_allows_stale_source_but_preserves_warning_state(
     )
 
     assert preview.source.freshness_status == "stale"
-    assert assess_teacher_grade_override_applicability(
-        preview.source,
-        preview.candidate,
-    ).status == "source_stale"
+    assert (
+        assess_teacher_grade_override_applicability(
+            preview.source,
+            preview.candidate,
+        ).status
+        == "source_stale"
+    )
 
 
 def test_authoring_preview_appends_to_latest_history_without_selecting(

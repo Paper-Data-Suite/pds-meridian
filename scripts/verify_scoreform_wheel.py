@@ -15,12 +15,8 @@ SCOREFORM_DISTRIBUTION_NAME = "scoreform"
 SCOREFORM_IMPORT_NAME = "scoreform"
 EXPECTED_SCOREFORM_VERSION = "0.12.1"
 EXPECTED_SCOREFORM_RELEASE_TAG = "v0.12.1"
-EXPECTED_SCOREFORM_RELEASE_COMMIT = (
-    "8c3decf64040fd1da839b6f59f19c9ed344ce579"
-)
-EXPECTED_SCOREFORM_RELEASE_TREE = (
-    "bcc6270319b6234f000d348452072ab8943a2558"
-)
+EXPECTED_SCOREFORM_RELEASE_COMMIT = "8c3decf64040fd1da839b6f59f19c9ed344ce579"
+EXPECTED_SCOREFORM_RELEASE_TREE = "bcc6270319b6234f000d348452072ab8943a2558"
 EXPECTED_SCOREFORM_WHEEL_FILENAME = "scoreform-0.12.1-py3-none-any.whl"
 EXPECTED_SCOREFORM_WHEEL_SHA256 = (
     "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
@@ -28,9 +24,7 @@ EXPECTED_SCOREFORM_WHEEL_SHA256 = (
 EXPECTED_READER_MEMBER = "scoreform/academic_result_reader.py"
 CURRENT_SCOREFORM_VERSION = "0.13.0"
 CURRENT_SCOREFORM_RELEASE_TAG = "v0.13.0"
-CURRENT_SCOREFORM_RELEASE_COMMIT = (
-    "dbb4159bb2c4d04889742de746be42a394130170"
-)
+CURRENT_SCOREFORM_RELEASE_COMMIT = "dbb4159bb2c4d04889742de746be42a394130170"
 CURRENT_SCOREFORM_RELEASE_TREE = "ef6bb4e4d37da25b317d1a2aebddebdf7edcdd28"
 CURRENT_SCOREFORM_WHEEL_FILENAME = "scoreform-0.13.0-py3-none-any.whl"
 CURRENT_SCOREFORM_WHEEL_SHA256 = (
@@ -76,14 +70,10 @@ def verify_scoreform_wheel(path: str | Path, *, current: bool = False) -> None:
     )
     version = CURRENT_SCOREFORM_VERSION if current else EXPECTED_SCOREFORM_VERSION
     expected_sha256 = (
-        CURRENT_SCOREFORM_WHEEL_SHA256
-        if current
-        else EXPECTED_SCOREFORM_WHEEL_SHA256
+        CURRENT_SCOREFORM_WHEEL_SHA256 if current else EXPECTED_SCOREFORM_WHEEL_SHA256
     )
     if wheel.name != filename:
-        raise ScoreFormVerificationError(
-            f"Expected {filename!r}, got {wheel.name!r}."
-        )
+        raise ScoreFormVerificationError(f"Expected {filename!r}, got {wheel.name!r}.")
     if not wheel.is_file():
         raise ScoreFormVerificationError(f"ScoreForm wheel does not exist: {wheel}")
     actual = _sha256(wheel)

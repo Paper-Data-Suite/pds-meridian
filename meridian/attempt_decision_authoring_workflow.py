@@ -48,9 +48,7 @@ class AttemptDecisionAuthoringScopeError(
     code = "teacher_workflow.attempt_decisions.decision_authoring_invalid"
 
 
-class AttemptDecisionAuthoringStaleError(
-    AttemptDecisionAuthoringWorkflowError
-):
+class AttemptDecisionAuthoringStaleError(AttemptDecisionAuthoringWorkflowError):
     """Raised when reviewed decision dependencies changed before commit."""
 
     code = "teacher_workflow.attempt_decisions.decision_authoring_stale"
@@ -102,8 +100,7 @@ class AttemptDecisionAuthoringPreview:
                     "initial candidate cannot carry a previous decision digest."
                 )
         if (
-            self.candidate.membership_revision
-            != self.expected_membership_revision
+            self.candidate.membership_revision != self.expected_membership_revision
             or self.candidate.membership_revision_sha256
             != self.expected_membership_sha256
         ):
@@ -111,8 +108,7 @@ class AttemptDecisionAuthoringPreview:
                 "candidate membership basis must match reviewed membership."
             )
         if (
-            self.candidate.policy.policy_revision
-            != self.expected_policy_revision
+            self.candidate.policy.policy_revision != self.expected_policy_revision
             or self.candidate.policy.policy_revision_sha256
             != self.expected_policy_sha256
         ):
@@ -226,10 +222,7 @@ def preview_attempt_decision_authoring(
         )
 
     supplied = tuple(selected_attempts)
-    if any(
-        not isinstance(value, AttemptObservationReference)
-        for value in supplied
-    ):
+    if any(not isinstance(value, AttemptObservationReference) for value in supplied):
         raise AttemptDecisionAuthoringScopeError(
             "selected_attempts must contain only exact attempt references."
         )
@@ -237,9 +230,7 @@ def preview_attempt_decision_authoring(
         raise AttemptDecisionAuthoringScopeError(
             "selected_attempts must not contain duplicates."
         )
-    candidate_attempts = tuple(
-        candidate.attempt for candidate in derivation.candidates
-    )
+    candidate_attempts = tuple(candidate.attempt for candidate in derivation.candidates)
     candidate_set = set(candidate_attempts)
     if any(value not in candidate_set for value in supplied):
         raise AttemptDecisionAuthoringScopeError(
@@ -254,8 +245,7 @@ def preview_attempt_decision_authoring(
         len(normalized_selected),
     ):
         raise AttemptDecisionAuthoringScopeError(
-            "Selected attempt count violates the current explicit policy "
-            "cardinality."
+            "Selected attempt count violates the current explicit policy cardinality."
         )
 
     history = list_attempt_selection_decision_revisions(

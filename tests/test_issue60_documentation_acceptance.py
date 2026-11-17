@@ -42,12 +42,12 @@ def test_issue60_active_docs_and_changelog_link_contract() -> None:
     changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
     readme = Path("README").read_text(encoding="utf-8")
     docs_index = Path("docs/README.md").read_text(encoding="utf-8")
-    matrix_doc = Path(
-        "docs/development/installed-qualification-matrix.md"
-    ).read_text(encoding="utf-8")
-    documentation_checker = Path(
-        "scripts/check_documentation.py"
-    ).read_text(encoding="utf-8")
+    matrix_doc = Path("docs/development/installed-qualification-matrix.md").read_text(
+        encoding="utf-8"
+    )
+    documentation_checker = Path("scripts/check_documentation.py").read_text(
+        encoding="utf-8"
+    )
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
 
     filename = "cross-policy-adversarial-acceptance.md"

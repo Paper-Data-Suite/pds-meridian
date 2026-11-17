@@ -271,9 +271,7 @@ def planning_signal_derivation_explanation_to_dict(
                 "target_period": {
                     "school_year": value.policy.target_period.school_year,
                     "period_id": value.policy.target_period.period_id,
-                    "calendar_revision": (
-                        value.policy.target_period.calendar_revision
-                    ),
+                    "calendar_revision": (value.policy.target_period.calendar_revision),
                     "label": value.policy.target_period.label,
                     "period_type": value.policy.target_period.period_type,
                     "lifecycle": value.policy.target_period.lifecycle,
@@ -293,14 +291,11 @@ def planning_signal_derivation_explanation_to_dict(
             "dimension_id": value.policy.dimension_id,
             "band_count": value.policy.band_count,
             "band_definitions": [
-                _band_definition_to_dict(item)
-                for item in value.policy.band_definitions
+                _band_definition_to_dict(item) for item in value.policy.band_definitions
             ],
             "tie_handling": value.policy.tie_handling,
             "missing_result_handling": value.policy.missing_result_handling,
-            "insufficient_result_handling": (
-                value.policy.insufficient_result_handling
-            ),
+            "insufficient_result_handling": (value.policy.insufficient_result_handling),
             "actor": {
                 "kind": value.policy.actor_kind,
                 "actor_id": value.policy.actor_id,
@@ -431,10 +426,7 @@ def render_planning_signal_derivation_explanation_text(
         ),
         f"tie_handling: {policy.tie_handling}",
         f"missing_result_handling: {policy.missing_result_handling}",
-        (
-            "insufficient_result_handling: "
-            f"{policy.insufficient_result_handling}"
-        ),
+        (f"insufficient_result_handling: {policy.insufficient_result_handling}"),
         "band_definitions:",
     ]
     lines.extend(
@@ -884,8 +876,7 @@ def _policy_projection(
         dimension_id=policy.dimension_id,
         band_count=policy.band_count,
         band_definitions=tuple(
-            _band_definition_projection(item)
-            for item in policy.band_definitions
+            _band_definition_projection(item) for item in policy.band_definitions
         ),
         tie_handling=policy.tie_handling,
         missing_result_handling=policy.missing_result_handling,

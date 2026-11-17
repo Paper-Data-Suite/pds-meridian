@@ -334,14 +334,17 @@ def test_review_preview_arguments_must_be_paired(
 def test_review_stage_cannot_be_combined_with_preview_write_source(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _review_source_args(
-            "--preview-derivation-id",
-            DERIVATION_ID,
-            "--preview-derivation-sha256",
-            DERIVATION_SHA256,
+    assert (
+        cli.main(
+            _review_source_args(
+                "--preview-derivation-id",
+                DERIVATION_ID,
+                "--preview-derivation-sha256",
+                DERIVATION_SHA256,
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "preview_diagnostics_invalid" in error
     assert "cannot be combined" in error

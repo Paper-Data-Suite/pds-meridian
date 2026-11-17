@@ -62,10 +62,7 @@ def test_native_merge_retains_single_contributing_class_context() -> None:
 
     by_code = {item.code: item for item in merged.items}
     assert by_code["meridian_planning_review_pending"].class_id == "class-a"
-    assert (
-        by_code["meridian_academic_period_calculation_stale"].class_id
-        == "class-b"
-    )
+    assert by_code["meridian_academic_period_calculation_stale"].class_id == "class-b"
 
 
 def test_exact_class_inspection_requires_real_class_and_merges_sources(
@@ -150,6 +147,7 @@ def test_workspace_all_class_failures_are_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _class(tmp_path, "class-a")
+
     def fail_planning(*args, **kwargs):
         raise PlanningAttentionReadError("synthetic failure")
 

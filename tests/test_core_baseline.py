@@ -88,9 +88,10 @@ def test_synthetic_registration_publication_and_withdrawal(
     )
     assert publication.manifest_digest_algorithm == "sha256"
     assert publication.publication_kind == "academic_result_set"
-    assert validate_publication_withdrawal_relationship(
-        publication, withdrawal
-    ) == withdrawal
+    assert (
+        validate_publication_withdrawal_relationship(publication, withdrawal)
+        == withdrawal
+    )
 
 
 def test_synthetic_profile_is_compatible(
@@ -106,9 +107,7 @@ def test_synthetic_profile_is_compatible(
         module_id="synthetic_producer",
         display_name="Synthetic Producer",
         supported_core_publication_schema_versions=frozenset({"1"}),
-        supported_academic_work_contract_versions=frozenset(
-            {"fixture_contract_1"}
-        ),
+        supported_academic_work_contract_versions=frozenset({"fixture_contract_1"}),
         publication_contracts=(
             PublicationContractSupport(
                 publication_kind="academic_result_set",
@@ -124,9 +123,7 @@ def test_synthetic_profile_is_compatible(
             ),
         ),
     )
-    result = evaluate_publication_compatibility(
-        publication, profile, registration
-    )
+    result = evaluate_publication_compatibility(publication, profile, registration)
     assert result.compatible
     assert result.codes == ()
 
@@ -138,9 +135,7 @@ def test_core_contract_probes_are_read_only(
     academic_work_registration_from_dict(
         fixture_loader("core_v0_6/baseline_registration.json")
     )
-    publication_record_from_dict(
-        fixture_loader("core_v0_6/baseline_publication.json")
-    )
+    publication_record_from_dict(fixture_loader("core_v0_6/baseline_publication.json"))
     publication_withdrawal_from_dict(
         fixture_loader("core_v0_6/baseline_withdrawal.json")
     )

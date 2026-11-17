@@ -137,9 +137,7 @@ def _conventional_breakdown(outcome) -> ConventionalGradeBreakdownExplanation:
 def _standards_breakdown(inputs, outcome) -> StandardsGradeBreakdownExplanation:
     return StandardsGradeBreakdownExplanation(
         status=outcome.status,
-        target_scale=StandardsGradeScaleExplanation(
-            inputs.configuration.target_scale
-        ),
+        target_scale=StandardsGradeScaleExplanation(inputs.configuration.target_scale),
         conversions=tuple(
             StandardsGradeConversionExplanation(
                 item.proficiency_level_id,
@@ -151,9 +149,7 @@ def _standards_breakdown(inputs, outcome) -> StandardsGradeBreakdownExplanation:
         formula=StandardsGradeFormulaExplanation(
             aggregation_strategy=outcome.aggregation_strategy,
             minimum_calculated_results=outcome.minimum_calculated_results,
-            actual_calculated_result_count=(
-                outcome.actual_calculated_result_count
-            ),
+            actual_calculated_result_count=(outcome.actual_calculated_result_count),
             active_weight=outcome.active_weight,
             weighted_numerator=outcome.weighted_numerator,
             unrounded_grade=outcome.unrounded_grade,
@@ -212,12 +208,8 @@ def test_hybrid_uses_exact_embedded_components_and_unrounded_math(
     assert calls["standards_inputs"] is snapshot.inputs.standards_based
     assert explanation.conventional_component.unrounded_grade == Decimal("92")
     assert explanation.standards_component.unrounded_grade == Decimal("88")
-    assert explanation.conventional_component.weighted_contribution == Decimal(
-        "64.4"
-    )
-    assert explanation.standards_component.weighted_contribution == Decimal(
-        "26.4"
-    )
+    assert explanation.conventional_component.weighted_contribution == Decimal("64.4")
+    assert explanation.standards_component.weighted_contribution == Decimal("26.4")
     assert explanation.formula.weighted_numerator == Decimal("90.8")
     assert explanation.formula.unrounded_grade == Decimal("90.8")
     assert explanation.formula.rounded_grade == Decimal("90.80")

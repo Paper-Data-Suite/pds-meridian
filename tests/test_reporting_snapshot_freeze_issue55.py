@@ -201,13 +201,16 @@ def test_freeze_commits_exact_report_without_selecting_it(
     assert stored.snapshot.definition_reference == stored_definition.reference
     assert stored.snapshot.report_preview.rows[0].status == "unavailable"
     assert load_reporting_snapshot(root, CLASS_ID, "snapshot_001") == stored
-    assert get_current_reporting_snapshot_selection_reference(
-        root,
-        CLASS_ID,
-        "quarter_grade_report",
-        PERIOD,
-        1,
-    ) is None
+    assert (
+        get_current_reporting_snapshot_selection_reference(
+            root,
+            CLASS_ID,
+            "quarter_grade_report",
+            PERIOD,
+            1,
+        )
+        is None
+    )
 
 
 def test_freeze_rejects_preview_requests_that_do_not_match_build_request(
@@ -560,7 +563,6 @@ def test_provenance_projection_preserves_typed_available_row_authorities(
     assert "evidence_eligibility" in kinds
 
 
-
 def test_request_side_projection_identity_becomes_core_publication_binding(
     tmp_path: Path,
 ) -> None:
@@ -880,46 +882,49 @@ def test_calendar_binding_changes_when_exact_calendar_content_changes(
         requested_at=NOW,
     )
     report = _preview(request.target)
-    encoded = json.dumps(
-        {
-            "summary": {
-                "requested_count": 1,
-                "available_count": 0,
-                "unavailable_count": 1,
-                "base_calculated_count": 0,
-                "base_blocked_count": 0,
-                "base_insufficient_count": 0,
-                "current_count": 0,
-                "stale_count": 0,
-                "effective_numeric_count": 0,
-                "effective_nonnumeric_count": 0,
-                "effective_base_count": 0,
-                "effective_override_count": 0,
-                "effective_none_count": 0,
-            },
-            "rows": [
-                {
-                    "target": {
-                        "class_id": CLASS_ID,
-                        "student_id": "student_001",
-                        "target_period": {
-                            "school_year": PERIOD.school_year,
-                            "period_id": PERIOD.period_id,
+    encoded = (
+        json.dumps(
+            {
+                "summary": {
+                    "requested_count": 1,
+                    "available_count": 0,
+                    "unavailable_count": 1,
+                    "base_calculated_count": 0,
+                    "base_blocked_count": 0,
+                    "base_insufficient_count": 0,
+                    "current_count": 0,
+                    "stale_count": 0,
+                    "effective_numeric_count": 0,
+                    "effective_nonnumeric_count": 0,
+                    "effective_base_count": 0,
+                    "effective_override_count": 0,
+                    "effective_none_count": 0,
+                },
+                "rows": [
+                    {
+                        "target": {
+                            "class_id": CLASS_ID,
+                            "student_id": "student_001",
+                            "target_period": {
+                                "school_year": PERIOD.school_year,
+                                "period_id": PERIOD.period_id,
+                            },
+                            "calendar_revision": 1,
+                            "calculation_family": "standards_based",
                         },
-                        "calendar_revision": 1,
-                        "calculation_family": "standards_based",
-                    },
-                    "status": "unavailable",
-                    "unavailable_reason": "no_selected_grade",
-                    "explanation": None,
-                    "observation": None,
-                }
-            ],
-        },
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8") + b"\n"
+                        "status": "unavailable",
+                        "unavailable_reason": "no_selected_grade",
+                        "explanation": None,
+                        "observation": None,
+                    }
+                ],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        + b"\n"
+    )
     frozen = frozen_grade_report_preview_from_json_bytes(encoded)
     first = extract_reporting_snapshot_provenance_bindings(
         build_request=build,

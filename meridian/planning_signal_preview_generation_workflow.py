@@ -130,9 +130,8 @@ class PlanningSignalPreviewGenerationWorkflowResult:
 
     @property
     def noncontributing_student_count(self) -> int:
-        return (
-            self.generation_result.stored.snapshot.coverage.noncontributing_student_count
-        )
+        coverage = self.generation_result.stored.snapshot.coverage
+        return coverage.noncontributing_student_count
 
     @property
     def review_write_action(self) -> str:

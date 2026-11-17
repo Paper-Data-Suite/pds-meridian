@@ -152,9 +152,7 @@ def _assert_installed_boundary() -> None:
             metadata.version(name)
         except metadata.PackageNotFoundError:
             continue
-        raise RuntimeError(
-            f"Issue #58 Core-only matrix found distribution {name!r}."
-        )
+        raise RuntimeError(f"Issue #58 Core-only matrix found distribution {name!r}.")
 
     prefix = Path(sys.prefix).resolve()
     for module in (pds_core, meridian):
@@ -187,9 +185,7 @@ def _assert_provider_discovery() -> None:
 
     diagnostics = diagnose_core_providers(provider_kind="module_operations")
     diagnostic_matches = tuple(
-        item
-        for item in diagnostics
-        if item.metadata.entry_point_name == "meridian"
+        item for item in diagnostics if item.metadata.entry_point_name == "meridian"
     )
     _require(
         len(diagnostic_matches) == 1,
@@ -501,14 +497,12 @@ def _assert_empty_and_unavailable(
             class_id=MISSING_CLASS_ID,
         ),
     )
-    if (
-        missing.code != "module_operations.evaluation_unavailable"
-        or not isinstance(missing.report, ModuleAttentionReport)
+    if missing.code != "module_operations.evaluation_unavailable" or not isinstance(
+        missing.report, ModuleAttentionReport
     ):
         raise RuntimeError("Missing exact class did not remain unavailable.")
     _require(
-        missing.report.evaluation == "unavailable"
-        and missing.report.summaries == (),
+        missing.report.evaluation == "unavailable" and missing.report.summaries == (),
         "Missing exact class did not remain unavailable.",
     )
 
@@ -533,10 +527,7 @@ def _assert_workspace_partial(
         "Workspace aggregation lost the real Issue #58 category.",
     )
     _require(
-        any(
-            notice.code == "meridian_attention_partial"
-            for notice in report.notices
-        ),
+        any(notice.code == "meridian_attention_partial" for notice in report.notices),
         "Workspace discovery failure did not remain a bounded partial result.",
     )
 

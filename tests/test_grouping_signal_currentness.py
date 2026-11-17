@@ -45,8 +45,8 @@ def test_exact_unchanged_workspace_is_current_and_writes_nothing(
     tmp_path,
 ) -> None:
     workspace, exact_scale = _seed_workspace(tmp_path)
-    grade_item_basis, membership, membership_sha256 = (
-        _seed_current_grade_item_result(workspace, exact_scale)
+    grade_item_basis, membership, membership_sha256 = _seed_current_grade_item_result(
+        workspace, exact_scale
     )
     policy_id = _seed_period_result_and_grouping_policy(
         workspace,

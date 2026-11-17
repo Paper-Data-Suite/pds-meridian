@@ -122,7 +122,10 @@ def setup_installed_benchmark_records(
         ),
     ).stored
     select_grade_item_revision(
-        workspace, work.class_id, _ITEM, 1,
+        workspace,
+        work.class_id,
+        _ITEM,
+        1,
         expected_current_revision=None,
     )
     write_grade_item_membership_revision(
@@ -142,7 +145,8 @@ def setup_installed_benchmark_records(
             supersedes_revision=None,
             decision="included",
             academic_period=GradeItemAcademicPeriodAssignment(
-                period=_PERIOD, calendar_revision=1,
+                period=_PERIOD,
+                calendar_revision=1,
             ),
             actor_id="issue117_installed_teacher",
             rationale="Synthetic installed Report 9 acceptance",
@@ -150,7 +154,11 @@ def setup_installed_benchmark_records(
         ),
     )
     select_grade_item_membership_revision(
-        workspace, work.class_id, _ITEM, work, 1,
+        workspace,
+        work.class_id,
+        _ITEM,
+        work,
+        1,
         expected_current_membership_revision=None,
     )
     # Report 9 requires one configured current class scale, but it never
@@ -179,7 +187,10 @@ def setup_installed_benchmark_records(
         ),
     )
     select_proficiency_scale_revision(
-        workspace, work.class_id, "course_proficiency", 1,
+        workspace,
+        work.class_id,
+        "course_proficiency",
+        1,
         expected_current_scale_revision=None,
     )
     # The catalog is disposable; rebuild after academic metadata changes.
@@ -205,13 +216,25 @@ def run_installed_benchmark_teacher_journey(
 ) -> None:
     """Use actual Reports -> 9 -> P -> SAVE PLAN from installed packages."""
     scripted = _ScriptedInput(
-        "9", "1",  # Reports, choose report details
-        "1", "1", "1",  # Class, period, assessment
-        "1", "p",  # Generate preview, open teacher planner
+        "9",
+        "1",  # Reports, choose report details
+        "1",
+        "1",
+        "1",  # Class, period, assessment
+        "1",
+        "p",  # Generate preview, open teacher planner
         "1",  # Create first plan
-        "issue117_teacher", "Reteach evidence-backed claims.",
-        "n", "n", "n", "n",  # No optional annotations yet
-        "SAVE PLAN", "b", "b", "b", "b",
+        "issue117_teacher",
+        "Reteach evidence-backed claims.",
+        "n",
+        "n",
+        "n",
+        "n",  # No optional annotations yet
+        "SAVE PLAN",
+        "b",
+        "b",
+        "b",
+        "b",
     )
     output = StringIO()
     run_reports_menu(
@@ -263,21 +286,33 @@ def run_installed_benchmark_teacher_journey(
     # A later reassessment belongs to a NEW immutable teacher-authored plan
     # revision. The original evidence and notes must remain reconstructible.
     follow_up_scripted = _ScriptedInput(
-        "9", "1",  # Reports / benchmark report details.
-        "1", "1", "1",  # Class / marking period / assessment.
-        "1", "p",  # Current preview / teacher plan.
+        "9",
+        "1",  # Reports / benchmark report details.
+        "1",
+        "1",
+        "1",  # Class / marking period / assessment.
+        "1",
+        "p",  # Current preview / teacher plan.
         "4",  # Edit saved revision; keep existing sections by default.
-        "", "", "", "",  # Interpretation, judgments, groups, responses.
+        "",
+        "",
+        "",
+        "",  # Interpretation, judgments, groups, responses.
         "n",  # Replace the previously empty reassessment section.
         "y",  # Record new observed reassessment results.
-        "Exit ticket", "2026-10-25",
+        "Exit ticket",
+        "2026-10-25",
         "Students cited more precise textual evidence after reteaching.",
         "1",  # One explicitly selected student still needs support.
         "",  # No unsupported claim about standard comparability.
         "Small-group evidence conference",
         "Continue brief source-evidence practice",
         "",  # Teacher observation, no invented evidence-source ID.
-        "SAVE PLAN", "b", "b", "b", "b",
+        "SAVE PLAN",
+        "b",
+        "b",
+        "b",
+        "b",
     )
     revised_output = StringIO()
     run_reports_menu(

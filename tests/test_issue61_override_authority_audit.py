@@ -171,14 +171,17 @@ def test_issue61_withdrawal_write_is_inert_until_explicit_selection(
         withdrawal,
     ).stored
 
-    assert get_current_teacher_grade_override_reference(
-        root,
-        storage_support.CLASS_ID,
-        storage_support.STUDENT_ID,
-        storage_support.PERIOD,
-        1,
-        "conventional",
-    ) == stored_active.reference
+    assert (
+        get_current_teacher_grade_override_reference(
+            root,
+            storage_support.CLASS_ID,
+            storage_support.STUDENT_ID,
+            storage_support.PERIOD,
+            1,
+            "conventional",
+        )
+        == stored_active.reference
+    )
 
     select_teacher_grade_override_revision(
         root,
@@ -227,9 +230,7 @@ def test_issue61_selected_withdrawal_restores_only_current_base_authority() -> N
 
     stale_result = effective.resolve_effective_grade(
         stale,
-        selected_override_reference=teacher_grade_override_reference(
-            stale_withdrawal
-        ),
+        selected_override_reference=teacher_grade_override_reference(stale_withdrawal),
         selected_override=stale_withdrawal,
     )
 
@@ -254,7 +255,5 @@ def test_issue61_withdrawal_is_bound_to_exact_active_override(
         withdrawn_reference=wrong_reference,
     )
 
-    with pytest.raises(
-        storage_support.TeacherGradeOverrideStorageConflictError
-    ):
+    with pytest.raises(storage_support.TeacherGradeOverrideStorageConflictError):
         write_teacher_grade_override_revision(root, candidate)

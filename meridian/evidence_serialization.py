@@ -63,9 +63,7 @@ _PROJECTION_KEYS: Final[frozenset[str]] = frozenset(
         "producer_reader_version",
     }
 )
-_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
-    {"kind", "identifier", "sequence"}
-)
+_REFERENCE_KEYS: Final[frozenset[str]] = frozenset({"kind", "identifier", "sequence"})
 _ARTIFACT_KEYS: Final[frozenset[str]] = frozenset(
     {"kind", "path", "digest_algorithm", "digest"}
 )
@@ -77,9 +75,7 @@ _EVIDENCE_PROVENANCE_KEYS: Final[frozenset[str]] = frozenset(
     {"publication", "registration", "withdrawal", "projection", "native"}
 )
 _SUBJECT_KEYS: Final[frozenset[str]] = frozenset({"student_id"})
-_TARGET_IDENTITY_KEYS: Final[frozenset[str]] = frozenset(
-    {"target_kind", "target_id"}
-)
+_TARGET_IDENTITY_KEYS: Final[frozenset[str]] = frozenset({"target_kind", "target_id"})
 _TARGET_IDENTITY_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
     {"target_kind", "target_id", "owning_system", "contract_version"}
 )
@@ -97,9 +93,7 @@ _TARGET_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
         "contract_version",
     }
 )
-_SCALE_LEVEL_KEYS: Final[frozenset[str]] = frozenset(
-    {"value", "label", "description"}
-)
+_SCALE_LEVEL_KEYS: Final[frozenset[str]] = frozenset({"value", "label", "description"})
 _SCALE_LEVEL_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
     {"value", "label", "description", "meaning", "position"}
 )
@@ -121,15 +115,9 @@ _SCALE_EXTENDED_KEYS: Final[frozenset[str]] = frozenset(
     }
 )
 _VALUE_BASE_KEYS: Final[frozenset[str]] = frozenset({"kind"})
-_VALUE_SCALAR_KEYS: Final[frozenset[str]] = frozenset(
-    {"kind", "scalar_type", "value"}
-)
-_VALUE_POINTS_KEYS: Final[frozenset[str]] = frozenset(
-    {"kind", "earned", "possible"}
-)
-_VALUE_SCALED_KEYS: Final[frozenset[str]] = frozenset(
-    {"kind", "value", "scale"}
-)
+_VALUE_SCALAR_KEYS: Final[frozenset[str]] = frozenset({"kind", "scalar_type", "value"})
+_VALUE_POINTS_KEYS: Final[frozenset[str]] = frozenset({"kind", "earned", "possible"})
+_VALUE_SCALED_KEYS: Final[frozenset[str]] = frozenset({"kind", "value", "scale"})
 _VALUE_STATE_KEYS: Final[frozenset[str]] = frozenset(
     {"kind", "code", "label", "description"}
 )
@@ -555,16 +543,8 @@ def _scale_level_from_dict(data: object) -> NativeScaleLevel:
         value=_scalar_from_dict(mapping["value"], "level value"),
         label=_optional_string(mapping["label"], "label"),
         description=_optional_string(mapping["description"], "description"),
-        meaning=(
-            _optional_string(mapping["meaning"], "meaning")
-            if extended
-            else None
-        ),
-        position=(
-            _optional_int(mapping["position"], "position")
-            if extended
-            else None
-        ),
+        meaning=(_optional_string(mapping["meaning"], "meaning") if extended else None),
+        position=(_optional_int(mapping["position"], "position") if extended else None),
     )
 
 
@@ -615,34 +595,17 @@ def _scale_from_dict(data: object) -> NativeScale:
             mapping["order_is_meaningful"], "order_is_meaningful"
         ),
         levels=tuple(
-            _scale_level_from_dict(item)
-            for item in _list(mapping["levels"], "levels")
+            _scale_level_from_dict(item) for item in _list(mapping["levels"], "levels")
         ),
         lineage_id=(
-            _optional_string(mapping["lineage_id"], "lineage_id")
-            if extended
-            else None
+            _optional_string(mapping["lineage_id"], "lineage_id") if extended else None
         ),
-        name=(
-            _optional_string(mapping["name"], "name")
-            if extended
-            else None
-        ),
-        revision=(
-            _optional_int(mapping["revision"], "revision")
-            if extended
-            else None
-        ),
+        name=(_optional_string(mapping["name"], "name") if extended else None),
+        revision=(_optional_int(mapping["revision"], "revision") if extended else None),
         scale_type=(
-            _optional_string(mapping["scale_type"], "scale_type")
-            if extended
-            else None
+            _optional_string(mapping["scale_type"], "scale_type") if extended else None
         ),
-        status=(
-            _optional_string(mapping["status"], "status")
-            if extended
-            else None
-        ),
+        status=(_optional_string(mapping["status"], "status") if extended else None),
         supersedes_scale_id=(
             _optional_string(
                 mapping["supersedes_scale_id"],
@@ -730,13 +693,9 @@ def _eligibility_from_dict(data: object) -> EvidenceEligibility:
     mapping = _mapping(data, _ELIGIBILITY_KEYS, "evidence eligibility")
     reasons = _list(mapping["reason_codes"], "reason_codes")
     return EvidenceEligibility(
-        status=cast(
-            EligibilityStatus, _string(mapping["status"], "status")
-        ),
+        status=cast(EligibilityStatus, _string(mapping["status"], "status")),
         policy_id=_optional_string(mapping["policy_id"], "policy_id"),
-        policy_version=_optional_string(
-            mapping["policy_version"], "policy_version"
-        ),
+        policy_version=_optional_string(mapping["policy_version"], "policy_version"),
         reason_codes=tuple(_string(item, "reason_code") for item in reasons),
     )
 
@@ -781,10 +740,7 @@ def evidence_inventory_from_dict(data: object) -> EvidenceInventory:
     mapping = _mapping(data, _INVENTORY_KEYS, "evidence inventory")
     try:
         return EvidenceInventory(
-            tuple(
-                _item_from_dict(item)
-                for item in _list(mapping["items"], "items")
-            )
+            tuple(_item_from_dict(item) for item in _list(mapping["items"], "items"))
         )
     except EvidenceValidationError as error:
         raise EvidenceSerializationError("evidence inventory is invalid.") from error

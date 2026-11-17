@@ -80,8 +80,7 @@ REPORT_GUIDES: Final[tuple[ReportGuide, ...]] = (
     ReportGuide(
         "grade_checkpoint_comparison",
         "What changed since our last checkpoint?",
-        "Compare an exact earlier reporting checkpoint with the "
-        "current Grade picture.",
+        "Compare an exact earlier reporting checkpoint with the current Grade picture.",
         ("class", "period"),
         "meridian reports checkpoint --help",
     ),
@@ -223,9 +222,7 @@ def collect_guided_report_selection(
     selected: list[tuple[ReportScope, ReportOption]] = []
     while len(selected) < len(guide.scopes):
         scope = guide.scopes[len(selected)]
-        current: dict[ReportScope, str] = {
-            key: item.value for key, item in selected
-        }
+        current: dict[ReportScope, str] = {key: item.value for key, item in selected}
         try:
             options = _available_options(catalog, guide, scope, current)
         except ReportSelectionUnavailable:

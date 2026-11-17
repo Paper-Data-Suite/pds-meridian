@@ -420,9 +420,7 @@ def _handle_profile_list(
                     "current_selection": (
                         None
                         if stored_current is None
-                        else export_profile_selection_to_dict(
-                            stored_current.selection
-                        )
+                        else export_profile_selection_to_dict(stored_current.selection)
                     ),
                     "current_selection_sha256": (
                         None
@@ -497,8 +495,7 @@ def _handle_profile_inspect(
         return 0
     print("Meridian Export Profile")
     print(
-        f"exact profile: {stored.profile.profile_id}@"
-        f"{stored.profile.profile_revision}"
+        f"exact profile: {stored.profile.profile_id}@{stored.profile.profile_revision}"
     )
     print(f"profile SHA-256: {stored.profile_sha256}")
     print(f"title: {stored.profile.title}")
@@ -581,10 +578,7 @@ def _render_profile_write(
     reference = payload["reference"]
     assert isinstance(reference, dict)
     print("Export Profile revision preview")
-    print(
-        f"exact profile: {reference['profile_id']}@"
-        f"{reference['profile_revision']}"
-    )
+    print(f"exact profile: {reference['profile_id']}@{reference['profile_revision']}")
     print(f"profile SHA-256: {reference['profile_sha256']}")
     if disposition is None:
         print("confirmation supplied: no")
@@ -630,10 +624,7 @@ def _handle_profile_current(
         print("selection: none")
     else:
         selected = current.selection.profile_reference
-        print(
-            f"selected profile: {selected.profile_id}@"
-            f"{selected.profile_revision}"
-        )
+        print(f"selected profile: {selected.profile_id}@{selected.profile_revision}")
         print(f"profile SHA-256: {selected.profile_sha256}")
         print(f"selection revision: {current.selection.selection_revision}")
         print(f"selection SHA-256: {current.selection_sha256}")
@@ -753,7 +744,9 @@ def _render_profile_select(
     print("NO REPORT EXPORT PERFORMED")
 
 
-def _exact_refs(args: argparse.Namespace) -> tuple[
+def _exact_refs(
+    args: argparse.Namespace,
+) -> tuple[
     ReportingSnapshotReference,
     ExportProfileReference,
 ]:
@@ -861,9 +854,7 @@ def _handle_export_commit(
 ) -> int:
     del dependencies
     if args.payload_only and (
-        args.format != "text"
-        or not args.copyable_text
-        or not args.confirm_export
+        args.format != "text" or not args.copyable_text or not args.confirm_export
     ):
         raise ReportExportCliError(
             "report_export.cli_invalid",

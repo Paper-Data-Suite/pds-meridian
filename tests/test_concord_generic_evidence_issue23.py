@@ -301,10 +301,13 @@ def test_student_scoped_cache_rejects_non_student_evidence(
         ),
         projection=execution.evidence_projection_identity,
     )
-    assert cache._scoped_inventory(
-        EvidenceInventory((group_item,)),
-        ("student_1",),
-    ).items == ()
+    assert (
+        cache._scoped_inventory(
+            EvidenceInventory((group_item,)),
+            ("student_1",),
+        ).items
+        == ()
+    )
 
     scoped = ProjectionAuthorizationObservation(
         "project_evidence",

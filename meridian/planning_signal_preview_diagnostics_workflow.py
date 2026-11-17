@@ -38,8 +38,7 @@ class PlanningSignalPreviewDiagnosticsDependencyError(
     """Raised when canonical #39 projection dependencies cannot be read safely."""
 
     code = (
-        "teacher_workflow.create_planning_signal."
-        "preview_diagnostics_dependency_error"
+        "teacher_workflow.create_planning_signal.preview_diagnostics_dependency_error"
     )
 
 

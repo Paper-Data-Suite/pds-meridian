@@ -51,9 +51,7 @@ def test_issue34_runtime_is_guarded_by_wheel_and_sdist_validation() -> None:
 
 
 def test_installed_interpretation_smoke_extends_through_issue34() -> None:
-    smoke = Path("scripts/smoke_test_grade_items_wheel.py").read_text(
-        encoding="utf-8"
-    )
+    smoke = Path("scripts/smoke_test_grade_items_wheel.py").read_text(encoding="utf-8")
     for symbol in (
         "StandardProficiencyCalculationPolicy",
         "calculate_standard_proficiency",

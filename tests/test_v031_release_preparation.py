@@ -40,10 +40,7 @@ def test_v031_current_docs_name_exact_qualified_readers() -> None:
         "docs/development/package-foundation.md",
     ):
         document = _read(relative)
-        assert (
-            "Meridian v0.4.1 implements Issue #115"
-            in document
-        )
+        assert "Meridian v0.4.1 implements Issue #115" in document
         assert "Core v0.6.5" in document
         assert "ScoreForm v0.13.0" in document
         assert "Quillan v0.10.6" in document

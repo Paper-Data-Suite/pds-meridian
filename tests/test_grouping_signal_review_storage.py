@@ -49,9 +49,7 @@ def _seed_exact_artifacts(
         derivation,
     ).stored
     stored_preview = write_grouping_signal_preview(root, preview).stored
-    assert stored_preview.snapshot.derivation_reference == (
-        stored_derivation.reference
-    )
+    assert stored_preview.snapshot.derivation_reference == (stored_derivation.reference)
     return root, stored_derivation, stored_preview
 
 
@@ -97,11 +95,14 @@ def test_review_write_does_not_auto_select_and_uses_padded_revision_path(
         CLASS_ID,
         review.derivation_reference.derivation_id,
     ) == (1,)
-    assert get_current_grouping_signal_review_revision(
-        root,
-        CLASS_ID,
-        review.derivation_reference.derivation_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_review_revision(
+            root,
+            CLASS_ID,
+            review.derivation_reference.derivation_id,
+        )
+        is None
+    )
     assert not grouping_signal_review_current_path(
         root,
         CLASS_ID,
@@ -147,11 +148,14 @@ def test_review_selection_is_explicit_cas_and_new_write_does_not_supersede(
     )
     write_grouping_signal_review_revision(root, second)
 
-    assert get_current_grouping_signal_review_revision(
-        root,
-        CLASS_ID,
-        first.derivation_reference.derivation_id,
-    ) == 1
+    assert (
+        get_current_grouping_signal_review_revision(
+            root,
+            CLASS_ID,
+            first.derivation_reference.derivation_id,
+        )
+        == 1
+    )
 
     with pytest.raises(GroupingSignalReviewStorageConflictError, match="Expected"):
         select_grouping_signal_review_revision(
@@ -184,9 +188,7 @@ def test_review_storage_is_idempotent_and_contiguous(
 ) -> None:
     root, _, stored_preview = _seed_exact_artifacts(tmp_path)
     first = _review(stored_preview.snapshot, 1)
-    assert write_grouping_signal_review_revision(root, first).disposition == (
-        "created"
-    )
+    assert write_grouping_signal_review_revision(root, first).disposition == ("created")
     assert write_grouping_signal_review_revision(root, first).disposition == (
         "existing"
     )

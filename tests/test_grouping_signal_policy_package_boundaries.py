@@ -78,9 +78,9 @@ def test_issue37_installed_smoke_is_release_guarded_and_signal_free() -> None:
     smoke_path = Path("scripts/smoke_test_grouping_signal_policy_wheel.py")
     smoke = smoke_path.read_text(encoding="utf-8")
 
-    core_runner = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
+    core_runner = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "scripts.installed_qualification_runner" in validator
     assert "grouping-signal-policy" in core_runner
@@ -95,9 +95,9 @@ def test_issue37_installed_smoke_is_release_guarded_and_signal_free() -> None:
 
 
 def test_issue37_architecture_preserves_layer_boundaries() -> None:
-    document = Path(
-        "docs/architecture/grouping-signal-derivation-policy.md"
-    ).read_text(encoding="utf-8")
+    document = Path("docs/architecture/grouping-signal-derivation-policy.md").read_text(
+        encoding="utf-8"
+    )
 
     for statement in (
         "Academic Period proficiency\n!=\ngrouping-signal policy",

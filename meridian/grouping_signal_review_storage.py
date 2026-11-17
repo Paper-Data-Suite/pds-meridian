@@ -56,9 +56,7 @@ GroupingSignalReviewSelectDisposition: TypeAlias = Literal[
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _DERIVATION_ID: Final[re.Pattern[str]] = re.compile(r"^gsd_[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([0-9]{6})\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([0-9]{6})\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([0-9]{6})\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -82,9 +80,7 @@ class GroupingSignalReviewStorageValidationError(
     """Raised for invalid review-storage API arguments."""
 
 
-class GroupingSignalReviewStorageNotFoundError(
-    GroupingSignalReviewStorageError
-):
+class GroupingSignalReviewStorageNotFoundError(GroupingSignalReviewStorageError):
     """Raised when explicitly requested review state is absent."""
 
 
@@ -96,33 +92,23 @@ class GroupingSignalReviewStorageWriteError(GroupingSignalReviewStorageError):
     """Raised when review state cannot be persisted safely."""
 
 
-class GroupingSignalReviewStorageConflictError(
-    GroupingSignalReviewStorageError
-):
+class GroupingSignalReviewStorageConflictError(GroupingSignalReviewStorageError):
     """Raised for stale writes or immutable revision conflicts."""
 
 
-class GroupingSignalReviewStorageLockError(
-    GroupingSignalReviewStorageConflictError
-):
+class GroupingSignalReviewStorageLockError(GroupingSignalReviewStorageConflictError):
     """Raised when another writer owns one derivation review family."""
 
 
-class GroupingSignalReviewStorageIntegrityError(
-    GroupingSignalReviewStorageError
-):
+class GroupingSignalReviewStorageIntegrityError(GroupingSignalReviewStorageError):
     """Raised when persisted review state fails validation."""
 
 
-class GroupingSignalReviewStorageTooLargeError(
-    GroupingSignalReviewStorageReadError
-):
+class GroupingSignalReviewStorageTooLargeError(GroupingSignalReviewStorageReadError):
     """Raised when persisted review state exceeds bounded read limits."""
 
 
-class GroupingSignalReviewDependencyError(
-    GroupingSignalReviewStorageConflictError
-):
+class GroupingSignalReviewDependencyError(GroupingSignalReviewStorageConflictError):
     """Raised when exact derivation/preview review dependencies disagree."""
 
 
@@ -209,10 +195,7 @@ def grouping_signal_reviews_directory(
 
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
-    path = (
-        class_module_dir(root, class_value, "meridian")
-        / "grouping_signal_reviews"
-    )
+    path = class_module_dir(root, class_value, "meridian") / "grouping_signal_reviews"
     _require_containment(root, path)
     return path
 
@@ -225,10 +208,13 @@ def grouping_signal_review_directory(
     """Return one exact derivation review family."""
 
     derivation = _derivation_id(derivation_id)
-    return grouping_signal_reviews_directory(
-        workspace_root,
-        class_id,
-    ) / derivation
+    return (
+        grouping_signal_reviews_directory(
+            workspace_root,
+            class_id,
+        )
+        / derivation
+    )
 
 
 def grouping_signal_review_revisions_directory(
@@ -236,11 +222,14 @@ def grouping_signal_review_revisions_directory(
     class_id: str,
     derivation_id: str,
 ) -> Path:
-    return grouping_signal_review_directory(
-        workspace_root,
-        class_id,
-        derivation_id,
-    ) / "revisions"
+    return (
+        grouping_signal_review_directory(
+            workspace_root,
+            class_id,
+            derivation_id,
+        )
+        / "revisions"
+    )
 
 
 def grouping_signal_review_revision_path(
@@ -262,11 +251,14 @@ def grouping_signal_review_current_path(
     class_id: str,
     derivation_id: str,
 ) -> Path:
-    return grouping_signal_review_directory(
-        workspace_root,
-        class_id,
-        derivation_id,
-    ) / "current.json"
+    return (
+        grouping_signal_review_directory(
+            workspace_root,
+            class_id,
+            derivation_id,
+        )
+        / "current.json"
+    )
 
 
 def grouping_signal_review_revision_relative_path(
@@ -364,9 +356,7 @@ def write_grouping_signal_review_revision(
                     candidate,
                 )
             except GroupingSignalReviewValidationError as error:
-                raise GroupingSignalReviewStorageConflictError(
-                    str(error)
-                ) from error
+                raise GroupingSignalReviewStorageConflictError(str(error)) from error
 
         _write_pair(root, target, digest_target, content, digest)
         stored = load_grouping_signal_review_revision(
@@ -625,10 +615,7 @@ def _validate_review_dependencies(
         raise GroupingSignalReviewDependencyError(
             "Exact review derivation/preview provenance is unavailable."
         ) from error
-    if (
-        stored_preview.snapshot.derivation_reference
-        != stored_derivation.reference
-    ):
+    if stored_preview.snapshot.derivation_reference != stored_derivation.reference:
         raise GroupingSignalReviewDependencyError(
             "Exact preview does not bind the review derivation reference."
         )
@@ -804,9 +791,7 @@ def _revision_number_sets(path: Path) -> tuple[set[int], set[int]]:
             continue
         digest_match = _REVISION_DIGEST.fullmatch(entry.name)
         if digest_match is not None:
-            digest_numbers.add(
-                _revision_from_filename(digest_match.group(1))
-            )
+            digest_numbers.add(_revision_from_filename(digest_match.group(1)))
             continue
         raise GroupingSignalReviewStorageIntegrityError(
             "Review revisions directory contains an unexpected visible entry."
@@ -1173,9 +1158,7 @@ def _parse_json_object(data: bytes, label: str) -> dict[str, object]:
         raise GroupingSignalReviewStorageIntegrityError(
             f"{label} is not valid UTF-8 JSON."
         ) from error
-    if not isinstance(parsed, dict) or not all(
-        isinstance(key, str) for key in parsed
-    ):
+    if not isinstance(parsed, dict) or not all(isinstance(key, str) for key in parsed):
         raise GroupingSignalReviewStorageIntegrityError(
             f"{label} must be a JSON object with string keys."
         )

@@ -41,9 +41,7 @@ class StandardsReviewWorkflowError(RuntimeError):
     code = "teacher_workflow.standards_review_error"
 
 
-class StandardsReviewWorkflowScopeError(
-    StandardsReviewWorkflowError, ValueError
-):
+class StandardsReviewWorkflowScopeError(StandardsReviewWorkflowError, ValueError):
     """Raised when the requested Standards Review scope is invalid."""
 
     code = "teacher_workflow.standards_review_invalid"
@@ -241,30 +239,18 @@ def build_standards_review_projection(
         standard_id=normalized_standard_id,
         source=source,
         producer_declared_standard_ids=producer_standard_ids,
-        producer_declares_standard=(
-            normalized_standard_id in producer_standard_ids
-        ),
+        producer_declares_standard=(normalized_standard_id in producer_standard_ids),
         standard_resolution=association.standard_resolution,
         association_status=association.status,
         association_revision=(
             None if decision is None else decision.association_revision
         ),
-        association_sha256=(
-            None if selected is None else selected.decision_sha256
-        ),
-        association_disposition=(
-            None if decision is None else decision.disposition
-        ),
+        association_sha256=(None if selected is None else selected.decision_sha256),
+        association_disposition=(None if decision is None else decision.disposition),
         association_basis=None if decision is None else decision.basis,
-        association_actor_kind=(
-            None if decision is None else decision.actor.kind
-        ),
-        association_actor_id=(
-            None if decision is None else decision.actor.actor_id
-        ),
-        association_rationale=(
-            None if decision is None else decision.rationale
-        ),
+        association_actor_kind=(None if decision is None else decision.actor.kind),
+        association_actor_id=(None if decision is None else decision.actor.actor_id),
+        association_rationale=(None if decision is None else decision.rationale),
         operative_associated=association.operative_associated,
         target_scale=aggregation.target_scale,
         mapping_profile=None if mapping is None else mapping.profile,
@@ -335,12 +321,9 @@ def _validate_request(
         raise StandardsReviewWorkflowScopeError(
             "target_scale must be an exact ProficiencyScaleReference."
         )
-    if (
-        mapping_profile is not None
-        and not isinstance(
-            mapping_profile,
-            NativeValueMappingProfileReference,
-        )
+    if mapping_profile is not None and not isinstance(
+        mapping_profile,
+        NativeValueMappingProfileReference,
     ):
         raise StandardsReviewWorkflowScopeError(
             "mapping_profile must be an exact profile reference or None."

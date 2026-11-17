@@ -61,6 +61,20 @@ EXPECTED_ADDITIONS = frozenset(
 )
 
 
+# Current #125 modules added after the frozen #123/#124 inventory baseline.
+# Keep this explicit: the wheel validator must never infer a wildcard package set.
+ISSUE125_MODULES = frozenset(
+    {
+        "meridian/assessment_eligibility_execution.py",
+        "meridian/assessment_eligibility_plan.py",
+        "meridian/assessment_eligibility_progress.py",
+        "meridian/assessment_eligibility_recovery.py",
+        "meridian/assessment_eligibility_review.py",
+        "meridian/menu_teacher_assessment_eligibility.py",
+    }
+)
+
+
 def _required() -> frozenset[str]:
     source = Path("scripts/check_package.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -93,8 +107,11 @@ def test_exact_current_meridian_modules_are_explicitly_allowlisted() -> None:
     required = _required()
     actual = _actual()
     assert len(EXPECTED_ADDITIONS) == 44
-    # Frozen #123 baseline 272; #124 adds 19 explicit modules through E2G3O1.
-    assert len(actual) == 272 + 19
+    # Frozen #123: 272; #124: 19; #125: six explicit eligibility modules.
+    assert len(ISSUE125_MODULES) == 6
+    assert len(actual) == 272 + 19 + len(ISSUE125_MODULES)
+    assert ISSUE125_MODULES.issubset(actual)
+    assert ISSUE125_MODULES.issubset(required)
     assert "meridian/assessment_setup_inventory.py" in actual
     assert "meridian/assessment_setup_choices.py" in actual
     assert "meridian/assessment_setup_preview.py" in actual

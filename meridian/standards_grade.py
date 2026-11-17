@@ -180,16 +180,19 @@ class StandardsGradeStandardInput:
         level_id = self.proficiency_level_id
 
         if reference is None:
-            if any(
-                value is not None
-                for value in (
-                    fingerprint,
-                    algorithm_version,
-                    target_scale,
-                    freshness_status,
-                    level_id,
+            if (
+                any(
+                    value is not None
+                    for value in (
+                        fingerprint,
+                        algorithm_version,
+                        target_scale,
+                        freshness_status,
+                        level_id,
+                    )
                 )
-            ) or freshness_reasons:
+                or freshness_reasons
+            ):
                 raise StandardsGradeValidationError(
                     "missing result_reference must not carry selected-result metadata."
                 )
@@ -332,9 +335,7 @@ class StandardsGradeCalculationInput:
                 "state_treatment must be GradeStateTreatment."
             )
         if not isinstance(self.rounding, GradeRoundingPolicy):
-            raise StandardsGradeValidationError(
-                "rounding must be GradeRoundingPolicy."
-            )
+            raise StandardsGradeValidationError("rounding must be GradeRoundingPolicy.")
         if self.activation_reference.class_id != class_id:
             raise StandardsGradeValidationError(
                 "activation_reference class_id must match calculation class_id."
@@ -1062,9 +1063,7 @@ def calculate_standards_grade(
         )
 
     active = tuple(
-        result
-        for result in standard_results
-        if result.action in {"contribute", "zero"}
+        result for result in standard_results if result.action in {"contribute", "zero"}
     )
     if not active:
         return _outcome(
@@ -1148,11 +1147,7 @@ def calculate_standards_grade(
             "selected profile band identity is unavailable."
         )
     selected_band = next(
-        (
-            band
-            for band in constraints.bands
-            if band.band_id == selected_band_id
-        ),
+        (band for band in constraints.bands if band.band_id == selected_band_id),
         None,
     )
     if selected_band is None:
@@ -1191,7 +1186,6 @@ def calculate_standards_grade(
     )
 
 
-
 def _profile_observations(
     constraints: ProfileConstraintConfiguration,
     standard_results: tuple[StandardsGradeStandardResult, ...],
@@ -1211,8 +1205,7 @@ def _profile_observations(
             )
         level_id = (
             result.proficiency_level_id
-            if result.source_state == "calculated"
-            and result.action == "contribute"
+            if result.source_state == "calculated" and result.action == "contribute"
             else None
         )
         observations.append(
@@ -1222,6 +1215,7 @@ def _profile_observations(
             )
         )
     return tuple(observations)
+
 
 def _resolve_standard_result(
     item: StandardsGradeStandardInput,
@@ -1297,9 +1291,7 @@ def _state_result(
     consequence = _state_consequence(treatment, source_state)
     calculation_value = Decimal("0") if consequence == "zero" else None
     contribution = (
-        Decimal("0") * item.participation.weight
-        if consequence == "zero"
-        else None
+        Decimal("0") * item.participation.weight if consequence == "zero" else None
     )
     return StandardsGradeStandardResult(
         standard_id=item.participation.standard_id,
@@ -1482,9 +1474,7 @@ def _round_final_grade(value: Decimal, policy: GradeRoundingPolicy) -> Decimal:
     with localcontext() as context:
         context.prec = max(
             64,
-            _decimal_precision(value)
-            + _decimal_precision(policy.quantum)
-            + 16,
+            _decimal_precision(value) + _decimal_precision(policy.quantum) + 16,
         )
         return value.quantize(policy.quantum, rounding=rounding)
 
@@ -1492,8 +1482,7 @@ def _round_final_grade(value: Decimal, policy: GradeRoundingPolicy) -> Decimal:
 def _calculation_precision(inputs: StandardsGradeCalculationInput) -> int:
     digits = [_decimal_precision(inputs.rounding.quantum)]
     digits.extend(
-        _decimal_precision(item.weight)
-        for item in inputs.configuration.standards
+        _decimal_precision(item.weight) for item in inputs.configuration.standards
     )
     digits.extend(
         _decimal_precision(item.grade_value)
@@ -1571,9 +1560,7 @@ def _standard_id(value: object) -> str:
 
 def _positive_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise StandardsGradeValidationError(
-            f"{field_name} must be a positive integer."
-        )
+        raise StandardsGradeValidationError(f"{field_name} must be a positive integer.")
     return value
 
 
@@ -1596,9 +1583,7 @@ def _finite_decimal(value: object, field_name: str) -> Decimal:
 def _positive_decimal(value: object, field_name: str) -> Decimal:
     decimal_value = _finite_decimal(value, field_name)
     if decimal_value <= 0:
-        raise StandardsGradeValidationError(
-            f"{field_name} must be greater than zero."
-        )
+        raise StandardsGradeValidationError(f"{field_name} must be greater than zero.")
     return decimal_value
 
 

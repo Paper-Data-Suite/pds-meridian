@@ -82,9 +82,9 @@ def test_issue96_scoreform_quillan_acceptance_keeps_concord_absent() -> None:
         "standards-grade",
         "hybrid-grade",
     }
-    assert "concord" in matrix_for(
-        DependencyMatrixId.SCOREFORM_QUILLAN
-    ).excluded_producers
+    assert (
+        "concord" in matrix_for(DependencyMatrixId.SCOREFORM_QUILLAN).excluded_producers
+    )
 
 
 def test_issue96_producer_specific_adapter_boundaries_remain_distinct() -> None:

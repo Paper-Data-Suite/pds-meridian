@@ -31,9 +31,7 @@ class GradeItemMembershipSelectionScopeError(
     code = "teacher_workflow.grade_items.membership_selection_invalid"
 
 
-class GradeItemMembershipSelectionStaleError(
-    GradeItemMembershipSelectionWorkflowError
-):
+class GradeItemMembershipSelectionStaleError(GradeItemMembershipSelectionWorkflowError):
     """Raised when reviewed membership selection state has changed."""
 
     code = "teacher_workflow.grade_items.membership_selection_stale"

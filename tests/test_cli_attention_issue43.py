@@ -190,9 +190,7 @@ def test_attention_text_uses_canonical_order_not_count_priority(
         "partial: no\n"
         "items:\n"
     )
-    academic = output.index(
-        "meridian_academic_period_calculation_stale"
-    )
+    academic = output.index("meridian_academic_period_calculation_stale")
     planning = output.index("meridian_planning_review_pending")
     assert academic < planning
     assert "count=1 academic_period_proficiency_targets" in output
@@ -258,9 +256,7 @@ def test_attention_unreadable_scope_returns_safe_failure(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     def fail(*args: object, **kwargs: object) -> object:
-        raise MeridianAttentionReadError(
-            "student-a private internal dependency detail"
-        )
+        raise MeridianAttentionReadError("student-a private internal dependency detail")
 
     monkeypatch.setattr(cli, "inspect_meridian_attention", fail)
 
@@ -274,10 +270,7 @@ def test_attention_unreadable_scope_returns_safe_failure(
     captured = capsys.readouterr()
     assert status == 2
     assert captured.out == ""
-    assert (
-        captured.err
-        == "Meridian attention scope could not be inspected safely.\n"
-    )
+    assert captured.err == "Meridian attention scope could not be inspected safely.\n"
     assert "student-a" not in captured.err
     assert "private internal" not in captured.err
 
@@ -287,10 +280,7 @@ def test_attention_empty_workspace_is_successful_and_read_only(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     before = tuple(
-        sorted(
-            path.relative_to(tmp_path).as_posix()
-            for path in tmp_path.rglob("*")
-        )
+        sorted(path.relative_to(tmp_path).as_posix() for path in tmp_path.rglob("*"))
     )
 
     status = cli.main(
@@ -320,9 +310,6 @@ def test_attention_empty_workspace_is_successful_and_read_only(
     }
 
     after = tuple(
-        sorted(
-            path.relative_to(tmp_path).as_posix()
-            for path in tmp_path.rglob("*")
-        )
+        sorted(path.relative_to(tmp_path).as_posix() for path in tmp_path.rglob("*"))
     )
     assert after == before

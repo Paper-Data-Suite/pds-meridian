@@ -101,8 +101,7 @@ def _require_contract_agreement(
         or publication.record_set_id != _SCOREFORM_RECORD_SET_ID
         or frozenset(publication.capabilities) != _SCOREFORM_CAPABILITIES
         or manifest.producer_module_id != SCOREFORM_ADAPTER_KEY.producer_module_id
-        or manifest.contract_version
-        != SCOREFORM_ADAPTER_KEY.manifest_contract_version
+        or manifest.contract_version != SCOREFORM_ADAPTER_KEY.manifest_contract_version
         or work.module_id != publication.work.module_id
         or work.class_id != publication.work.class_id
         or work.work_id != publication.work.work_id

@@ -30,8 +30,8 @@ NOW = datetime(2026, 9, 3, 5, 0, tzinfo=UTC)
 
 def _seed(tmp_path: Path):
     workspace, scale = _seed_workspace(tmp_path)
-    grade_item_basis, membership, membership_sha256 = (
-        _seed_current_grade_item_result(workspace, scale)
+    grade_item_basis, membership, membership_sha256 = _seed_current_grade_item_result(
+        workspace, scale
     )
     policy_id = _seed_period_result_and_grouping_policy(
         workspace,
@@ -94,16 +94,22 @@ def test_preview_builds_exact_next_review_without_writing_or_selecting(
     assert preview.expected_current_review_revision is None
     assert preview.review_write_action == "not_performed"
     assert preview.review_selection_action == "not_performed"
-    assert list_grouping_signal_review_revisions(
-        workspace,
-        CLASS_ID,
-        derivation_id,
-    ) == ()
-    assert get_current_grouping_signal_review_revision(
-        workspace,
-        CLASS_ID,
-        derivation_id,
-    ) is None
+    assert (
+        list_grouping_signal_review_revisions(
+            workspace,
+            CLASS_ID,
+            derivation_id,
+        )
+        == ()
+    )
+    assert (
+        get_current_grouping_signal_review_revision(
+            workspace,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
 
 
 def test_confirmed_review_write_remains_separate_from_review_selection(
@@ -141,11 +147,14 @@ def test_confirmed_review_write_remains_separate_from_review_selection(
         CLASS_ID,
         derivation_id,
     ) == (1,)
-    assert get_current_grouping_signal_review_revision(
-        workspace,
-        CLASS_ID,
-        derivation_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_review_revision(
+            workspace,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
 
 
 def test_preview_derives_contiguous_successor_revision(

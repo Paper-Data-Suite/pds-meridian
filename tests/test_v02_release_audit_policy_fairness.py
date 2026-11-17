@@ -75,16 +75,11 @@ def test_concord_group_targets_remain_nonstudent_evidence() -> None:
     )
 
     group_items = tuple(
-        item
-        for item in inventory.items
-        if item.target.target_kind == "concord_group"
+        item for item in inventory.items if item.target.target_kind == "concord_group"
     )
     assert group_items
     assert all(item.subject is None for item in group_items)
-    assert all(
-        item.target.owning_system == "concord"
-        for item in group_items
-    )
+    assert all(item.target.owning_system == "concord" for item in group_items)
 
 
 def test_grouping_signal_runtime_has_no_concord_planning_import() -> None:

@@ -29,8 +29,7 @@ def test_issue59_keeps_existing_core_floor_and_no_suite_dependency() -> None:
 
     assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
     assert all(
-        "paper-data-suite" not in dependency
-        for dependency in project["dependencies"]
+        "paper-data-suite" not in dependency for dependency in project["dependencies"]
     )
 
 

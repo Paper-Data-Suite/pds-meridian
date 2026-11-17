@@ -63,9 +63,7 @@ _ATTEMPT_KEYS: Final[frozenset[str]] = frozenset(
 _BASIS_KEYS: Final[frozenset[str]] = frozenset(
     {"source", "eligibility_revision", "eligibility_decision_sha256"}
 )
-_CANDIDATE_KEYS: Final[frozenset[str]] = frozenset(
-    {"attempt", "eligible_evidence"}
-)
+_CANDIDATE_KEYS: Final[frozenset[str]] = frozenset({"attempt", "eligible_evidence"})
 _ACTOR_KEYS: Final[frozenset[str]] = frozenset({"kind", "actor_id"})
 _POLICY_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
     {"policy_id", "policy_revision", "policy_revision_sha256"}
@@ -134,9 +132,7 @@ class AttemptProjectionReference:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "work", _work(self.work))
-        object.__setattr__(
-            self, "publication_id", _publication_id(self.publication_id)
-        )
+        object.__setattr__(self, "publication_id", _publication_id(self.publication_id))
         object.__setattr__(self, "cache_key", _sha256(self.cache_key, "cache_key"))
         object.__setattr__(
             self,

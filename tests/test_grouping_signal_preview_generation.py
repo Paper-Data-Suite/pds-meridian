@@ -26,8 +26,8 @@ def test_workspace_preview_generation_persists_only_preview(
     tmp_path: Path,
 ) -> None:
     workspace, scale = _seed_workspace(tmp_path)
-    grade_item_basis, membership, membership_sha256 = (
-        _seed_current_grade_item_result(workspace, scale)
+    grade_item_basis, membership, membership_sha256 = _seed_current_grade_item_result(
+        workspace, scale
     )
     policy_id = _seed_period_result_and_grouping_policy(
         workspace,

@@ -35,8 +35,7 @@ def test_selected_mixed_grade_item_result_flows_through_exact_period_basis(
     assert entry.proficiency_level_id == "proficient"
     assert entry.result_reference == scenario.grade_item_result.reference
     assert tuple(
-        membership.work_reference.work.module_id
-        for membership in entry.memberships
+        membership.work_reference.work.module_id for membership in entry.memberships
     ) == ("concord", "quillan", "scoreform")
 
     assert outcome.status == "calculated"
@@ -99,9 +98,9 @@ def test_insufficient_mixed_grade_item_result_never_becomes_low_period_level(
     assert period_outcome.proficiency_level_id is None
     assert period_outcome.calculated_result_count == 0
     assert period_outcome.insufficient_result_count == 1
-    assert tuple(
-        reason.kind for reason in period_outcome.insufficiency_reasons
-    ) == ("no_calculated_results",)
+    assert tuple(reason.kind for reason in period_outcome.insufficiency_reasons) == (
+        "no_calculated_results",
+    )
     explanation = period_outcome.explanation_entries[0]
     assert explanation.status == "insufficient_evidence"
     assert explanation.contributed is False

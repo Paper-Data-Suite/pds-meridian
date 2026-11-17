@@ -161,17 +161,20 @@ def run_prepared_smoke(python: Path, meridian: Path, root: Path, outside: Path) 
         raise RuntimeError("Installed Grade Item trace used the wrong revision.")
     if grade_target["selection_state"] != "historical":
         raise RuntimeError("Installed Grade Item trace lost historical state.")
-    if cast(dict[str, object], academic_period["target"])[
-        "selection_state"
-    ] != "historical":
+    if (
+        cast(dict[str, object], academic_period["target"])["selection_state"]
+        != "historical"
+    ):
         raise RuntimeError("Installed Academic Period trace lost history.")
-    if cast(dict[str, object], derivation["target"])["derivation_id"] != targets[
-        "derivation_id"
-    ]:
+    if (
+        cast(dict[str, object], derivation["target"])["derivation_id"]
+        != targets["derivation_id"]
+    ):
         raise RuntimeError("Installed planning trace used the wrong derivation.")
-    if cast(dict[str, object], exported["target"])["signal_set_id"] != targets[
-        "signal_set_id"
-    ]:
+    if (
+        cast(dict[str, object], exported["target"])["signal_set_id"]
+        != targets["signal_set_id"]
+    ):
         raise RuntimeError("Installed export trace used the wrong Core signal.")
 
     after_cli = _tree_state(workspace)

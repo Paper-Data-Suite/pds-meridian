@@ -45,15 +45,16 @@ def _context(
     )
     scale = SimpleNamespace(
         scale=SimpleNamespace(
-            scale_id="scale_1", scale_revision=1,
-            levels=(SimpleNamespace(level_id="meeting"),)
+            scale_id="scale_1",
+            scale_revision=1,
+            levels=(SimpleNamespace(level_id="meeting"),),
         ),
         scale_sha256="c" * 64,
     )
     roster = SimpleNamespace(
-        students=(SimpleNamespace(
-            student_id="student_1", first_name="Ada", last_name="One"
-        ),)
+        students=(
+            SimpleNamespace(student_id="student_1", first_name="Ada", last_name="One"),
+        )
     )
     candidate = SimpleNamespace(
         publication_id="pub_11111111111111111111111111111111",
@@ -66,7 +67,8 @@ def _context(
                 publication_id=candidate.publication_id, manifest_digest="d" * 64
             ),
         ),
-        projection_request=object(), producer_profile=object(),
+        projection_request=object(),
+        producer_profile=object(),
     )
     calls: list[object] = []
 
@@ -74,7 +76,8 @@ def _context(
         current, "load_current_grade_item_revision", lambda *_: grade_item
     )
     monkeypatch.setattr(
-        current, "list_selected_included_grade_item_memberships",
+        current,
+        "list_selected_included_grade_item_memberships",
         lambda *_: (membership,),
     )
     monkeypatch.setattr(current, "load_class_roster", lambda *_: roster)
@@ -83,13 +86,17 @@ def _context(
     monkeypatch.setattr(
         current, "load_current_standard_proficiency_result", lambda *_: None
     )
+
     def discovery(_root: Path, request: object) -> object:
         calls.append(("discover", request))
         return SimpleNamespace(candidates=(candidate,))
+
     monkeypatch.setattr(current, "discover_publication_candidates", discovery)
+
     def prepare(_root: Path, _candidate: object, **kwargs: object) -> object:
         calls.append(("prepare", kwargs))
         return prepared
+
     monkeypatch.setattr(current, "prepare_publication_invocation", prepare)
     dependencies = cast(
         DiagnosticsDependencies,
@@ -108,7 +115,9 @@ def _context(
 
 @pytest.mark.parametrize("producer", ("scoreform", "quillan", "concord"))
 def test_current_report_without_checkpoint_uses_all_producer_contracts(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, producer: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    producer: str,
 ) -> None:
     dependencies, calls = _context(monkeypatch, producer)
     result = build_current_benchmark_analysis(
@@ -123,9 +132,12 @@ def test_current_report_without_checkpoint_uses_all_producer_contracts(
     )
     assert result.report_kind == "benchmark_analysis_instructional_response"
     assert result.title == "Benchmark Analysis & Instructional Response Planner"
-    assert "not assessed" in " ".join(
-        (part or "") for row in result.rows for part in row.values
-    ).casefold()
+    assert (
+        "not assessed"
+        in " ".join(
+            (part or "") for row in result.rows for part in row.values
+        ).casefold()
+    )
     assert any(entry[0] == "discover" for entry in calls)
     preparations = [entry for entry in calls if entry[0] == "prepare"]
     assert len(preparations) == 1
@@ -142,14 +154,20 @@ def test_current_report_without_checkpoint_uses_all_producer_contracts(
 
 
 def test_without_reporting_permission_fails_before_manifest_access(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     _context(monkeypatch, "scoreform")
     with pytest.raises(CurrentBenchmarkUnavailableError, match="evidence access"):
         build_current_benchmark_analysis(
-            tmp_path, class_id="class_1", grade_item_id="grade_1",
-            target_period=PERIOD, calendar_revision=1,
-            generated_at=NOW, diagnostics=None, item_observer=lambda _: (),
+            tmp_path,
+            class_id="class_1",
+            grade_item_id="grade_1",
+            target_period=PERIOD,
+            calendar_revision=1,
+            generated_at=NOW,
+            diagnostics=None,
+            item_observer=lambda _: (),
         )
 
 
@@ -158,22 +176,28 @@ def test_normal_report_executor_uses_current_path_not_legacy_checkpoint(
 ) -> None:
     calls: list[object] = []
     preview = cast(TeacherReportPreview, object())
+
     def current_builder(*_args: object, **kwargs: object) -> TeacherReportPreview:
         calls.append(kwargs)
         return preview
+
     monkeypatch.setattr(
         executor_module, "build_current_benchmark_analysis", current_builder
     )
     executor = LiveReportMenuExecutor()
     context = SimpleNamespace(
-        root=Path("workspace"), class_id="class_1",
+        root=Path("workspace"),
+        class_id="class_1",
         period=SimpleNamespace(
             school_year="2026-2027", period_id="mp1", calendar_revision=1
         ),
         identifiers={"grade_item": "grade_1"},
     )
-    assert executor._build(
-        cast(object, context), "benchmark_analysis_instructional_response", NOW
-    ) is preview
+    assert (
+        executor._build(
+            cast(object, context), "benchmark_analysis_instructional_response", NOW
+        )
+        is preview
+    )
     assert len(calls) == 1
     assert calls[0]["grade_item_id"] == "grade_1"

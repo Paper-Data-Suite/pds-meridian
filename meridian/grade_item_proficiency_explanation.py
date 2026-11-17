@@ -278,9 +278,7 @@ class EvidenceSourceExplanation:
     target_kind: str
     aggregation_status: Literal["performance", "native_state", "excluded"]
     exclusion_reason: StandardAggregationExclusionReason | None
-    mapping_status: Literal[
-        "mapped", "native_state", "unmapped", "unsupported"
-    ] | None
+    mapping_status: Literal["mapped", "native_state", "unmapped", "unsupported"] | None
     proficiency_level_id: str | None
     native_state_code: str | None
     stages: tuple[ProvenanceStageExplanation, ...]
@@ -397,10 +395,7 @@ def explain_grade_item_proficiency(
     stored = _resolve_target(workspace_root, target)
     snapshot = stored.snapshot
     current_revision = _current_result_revision(workspace_root, target)
-    if (
-        target.selection == "current"
-        and current_revision != snapshot.result_revision
-    ):
+    if target.selection == "current" and current_revision != snapshot.result_revision:
         raise ExplanationTraceIntegrityError(
             "Current-result selection changed during explanation resolution."
         )
@@ -533,9 +528,7 @@ def grade_item_proficiency_explanation_to_dict(
             ),
             "mode_tie_rule": value.policy.mode_tie_rule,
             "median_even_rule": value.policy.median_even_rule,
-            "blocking_exclusion_reasons": list(
-                value.policy.blocking_exclusion_reasons
-            ),
+            "blocking_exclusion_reasons": list(value.policy.blocking_exclusion_reasons),
             "native_state_handling": value.policy.native_state_handling,
             "actor": {
                 "kind": value.policy.actor_kind,
@@ -579,9 +572,7 @@ def grade_item_proficiency_explanation_to_dict(
                 "mapping_status": item.mapping_status,
                 "proficiency_level_id": item.proficiency_level_id,
                 "native_state_code": item.native_state_code,
-                "authorized_detail": _authorized_detail_to_dict(
-                    item.authorized_detail
-                ),
+                "authorized_detail": _authorized_detail_to_dict(item.authorized_detail),
                 "stages": [
                     {
                         "name": stage.name,
@@ -711,9 +702,7 @@ def render_grade_item_proficiency_explanation_text(
         detail_suffix = (
             "" if detail.reason_code is None else f" reason={detail.reason_code}"
         )
-        lines.append(
-            f"    authorized_detail: {detail.status}{detail_suffix}"
-        )
+        lines.append(f"    authorized_detail: {detail.status}{detail_suffix}")
         if detail.item is not None:
             fields = "; ".join(
                 f"{field.key}={field.value if field.value is not None else 'none'}"
@@ -1125,9 +1114,7 @@ def _authorized_detail_to_dict(
                 "standard_ids": list(item.standard_ids),
                 "result_kind": item.result_kind,
                 "value_kind": item.value_kind,
-                "value_fields": {
-                    field.key: field.value for field in item.value_fields
-                },
+                "value_fields": {field.key: field.value for field in item.value_fields},
                 "eligibility": {
                     "status": item.eligibility_status,
                     "policy_id": item.eligibility_policy_id,
@@ -1575,9 +1562,7 @@ def _calculation_projection(
 
 def _require_reference_kind(
     reference: AggregationDecisionReference,
-    expected: Literal[
-        "membership", "eligibility", "attempt_selection", "reassessment"
-    ],
+    expected: Literal["membership", "eligibility", "attempt_selection", "reassessment"],
 ) -> None:
     if reference.decision_kind != expected:
         raise ExplanationTraceIntegrityError(

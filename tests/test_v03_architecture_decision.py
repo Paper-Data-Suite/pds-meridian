@@ -4,8 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ADR = ROOT / (
-    "docs/decisions/"
-    "0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
+    "docs/decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
 )
 
 
@@ -32,8 +31,7 @@ def test_v03_architecture_freezes_semantic_separations() -> None:
 def test_reporting_snapshot_is_meridian_owned_not_core_published() -> None:
     text = _adr()
     assert (
-        "a `ReportingSnapshot` is a Meridian-owned immutable canonical record"
-        in text
+        "a `ReportingSnapshot` is a Meridian-owned immutable canonical record" in text
     )
     assert "It is not a Core Publication Record." in text
     assert "No new Core publication kind" in text

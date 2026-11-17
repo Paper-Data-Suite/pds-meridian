@@ -47,9 +47,7 @@ def _seed_selected_review(
         supersedes_revision=None,
         decision=decision,  # type: ignore[arg-type]
         acknowledged_warning_ids=(
-            _warning_ids(stored_preview)
-            if decision == "accepted_for_export"
-            else ()
+            _warning_ids(stored_preview) if decision == "accepted_for_export" else ()
         ),
         actor_id="teacher_local",
         reviewed_at=NOW,
@@ -194,9 +192,7 @@ def test_preview_surfaces_authorization_drift_during_final_read_only_recheck(
         stale,
     )
 
-    with pytest.raises(
-        workflow.PlanningSignalCoreExportPreviewStaleError
-    ) as raised:
+    with pytest.raises(workflow.PlanningSignalCoreExportPreviewStaleError) as raised:
         workflow.preview_planning_signal_core_export(
             root,
             CLASS_ID,

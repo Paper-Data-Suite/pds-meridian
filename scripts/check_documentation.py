@@ -49,10 +49,7 @@ EXPECTED = (
     Path("docs/architecture/grouping-signal-generation.md"),
     Path("docs/architecture/grouping-signal-preview-diagnostics.md"),
     Path("docs/architecture/grouping-signal-core-export.md"),
-    Path(
-        "docs/architecture/"
-        "teacher-eligibility-proficiency-planning-workflows.md"
-    ),
+    Path("docs/architecture/teacher-eligibility-proficiency-planning-workflows.md"),
     Path("docs/architecture/proficiency-planning-export-explanation-traces.md"),
     Path("docs/architecture/proficiency-attention-summaries.md"),
     Path("docs/architecture/grade-report-attention-summaries.md"),
@@ -60,10 +57,7 @@ EXPECTED = (
     Path("docs/architecture/grade-items-and-canonical-storage.md"),
     Path("docs/architecture/canonical-storage-path-budgets.md"),
     Path("docs/architecture/suite-operations-integration.md"),
-    Path(
-        "docs/architecture/"
-        "grade-item-membership-and-academic-period-assignment.md"
-    ),
+    Path("docs/architecture/grade-item-membership-and-academic-period-assignment.md"),
     Path("docs/architecture/grade-policy-models-storage-and-activation.md"),
     Path("docs/architecture/conventional-grade-calculation.md"),
     Path("docs/architecture/standards-grade-calculation.md"),
@@ -88,8 +82,7 @@ EXPECTED = (
         "0004-v02-evidence-policy-proficiency-and-planning-export-architecture.md"
     ),
     Path(
-        "docs/decisions/"
-        "0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
+        "docs/decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
     ),
     Path("docs/decisions/amendments/0001-core-v0.6-ingestion-reconciliation.md"),
     Path("docs/decisions/amendments/0002-core-v0.6-ingestion-reconciliation.md"),
@@ -142,13 +135,13 @@ REQUIRED_TEXT = {
         "Calculation-state and silent-zero audit — CONFORMS",
         "Zero is therefore a policy consequence, not a fallback",
         "Selection and authority audit — CONFORMS",
-        "selection_basis=\"explicit\"",
-        "relationship_basis=\"explicit\"",
+        'selection_basis="explicit"',
+        'relationship_basis="explicit"',
         "Override authority and source binding audit — CONFORMS",
         "does not float to a later result revision",
         "Withdrawal is itself exact authority, not deletion.",
         "Historical explanation and provenance audit — CONFORMS",
-        "selection=\"revision\"",
+        'selection="revision"',
         "does not substitute the current activation or policy revision.",
         "ReportingSnapshot current-use audit — CONFORMS",
         "Predecessor metadata does not move current use.",
@@ -485,8 +478,7 @@ REQUIRED_TEXT = {
         "Issue #57 remains responsible",
     ),
     Path(
-        "docs/decisions/"
-        "0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
+        "docs/decisions/0005-v03-grade-preview-and-reporting-snapshot-architecture.md"
     ): (
         "GradeItemRevision.weighting metadata != executable Grade policy",
         "missing or unresolved state != numeric zero",
@@ -584,10 +576,7 @@ REQUIRED_TEXT = {
         "Synthetic-data boundary",
         "#45 installed proficiency and signal-export acceptance",
     ),
-    Path(
-        "docs/architecture/"
-        "installed-proficiency-signal-export-acceptance.md"
-    ): (
+    Path("docs/architecture/installed-proficiency-signal-export-acceptance.md"): (
         "pds-core     0.6.3",
         "scoreform    0.11.0",
         "quillan      0.10.0",
@@ -626,10 +615,7 @@ REQUIRED_TEXT = {
         "revision_sha256",
         "Grade Item creation != membership",
     ),
-    Path(
-        "docs/architecture/"
-        "grade-item-membership-and-academic-period-assignment.md"
-    ): (
+    Path("docs/architecture/grade-item-membership-and-academic-period-assignment.md"): (
         "GradeItemAcademicPeriodAssignment",
         "GradeItemMembershipDecision",
         "no decision != excluded",
@@ -653,7 +639,7 @@ REQUIRED_TEXT = {
     ),
     Path("docs/architecture/attempt-selection-policy-and-decisions.md"): (
         "AttemptObservationReference",
-        "selection_basis = \"explicit\"",
+        'selection_basis = "explicit"',
         "operative_included == true",
         "ScoreForm v0.10.0 -> applicable",
         "Quillan v0.9.0   -> not_applicable",
@@ -693,8 +679,7 @@ REQUIRED_TEXT = {
         "pds-core>=0.6,<0.7",
     ),
     Path(
-        "docs/architecture/"
-        "standards-evidence-association-and-aggregation-inputs.md"
+        "docs/architecture/standards-evidence-association-and-aggregation-inputs.md"
     ): (
         "producer-declared alignment",
         "StandardEvidenceAssociationDecision",
@@ -713,7 +698,7 @@ REQUIRED_TEXT = {
     ),
     Path("docs/architecture/standards-proficiency-calculation.md"): (
         "StandardProficiencyCalculationPolicy",
-        "STANDARD_PROFICIENCY_ALGORITHM_VERSION = \"1\"",
+        'STANDARD_PROFICIENCY_ALGORITHM_VERSION = "1"',
         "highest",
         "lowest",
         "median",
@@ -738,7 +723,7 @@ REQUIRED_TEXT = {
         "calendar_revision_mismatch",
         "missing_result",
         "insufficient_evidence",
-        "ACADEMIC_PERIOD_PROFICIENCY_ALGORITHM_VERSION = \"1\"",
+        'ACADEMIC_PERIOD_PROFICIENCY_ALGORITHM_VERSION = "1"',
         "AcademicPeriodProficiencyResultSnapshot",
         "calendar_changed",
         "Issue #36 formally adopts",
@@ -796,10 +781,7 @@ REQUIRED_TEXT = {
         "#42 proficiency and planning-export explanation/trace views — implemented",
         "#43 Meridian proficiency attention summaries — next",
     ),
-    Path(
-        "docs/architecture/"
-        "teacher-eligibility-proficiency-planning-workflows.md"
-    ): (
+    Path("docs/architecture/teacher-eligibility-proficiency-planning-workflows.md"): (
         "seven independently invocable teacher tasks",
         "write immutable revision != select revision as current",
         "Cancel -> no persisted change",
@@ -836,10 +818,7 @@ REQUIRED_TEXT = {
         "#42 proficiency and planning-export explanation/trace views — implemented",
         "#43 Meridian proficiency attention summaries — next",
     ),
-    Path(
-        "docs/architecture/"
-        "proficiency-planning-export-explanation-traces.md"
-    ): (
+    Path("docs/architecture/proficiency-planning-export-explanation-traces.md"): (
         "meridian trace grade-item-proficiency",
         "meridian trace academic-period-proficiency",
         "meridian trace planning-derivation",
@@ -1020,9 +999,7 @@ def check_links() -> None:
         text = path.read_text(encoding="utf-8")
         for target in LINK.findall(text):
             target = target.strip()
-            if not target or target.startswith(
-                ("http://", "https://", "mailto:", "#")
-            ):
+            if not target or target.startswith(("http://", "https://", "mailto:", "#")):
                 continue
             clean = unquote(target.split("#", 1)[0].split("?", 1)[0])
             if not clean:
@@ -1033,9 +1010,7 @@ def check_links() -> None:
                     f"{relative.as_posix()}: link escapes repository: {target}"
                 )
             elif not resolved.exists():
-                failures.append(
-                    f"{relative.as_posix()}: missing link target: {target}"
-                )
+                failures.append(f"{relative.as_posix()}: missing link target: {target}")
     if failures:
         fail("broken repository-relative links:\n  " + "\n  ".join(failures))
 
@@ -1086,8 +1061,7 @@ def check_current_status() -> None:
 def check_privacy() -> None:
     candidates = list(documentation_files())
     candidates.extend(
-        path.relative_to(ROOT)
-        for path in (ROOT / "tests/fixtures").rglob("*.json")
+        path.relative_to(ROOT) for path in (ROOT / "tests/fixtures").rglob("*.json")
     )
     for relative in candidates:
         text = (ROOT / relative).read_text(encoding="utf-8")

@@ -66,14 +66,11 @@ def test_guided_projection_owns_purpose_and_whole_assignment_scope() -> None:
             or cast(object, candidate)
         ),
         invocation_preparer=lambda root, selected, diagnostics, purpose, students: (
-            calls.append(
-                ("prepare", root, selected, diagnostics, purpose, students)
-            )
+            calls.append(("prepare", root, selected, diagnostics, purpose, students))
             or cast(object, prepared)
         ),
         projection_runner=lambda selected, diagnostics: (
-            calls.append(("project", selected, diagnostics))
-            or cast(object, inventory)
+            calls.append(("project", selected, diagnostics)) or cast(object, inventory)
         ),
         cache_writer=lambda root, selected, projected, diagnostics: (
             calls.append(("cache", root, selected, projected, diagnostics))

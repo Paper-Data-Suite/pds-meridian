@@ -40,9 +40,7 @@ class GroupingSignalPreviewGenerationError(RuntimeError):
     """Base error for workspace-level preview generation."""
 
 
-class GroupingSignalPreviewGenerationReadError(
-    GroupingSignalPreviewGenerationError
-):
+class GroupingSignalPreviewGenerationReadError(GroupingSignalPreviewGenerationError):
     """Raised when exact derivation/policy/current state cannot be read safely."""
 
 
@@ -143,9 +141,7 @@ def generate_grouping_signal_preview(
             "Could not persist the immutable grouping-signal preview."
         ) from error
     except GroupingSignalPreviewError as error:
-        raise GroupingSignalPreviewGenerationValidationError(
-            str(error)
-        ) from error
+        raise GroupingSignalPreviewGenerationValidationError(str(error)) from error
 
     return GroupingSignalPreviewGenerationResult(
         stored=written.stored,

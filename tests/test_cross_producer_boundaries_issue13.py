@@ -95,8 +95,7 @@ def test_multiple_period_calendar_and_revision_do_not_change_raw_projection_cach
     }
     for value in projected.values():
         assert all(
-            not hasattr(item, "period_id")
-            and not hasattr(item, "academic_period")
+            not hasattr(item, "period_id") and not hasattr(item, "academic_period")
             for item in value.inventory.items
         )
 
@@ -109,11 +108,14 @@ def test_multiple_period_calendar_and_revision_do_not_change_raw_projection_cach
     changed = load_current_academic_period_calendar(mixed.root, SCHOOL_YEAR)
     assert changed is not None
     assert changed.calendar_revision == 2
-    assert next(
-        period.label
-        for period in changed.periods
-        if period.period_id == "period_q2"
-    ) == "Quarter 2 revised"
+    assert (
+        next(
+            period.label
+            for period in changed.periods
+            if period.period_id == "period_q2"
+        )
+        == "Quarter 2 revised"
+    )
 
     for module_id, value in projected.items():
         cache_key, content = original[module_id]

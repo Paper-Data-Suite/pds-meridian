@@ -63,14 +63,10 @@ def row(*, source_state: str = "current") -> ExclusionReviewRow:
         reviewed_source_state=None,
         source_state=source_state,
         successor_publication_id=(
-            "pub_" + ("4" * 32)
-            if source_state == "superseded"
-            else None
+            "pub_" + ("4" * 32) if source_state == "superseded" else None
         ),
         head_publication_id=(
-            "pub_" + ("4" * 32)
-            if source_state == "superseded"
-            else PUBLICATION_ID
+            "pub_" + ("4" * 32) if source_state == "superseded" else PUBLICATION_ID
         ),
         operative_included=False,
         review_state="no_decision",
@@ -120,19 +116,13 @@ def source_state(
     value: str = "current",
 ) -> EvidenceSourceStateObservation:
     successor = (
-        "pub_" + ("4" * 32)
-        if value in {"superseded", "withdrawn_superseded"}
-        else None
+        "pub_" + ("4" * 32) if value in {"superseded", "withdrawn_superseded"} else None
     )
     return EvidenceSourceStateObservation(
         state=value,  # type: ignore[arg-type]
         head_publication_id=successor or PUBLICATION_ID,
         successor_publication_id=successor,
-        withdrawn_at=(
-            NOW
-            if value in {"withdrawn", "withdrawn_superseded"}
-            else None
-        ),
+        withdrawn_at=(NOW if value in {"withdrawn", "withdrawn_superseded"} else None),
     )
 
 
@@ -410,9 +400,7 @@ def test_commit_rejects_selection_change_before_write(
     monkeypatch.setattr(
         workflow,
         "write_evidence_eligibility_revision",
-        lambda *args, **kwargs: pytest.fail(
-            "stale preview must not write"
-        ),
+        lambda *args, **kwargs: pytest.fail("stale preview must not write"),
     )
 
     with pytest.raises(
@@ -450,9 +438,7 @@ def test_commit_rejects_lifecycle_change_before_write(
     monkeypatch.setattr(
         workflow,
         "write_evidence_eligibility_revision",
-        lambda *args, **kwargs: pytest.fail(
-            "stale preview must not write"
-        ),
+        lambda *args, **kwargs: pytest.fail("stale preview must not write"),
     )
 
     with pytest.raises(

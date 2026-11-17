@@ -71,9 +71,7 @@ HybridGradeResultSelectDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -149,9 +147,7 @@ class StoredHybridGradeResult:
             )
         digest = _sha256(self.result_sha256, "result_sha256")
         if type(self.content) is not bytes:
-            raise HybridGradeStorageValidationError(
-                "content must be immutable bytes."
-            )
+            raise HybridGradeStorageValidationError("content must be immutable bytes.")
         if hashlib.sha256(self.content).hexdigest() != digest:
             raise HybridGradeStorageValidationError(
                 "result_sha256 must match exact immutable content."
@@ -260,11 +256,7 @@ def hybrid_grade_result_family_directory(
         period,
         calendar,
     )
-    path = (
-        hybrid_grades_directory(root, class_value)
-        / "subjects"
-        / subject_key
-    )
+    path = hybrid_grades_directory(root, class_value) / "subjects" / subject_key
     _require_containment(root, path)
     return path
 
@@ -298,13 +290,16 @@ def hybrid_grade_result_current_path(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
 ) -> Path:
-    return hybrid_grade_result_family_directory(
-        workspace_root,
-        class_id,
-        student_id,
-        target_period,
-        calendar_revision,
-    ) / "current.json"
+    return (
+        hybrid_grade_result_family_directory(
+            workspace_root,
+            class_id,
+            student_id,
+            target_period,
+            calendar_revision,
+        )
+        / "current.json"
+    )
 
 
 def hybrid_grade_result_revision_relative_path(
@@ -1011,9 +1006,7 @@ def _decode_pointer(data: bytes) -> dict[str, object]:
         decoded["result_revision"] = _positive_int(
             decoded["result_revision"], "result_revision"
         )
-        decoded["result_sha256"] = _sha256(
-            decoded["result_sha256"], "result_sha256"
-        )
+        decoded["result_sha256"] = _sha256(decoded["result_sha256"], "result_sha256")
     except HybridGradeStorageValidationError as error:
         raise HybridGradeStorageIntegrityError(
             "Current result pointer contains invalid persisted field values."
@@ -1401,9 +1394,7 @@ def _require_containment(root: Path, path: Path) -> None:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise HybridGradeStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise HybridGradeStorageValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

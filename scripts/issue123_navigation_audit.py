@@ -69,6 +69,14 @@ REVIEWED_COMPOSITION_PATHS: Final[frozenset[str]] = frozenset(
     }
 )
 
+# #125-H2: two Ruff 0.16.1-only formatting updates to #123 audited sources.
+# These are exact current Git blob IDs, not open-ended approved compositions.
+# The historical SOURCE_BLOBS and frozen inventory remain unchanged.
+REVIEWED_RUFF_0161_BLOBS: Final[dict[str, str]] = {
+    "meridian/report_guided_selection.py": "7f4a19d8294b19b5239fa2573d4c5cbfffe0238e",
+    "meridian/report_live_catalog.py": "6108b70e66587a210fb41b2bf70a12e16c66d5ac",
+}
+
 # Category is the TARGET DISPOSITION of the existing route, not a claim it is
 # guided today. "advanced" means its current manual implementation must be
 # explicitly segregated; the issue may still require a new routine equivalent.
@@ -459,7 +467,8 @@ def verify_sources(root: Path) -> None:
         if git_blob_sha(original) != expected:
             mismatches.append(f"historical source changed: {rel}")
         elif current != original and rel not in REVIEWED_COMPOSITION_PATHS:
-            mismatches.append(f"unreviewed live source drift: {rel}")
+            if git_blob_sha(current) != REVIEWED_RUFF_0161_BLOBS.get(rel):
+                mismatches.append(f"unreviewed live source drift: {rel}")
         elif current != original and rel.startswith("meridian/menu"):
             if _source_prompt_keys(rel, current) != _source_prompt_keys(rel, original):
                 mismatches.append(f"prompt change needs inventory review: {rel}")

@@ -100,9 +100,7 @@ def validate_storage_path_key(value: object) -> str:
     if not isinstance(value, str):
         raise StoragePathKeyError("storage path key must be a string.")
     if len(value) != STORAGE_PATH_KEY_MAX_LENGTH:
-        raise StoragePathKeyError(
-            "storage path key has an invalid length."
-        )
+        raise StoragePathKeyError("storage path key has an invalid length.")
     if _PATH_KEY_PATTERN.fullmatch(value) is None:
         raise StoragePathKeyError(
             "storage path key must use the mk_<lowercase-sha256> form."

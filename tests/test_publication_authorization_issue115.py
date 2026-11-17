@@ -129,15 +129,11 @@ def test_absent_default_workspace_does_not_break_normal_launch(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     absent = tmp_path / "not-created"
-    monkeypatch.setattr(
-        authorization_module, "resolve_workspace_root", lambda: absent
-    )
+    monkeypatch.setattr(authorization_module, "resolve_workspace_root", lambda: absent)
     assert resolve_configured_publication_authorizer() is None
 
 
-def test_explicit_missing_policy_is_configuration_error(
-    tmp_path, monkeypatch
-) -> None:
+def test_explicit_missing_policy_is_configuration_error(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv(
         AUTHORIZATION_POLICY_ENVIRONMENT_VARIABLE,
         str(tmp_path / "missing-policy.json"),

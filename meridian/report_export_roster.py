@@ -37,9 +37,7 @@ from meridian.export_profile import (
 )
 
 EXPORT_ROSTER_OBSERVATION_SCHEMA_VERSION: Final[str] = "1"
-EXPORT_ROSTER_OBSERVATION_RECORD_TYPE: Final[str] = (
-    "meridian_export_roster_observation"
-)
+EXPORT_ROSTER_OBSERVATION_RECORD_TYPE: Final[str] = "meridian_export_roster_observation"
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _VALUE_KEYS: Final[frozenset[str]] = frozenset({"source_field", "value"})
@@ -47,9 +45,7 @@ _STUDENT_KEYS: Final[frozenset[str]] = frozenset({"student_id", "values"})
 _OBSERVATION_KEYS: Final[frozenset[str]] = frozenset(
     {"schema_version", "record_type", "class_id", "source_fields", "students"}
 )
-_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
-    {"class_id", "observation_sha256"}
-)
+_REFERENCE_KEYS: Final[frozenset[str]] = frozenset({"class_id", "observation_sha256"})
 
 
 class ReportExportRosterError(RuntimeError):
@@ -260,8 +256,7 @@ def build_export_roster_observation(
         extra_field = roster_extra_field_name(source_field)
         if extra_field is not None and extra_field not in roster.columns:
             raise ReportExportRosterFieldMissingError(
-                "Selected Core roster optional field is absent: "
-                f"{extra_field!r}."
+                f"Selected Core roster optional field is absent: {extra_field!r}."
             )
 
     lookup = student_lookup(roster)
@@ -418,9 +413,7 @@ def export_roster_observation_from_dict(data: object) -> ExportRosterObservation
         )
     student_data = mapping["students"]
     if not isinstance(student_data, list):
-        raise ReportExportRosterValidationError(
-            "students must be a JSON array."
-        )
+        raise ReportExportRosterValidationError("students must be a JSON array.")
     students: list[ExportRosterStudentObservation] = []
     for item in student_data:
         student_mapping = _exact_mapping(
@@ -602,9 +595,7 @@ def _canonical_json_bytes(value: object) -> bytes:
 
 def _decode_json(data: bytes, label: str) -> object:
     if type(data) is not bytes:
-        raise ReportExportRosterIntegrityError(
-            f"{label} data must be immutable bytes."
-        )
+        raise ReportExportRosterIntegrityError(f"{label} data must be immutable bytes.")
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:
@@ -620,9 +611,7 @@ def _decode_json(data: bytes, label: str) -> object:
     except ReportExportRosterIntegrityError:
         raise
     except (json.JSONDecodeError, ValueError) as error:
-        raise ReportExportRosterIntegrityError(
-            f"{label} is not valid JSON."
-        ) from error
+        raise ReportExportRosterIntegrityError(f"{label} is not valid JSON.") from error
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -668,9 +657,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportExportRosterValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportRosterValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -687,9 +674,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportExportRosterValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportExportRosterValidationError(f"{field_name} must be a string.")
     return value
 
 

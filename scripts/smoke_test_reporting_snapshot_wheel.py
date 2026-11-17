@@ -10,9 +10,7 @@ import venv
 from pathlib import Path
 
 PROGRAM = Path(__file__).with_name("smoke_program_reporting_snapshot.py")
-RELOAD_PROGRAM = Path(__file__).with_name(
-    "smoke_program_reporting_snapshot_reload.py"
-)
+RELOAD_PROGRAM = Path(__file__).with_name("smoke_program_reporting_snapshot_reload.py")
 
 
 def _environment() -> dict[str, str]:

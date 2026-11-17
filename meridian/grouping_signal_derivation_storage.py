@@ -37,9 +37,7 @@ DEFAULT_MAXIMUM_GROUPING_SIGNAL_DERIVATION_DIGEST_BYTES: Final[int] = 128
 GroupingSignalDerivationWriteDisposition: TypeAlias = Literal["created", "existing"]
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
-_DERIVATION_JSON: Final[re.Pattern[str]] = re.compile(
-    r"^(gsd_[0-9a-f]{64})\.json$"
-)
+_DERIVATION_JSON: Final[re.Pattern[str]] = re.compile(r"^(gsd_[0-9a-f]{64})\.json$")
 _DERIVATION_DIGEST: Final[re.Pattern[str]] = re.compile(
     r"^(gsd_[0-9a-f]{64})\.json\.sha256$"
 )
@@ -137,9 +135,7 @@ class StoredGroupingSignalDerivation:
                 "derivation_sha256 does not match exact immutable content."
             )
         try:
-            decoded = grouping_signal_derivation_snapshot_from_json_bytes(
-                self.content
-            )
+            decoded = grouping_signal_derivation_snapshot_from_json_bytes(self.content)
         except (
             GroupingSignalDerivationSerializationError,
             GroupingSignalDerivationValidationError,
@@ -191,8 +187,7 @@ def grouping_signal_derivations_directory(
     root = _root(workspace_root)
     class_value = _identifier(class_id, "class_id")
     path = (
-        class_module_dir(root, class_value, "meridian")
-        / "grouping_signal_derivations"
+        class_module_dir(root, class_value, "meridian") / "grouping_signal_derivations"
     )
     _require_containment(root, path)
     return path
@@ -205,10 +200,13 @@ def grouping_signal_derivation_path(
 ) -> Path:
     """Return the canonical JSON path for one exact derivation identity."""
     derivation = _derivation_id(derivation_id)
-    return grouping_signal_derivations_directory(
-        workspace_root,
-        class_id,
-    ) / f"{derivation}.json"
+    return (
+        grouping_signal_derivations_directory(
+            workspace_root,
+            class_id,
+        )
+        / f"{derivation}.json"
+    )
 
 
 def grouping_signal_derivation_relative_path(

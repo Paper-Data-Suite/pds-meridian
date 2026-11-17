@@ -118,14 +118,10 @@ def candidate(
     mapping = SimpleNamespace(
         profile=PROFILE,
         status=mapping_status,
-        proficiency_level_id=(
-            "meets" if mapping_status == "mapped" else None
-        ),
+        proficiency_level_id=("meets" if mapping_status == "mapped" else None),
         native_state=None,
         unsupported_reason=(
-            "source_signature_mismatch"
-            if mapping_status == "unsupported"
-            else None
+            "source_signature_mismatch" if mapping_status == "unsupported" else None
         ),
     )
     return SimpleNamespace(
@@ -187,9 +183,7 @@ def install_common(
         workflow,
         "resolve_standard_aggregation_candidate",
         lambda *args, **kwargs: (
-            candidate()
-            if resolved_candidate is None
-            else resolved_candidate
+            candidate() if resolved_candidate is None else resolved_candidate
         ),
     )
 
@@ -365,10 +359,7 @@ def test_projection_surfaces_unsupported_mapping_reason(
     )
 
     assert projection.mapping_status == "unsupported"
-    assert (
-        projection.mapping_unsupported_reason
-        == "source_signature_mismatch"
-    )
+    assert projection.mapping_unsupported_reason == "source_signature_mismatch"
     assert projection.aggregation_exclusion_reason == "mapping_unsupported"
 
 

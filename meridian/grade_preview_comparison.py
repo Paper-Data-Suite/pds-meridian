@@ -293,9 +293,7 @@ def grade_preview_comparison_to_dict(
         "current_target": _target_to_dict(value.current_target),
         "changed": value.changed,
         "reasons": list(value.reasons),
-        "effective_grade_delta": _optional_decimal_text(
-            value.effective_grade_delta
-        ),
+        "effective_grade_delta": _optional_decimal_text(value.effective_grade_delta),
     }
 
 
@@ -358,16 +356,13 @@ def _comparison_reasons(
         present.add("state_handling_changed")
     if _basis_changed(previous, current, {"rounding"}):
         present.add("rounding_changed")
-    if (
-        previous.algorithm_version != current.algorithm_version
-        or _basis_changed(previous, current, {"algorithm"})
+    if previous.algorithm_version != current.algorithm_version or _basis_changed(
+        previous, current, {"algorithm"}
     ):
         present.add("algorithm_changed")
     if (
-        previous.selected_override_reference
-        != current.selected_override_reference
-        or previous.override_replacement_grade
-        != current.override_replacement_grade
+        previous.selected_override_reference != current.selected_override_reference
+        or previous.override_replacement_grade != current.override_replacement_grade
     ):
         present.add("override_changed")
     if previous.override_applicability != current.override_applicability:

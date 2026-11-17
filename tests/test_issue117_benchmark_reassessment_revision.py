@@ -21,12 +21,30 @@ _PLAN = "benchmark_mp1_assessment_1"
 def _first_plan(root: Path) -> None:
     result = _run(
         root,
-        "1", "teacher_1", "Students need to cite precise evidence.",
+        "1",
+        "teacher_1",
+        "Students need to cite precise evidence.",
         "n",  # No teacher-standard classification yet.
-        "y", "Evidence practice", "1,3", "Cite relevant details", "n",
-        "y", "1", "reading.analysis", "1,3", "Model text annotations",
-        "2026-10-18", "2026-10-25", "", "", "planned", "", "n",
-        "n", "SAVE PLAN", "b",
+        "y",
+        "Evidence practice",
+        "1,3",
+        "Cite relevant details",
+        "n",
+        "y",
+        "1",
+        "reading.analysis",
+        "1,3",
+        "Model text annotations",
+        "2026-10-18",
+        "2026-10-25",
+        "",
+        "",
+        "planned",
+        "",
+        "n",
+        "n",
+        "SAVE PLAN",
+        "b",
     )
     assert "revision 1 saved" in result
 
@@ -34,10 +52,23 @@ def _first_plan(root: Path) -> None:
 def _follow_up(root: Path, confirmation: str) -> str:
     return _run(
         root,
-        "4", "", "", "", "", "n", "y",
-        "Exit ticket", "2026-10-25", "Claims now reference text accurately.",
-        "3", "", "Evidence conference", "Continue monitoring",
-        "", confirmation, "b",
+        "4",
+        "",
+        "",
+        "",
+        "",
+        "n",
+        "y",
+        "Exit ticket",
+        "2026-10-25",
+        "Claims now reference text accurately.",
+        "3",
+        "",
+        "Evidence conference",
+        "Continue monitoring",
+        "",
+        confirmation,
+        "b",
     )
 
 

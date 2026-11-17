@@ -239,20 +239,26 @@ def test_one_hybrid_policy_composes_real_conventional_and_proficiency_paths(
         ),
     )
 
-    assert get_current_conventional_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        PERIOD,
-        CALENDAR_REVISION,
-    ) is None
-    assert get_current_standards_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        PERIOD,
-        CALENDAR_REVISION,
-    ) is None
+    assert (
+        get_current_conventional_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            PERIOD,
+            CALENDAR_REVISION,
+        )
+        is None
+    )
+    assert (
+        get_current_standards_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            PERIOD,
+            CALENDAR_REVISION,
+        )
+        is None
+    )
 
     assembly = assemble_hybrid_grade_calculation(
         root,
@@ -316,13 +322,16 @@ def test_one_hybrid_policy_composes_real_conventional_and_proficiency_paths(
         work_evidence=work_evidence,
     )
     assert written.disposition == "created"
-    assert get_current_hybrid_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        PERIOD,
-        CALENDAR_REVISION,
-    ) is None
+    assert (
+        get_current_hybrid_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            PERIOD,
+            CALENDAR_REVISION,
+        )
+        is None
+    )
 
     selected = select_hybrid_grade_result_revision(
         root,
@@ -348,9 +357,12 @@ def test_one_hybrid_policy_composes_real_conventional_and_proficiency_paths(
 
     payload = hybrid_grade_result_snapshot_to_json_bytes(current.snapshot)
     assert hybrid_grade_result_snapshot_from_json_bytes(payload) == current.snapshot
-    assert hybrid_grade_result_snapshot_to_json_bytes(
-        hybrid_grade_result_snapshot_from_json_bytes(payload)
-    ) == payload
+    assert (
+        hybrid_grade_result_snapshot_to_json_bytes(
+            hybrid_grade_result_snapshot_from_json_bytes(payload)
+        )
+        == payload
+    )
 
     refreshed = assemble_hybrid_grade_calculation(
         root,
@@ -367,20 +379,26 @@ def test_one_hybrid_policy_composes_real_conventional_and_proficiency_paths(
     assert freshness.status == "current"
     assert freshness.reasons == ()
 
-    assert get_current_conventional_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        PERIOD,
-        CALENDAR_REVISION,
-    ) is None
-    assert get_current_standards_grade_result_revision(
-        root,
-        CLASS_ID,
-        SHARED_STUDENT_ID,
-        PERIOD,
-        CALENDAR_REVISION,
-    ) is None
+    assert (
+        get_current_conventional_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            PERIOD,
+            CALENDAR_REVISION,
+        )
+        is None
+    )
+    assert (
+        get_current_standards_grade_result_revision(
+            root,
+            CLASS_ID,
+            SHARED_STUDENT_ID,
+            PERIOD,
+            CALENDAR_REVISION,
+        )
+        is None
+    )
 
     producer_after = {
         module_id: _tree_bytes(root, module_id)

@@ -31,8 +31,8 @@ NOW = datetime(2026, 9, 3, 5, 30, tzinfo=UTC)
 
 def _seed(tmp_path: Path):
     workspace, scale = _seed_workspace(tmp_path)
-    grade_item_basis, membership, membership_sha256 = (
-        _seed_current_grade_item_result(workspace, scale)
+    grade_item_basis, membership, membership_sha256 = _seed_current_grade_item_result(
+        workspace, scale
     )
     policy_id = _seed_period_result_and_grouping_policy(
         workspace,
@@ -95,11 +95,14 @@ def test_selection_preview_resolves_exact_review_and_is_read_only(
     assert preview.target_decision == "accepted_for_export"
     assert preview.target_applicability.status == "current"
     assert preview.review_selection_action == "not_performed"
-    assert get_current_grouping_signal_review_revision(
-        workspace,
-        CLASS_ID,
-        derivation_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_review_revision(
+            workspace,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
     assert list_grouping_signal_ids(workspace, CLASS_ID) == before_core
 
 
@@ -129,11 +132,14 @@ def test_commit_selects_exact_review_with_cas_and_does_not_export(
     assert result.review_selection_action == "performed"
     assert result.core_export_action == "not_performed"
     assert result.csv_export_action == "not_performed"
-    assert get_current_grouping_signal_review_revision(
-        workspace,
-        CLASS_ID,
-        review.review.derivation_reference.derivation_id,
-    ) == 1
+    assert (
+        get_current_grouping_signal_review_revision(
+            workspace,
+            CLASS_ID,
+            review.review.derivation_reference.derivation_id,
+        )
+        == 1
+    )
     assert list_grouping_signal_ids(workspace, CLASS_ID) == before_core
 
 

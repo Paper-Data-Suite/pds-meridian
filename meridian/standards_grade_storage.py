@@ -68,9 +68,7 @@ StandardsGradeResultSelectDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -257,11 +255,7 @@ def standards_grade_result_family_directory(
         period,
         calendar,
     )
-    path = (
-        standards_grades_directory(root, class_value)
-        / "subjects"
-        / subject_key
-    )
+    path = standards_grades_directory(root, class_value) / "subjects" / subject_key
     _require_containment(root, path)
     return path
 
@@ -295,13 +289,16 @@ def standards_grade_result_current_path(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
 ) -> Path:
-    return standards_grade_result_family_directory(
-        workspace_root,
-        class_id,
-        student_id,
-        target_period,
-        calendar_revision,
-    ) / "current.json"
+    return (
+        standards_grade_result_family_directory(
+            workspace_root,
+            class_id,
+            student_id,
+            target_period,
+            calendar_revision,
+        )
+        / "current.json"
+    )
 
 
 def standards_grade_result_revision_relative_path(
@@ -976,9 +973,7 @@ def _decode_pointer(data: bytes) -> dict[str, object]:
         decoded["result_revision"] = _positive_int(
             decoded["result_revision"], "result_revision"
         )
-        decoded["result_sha256"] = _sha256(
-            decoded["result_sha256"], "result_sha256"
-        )
+        decoded["result_sha256"] = _sha256(decoded["result_sha256"], "result_sha256")
     except StandardsGradeStorageValidationError as error:
         raise StandardsGradeStorageIntegrityError(
             "Current result pointer contains invalid persisted field values."
@@ -1366,9 +1361,7 @@ def _require_containment(root: Path, path: Path) -> None:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise StandardsGradeStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise StandardsGradeStorageValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

@@ -105,9 +105,7 @@ def _opaque_identifier(value: object, field_name: str) -> str:
     return text
 
 
-def _single_line(
-    value: object, field_name: str, *, allow_empty: bool = False
-) -> str:
+def _single_line(value: object, field_name: str, *, allow_empty: bool = False) -> str:
     if not isinstance(value, str):
         raise EvidenceValidationError(f"{field_name} must be a string.")
     if value != value.strip():
@@ -133,9 +131,7 @@ def _producer_native_text(value: object, field_name: str) -> str:
     if not isinstance(value, str):
         raise EvidenceValidationError(f"{field_name} must be a string.")
     if not value or not value.strip():
-        raise EvidenceValidationError(
-            f"{field_name} must contain non-whitespace text."
-        )
+        raise EvidenceValidationError(f"{field_name} must contain non-whitespace text.")
     if "\x00" in value:
         raise EvidenceValidationError(f"{field_name} must not contain NUL.")
     return value
@@ -350,9 +346,7 @@ class NativeProvenance:
     timestamps: tuple[NativeTimestamp, ...] = ()
 
     def __post_init__(self) -> None:
-        references = _typed_tuple(
-            self.references, NativeReference, "references"
-        )
+        references = _typed_tuple(self.references, NativeReference, "references")
         if not references:
             raise EvidenceValidationError("references must not be empty.")
         object.__setattr__(self, "references", references)
@@ -421,9 +415,7 @@ class EvidenceProvenance:
                 "intervention evidence must not carry an Academic Work Registration."
             )
         if not isinstance(self.projection, ProjectionIdentity):
-            raise EvidenceValidationError(
-                "projection must be a ProjectionIdentity."
-            )
+            raise EvidenceValidationError("projection must be a ProjectionIdentity.")
         if not isinstance(self.native, NativeProvenance):
             raise EvidenceValidationError("native must be NativeProvenance.")
         object.__setattr__(self, "publication", publication)
@@ -777,10 +769,9 @@ class NativePointValue:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, NativePointValue):
             return False
-        return (
-            _scalar_key(self.earned) == _scalar_key(other.earned)
-            and _scalar_key(self.possible) == _scalar_key(other.possible)
-        )
+        return _scalar_key(self.earned) == _scalar_key(other.earned) and _scalar_key(
+            self.possible
+        ) == _scalar_key(other.possible)
 
     def __hash__(self) -> int:
         return hash((_scalar_key(self.earned), _scalar_key(self.possible)))
@@ -881,9 +872,7 @@ class EvidenceEligibility:
             _contract_code(reason, "reason_code") for reason in reasons
         )
         if len(set(validated_reasons)) != len(validated_reasons):
-            raise EvidenceValidationError(
-                "reason_codes must not contain duplicates."
-            )
+            raise EvidenceValidationError("reason_codes must not contain duplicates.")
         if self.status == "unevaluated":
             if policy_id is not None or policy_version is not None or validated_reasons:
                 raise EvidenceValidationError(
@@ -917,9 +906,7 @@ class EvidenceEligibility:
         return cls(status="unevaluated")
 
     @classmethod
-    def eligible(
-        cls, *, policy_id: str, policy_version: str
-    ) -> EvidenceEligibility:
+    def eligible(cls, *, policy_id: str, policy_version: str) -> EvidenceEligibility:
         """Return an eligible decision under one exact policy version."""
         return cls(
             status="eligible",
@@ -961,12 +948,8 @@ class EvidenceItem:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "item_id", _core_identifier(self.item_id, "item_id"))
-        if self.subject is not None and not isinstance(
-            self.subject, StudentSubject
-        ):
-            raise EvidenceValidationError(
-                "subject must be a StudentSubject or None."
-            )
+        if self.subject is not None and not isinstance(self.subject, StudentSubject):
+            raise EvidenceValidationError("subject must be a StudentSubject or None.")
         if not isinstance(self.target, EvidenceTarget):
             raise EvidenceValidationError("target must be an EvidenceTarget.")
         object.__setattr__(
@@ -976,13 +959,9 @@ class EvidenceItem:
         )
         object.__setattr__(self, "value", _evidence_value(self.value))
         if not isinstance(self.provenance, EvidenceProvenance):
-            raise EvidenceValidationError(
-                "provenance must be an EvidenceProvenance."
-            )
+            raise EvidenceValidationError("provenance must be an EvidenceProvenance.")
         if not isinstance(self.eligibility, EvidenceEligibility):
-            raise EvidenceValidationError(
-                "eligibility must be an EvidenceEligibility."
-            )
+            raise EvidenceValidationError("eligibility must be an EvidenceEligibility.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -1004,8 +983,7 @@ class EvidenceInventory:
         return tuple(
             item
             for item in self.items
-            if item.subject is not None
-            and item.subject.student_id == validated
+            if item.subject is not None and item.subject.student_id == validated
         )
 
     def for_work(self, work: ModuleWorkRef) -> tuple[EvidenceItem, ...]:
@@ -1016,17 +994,13 @@ class EvidenceInventory:
             validated = validate_module_work_ref(work)
         except ValueError as error:
             raise EvidenceValidationError(f"work is invalid: {error}") from error
-        return tuple(
-            item for item in self.items if item.provenance.work == validated
-        )
+        return tuple(item for item in self.items if item.provenance.work == validated)
 
     def for_publication(self, publication_id: str) -> tuple[EvidenceItem, ...]:
         """Return items from one exact Core Publication Record."""
         validated = _core_identifier(publication_id, "publication_id")
         return tuple(
-            item
-            for item in self.items
-            if item.provenance.publication_id == validated
+            item for item in self.items if item.provenance.publication_id == validated
         )
 
     def for_target_kind(self, target_kind: str) -> tuple[EvidenceItem, ...]:
@@ -1043,12 +1017,8 @@ class EvidenceInventory:
             item for item in self.items if validated in item.target.standard_ids
         )
 
-    def for_eligibility(
-        self, status: EligibilityStatus
-    ) -> tuple[EvidenceItem, ...]:
+    def for_eligibility(self, status: EligibilityStatus) -> tuple[EvidenceItem, ...]:
         """Return items with one exact eligibility status."""
         if status not in {"unevaluated", "eligible", "ineligible"}:
             raise EvidenceValidationError("status is not a valid eligibility status.")
-        return tuple(
-            item for item in self.items if item.eligibility.status == status
-        )
+        return tuple(item for item in self.items if item.eligibility.status == status)

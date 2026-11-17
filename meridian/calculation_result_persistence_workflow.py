@@ -42,9 +42,7 @@ class CalculationResultPersistenceScopeError(
     code = "teacher_workflow.calculation_preview.result_persistence_invalid"
 
 
-class CalculationResultPersistenceStaleError(
-    CalculationResultPersistenceError
-):
+class CalculationResultPersistenceStaleError(CalculationResultPersistenceError):
     """Raised when reviewed calculation/history changes before result write."""
 
     code = "teacher_workflow.calculation_preview.result_persistence_stale"
@@ -109,8 +107,7 @@ class CalculationResultPersistenceWorkflowResult:
     @property
     def selection_changed_during_write(self) -> bool:
         return (
-            self.selected_revision_after_write
-            != self.preview.selected_revision_before
+            self.selected_revision_after_write != self.preview.selected_revision_before
         )
 
     @property
@@ -205,10 +202,7 @@ def commit_calculation_result_persistence_preview(
         raise CalculationResultPersistenceStaleError(
             "Exact standards aggregation inputs changed after preview."
         )
-    if (
-        fresh.calculation.policy_reference
-        != reviewed.calculation.policy_reference
-    ):
+    if fresh.calculation.policy_reference != reviewed.calculation.policy_reference:
         raise CalculationResultPersistenceStaleError(
             "Calculation-policy reference changed after preview."
         )
@@ -309,14 +303,10 @@ def _result_state(
 
 def _actor_id(value: str) -> str:
     if not isinstance(value, str):
-        raise CalculationResultPersistenceScopeError(
-            "actor_id must be a string."
-        )
+        raise CalculationResultPersistenceScopeError("actor_id must be a string.")
     normalized = value.strip()
     if not normalized:
-        raise CalculationResultPersistenceScopeError(
-            "actor_id must be nonempty."
-        )
+        raise CalculationResultPersistenceScopeError("actor_id must be nonempty.")
     if len(normalized) > MAXIMUM_STANDARD_PROFICIENCY_ACTOR_ID_LENGTH:
         raise CalculationResultPersistenceScopeError(
             "actor_id exceeds the standards-proficiency actor bound."

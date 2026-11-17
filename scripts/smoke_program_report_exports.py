@@ -116,9 +116,7 @@ def main() -> int:
     _verify_installed_composition()
     root = Path(sys.argv[1]).resolve()
     issue55_baseline = _mapping(
-        json.loads(
-            (root / issue55.BASELINE_NAME).read_text(encoding="utf-8")
-        ),
+        json.loads((root / issue55.BASELINE_NAME).read_text(encoding="utf-8")),
         "Issue #55 baseline must be an object.",
     )
     workspace = root / _text(
@@ -150,9 +148,7 @@ def main() -> int:
         stored_snapshot.reference == snapshot_reference,
         "Installed #56 source ReportingSnapshot reference changed.",
     )
-    snapshot_source_sha256 = hashlib.sha256(
-        stored_snapshot.content
-    ).hexdigest()
+    snapshot_source_sha256 = hashlib.sha256(stored_snapshot.content).hexdigest()
 
     roster = load_class_roster(workspace, class_id)
     _require(
@@ -236,9 +232,7 @@ def main() -> int:
         "Roster-backed installed export did not bind a roster observation.",
     )
     assert roster_preview.roster_observation is not None
-    roster_observation_reference = (
-        roster_preview.preview.roster_observation_reference
-    )
+    roster_observation_reference = roster_preview.preview.roster_observation_reference
     _require(
         roster_observation_reference is not None,
         "Roster-backed installed preview lost its roster observation reference.",
@@ -290,8 +284,7 @@ def main() -> int:
         snapshot_reference.snapshot_id,
     )
     _require(
-        hashlib.sha256(reloaded_snapshot.content).hexdigest()
-        == snapshot_source_sha256,
+        hashlib.sha256(reloaded_snapshot.content).hexdigest() == snapshot_source_sha256,
         "Installed export mutated source ReportingSnapshot bytes.",
     )
     _require(
@@ -309,12 +302,8 @@ def main() -> int:
         "roster_source_sha256": roster_source_sha256,
         "snapshot_profile": {
             "profile_id": stored_snapshot_profile.reference.profile_id,
-            "profile_revision": (
-                stored_snapshot_profile.reference.profile_revision
-            ),
-            "profile_sha256": (
-                stored_snapshot_profile.reference.profile_sha256
-            ),
+            "profile_revision": (stored_snapshot_profile.reference.profile_revision),
+            "profile_sha256": (stored_snapshot_profile.reference.profile_sha256),
             "preview_sha256": snapshot_preview.preview.preview_sha256,
             "payload_sha256": snapshot_preview.preview.payload_sha256,
         },

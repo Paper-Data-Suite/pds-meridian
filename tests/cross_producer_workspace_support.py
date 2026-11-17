@@ -187,9 +187,7 @@ def concord_bytes() -> bytes:
             projection_digest="0" * 64,
         ),
     )
-    return academic_result_manifest_to_bytes(
-        with_semantic_projection_digest(changed)
-    )
+    return academic_result_manifest_to_bytes(with_semantic_projection_digest(changed))
 
 
 def _register_all(workspace: Path) -> None:
@@ -288,9 +286,7 @@ def build_mixed_workspace(tmp_path: Path) -> MixedWorkspace:
     quillan_manifest = quillan_bytes()
     concord_manifest = concord_bytes()
     concord_capabilities = tuple(
-        derive_manifest_capabilities(
-            read_academic_result_manifest(concord_manifest)
-        )
+        derive_manifest_capabilities(read_academic_result_manifest(concord_manifest))
     )
 
     publications = {

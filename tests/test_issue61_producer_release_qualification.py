@@ -21,9 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def test_issue61_exact_latest_direct_producer_artifacts_are_pinned() -> None:
     assert EXPECTED_SCOREFORM_VERSION == "0.12.1"
-    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == (
-        "scoreform-0.12.1-py3-none-any.whl"
-    )
+    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == ("scoreform-0.12.1-py3-none-any.whl")
     assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
         "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
     )
@@ -53,12 +51,10 @@ def test_issue61_ci_uses_the_same_authenticated_release_artifacts() -> None:
     workflow = (REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert (
-        "pds-scoreform/releases/download/v0.13.0/"
-        "scoreform-0.13.0-py3-none-any.whl"
+        "pds-scoreform/releases/download/v0.13.0/scoreform-0.13.0-py3-none-any.whl"
     ) in workflow
     assert (
-        "pds-quillan/releases/download/v0.10.6/"
-        "quillan-0.10.6-py3-none-any.whl"
+        "pds-quillan/releases/download/v0.10.6/quillan-0.10.6-py3-none-any.whl"
     ) in workflow
 
     assert "scoreform-0.11.0-py3-none-any.whl" not in workflow
@@ -91,9 +87,9 @@ def test_issue61_installed_smokes_bind_latest_direct_reader_versions() -> None:
 
 def test_issue61_promotion_requires_completed_substantive_audit() -> None:
     version_file = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
-    audit = (
-        REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
-    ).read_text(encoding="utf-8")
+    audit = (REPO_ROOT / "docs/development/v0.3.0-release-audit.md").read_text(
+        encoding="utf-8"
+    )
 
     assert '__version__: Final[str] = "0.4.2"' in version_file
     assert "Substantive blocker count: **0**" in audit

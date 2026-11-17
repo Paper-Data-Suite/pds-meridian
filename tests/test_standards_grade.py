@@ -438,9 +438,8 @@ def test_final_rounding_happens_after_weighted_mean() -> None:
             calculated(config.standards[1], "high"),
         )
     )
-    expected = (
-        Decimal("82.555") * Decimal("0.333")
-        + Decimal("91.445") * Decimal("0.667")
+    expected = Decimal("82.555") * Decimal("0.333") + Decimal("91.445") * Decimal(
+        "0.667"
     )
     assert outcome.weighted_numerator == expected
     assert outcome.unrounded_grade == expected

@@ -66,8 +66,7 @@ def activation(
         policy_reference=policy,
         actor=GradePolicyActor("teacher", "teacher_local"),
         rationale=None,
-        decided_at=decided_at
-        or NOW + timedelta(hours=revision - 1),
+        decided_at=decided_at or NOW + timedelta(hours=revision - 1),
     )
 
 
@@ -176,20 +175,20 @@ def test_canonical_round_trip_and_reference_digest() -> None:
     assert grade_policy_activation_decision_from_json_bytes(content) == value
     reference = grade_policy_activation_reference(value)
     assert reference.activation_sha256 == hashlib.sha256(content).hexdigest()
-    assert grade_policy_activation_reference_from_dict(
-        grade_policy_activation_reference_to_dict(reference)
-    ) == reference
+    assert (
+        grade_policy_activation_reference_from_dict(
+            grade_policy_activation_reference_to_dict(reference)
+        )
+        == reference
+    )
 
 
 def test_noncanonical_duplicate_unknown_and_missing_json_fail() -> None:
     value = activation()
-    canonical = grade_policy_activation_decision_to_json_bytes(value).decode(
-        "utf-8"
-    )
+    canonical = grade_policy_activation_decision_to_json_bytes(value).decode("utf-8")
     duplicate = canonical.replace(
         '  "class_id": "synthetic_class_2026",',
-        '  "class_id": "synthetic_class_2026",\n'
-        '  "class_id": "synthetic_class_2026",',
+        '  "class_id": "synthetic_class_2026",\n  "class_id": "synthetic_class_2026",',
         1,
     ).encode("utf-8")
     with pytest.raises(

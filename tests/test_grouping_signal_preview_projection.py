@@ -46,8 +46,8 @@ NOW = datetime(2026, 8, 31, 18, 30, tzinfo=UTC)
 
 def _seed(tmp_path: Path):
     workspace, scale = _seed_workspace(tmp_path)
-    grade_item_basis, membership, membership_sha256 = (
-        _seed_current_grade_item_result(workspace, scale)
+    grade_item_basis, membership, membership_sha256 = _seed_current_grade_item_result(
+        workspace, scale
     )
     policy_id = _seed_period_result_and_grouping_policy(
         workspace,
@@ -165,14 +165,20 @@ def test_projection_display_name_join_is_transient_and_identity_neutral(
     assert projection.preview_reference == before_reference
     assert projection.derivation_reference == derivation.reference
     assert projection.live_currentness.state == "current"
-    assert list_grouping_signal_derivation_ids(
-        workspace,
-        CLASS_ID,
-    ) == before_derivations
-    assert list_grouping_signal_preview_ids(
-        workspace,
-        CLASS_ID,
-    ) == before_previews
+    assert (
+        list_grouping_signal_derivation_ids(
+            workspace,
+            CLASS_ID,
+        )
+        == before_derivations
+    )
+    assert (
+        list_grouping_signal_preview_ids(
+            workspace,
+            CLASS_ID,
+        )
+        == before_previews
+    )
 
 
 def test_projection_surfaces_selected_review_and_live_applicability(

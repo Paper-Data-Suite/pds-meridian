@@ -155,7 +155,7 @@ class ReportingDefinitionRevision:
             )
         if self.record_type != REPORTING_DEFINITION_RECORD_TYPE:
             raise ReportingDefinitionValidationError(
-                'reporting definition record_type must be '
+                "reporting definition record_type must be "
                 '"meridian_reporting_definition".'
             )
         object.__setattr__(self, "class_id", _identifier(self.class_id, "class_id"))
@@ -199,9 +199,7 @@ class ReportingDefinitionRevision:
                 "intended_audience must be teacher for v1."
             )
         if not isinstance(self.actor, ReportingActor):
-            raise ReportingDefinitionValidationError(
-                "actor must be a ReportingActor."
-            )
+            raise ReportingDefinitionValidationError("actor must be a ReportingActor.")
         actor = ReportingActor(self.actor.kind, self.actor.actor_id)
         rationale = _optional_bounded_text(
             self.rationale,
@@ -542,9 +540,7 @@ def reporting_definition_revision_from_dict(
         ) from error
     actor_kind = _require_str(actor_data["kind"], "actor.kind")
     if actor_kind not in _ACTOR_KINDS:
-        raise ReportingSnapshotValidationError(
-            "reporting actor kind must be teacher."
-        )
+        raise ReportingSnapshotValidationError("reporting actor kind must be teacher.")
     report_kind = _require_str(mapping["report_kind"], "report_kind")
     if report_kind not in _REPORT_KINDS:
         raise ReportingSnapshotValidationError("report_kind must be grade_report.")
@@ -729,8 +725,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise ReportingSnapshotValidationError(
             f"{field_name} must be single-line and free of control characters."
@@ -775,9 +770,7 @@ def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
         raise ReportingSnapshotValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
-        raise ReportingSnapshotValidationError(
-            f"{field_name} must be timezone-aware."
-        )
+        raise ReportingSnapshotValidationError(f"{field_name} must be timezone-aware.")
     return value.astimezone(UTC)
 
 

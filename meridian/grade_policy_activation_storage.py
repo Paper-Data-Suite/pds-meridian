@@ -69,9 +69,7 @@ GradePolicyActivationResolutionStatus: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -122,9 +120,7 @@ class GradePolicyActivationStorageConflictError(GradePolicyActivationStorageErro
     code = "grade_policy_activation.conflict"
 
 
-class GradePolicyActivationStorageLockError(
-    GradePolicyActivationStorageConflictError
-):
+class GradePolicyActivationStorageLockError(GradePolicyActivationStorageConflictError):
     """Raised when another writer owns one logical activation history."""
 
     code = "grade_policy_activation.locked"
@@ -136,17 +132,13 @@ class GradePolicyActivationStorageIntegrityError(GradePolicyActivationStorageErr
     code = "grade_policy_activation.integrity_failed"
 
 
-class GradePolicyActivationStorageTooLargeError(
-    GradePolicyActivationStorageReadError
-):
+class GradePolicyActivationStorageTooLargeError(GradePolicyActivationStorageReadError):
     """Raised when persisted state exceeds configured read bounds."""
 
     code = "grade_policy_activation.too_large"
 
 
-class GradePolicyActivationDependencyError(
-    GradePolicyActivationStorageConflictError
-):
+class GradePolicyActivationDependencyError(GradePolicyActivationStorageConflictError):
     """Raised when exact Core/policy dependencies cannot be verified."""
 
     code = "grade_policy_activation.dependency_invalid"
@@ -263,7 +255,7 @@ class GradePolicyActivationCurrentSelection:
             )
         if self.record_type != GRADE_POLICY_ACTIVATION_CURRENT_RECORD_TYPE:
             raise GradePolicyActivationStorageValidationError(
-                'current record_type must be '
+                "current record_type must be "
                 '"meridian_grade_policy_activation_current".'
             )
         class_id = _identifier(self.class_id, "class_id")
@@ -382,10 +374,9 @@ def grade_policy_activation_directory(
     target_period: AcademicPeriodRef,
 ) -> Path:
     period = _period_ref(target_period)
-    return (
-        grade_policy_activations_directory(workspace_root, class_id)
-        / grade_policy_activation_period_key(class_id, period)
-    )
+    return grade_policy_activations_directory(
+        workspace_root, class_id
+    ) / grade_policy_activation_period_key(class_id, period)
 
 
 def grade_policy_activation_revisions_directory(
@@ -393,9 +384,7 @@ def grade_policy_activation_revisions_directory(
     class_id: str,
     target_period: AcademicPeriodRef,
 ) -> Path:
-    return grade_policy_activation_directory(
-        workspace_root, class_id, target_period
-    )
+    return grade_policy_activation_directory(workspace_root, class_id, target_period)
 
 
 def grade_policy_activation_revision_path(
@@ -405,9 +394,12 @@ def grade_policy_activation_revision_path(
     activation_revision: int,
 ) -> Path:
     revision = _positive_int(activation_revision, "activation_revision")
-    return grade_policy_activation_revisions_directory(
-        workspace_root, class_id, target_period
-    ) / f"{revision}.json"
+    return (
+        grade_policy_activation_revisions_directory(
+            workspace_root, class_id, target_period
+        )
+        / f"{revision}.json"
+    )
 
 
 def grade_policy_activation_revision_digest_path(
@@ -434,9 +426,10 @@ def grade_policy_activation_current_path(
     class_id: str,
     target_period: AcademicPeriodRef,
 ) -> Path:
-    return grade_policy_activation_directory(
-        workspace_root, class_id, target_period
-    ) / "current.json"
+    return (
+        grade_policy_activation_directory(workspace_root, class_id, target_period)
+        / "current.json"
+    )
 
 
 def grade_policy_activation_revision_relative_path(
@@ -626,9 +619,7 @@ def load_grade_policy_activation_revision(
     class_value = _identifier(class_id, "class_id")
     period = _period_ref(target_period)
     revision = _positive_int(activation_revision, "activation_revision")
-    path = grade_policy_activation_revision_path(
-        root, class_value, period, revision
-    )
+    path = grade_policy_activation_revision_path(root, class_value, period, revision)
     digest_path = grade_policy_activation_revision_digest_path(
         root, class_value, period, revision
     )
@@ -733,9 +724,7 @@ def list_grade_policy_activation_revisions(
         )
         if previous is not None:
             try:
-                validate_grade_policy_activation_transition(
-                    previous, stored.decision
-                )
+                validate_grade_policy_activation_transition(previous, stored.decision)
             except GradePolicyActivationValidationError as error:
                 raise GradePolicyActivationStorageIntegrityError(
                     f"Activation history is invalid: {error}"
@@ -752,11 +741,7 @@ def get_current_grade_policy_activation_revision(
     selection = _load_current_selection(
         workspace_root, class_id, target_period, missing_ok=True
     )
-    return (
-        selection.activation_revision
-        if selection is not None
-        else None
-    )
+    return selection.activation_revision if selection is not None else None
 
 
 def load_current_grade_policy_activation(
@@ -811,12 +796,8 @@ def select_grade_policy_activation_revision(
             root, class_value, period, revision
         )
         validate_grade_policy_activation_dependencies(root, target.decision)
-        current = _load_current_selection(
-            root, class_value, period, missing_ok=True
-        )
-        current_revision = (
-            current.activation_revision if current is not None else None
-        )
+        current = _load_current_selection(root, class_value, period, missing_ok=True)
+        current_revision = current.activation_revision if current is not None else None
         if current_revision != expected:
             raise GradePolicyActivationStorageConflictError(
                 "Expected current activation revision does not match stored selection."
@@ -830,13 +811,9 @@ def select_grade_policy_activation_revision(
             activation_sha256=target.activation_sha256,
         )
         if current == selection:
-            return GradePolicyActivationSelectionResult(
-                "existing", selection, target
-            )
+            return GradePolicyActivationSelectionResult("existing", selection, target)
         _publish_current_selection(root, selection)
-        verified = _load_current_selection(
-            root, class_value, period, missing_ok=False
-        )
+        verified = _load_current_selection(root, class_value, period, missing_ok=False)
         if verified != selection:
             raise GradePolicyActivationStorageIntegrityError(
                 "Published activation selection could not be verified."
@@ -844,9 +821,7 @@ def select_grade_policy_activation_revision(
         disposition: GradePolicyActivationSelectDisposition = (
             "created" if current is None else "updated"
         )
-        return GradePolicyActivationSelectionResult(
-            disposition, selection, target
-        )
+        return GradePolicyActivationSelectionResult(disposition, selection, target)
     finally:
         _remove_lock(lock)
 
@@ -864,9 +839,7 @@ def resolve_grade_policy_activation(
     if stored is None:
         return GradePolicyActivationResolution("unconfigured", None, None)
     if stored.decision.decision == "deactivate":
-        validate_grade_policy_activation_dependencies(
-            workspace_root, stored.decision
-        )
+        validate_grade_policy_activation_dependencies(workspace_root, stored.decision)
         return GradePolicyActivationResolution("deactivated", stored, None)
 
     dependencies = validate_grade_policy_activation_dependencies(
@@ -968,9 +941,7 @@ def _current_selection_from_json_bytes(
         )
     try:
         selection = GradePolicyActivationCurrentSelection(
-            schema_version=_pointer_str(
-                decoded["schema_version"], "schema_version"
-            ),
+            schema_version=_pointer_str(decoded["schema_version"], "schema_version"),
             record_type=_pointer_str(decoded["record_type"], "record_type"),
             class_id=_pointer_str(decoded["class_id"], "class_id"),
             target_period=academic_period_ref_from_dict(decoded["target_period"]),
@@ -1191,9 +1162,7 @@ def _read_bounded_regular_file(
     except GradePolicyActivationStorageError:
         raise
     except FileNotFoundError as error:
-        raise GradePolicyActivationStorageNotFoundError(
-            missing_message
-        ) from error
+        raise GradePolicyActivationStorageNotFoundError(missing_message) from error
     except OSError as error:
         raise GradePolicyActivationStorageReadError(
             "Could not read activation storage file."

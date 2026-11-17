@@ -135,12 +135,8 @@ _ITEM_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
 _ITEM_PARTICIPATION_KEYS: Final[frozenset[str]] = frozenset(
     {"grade_item", "category_id", "weight", "possible_points"}
 )
-_CATEGORY_KEYS: Final[frozenset[str]] = frozenset(
-    {"category_id", "title", "weight"}
-)
-_CONVENTIONAL_KEYS: Final[frozenset[str]] = frozenset(
-    {"mode", "items", "categories"}
-)
+_CATEGORY_KEYS: Final[frozenset[str]] = frozenset({"category_id", "title", "weight"})
+_CONVENTIONAL_KEYS: Final[frozenset[str]] = frozenset({"mode", "items", "categories"})
 _STANDARD_PARTICIPATION_KEYS: Final[frozenset[str]] = frozenset(
     {"standard_id", "weight"}
 )
@@ -157,9 +153,7 @@ _STANDARDS_KEYS: Final[frozenset[str]] = frozenset(
         "profile_constraints",
     }
 )
-_PROFILE_GROUP_KEYS: Final[frozenset[str]] = frozenset(
-    {"group_id", "standard_ids"}
-)
+_PROFILE_GROUP_KEYS: Final[frozenset[str]] = frozenset({"group_id", "standard_ids"})
 _PROFILE_PREDICATE_KEYS: Final[frozenset[str]] = frozenset(
     {
         "predicate_id",
@@ -527,8 +521,7 @@ class ProfileStandardGroup:
                 "profile standard group must contain at least one standard."
             )
         standard_ids = tuple(
-            normalize_standard_id(standard_id)
-            for standard_id in raw_standard_ids
+            normalize_standard_id(standard_id) for standard_id in raw_standard_ids
         )
         if len(set(standard_ids)) != len(standard_ids):
             raise GradePolicyValidationError(
@@ -552,9 +545,7 @@ class ProfilePredicate:
     def __post_init__(self) -> None:
         predicate_id = _identifier(self.predicate_id, "predicate_id")
         if self.kind not in _PROFILE_PREDICATE_KINDS:
-            raise GradePolicyValidationError(
-                "profile predicate kind is not supported."
-            )
+            raise GradePolicyValidationError("profile predicate kind is not supported.")
         group_id = _identifier(self.group_id, "group_id")
         level_id = _identifier(
             self.proficiency_level_id,
@@ -782,9 +773,7 @@ class StandardsBasedGradeConfiguration:
             raise GradePolicyValidationError(
                 "standards-based configuration must include at least one standard."
             )
-        standards = tuple(
-            sorted(standards, key=lambda item: item.standard_id)
-        )
+        standards = tuple(sorted(standards, key=lambda item: item.standard_id))
         standard_ids = tuple(item.standard_id for item in standards)
         if len(set(standard_ids)) != len(standard_ids):
             raise GradePolicyValidationError(
@@ -938,8 +927,7 @@ class GradeReassessmentHandling:
     def __post_init__(self) -> None:
         if self.selection_authority != "v02_attempt_and_reassessment_state":
             raise GradePolicyValidationError(
-                "selection_authority must be "
-                "v02_attempt_and_reassessment_state."
+                "selection_authority must be v02_attempt_and_reassessment_state."
             )
         if self.unresolved_handling not in {"exclude", "blocking"}:
             raise GradePolicyValidationError(
@@ -966,9 +954,7 @@ class GradeRoundingPolicy:
                 "rounding mode is not supported by Grade policy v1."
             )
         if self.application_stage not in _ROUNDING_STAGES:
-            raise GradePolicyValidationError(
-                "application_stage must be final."
-            )
+            raise GradePolicyValidationError("application_stage must be final.")
 
 
 GradePolicyConfiguration: TypeAlias = (
@@ -1042,13 +1028,9 @@ class GradePolicyRevision:
                 "reassessment_handling must be GradeReassessmentHandling."
             )
         if not isinstance(self.rounding, GradeRoundingPolicy):
-            raise GradePolicyValidationError(
-                "rounding must be a GradeRoundingPolicy."
-            )
+            raise GradePolicyValidationError("rounding must be a GradeRoundingPolicy.")
         if not isinstance(self.actor, GradePolicyActor):
-            raise GradePolicyValidationError(
-                "actor must be a GradePolicyActor."
-            )
+            raise GradePolicyValidationError("actor must be a GradePolicyActor.")
         rationale = _optional_bounded_text(
             self.rationale,
             "rationale",
@@ -1130,13 +1112,9 @@ def validate_grade_policy_revision_transition(
     old = validate_grade_policy_revision(previous)
     new = validate_grade_policy_revision(candidate)
     if new.class_id != old.class_id:
-        raise GradePolicyValidationError(
-            "candidate class_id must match previous."
-        )
+        raise GradePolicyValidationError("candidate class_id must match previous.")
     if new.policy_id != old.policy_id:
-        raise GradePolicyValidationError(
-            "candidate policy_id must match previous."
-        )
+        raise GradePolicyValidationError("candidate policy_id must match previous.")
     if new.policy_revision != old.policy_revision + 1:
         raise GradePolicyValidationError(
             "candidate policy_revision must be exactly one greater than previous."
@@ -1156,9 +1134,7 @@ def grade_policy_reference(value: GradePolicyRevision) -> GradePolicyReference:
     """Return the exact digest-bound reference for one policy revision."""
 
     revision = validate_grade_policy_revision(value)
-    digest = hashlib.sha256(
-        grade_policy_revision_to_json_bytes(revision)
-    ).hexdigest()
+    digest = hashlib.sha256(grade_policy_revision_to_json_bytes(revision)).hexdigest()
     return GradePolicyReference(
         class_id=revision.class_id,
         policy_id=revision.policy_id,
@@ -1229,9 +1205,7 @@ def grade_policy_revision_to_dict(
         "calculation_family": policy.calculation_family,
         "configuration": _configuration_to_dict(policy.configuration),
         "state_treatment": _state_treatment_to_dict(policy.state_treatment),
-        "reassessment_handling": _reassessment_to_dict(
-            policy.reassessment_handling
-        ),
+        "reassessment_handling": _reassessment_to_dict(policy.reassessment_handling),
         "rounding": _rounding_to_dict(policy.rounding),
         "actor": _actor_to_dict(policy.actor),
         "rationale": policy.rationale,
@@ -1249,8 +1223,7 @@ def grade_policy_revision_from_dict(data: object) -> GradePolicyRevision:
     )
     if family_text not in _CALCULATION_FAMILIES:
         raise GradePolicyValidationError(
-            "calculation_family must be one of: "
-            "conventional, hybrid, standards_based."
+            "calculation_family must be one of: conventional, hybrid, standards_based."
         )
     family = cast(GradeCalculationFamily, family_text)
     supersedes = mapping["supersedes_revision"]
@@ -1262,9 +1235,7 @@ def grade_policy_revision_from_dict(data: object) -> GradePolicyRevision:
         )
     rationale = mapping["rationale"]
     if rationale is not None and not isinstance(rationale, str):
-        raise GradePolicyValidationError(
-            "rationale must be a string or null."
-        )
+        raise GradePolicyValidationError("rationale must be a string or null.")
     return GradePolicyRevision(
         schema_version=_require_str(
             mapping["schema_version"],
@@ -1284,12 +1255,8 @@ def grade_policy_revision_from_dict(data: object) -> GradePolicyRevision:
             family,
             mapping["configuration"],
         ),
-        state_treatment=_state_treatment_from_dict(
-            mapping["state_treatment"]
-        ),
-        reassessment_handling=_reassessment_from_dict(
-            mapping["reassessment_handling"]
-        ),
+        state_treatment=_state_treatment_from_dict(mapping["state_treatment"]),
+        reassessment_handling=_reassessment_from_dict(mapping["reassessment_handling"]),
         rounding=_rounding_from_dict(mapping["rounding"]),
         actor=_actor_from_dict(mapping["actor"]),
         rationale=rationale,
@@ -1385,16 +1352,12 @@ def _item_participation_to_dict(
     value: GradePolicyItemParticipation,
 ) -> dict[str, object]:
     if not isinstance(value, GradePolicyItemParticipation):
-        raise GradePolicyValidationError(
-            "item must be GradePolicyItemParticipation."
-        )
+        raise GradePolicyValidationError("item must be GradePolicyItemParticipation.")
     return {
         "grade_item": _item_reference_to_dict(value.grade_item),
         "category_id": value.category_id,
         "weight": (
-            _decimal_text(value.weight, "weight")
-            if value.weight is not None
-            else None
+            _decimal_text(value.weight, "weight") if value.weight is not None else None
         ),
         "possible_points": (
             _decimal_text(value.possible_points, "possible_points")
@@ -1414,9 +1377,7 @@ def _item_participation_from_dict(
     )
     category = mapping["category_id"]
     if category is not None and not isinstance(category, str):
-        raise GradePolicyValidationError(
-            "category_id must be a string or null."
-        )
+        raise GradePolicyValidationError("category_id must be a string or null.")
     weight = _optional_decimal_from_text(mapping["weight"], "weight")
     possible_points = _optional_decimal_from_text(
         mapping["possible_points"],
@@ -1432,9 +1393,7 @@ def _item_participation_from_dict(
 
 def _category_to_dict(value: GradePolicyCategory) -> dict[str, object]:
     if not isinstance(value, GradePolicyCategory):
-        raise GradePolicyValidationError(
-            "category must be a GradePolicyCategory."
-        )
+        raise GradePolicyValidationError("category must be a GradePolicyCategory.")
     return {
         "category_id": value.category_id,
         "title": value.title,
@@ -1485,9 +1444,7 @@ def _standard_participation_to_dict(
     value: StandardGradeParticipation,
 ) -> dict[str, object]:
     if not isinstance(value, StandardGradeParticipation):
-        raise GradePolicyValidationError(
-            "standard must be StandardGradeParticipation."
-        )
+        raise GradePolicyValidationError("standard must be StandardGradeParticipation.")
     return {
         "standard_id": value.standard_id,
         "weight": _decimal_text(value.weight, "weight"),
@@ -1581,16 +1538,12 @@ def _proficiency_scale_reference_from_dict(
             ),
         )
     except ValueError as error:
-        raise GradePolicyValidationError(
-            f"target_scale is invalid: {error}"
-        ) from error
+        raise GradePolicyValidationError(f"target_scale is invalid: {error}") from error
 
 
 def _profile_group_to_dict(value: ProfileStandardGroup) -> dict[str, object]:
     if not isinstance(value, ProfileStandardGroup):
-        raise GradePolicyValidationError(
-            "profile group must be ProfileStandardGroup."
-        )
+        raise GradePolicyValidationError("profile group must be ProfileStandardGroup.")
     return {
         "group_id": value.group_id,
         "standard_ids": list(value.standard_ids),
@@ -1607,17 +1560,14 @@ def _profile_group_from_dict(data: object) -> ProfileStandardGroup:
     return ProfileStandardGroup(
         group_id=_require_str(mapping["group_id"], "group_id"),
         standard_ids=tuple(
-            _require_str(item, "standard_ids item")
-            for item in standard_ids
+            _require_str(item, "standard_ids item") for item in standard_ids
         ),
     )
 
 
 def _profile_predicate_to_dict(value: ProfilePredicate) -> dict[str, object]:
     if not isinstance(value, ProfilePredicate):
-        raise GradePolicyValidationError(
-            "profile predicate must be ProfilePredicate."
-        )
+        raise GradePolicyValidationError("profile predicate must be ProfilePredicate.")
     return {
         "predicate_id": value.predicate_id,
         "kind": value.kind,
@@ -1665,9 +1615,7 @@ def _profile_predicate_from_dict(data: object) -> ProfilePredicate:
 
 def _profile_band_to_dict(value: ProfileGradeBand) -> dict[str, object]:
     if not isinstance(value, ProfileGradeBand):
-        raise GradePolicyValidationError(
-            "profile Grade band must be ProfileGradeBand."
-        )
+        raise GradePolicyValidationError("profile Grade band must be ProfileGradeBand.")
     return {
         "band_id": value.band_id,
         "priority": value.priority,
@@ -1681,10 +1629,7 @@ def _profile_band_to_dict(value: ProfileGradeBand) -> dict[str, object]:
             "maximum_grade",
             allow_zero=True,
         ),
-        "predicates": [
-            _profile_predicate_to_dict(item)
-            for item in value.predicates
-        ],
+        "predicates": [_profile_predicate_to_dict(item) for item in value.predicates],
     }
 
 
@@ -1708,10 +1653,7 @@ def _profile_band_from_dict(data: object) -> ProfileGradeBand:
             "maximum_grade",
             allow_zero=True,
         ),
-        predicates=tuple(
-            _profile_predicate_from_dict(item)
-            for item in predicates
-        ),
+        predicates=tuple(_profile_predicate_from_dict(item) for item in predicates),
     )
 
 
@@ -1757,16 +1699,11 @@ def _standards_to_dict(
             "configuration must be StandardsBasedGradeConfiguration."
         )
     return {
-        "target_scale": _proficiency_scale_reference_to_dict(
-            value.target_scale
-        ),
+        "target_scale": _proficiency_scale_reference_to_dict(value.target_scale),
         "standards": [
-            _standard_participation_to_dict(item)
-            for item in value.standards
+            _standard_participation_to_dict(item) for item in value.standards
         ],
-        "conversions": [
-            _conversion_to_dict(item) for item in value.conversions
-        ],
+        "conversions": [_conversion_to_dict(item) for item in value.conversions],
         "aggregation_strategy": value.aggregation_strategy,
         "minimum_calculated_results": value.minimum_calculated_results,
         "profile_constraints": (
@@ -1785,9 +1722,7 @@ def _standards_from_dict(data: object) -> StandardsBasedGradeConfiguration:
     )
     standards = _require_list(mapping["standards"], "standards")
     conversions = _require_list(mapping["conversions"], "conversions")
-    target_scale = _proficiency_scale_reference_from_dict(
-        mapping["target_scale"]
-    )
+    target_scale = _proficiency_scale_reference_from_dict(mapping["target_scale"])
     strategy = _require_str(
         mapping["aggregation_strategy"],
         "aggregation_strategy",
@@ -1795,13 +1730,8 @@ def _standards_from_dict(data: object) -> StandardsBasedGradeConfiguration:
     profile_constraints_data = mapping["profile_constraints"]
     return StandardsBasedGradeConfiguration(
         target_scale=target_scale,
-        standards=tuple(
-            _standard_participation_from_dict(item)
-            for item in standards
-        ),
-        conversions=tuple(
-            _conversion_from_dict(item) for item in conversions
-        ),
+        standards=tuple(_standard_participation_from_dict(item) for item in standards),
+        conversions=tuple(_conversion_from_dict(item) for item in conversions),
         aggregation_strategy=cast(
             StandardsGradeAggregationStrategy,
             strategy,
@@ -1877,9 +1807,7 @@ def _state_treatment_to_dict(
     value: GradeStateTreatment,
 ) -> dict[str, object]:
     if not isinstance(value, GradeStateTreatment):
-        raise GradePolicyValidationError(
-            "state_treatment must be GradeStateTreatment."
-        )
+        raise GradePolicyValidationError("state_treatment must be GradeStateTreatment.")
     return {field_name: getattr(value, field_name) for field_name in _STATE_FIELDS}
 
 
@@ -1945,9 +1873,7 @@ def _reassessment_from_dict(data: object) -> GradeReassessmentHandling:
 
 def _rounding_to_dict(value: GradeRoundingPolicy) -> dict[str, object]:
     if not isinstance(value, GradeRoundingPolicy):
-        raise GradePolicyValidationError(
-            "rounding must be GradeRoundingPolicy."
-        )
+        raise GradePolicyValidationError("rounding must be GradeRoundingPolicy.")
     return {
         "quantum": _decimal_text(value.quantum, "quantum"),
         "mode": value.mode,
@@ -2003,10 +1929,7 @@ def _validate_configuration_family(
             family == "standards_based"
             and isinstance(configuration, StandardsBasedGradeConfiguration)
         )
-        or (
-            family == "hybrid"
-            and isinstance(configuration, HybridGradeConfiguration)
-        )
+        or (family == "hybrid" and isinstance(configuration, HybridGradeConfiguration))
     )
     if not valid:
         raise GradePolicyValidationError(
@@ -2075,13 +1998,9 @@ def _require_complete_weighting(
     label: str,
 ) -> None:
     if not values:
-        raise GradePolicyValidationError(
-            f"{label} weighting must not be empty."
-        )
+        raise GradePolicyValidationError(f"{label} weighting must not be empty.")
     if sum(values, Decimal("0")) != Decimal("1"):
-        raise GradePolicyValidationError(
-            f"{label} weights must sum exactly to 1."
-        )
+        raise GradePolicyValidationError(f"{label} weights must sum exactly to 1.")
 
 
 def _validate_revision_pair(
@@ -2118,15 +2037,11 @@ def _canonical_json_bytes(value: object) -> bytes:
 
 def _decode_json(data: bytes, label: str) -> object:
     if type(data) is not bytes:
-        raise GradePolicySerializationError(
-            f"{label} data must be immutable bytes."
-        )
+        raise GradePolicySerializationError(f"{label} data must be immutable bytes.")
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:
-        raise GradePolicySerializationError(
-            f"{label} is not valid UTF-8."
-        ) from error
+        raise GradePolicySerializationError(f"{label} is not valid UTF-8.") from error
     try:
         return json.loads(
             text,
@@ -2136,9 +2051,7 @@ def _decode_json(data: bytes, label: str) -> object:
     except GradePolicySerializationError:
         raise
     except (json.JSONDecodeError, ValueError) as error:
-        raise GradePolicySerializationError(
-            f"{label} is not valid JSON."
-        ) from error
+        raise GradePolicySerializationError(f"{label} is not valid JSON.") from error
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -2153,9 +2066,7 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 
 def _reject_constant(value: str) -> object:
-    raise GradePolicySerializationError(
-        f"nonfinite JSON number is invalid: {value}."
-    )
+    raise GradePolicySerializationError(f"nonfinite JSON number is invalid: {value}.")
 
 
 def _exact_mapping(
@@ -2166,9 +2077,7 @@ def _exact_mapping(
     if not isinstance(data, Mapping):
         raise GradePolicyValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise GradePolicyValidationError(
-            f"{label} keys must be strings."
-        )
+        raise GradePolicyValidationError(f"{label} keys must be strings.")
     actual = frozenset(cast(Mapping[str, object], data).keys())
     if actual != keys:
         missing = sorted(keys - actual)
@@ -2186,9 +2095,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -2201,9 +2108,7 @@ def _bounded_text(
     maximum: int,
 ) -> str:
     if not isinstance(value, str):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise GradePolicyValidationError(
             f"{field_name} must be nonblank without surrounding whitespace."
@@ -2213,8 +2118,7 @@ def _bounded_text(
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise GradePolicyValidationError(
             f"{field_name} must be single-line and free of control characters."
@@ -2235,9 +2139,7 @@ def _optional_bounded_text(
 def _positive_int(value: object, field_name: str) -> int:
     integer = _require_int(value, field_name)
     if integer <= 0:
-        raise GradePolicyValidationError(
-            f"{field_name} must be greater than zero."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be greater than zero.")
     return integer
 
 
@@ -2273,18 +2175,12 @@ def _decimal_value(
     allow_zero: bool,
 ) -> Decimal:
     if not isinstance(value, Decimal):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a Decimal."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a Decimal.")
     if not value.is_finite():
-        raise GradePolicyValidationError(
-            f"{field_name} must be finite."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be finite.")
     if value < 0 or (not allow_zero and value == 0):
         requirement = "nonnegative" if allow_zero else "greater than zero"
-        raise GradePolicyValidationError(
-            f"{field_name} must be {requirement}."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be {requirement}.")
     return Decimal(
         _decimal_text(
             value,
@@ -2301,14 +2197,10 @@ def _decimal_text(
     allow_zero: bool = False,
 ) -> str:
     if not isinstance(value, Decimal) or not value.is_finite():
-        raise GradePolicyValidationError(
-            f"{field_name} must be a finite Decimal."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a finite Decimal.")
     if value < 0 or (not allow_zero and value == 0):
         requirement = "nonnegative" if allow_zero else "greater than zero"
-        raise GradePolicyValidationError(
-            f"{field_name} must be {requirement}."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be {requirement}.")
     text = format(value, "f")
     if "." in text:
         text = text.rstrip("0").rstrip(".")
@@ -2324,9 +2216,7 @@ def _decimal_from_text(
     allow_zero: bool = False,
 ) -> Decimal:
     if not isinstance(value, str):
-        raise GradePolicyValidationError(
-            f"{field_name} must be decimal text."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be decimal text.")
     try:
         parsed = Decimal(value)
     except InvalidOperation as error:
@@ -2359,13 +2249,9 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
-        raise GradePolicyValidationError(
-            f"{field_name} must be timezone-aware."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be timezone-aware.")
     return value.astimezone(UTC)
 
 
@@ -2382,25 +2268,19 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a string.")
     return value
 
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise GradePolicyValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be an integer.")
     return value
 
 
 def _require_list(value: object, field_name: str) -> list[object]:
     if not isinstance(value, list):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a JSON array."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a JSON array.")
     return cast(list[object], value)
 
 
@@ -2410,11 +2290,7 @@ def _typed_tuple(
     field_name: str,
 ) -> tuple[_T, ...]:
     if not isinstance(value, tuple):
-        raise GradePolicyValidationError(
-            f"{field_name} must be a tuple."
-        )
+        raise GradePolicyValidationError(f"{field_name} must be a tuple.")
     if any(not isinstance(item, expected_type) for item in value):
-        raise GradePolicyValidationError(
-            f"{field_name} contains an invalid value."
-        )
+        raise GradePolicyValidationError(f"{field_name} contains an invalid value.")
     return cast(tuple[_T, ...], value)

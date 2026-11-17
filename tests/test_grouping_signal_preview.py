@@ -119,9 +119,7 @@ def test_same_level_ties_are_visible_and_never_split() -> None:
     )
     assert tie.student_ids == ("student_1", "student_2")
     assert {
-        row.band
-        for row in preview.student_rows
-        if row.student_id in tie.student_ids
+        row.band for row in preview.student_rows if row.student_id in tie.student_ids
     } == {2}
 
 
@@ -240,9 +238,12 @@ def test_preview_replay_is_byte_identical_and_reference_exact() -> None:
     reference = grouping_signal_preview_reference(first)
     assert reference.preview_id == first.preview_id
     assert len(reference.preview_sha256) == 64
-    assert grouping_signal_preview_reference_from_dict(
-        grouping_signal_preview_reference_to_dict(reference)
-    ) == reference
+    assert (
+        grouping_signal_preview_reference_from_dict(
+            grouping_signal_preview_reference_to_dict(reference)
+        )
+        == reference
+    )
 
 
 def test_material_currentness_change_changes_preview_identity() -> None:

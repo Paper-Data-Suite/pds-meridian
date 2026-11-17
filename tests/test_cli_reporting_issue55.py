@@ -209,17 +209,20 @@ def test_definition_inspect_rejects_wrong_digest(
         ),
     )
 
-    assert main(
-        (
-            "reporting",
-            "definitions",
-            "inspect",
-            CLASS_ID,
-            DEFINITION_ID,
-            "1",
-            "b" * 64,
+    assert (
+        main(
+            (
+                "reporting",
+                "definitions",
+                "inspect",
+                CLASS_ID,
+                DEFINITION_ID,
+                "1",
+                "b" * 64,
+            )
         )
-    ) == 1
+        == 1
+    )
     assert "reporting_snapshot.integrity_failed" in capsys.readouterr().err
 
 
@@ -254,18 +257,21 @@ def test_snapshot_inspect_exposes_frozen_not_official_boundary(
         lambda value: {"snapshot_id": value.snapshot_id, "rows": 2},
     )
 
-    assert main(
-        (
-            "reporting",
-            "snapshots",
-            "inspect",
-            CLASS_ID,
-            SNAPSHOT_ID,
-            "b" * 64,
-            "--format",
-            "json",
+    assert (
+        main(
+            (
+                "reporting",
+                "snapshots",
+                "inspect",
+                CLASS_ID,
+                SNAPSHOT_ID,
+                "b" * 64,
+                "--format",
+                "json",
+            )
         )
-    ) == 0
+        == 0
+    )
     payload = json.loads(capsys.readouterr().out)
     assert payload["surface"] == "frozen_reporting_snapshot"
     assert payload["official_system_authority"] is False
@@ -282,18 +288,21 @@ def test_selection_show_distinguishes_no_current_selection(
         lambda *args: None,
     )
 
-    assert main(
-        (
-            "reporting",
-            "selection",
-            "show",
-            CLASS_ID,
-            DEFINITION_ID,
-            "2026-2027",
-            "q1",
-            "1",
+    assert (
+        main(
+            (
+                "reporting",
+                "selection",
+                "show",
+                CLASS_ID,
+                DEFINITION_ID,
+                "2026-2027",
+                "q1",
+                "1",
+            )
         )
-    ) == 0
+        == 0
+    )
     output = capsys.readouterr().out
     assert "currently selected snapshot for reporting use: none" in output
     assert "not an official district/SIS Grade" in output
@@ -361,17 +370,20 @@ def test_selection_select_confirm_uses_exact_digest_bound_cas(
 
     monkeypatch.setattr(reporting_cli, "select_reporting_snapshot", select)
 
-    assert main(
-        _selection_args(
-            "--expected-selection-revision",
-            "2",
-            "--expected-selection-sha256",
-            "c" * 64,
-            "--confirm-select",
-            "--format",
-            "json",
+    assert (
+        main(
+            _selection_args(
+                "--expected-selection-revision",
+                "2",
+                "--expected-selection-sha256",
+                "c" * 64,
+                "--confirm-select",
+                "--format",
+                "json",
+            )
         )
-    ) == 0
+        == 0
+    )
     payload = json.loads(capsys.readouterr().out)
     assert observed == [current]
     assert payload["disposition"] == "updated"

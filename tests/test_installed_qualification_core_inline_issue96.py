@@ -44,6 +44,7 @@ def test_issue96_inline_core_smokes_use_fresh_roots_and_prepared_python(
     def record(name: str):
         def runner(*args: Path) -> None:
             calls.append((name, args))
+
         return runner
 
     monkeypatch.setattr(
@@ -72,9 +73,7 @@ def test_issue96_inline_core_smokes_use_fresh_roots_and_prepared_python(
         record("explanation-traces"),
     )
 
-    core_programs.run_core_inline_smokes(
-        cast(PreparedInstalledEnvironment, prepared)
-    )
+    core_programs.run_core_inline_smokes(cast(PreparedInstalledEnvironment, prepared))
 
     assert [name for name, _ in calls] == [
         "grade-items",
@@ -100,9 +99,9 @@ def test_issue96_inline_core_smokes_use_fresh_roots_and_prepared_python(
 
 
 def test_issue96_grouping_contract_smoke_tracks_promoted_candidate_version() -> None:
-    source = Path(
-        "scripts/smoke_test_grouping_signal_contract_wheel.py"
-    ).read_text(encoding="utf-8")
+    source = Path("scripts/smoke_test_grouping_signal_contract_wheel.py").read_text(
+        encoding="utf-8"
+    )
 
     assert 'version("pds-meridian") == "0.4.2"' in source
     assert 'version("pds-core") == "0.6.6"' in source

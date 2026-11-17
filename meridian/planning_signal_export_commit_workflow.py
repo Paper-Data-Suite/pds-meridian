@@ -34,10 +34,7 @@ class PlanningSignalExportCommitIntegrityError(PlanningSignalExportCommitError):
 class PlanningSignalCsvExportPartialSuccessError(PlanningSignalExportCommitError):
     """Core + receipt are verified, but the optional CSV operation failed."""
 
-    code = (
-        "teacher_workflow.create_planning_signal."
-        "csv_export_partial_success"
-    )
+    code = "teacher_workflow.create_planning_signal.csv_export_partial_success"
 
     core_result: PlanningSignalCoreExportCommitResult
     csv_error_code: str

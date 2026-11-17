@@ -257,14 +257,12 @@ def _assert_installed_origins() -> None:
         origin = Path(module.__file__).resolve()
         if not origin.is_relative_to(environment):
             raise AssertionError(
-                "Package shadowed outside prepared environment: "
-                f"{origin}"
+                f"Package shadowed outside prepared environment: {origin}"
             )
 
     if importlib.metadata.version("pds-core") != "0.6.6":
         raise AssertionError(
-            "Current storage-path acceptance requires exact installed "
-            "pds-core 0.6.6."
+            "Current storage-path acceptance requires exact installed pds-core 0.6.6."
         )
 
     for module_name in ("scoreform", "quillan", "concord", "pds_concord"):
@@ -296,13 +294,7 @@ def _assert_meridian_path_budget(
     workspace: Path,
     forbidden_identities: tuple[str, ...],
 ) -> None:
-    meridian_root = (
-        workspace
-        / "classes"
-        / CLASS_ID
-        / "modules"
-        / "meridian"
-    )
+    meridian_root = workspace / "classes" / CLASS_ID / "modules" / "meridian"
     if not meridian_root.is_dir():
         raise AssertionError("Meridian canonical storage root was not created.")
 
@@ -745,12 +737,15 @@ def main() -> None:
             workspace,
             definition,
         ).stored
-        assert load_reporting_definition_revision(
-            workspace,
-            CLASS_ID,
-            long_reporting_definition_id,
-            1,
-        ).definition.definition_id == long_reporting_definition_id
+        assert (
+            load_reporting_definition_revision(
+                workspace,
+                CLASS_ID,
+                long_reporting_definition_id,
+                1,
+            ).definition.definition_id
+            == long_reporting_definition_id
+        )
 
         preview_target = GradePreviewTarget(
             class_id=CLASS_ID,

@@ -55,9 +55,7 @@ def test_issue61_optional_readers_use_contract_floor() -> None:
 
 def test_issue61_ecosystem_peers_are_not_meridian_runtime_dependencies() -> None:
     project = _project()
-    serialized = repr(project["dependencies"]) + repr(
-        project["optional-dependencies"]
-    )
+    serialized = repr(project["dependencies"]) + repr(project["optional-dependencies"])
 
     for forbidden in (
         "pds-vitrine",
@@ -143,9 +141,9 @@ def test_issue61_package_checker_rejects_bundled_sibling_packages() -> None:
 
 def test_issue61_interoperability_audit_supports_promoted_candidate() -> None:
     version = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
-    audit = (
-        REPO_ROOT / "docs/development/v0.3.0-release-audit.md"
-    ).read_text(encoding="utf-8")
+    audit = (REPO_ROOT / "docs/development/v0.3.0-release-audit.md").read_text(
+        encoding="utf-8"
+    )
 
     assert '__version__: Final[str] = "0.4.2"' in version
     assert "Interoperability and ecosystem-coexistence audit — CONFORMS" in audit

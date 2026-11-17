@@ -70,8 +70,7 @@ def revise_scoreform_teacher_choices(
     if (
         selection.status != "selected"
         or selection.selected is None
-        or selection.selected.decision_sha256
-        != written_attempt.decision_sha256
+        or selection.selected.decision_sha256 != written_attempt.decision_sha256
     ):
         raise AssertionError("Issue #44 #30 revision 2 must resolve exactly.")
 
@@ -108,15 +107,13 @@ def revise_scoreform_teacher_choices(
         expected_current_policy_revision=1,
     )
 
-    old_reassessment = (
-        reassessment_storage.load_reassessment_decision_revision(
-            root,
-            work.class_id,
-            GRADE_ITEM_ID,
-            work,
-            SHARED_STUDENT_ID,
-            1,
-        )
+    old_reassessment = reassessment_storage.load_reassessment_decision_revision(
+        root,
+        work.class_id,
+        GRADE_ITEM_ID,
+        work,
+        SHARED_STUDENT_ID,
+        1,
     )
     selected_attempts = selection.selected.decision.selected_attempts
     reassessment_two = replace(
@@ -143,13 +140,11 @@ def revise_scoreform_teacher_choices(
         ),
         decided_at=NOW + timedelta(minutes=3),
     )
-    written_reassessment = (
-        reassessment_storage.write_reassessment_decision_revision(
-            root,
-            reassessment_two,
-            authorized_snapshot=authorized,
-        ).stored
-    )
+    written_reassessment = reassessment_storage.write_reassessment_decision_revision(
+        root,
+        reassessment_two,
+        authorized_snapshot=authorized,
+    ).stored
     reassessment_storage.select_reassessment_decision_revision(
         root,
         work.class_id,
@@ -171,8 +166,7 @@ def revise_scoreform_teacher_choices(
     if (
         resolution.status != "resolved"
         or resolution.selected is None
-        or resolution.selected.decision_sha256
-        != written_reassessment.decision_sha256
+        or resolution.selected.decision_sha256 != written_reassessment.decision_sha256
         or resolution.contributing_attempts != selected_attempts
     ):
         raise AssertionError("Issue #44 #31 revision 2 must retain both attempts.")

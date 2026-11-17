@@ -76,9 +76,7 @@ def _append_table(lines: list[str], preview: TeacherReportPreview) -> None:
         lines.append("| " + " | ".join(_md(item) for item in values) + " |")
 
 
-def _append_benchmark_sections(
-    lines: list[str], preview: TeacherReportPreview
-) -> None:
+def _append_benchmark_sections(lines: list[str], preview: TeacherReportPreview) -> None:
     """Give the planner a print-friendly four-section Markdown layout."""
     sections: dict[str, list[tuple[str | None, ...]]] = {}
     for row in preview.rows:

@@ -196,9 +196,7 @@ def test_persisted_preview_must_bind_exact_requested_derivation(
     monkeypatch.setattr(
         workflow,
         "generate_grouping_signal_preview",
-        lambda *args, **kwargs: _generation_result(
-            derivation_reference=wrong
-        ),
+        lambda *args, **kwargs: _generation_result(derivation_reference=wrong),
     )
 
     with pytest.raises(

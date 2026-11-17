@@ -271,9 +271,10 @@ def test_supported_policy_families_round_trip_canonically(
 
     reference = grade_policy_reference(value)
     assert reference.policy_sha256 == hashlib.sha256(encoded).hexdigest()
-    assert grade_policy_reference_from_dict(
-        grade_policy_reference_to_dict(reference)
-    ) == reference
+    assert (
+        grade_policy_reference_from_dict(grade_policy_reference_to_dict(reference))
+        == reference
+    )
 
 
 def test_calculation_family_must_match_configuration_type() -> None:
@@ -393,22 +394,20 @@ def test_duplicate_logical_grade_item_is_rejected_across_revisions() -> None:
 
 def test_policy_collections_are_canonicalized_by_semantic_identity() -> None:
     conventional = weighted_categories()
-    assert tuple(
-        value.grade_item.grade_item_id
-        for value in conventional.items
-    ) == ("quiz_1", "unit1_test")
-    assert tuple(
-        value.category_id for value in conventional.categories
-    ) == ("assessment", "practice")
+    assert tuple(value.grade_item.grade_item_id for value in conventional.items) == (
+        "quiz_1",
+        "unit1_test",
+    )
+    assert tuple(value.category_id for value in conventional.categories) == (
+        "assessment",
+        "practice",
+    )
 
     standards = standards_based()
-    assert tuple(
-        value.standard_id for value in standards.standards
-    ) == tuple(sorted((STANDARD_A, STANDARD_B)))
-    assert tuple(
-        value.proficiency_level_id
-        for value in standards.conversions
-    ) == (
+    assert tuple(value.standard_id for value in standards.standards) == tuple(
+        sorted((STANDARD_A, STANDARD_B))
+    )
+    assert tuple(value.proficiency_level_id for value in standards.conversions) == (
         "advanced",
         "beginning",
         "developing",
@@ -623,18 +622,13 @@ def test_json_rejects_unknown_missing_duplicate_and_noncanonical_bytes() -> None
     canonical = grade_policy_revision_to_json_bytes(value).decode("utf-8")
     duplicate = canonical.replace(
         f'  "class_id": "{CLASS_ID}",',
-        (
-            f'  "class_id": "{CLASS_ID}",\n'
-            f'  "class_id": "{CLASS_ID}",'
-        ),
+        (f'  "class_id": "{CLASS_ID}",\n  "class_id": "{CLASS_ID}",'),
         1,
     ).encode("utf-8")
     with pytest.raises(Exception, match="duplicate JSON object key"):
         grade_policy_revision_from_json_bytes(duplicate)
 
-    compact = json.dumps(
-        grade_policy_revision_to_dict(value)
-    ).encode("utf-8")
+    compact = json.dumps(grade_policy_revision_to_dict(value)).encode("utf-8")
     with pytest.raises(Exception, match="canonical encoding"):
         grade_policy_revision_from_json_bytes(compact)
 

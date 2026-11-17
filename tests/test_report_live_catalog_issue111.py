@@ -1,4 +1,5 @@
 """Slice 12.2: canonical read-only report discovery with injected source readers."""
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -74,23 +75,43 @@ def make_catalog(
 
     def roster(root: Path, class_id: str) -> Roster:
         assert class_id == "english12_p4"
-        return cast(Roster, SimpleNamespace(students=(
-            SimpleNamespace(student_id="s01", first_name="Alex", last_name="Chen"),
-            SimpleNamespace(student_id="s02", first_name="Alex", last_name="Chen"),
-            SimpleNamespace(student_id="s03", first_name="Sam", last_name="Rivera"),
-        )))
+        return cast(
+            Roster,
+            SimpleNamespace(
+                students=(
+                    SimpleNamespace(
+                        student_id="s01", first_name="Alex", last_name="Chen"
+                    ),
+                    SimpleNamespace(
+                        student_id="s02", first_name="Alex", last_name="Chen"
+                    ),
+                    SimpleNamespace(
+                        student_id="s03", first_name="Sam", last_name="Rivera"
+                    ),
+                )
+            ),
+        )
 
     def items(root: Path, class_id: str) -> GradeItemsReview:
-        return cast(GradeItemsReview, SimpleNamespace(items=(
+        return cast(
+            GradeItemsReview,
             SimpleNamespace(
-                grade_item_id="gi1", title="Comparative Essay",
-                selected_revision=2, status="active"
+                items=(
+                    SimpleNamespace(
+                        grade_item_id="gi1",
+                        title="Comparative Essay",
+                        selected_revision=2,
+                        status="active",
+                    ),
+                    SimpleNamespace(
+                        grade_item_id="gi2",
+                        title=None,
+                        selected_revision=None,
+                        status=None,
+                    ),
+                )
             ),
-            SimpleNamespace(
-                grade_item_id="gi2", title=None,
-                selected_revision=None, status=None
-            ),
-        )))
+        )
 
     def snaps(root: Path, class_id: str) -> tuple[str, ...]:
         return ("snapshot_mp1", "snapshot_other")
@@ -210,11 +231,14 @@ def test_checkpoints_require_matching_exact_period_and_calendar(
 
 
 def test_mapping_never_guessed_from_files(catalog: LiveReportChoiceCatalog) -> None:
-    assert catalog.options(
-        report_kind="sis_gradebook_reconciliation",
-        scope="mapping",
-        selected={"class": "english12_p4", "period": "mp1"},
-    ) == ()
+    assert (
+        catalog.options(
+            report_kind="sis_gradebook_reconciliation",
+            scope="mapping",
+            selected={"class": "english12_p4", "period": "mp1"},
+        )
+        == ()
+    )
 
 
 def test_teacher_named_mapping_file_is_validated_and_rechecked(
@@ -286,8 +310,9 @@ def test_workspace_move_fails_closed(tmp_path: Path) -> None:
         ReportLiveCatalogDependencies(workspace_resolver=lambda: next(choices))
     )
     # Initial scan sees no classes, but pins the resolved workspace.
-    assert live.options(
-        report_kind="marking_period_readiness", scope="class", selected={}
-    ) == ()
+    assert (
+        live.options(report_kind="marking_period_readiness", scope="class", selected={})
+        == ()
+    )
     with pytest.raises(ReportSelectionUnavailable):
         live.options(report_kind="marking_period_readiness", scope="class", selected={})

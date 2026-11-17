@@ -58,9 +58,7 @@ _FAMILIES: Final[frozenset[str]] = frozenset(
 )
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -106,9 +104,7 @@ class TeacherGradeOverrideStorageConflictError(TeacherGradeOverrideStorageError)
     code = "teacher_grade_override.conflict"
 
 
-class TeacherGradeOverrideStorageLockError(
-    TeacherGradeOverrideStorageConflictError
-):
+class TeacherGradeOverrideStorageLockError(TeacherGradeOverrideStorageConflictError):
     code = "teacher_grade_override.locked"
 
 
@@ -116,9 +112,7 @@ class TeacherGradeOverrideStorageIntegrityError(TeacherGradeOverrideStorageError
     code = "teacher_grade_override.integrity_failed"
 
 
-class TeacherGradeOverrideStorageTooLargeError(
-    TeacherGradeOverrideStorageReadError
-):
+class TeacherGradeOverrideStorageTooLargeError(TeacherGradeOverrideStorageReadError):
     code = "teacher_grade_override.too_large"
 
 
@@ -230,9 +224,7 @@ class TeacherGradeOverrideCurrentSelection:
             raise TeacherGradeOverrideStorageValidationError(
                 f"current Academic Period is invalid: {error}"
             ) from error
-        calendar_revision = _positive_int(
-            self.calendar_revision, "calendar_revision"
-        )
+        calendar_revision = _positive_int(self.calendar_revision, "calendar_revision")
         family = _family(self.calculation_family)
         expected_subject = teacher_grade_override_subject_key(
             class_id,
@@ -348,9 +340,7 @@ def teacher_grade_override_family_directory(
         family,
     )
     path = (
-        teacher_grade_overrides_directory(root, class_value)
-        / "subjects"
-        / subject_key
+        teacher_grade_overrides_directory(root, class_value) / "subjects" / subject_key
     )
     _require_containment(root, path)
     return path
@@ -413,14 +403,17 @@ def teacher_grade_override_current_path(
     calendar_revision: int,
     calculation_family: GradeCalculationFamily,
 ) -> Path:
-    return teacher_grade_override_family_directory(
-        workspace_root,
-        class_id,
-        student_id,
-        target_period,
-        calendar_revision,
-        calculation_family,
-    ) / "current.json"
+    return (
+        teacher_grade_override_family_directory(
+            workspace_root,
+            class_id,
+            student_id,
+            target_period,
+            calendar_revision,
+            calculation_family,
+        )
+        / "current.json"
+    )
 
 
 def teacher_grade_override_revision_relative_path(
@@ -905,9 +898,7 @@ def select_teacher_grade_override_revision(
             target_ref.calculation_family,
         )
         if current is not None and current.reference == target_ref:
-            return TeacherGradeOverrideSelectionResult(
-                "existing", current, stored
-            )
+            return TeacherGradeOverrideSelectionResult("existing", current, stored)
         actual_ref = current.reference if current is not None else None
         if actual_ref != expected_ref:
             raise TeacherGradeOverrideStorageConflictError(
@@ -1287,9 +1278,7 @@ def _current_selection_from_json_bytes(
     )
     try:
         selection = TeacherGradeOverrideCurrentSelection(
-            schema_version=_required_str(
-                mapping["schema_version"], "schema_version"
-            ),
+            schema_version=_required_str(mapping["schema_version"], "schema_version"),
             record_type=_required_str(mapping["record_type"], "record_type"),
             class_id=_required_str(mapping["class_id"], "class_id"),
             student_id=_required_str(mapping["student_id"], "student_id"),
@@ -1616,9 +1605,7 @@ def _exact_mapping(
     label: str,
 ) -> Mapping[str, object]:
     if not isinstance(data, Mapping):
-        raise TeacherGradeOverrideStorageIntegrityError(
-            f"{label} must be an object."
-        )
+        raise TeacherGradeOverrideStorageIntegrityError(f"{label} must be an object.")
     actual = frozenset(cast(Mapping[str, object], data).keys())
     if actual != keys:
         missing = sorted(keys - actual)

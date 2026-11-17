@@ -307,9 +307,7 @@ def test_confirmed_json_preserves_selection_and_export_boundaries(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _author_args("--confirm-review-write", "--format", "json")
-    ) == 0
+    assert cli.main(_author_args("--confirm-review-write", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["task"] == "create-planning-signal"
@@ -328,16 +326,19 @@ def test_confirmed_json_preserves_selection_and_export_boundaries(
 def test_review_authoring_fields_require_exact_review_preview_source(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _arguments(
-            "--review-decision",
-            "rejected",
-            "--review-actor-id",
-            "teacher_local",
-            "--reviewed-at",
-            REVIEWED_AT,
+    assert (
+        cli.main(
+            _arguments(
+                "--review-decision",
+                "rejected",
+                "--review-actor-id",
+                "teacher_local",
+                "--reviewed-at",
+                REVIEWED_AT,
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "review_authoring_invalid" in error
     assert "requires an exact persisted #39 preview" in error
@@ -346,9 +347,7 @@ def test_review_authoring_fields_require_exact_review_preview_source(
 def test_review_decision_requires_actor_and_reviewed_at(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _review_source_args("--review-decision", "rejected")
-    ) == 1
+    assert cli.main(_review_source_args("--review-decision", "rejected")) == 1
     error = capsys.readouterr().err
     assert "review_authoring_invalid" in error
     assert "requires --review-actor-id and --reviewed-at" in error
@@ -357,9 +356,7 @@ def test_review_decision_requires_actor_and_reviewed_at(
 def test_confirm_review_write_requires_review_decision(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _review_source_args("--confirm-review-write")
-    ) == 1
+    assert cli.main(_review_source_args("--confirm-review-write")) == 1
     error = capsys.readouterr().err
     assert "review_authoring_invalid" in error
     assert "requires --review-decision" in error

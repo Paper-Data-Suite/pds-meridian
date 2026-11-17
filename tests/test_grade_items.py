@@ -250,13 +250,16 @@ def test_canonical_json_round_trip_and_decimal_determinism() -> None:
     assert encoded.endswith(b"\n")
     assert b'"relative_weight": "1.5"' in encoded
     assert grade_item_revision_from_json_bytes(encoded) == item
-    assert grade_item_revision_to_json_bytes(
-        revision(
-            weighting=GradeItemWeightingMetadata(
-                category_id="assessment", relative_weight=Decimal("1.5")
+    assert (
+        grade_item_revision_to_json_bytes(
+            revision(
+                weighting=GradeItemWeightingMetadata(
+                    category_id="assessment", relative_weight=Decimal("1.5")
+                )
             )
         )
-    ) == encoded
+        == encoded
+    )
 
 
 def test_json_rejects_unknown_missing_duplicate_and_noncanonical_bytes() -> None:

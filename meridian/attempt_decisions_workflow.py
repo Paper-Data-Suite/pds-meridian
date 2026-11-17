@@ -126,9 +126,7 @@ class AttemptDecisionWorkflowProjection:
                 "attempt-decision workflow status is invalid."
             )
         if not isinstance(self.work, ModuleWorkRef):
-            raise AttemptDecisionWorkflowScopeError(
-                "work must be a ModuleWorkRef."
-            )
+            raise AttemptDecisionWorkflowScopeError("work must be a ModuleWorkRef.")
         if self.work.class_id != self.class_id:
             raise AttemptDecisionWorkflowScopeError(
                 "work.class_id must match projection class_id."
@@ -268,9 +266,7 @@ def _candidate_row(
     return AttemptDecisionCandidateRow(
         attempt=candidate.attempt,
         eligible_evidence_count=len(candidate.eligible_evidence),
-        selected_in_reviewed_decision=(
-            candidate.attempt in reviewed_selected_attempts
-        ),
+        selected_in_reviewed_decision=(candidate.attempt in reviewed_selected_attempts),
     )
 
 

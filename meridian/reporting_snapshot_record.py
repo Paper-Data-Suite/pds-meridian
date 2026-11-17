@@ -131,9 +131,7 @@ _PROJECTION_INPUT_KEYS: Final[frozenset[str]] = frozenset(
 _WORK_EVIDENCE_KEYS: Final[frozenset[str]] = frozenset(
     {"grade_item_id", "work", "status", "projection_snapshots"}
 )
-_GRADE_REQUEST_KEYS: Final[frozenset[str]] = frozenset(
-    {"target", "work_evidence"}
-)
+_GRADE_REQUEST_KEYS: Final[frozenset[str]] = frozenset({"target", "work_evidence"})
 _BUILD_REQUEST_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -591,8 +589,7 @@ class ReportingSnapshot:
                 "provenance_bindings exceeds the configured maximum count."
             )
         if not any(
-            item.authority_kind == "academic_period_calendar"
-            for item in bindings
+            item.authority_kind == "academic_period_calendar" for item in bindings
         ):
             raise ReportingSnapshotIntegrityError(
                 "ReportingSnapshot requires Academic Period calendar provenance."
@@ -627,9 +624,7 @@ class ReportingSnapshot:
                 "created_at must not be earlier than requested_at."
             )
         if self.integrity_algorithm != REPORTING_SNAPSHOT_INTEGRITY_ALGORITHM:
-            raise ReportingSnapshotIntegrityError(
-                "integrity_algorithm must be sha256."
-            )
+            raise ReportingSnapshotIntegrityError("integrity_algorithm must be sha256.")
         payload_digest = _sha256(self.payload_sha256, "payload_sha256")
 
         object.__setattr__(self, "snapshot_id", snapshot_id)
@@ -796,9 +791,7 @@ def reporting_snapshot_provenance_binding(
     """Create one exact typed provenance binding from structured reference data."""
 
     if not isinstance(reference, Mapping):
-        raise ReportingSnapshotIntegrityError(
-            "provenance reference must be a mapping."
-        )
+        raise ReportingSnapshotIntegrityError("provenance reference must be a mapping.")
     canonical = _canonical_json_bytes(dict(reference))
     return ReportingSnapshotProvenanceBinding(
         authority_kind=authority_kind,
@@ -1282,9 +1275,7 @@ def _validate_build_request(
 
 def _validate_snapshot(value: ReportingSnapshot) -> ReportingSnapshot:
     if not isinstance(value, ReportingSnapshot):
-        raise ReportingSnapshotIntegrityError(
-            "value must be ReportingSnapshot."
-        )
+        raise ReportingSnapshotIntegrityError("value must be ReportingSnapshot.")
     value.__post_init__()
     return value
 
@@ -1382,15 +1373,11 @@ def _canonical_json_bytes(value: object) -> bytes:
 
 def _decode_json(data: bytes, label: str) -> object:
     if type(data) is not bytes:
-        raise ReportingSnapshotIntegrityError(
-            f"{label} data must be immutable bytes."
-        )
+        raise ReportingSnapshotIntegrityError(f"{label} data must be immutable bytes.")
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:
-        raise ReportingSnapshotIntegrityError(
-            f"{label} is not valid UTF-8."
-        ) from error
+        raise ReportingSnapshotIntegrityError(f"{label} is not valid UTF-8.") from error
     try:
         return json.loads(
             text,
@@ -1400,9 +1387,7 @@ def _decode_json(data: bytes, label: str) -> object:
     except ReportingSnapshotError:
         raise
     except (json.JSONDecodeError, ValueError) as error:
-        raise ReportingSnapshotIntegrityError(
-            f"{label} is not valid JSON."
-        ) from error
+        raise ReportingSnapshotIntegrityError(f"{label} is not valid JSON.") from error
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -1417,9 +1402,7 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 
 def _reject_constant(value: str) -> object:
-    raise ReportingSnapshotIntegrityError(
-        f"nonfinite JSON number is invalid: {value}."
-    )
+    raise ReportingSnapshotIntegrityError(f"nonfinite JSON number is invalid: {value}.")
 
 
 def _exact_mapping(
@@ -1466,9 +1449,7 @@ def _json_mapping_from_canonical_bytes(data: bytes, label: str) -> dict[str, obj
 
 def _request_identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ReportingSnapshotRequestValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportingSnapshotRequestValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -1494,9 +1475,7 @@ def _identifier(value: object, field_name: str) -> str:
 
 def _bounded_text(value: object, field_name: str, maximum: int) -> str:
     if not isinstance(value, str):
-        raise ReportingSnapshotRequestValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ReportingSnapshotRequestValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise ReportingSnapshotRequestValidationError(
             f"{field_name} must be nonblank without surrounding whitespace."
@@ -1506,8 +1485,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise ReportingSnapshotRequestValidationError(
             f"{field_name} must be single-line and free of control characters."
@@ -1546,9 +1524,7 @@ def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
         raise ReportingSnapshotValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
-        raise ReportingSnapshotValidationError(
-            f"{field_name} must be timezone-aware."
-        )
+        raise ReportingSnapshotValidationError(f"{field_name} must be timezone-aware.")
     return value.astimezone(UTC)
 
 
@@ -1593,9 +1569,7 @@ def _typed_tuple(
     field_name: str,
 ) -> tuple[_T, ...]:
     if not isinstance(value, tuple):
-        raise ReportingSnapshotValidationError(
-            f"{field_name} must be a tuple."
-        )
+        raise ReportingSnapshotValidationError(f"{field_name} must be a tuple.")
     if any(not isinstance(item, expected_type) for item in value):
         raise ReportingSnapshotValidationError(
             f"{field_name} contains an invalid value."

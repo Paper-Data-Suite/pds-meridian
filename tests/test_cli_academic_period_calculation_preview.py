@@ -148,24 +148,27 @@ def test_explicit_candidate_membership_and_result_are_assembled(
         build,
     )
 
-    assert cli.main(
-        _arguments(
-            "--candidate",
-            GRADE_ITEM_ID,
-            str(GRADE_ITEM_REVISION),
-            GRADE_ITEM_SHA256,
-            "--candidate-membership",
-            GRADE_ITEM_ID,
-            "scoreform",
-            "assessment_1",
-            "3",
-            MEMBERSHIP_SHA256,
-            "--candidate-result",
-            GRADE_ITEM_ID,
-            "7",
-            RESULT_SHA256,
+    assert (
+        cli.main(
+            _arguments(
+                "--candidate",
+                GRADE_ITEM_ID,
+                str(GRADE_ITEM_REVISION),
+                GRADE_ITEM_SHA256,
+                "--candidate-membership",
+                GRADE_ITEM_ID,
+                "scoreform",
+                "assessment_1",
+                "3",
+                MEMBERSHIP_SHA256,
+                "--candidate-result",
+                GRADE_ITEM_ID,
+                "7",
+                RESULT_SHA256,
+            )
         )
-    ) == 0
+        == 0
+    )
 
     assert len(observed) == 1
     args, kwargs = observed[0]
@@ -217,14 +220,17 @@ def test_candidate_without_result_remains_intentional_missing_result(
         build,
     )
 
-    assert cli.main(
-        _arguments(
-            "--candidate",
-            GRADE_ITEM_ID,
-            str(GRADE_ITEM_REVISION),
-            GRADE_ITEM_SHA256,
+    assert (
+        cli.main(
+            _arguments(
+                "--candidate",
+                GRADE_ITEM_ID,
+                str(GRADE_ITEM_REVISION),
+                GRADE_ITEM_SHA256,
+            )
         )
-    ) == 0
+        == 0
+    )
 
     assert len(observed) == 1
     candidate = observed[0]
@@ -244,14 +250,17 @@ def test_orphan_result_fails_before_assembly(
         ),
     )
 
-    assert cli.main(
-        _arguments(
-            "--candidate-result",
-            GRADE_ITEM_ID,
-            "7",
-            RESULT_SHA256,
+    assert (
+        cli.main(
+            _arguments(
+                "--candidate-result",
+                GRADE_ITEM_ID,
+                "7",
+                RESULT_SHA256,
+            )
         )
-    ) == 1
+        == 1
+    )
 
 
 def test_duplicate_candidate_fails_before_assembly(
@@ -265,18 +274,21 @@ def test_duplicate_candidate_fails_before_assembly(
         ),
     )
 
-    assert cli.main(
-        _arguments(
-            "--candidate",
-            GRADE_ITEM_ID,
-            str(GRADE_ITEM_REVISION),
-            GRADE_ITEM_SHA256,
-            "--candidate",
-            GRADE_ITEM_ID,
-            str(GRADE_ITEM_REVISION),
-            GRADE_ITEM_SHA256,
+    assert (
+        cli.main(
+            _arguments(
+                "--candidate",
+                GRADE_ITEM_ID,
+                str(GRADE_ITEM_REVISION),
+                GRADE_ITEM_SHA256,
+                "--candidate",
+                GRADE_ITEM_ID,
+                str(GRADE_ITEM_REVISION),
+                GRADE_ITEM_SHA256,
+            )
         )
-    ) == 1
+        == 1
+    )
 
 
 def test_json_output_preserves_read_only_period_calculation_boundary(
@@ -296,9 +308,7 @@ def test_json_output_preserves_read_only_period_calculation_boundary(
     assert data["scope"]["period_id"] == PERIOD_ID
     assert data["scope"]["calendar_revision"] == CALENDAR_REVISION
     assert data["candidates"]["count"] == 1
-    assert data["inputs"]["status_counts"] == [
-        {"status": "missing_result", "count": 1}
-    ]
+    assert data["inputs"]["status_counts"] == [{"status": "missing_result", "count": 1}]
     assert data["outcome"]["status"] == "insufficient_evidence"
     assert data["result_state"]["history"] == [1, 2]
     assert data["result_state"]["next_revision"] == 3

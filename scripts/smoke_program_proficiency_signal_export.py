@@ -829,7 +829,6 @@ def _assert_projection_semantics(projected: dict[str, CachedProjection]) -> None
     )
 
 
-
 def _producer_registry() -> PublicationProducerRegistry:
     return PublicationProducerRegistry((scoreform_profile(), quillan_profile()))
 
@@ -1167,10 +1166,7 @@ def _select_and_replace_scoreform_attempts(
     )
     assert selection.selected is not None
     selected_attempts = selection.selected.decision.selected_attempts
-    by_sequence = {
-        attempt.native.sequence: attempt
-        for attempt in selected_attempts
-    }
+    by_sequence = {attempt.native.sequence: attempt for attempt in selected_attempts}
     _require(
         set(by_sequence) == {1, 2},
         "ScoreForm selected attempt sequences must remain exactly 1 and 2.",
@@ -1226,9 +1222,7 @@ def _select_and_replace_scoreform_attempts(
         ),
         mode="replace",
         contributing_attempts=(second,),
-        replacement_relationships=(
-            ReplacementRelationship(second, (first,)),
-        ),
+        replacement_relationships=(ReplacementRelationship(second, (first,)),),
         combinations=(),
         recency_order=(),
         decision_revision=1,
@@ -2242,6 +2236,7 @@ def _derive_preview_review_and_export(
         "Exact Core export replay must be idempotent.",
     )
     return generated.stored.reference
+
 
 def _write_reload_baseline(
     root: Path,

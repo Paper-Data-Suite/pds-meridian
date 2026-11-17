@@ -69,7 +69,8 @@ def test_refresh_helper_compares_only_neutrally_observable_standards_rows(
     )
 
     assert attention._selected_reporting_snapshot_needs_refresh(
-        Path("."), _snapshot(conventional, standards, hybrid)  # type: ignore[arg-type]
+        Path("."),
+        _snapshot(conventional, standards, hybrid),  # type: ignore[arg-type]
     )
     assert seen == [standards]
 
@@ -92,7 +93,8 @@ def test_refresh_helper_does_not_invent_change_when_basis_is_unresolvable(
     )
 
     assert not attention._selected_reporting_snapshot_needs_refresh(
-        Path("."), _snapshot(standards)  # type: ignore[arg-type]
+        Path("."),
+        _snapshot(standards),  # type: ignore[arg-type]
     )
 
 
@@ -109,9 +111,7 @@ def test_refresh_helper_treats_prior_and_current_unavailable_as_no_change(
         attention,
         "explain_grade_report_preview",
         lambda _root, requests: SimpleNamespace(
-            rows=(
-                SimpleNamespace(target=requests[0].target, observation=None),
-            )
+            rows=(SimpleNamespace(target=requests[0].target, observation=None),)
         ),
     )
 
@@ -123,7 +123,8 @@ def test_refresh_helper_treats_prior_and_current_unavailable_as_no_change(
     monkeypatch.setattr(attention, "compare_grade_preview_basis", unexpected_compare)
 
     assert not attention._selected_reporting_snapshot_needs_refresh(
-        Path("."), _snapshot(standards)  # type: ignore[arg-type]
+        Path("."),
+        _snapshot(standards),  # type: ignore[arg-type]
     )
 
 

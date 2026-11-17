@@ -107,9 +107,7 @@ def _profile_hybrid_detail(
         "conventional_formula_sha256": conventional_basis[
             ("formula", "conventional_formula")
         ],
-        "standards_formula_sha256": standards_basis[
-            ("formula", "standards_formula")
-        ],
+        "standards_formula_sha256": standards_basis[("formula", "standards_formula")],
     }
     participation = {
         "conventional": conventional_basis[
@@ -120,12 +118,8 @@ def _profile_hybrid_detail(
         ],
     }
     evidence = {
-        "conventional": conventional_basis[
-            ("evidence", "conventional_evidence_basis")
-        ],
-        "standards_based": standards_basis[
-            ("evidence", "standards_proficiency_basis")
-        ],
+        "conventional": conventional_basis[("evidence", "conventional_evidence_basis")],
+        "standards_based": standards_basis[("evidence", "standards_proficiency_basis")],
     }
     weighting = {
         "conventional_weight": "0.5",
@@ -296,9 +290,9 @@ def test_profile_predicate_tamper_is_rejected_against_frozen_basis(
 ) -> None:
     encoded, _ = _profile_preview_bytes("standards_based", monkeypatch)
     data = json.loads(encoded)
-    predicate = data["rows"][0]["explanation"]["formula"][
-        "profile_evaluation"
-    ]["bands"][0]["predicates"][0]
+    predicate = data["rows"][0]["explanation"]["formula"]["profile_evaluation"][
+        "bands"
+    ][0]["predicates"][0]
     predicate["threshold_level_id"] = "exceeding"
 
     with pytest.raises(

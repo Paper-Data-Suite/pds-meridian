@@ -245,11 +245,7 @@ def test_stored_profile_snapshot_replays_frozen_policy_scale_band_and_adjustment
     current_entries = tuple(
         replace(
             entry,
-            sha256=(
-                "e" * 64
-                if entry.key == "standards_formula"
-                else "f" * 64
-            ),
+            sha256=("e" * 64 if entry.key == "standards_formula" else "f" * 64),
         )
         if entry.key in {"standards_formula", "standards_profile_policy"}
         else entry
@@ -279,9 +275,7 @@ def test_stored_profile_snapshot_replays_frozen_policy_scale_band_and_adjustment
     assert reloaded_again.snapshot_sha256 == original_digest
     assert reloaded_again.snapshot.report_preview.rows[0].observation == prior
 
-    replay = json.loads(
-        reloaded_again.snapshot.report_preview.rows[0].explanation_json
-    )
+    replay = json.loads(reloaded_again.snapshot.report_preview.rows[0].explanation_json)
     replay_formula = replay["formula"]
     assert replay_formula["base_unrounded_grade"] == "87"
     assert replay_formula["selected_profile_band_id"] == "high"

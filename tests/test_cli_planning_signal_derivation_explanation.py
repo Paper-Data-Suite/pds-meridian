@@ -132,9 +132,7 @@ def _grouping_policy(
             ),
             standard_id=STANDARD_ID,
             source_policy=(
-                academic_period_proficiency_aggregation_policy_reference(
-                    source_policy
-                )
+                academic_period_proficiency_aggregation_policy_reference(source_policy)
             ),
             target_scale=proficiency_scale_reference(target),
         ),
@@ -266,8 +264,7 @@ def test_planning_derivation_trace_exact_text(
     assert f"derivation_id: {derivation.snapshot.derivation_id}" in output
     assert "policy: reading_planning_signal revision=1" in output
     assert (
-        "student=student_1 source_state=missing disposition=noncontributing"
-        in output
+        "student=student_1 source_state=missing disposition=noncontributing" in output
     )
     assert "band: none reason=missing_result policy_handling=noncontributing" in output
 

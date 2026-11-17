@@ -235,9 +235,7 @@ def test_reader_unavailable_is_distinct_from_unsupported_contract() -> None:
     )
     assert result.reader_state == "unavailable"
     assert result.reader_compatibility_mode == "unavailable"
-    assert result.reader_compatibility_reason == (
-        "reader.distribution_unavailable"
-    )
+    assert result.reader_compatibility_reason == ("reader.distribution_unavailable")
     assert result.overall_state == "support_unavailable"
     assert result.reason_codes == ("reader.distribution_unavailable",)
     assert adapter.calls == 0
@@ -260,23 +258,17 @@ def test_reader_wrong_version_is_reported_without_fallback() -> None:
     assert result.installed_reader_version == "2.0.0"
     assert result.supported_reader_versions == ("1.0.0",)
     assert result.overall_state == "support_unsupported"
-    assert result.reason_codes == (
-        "reader.metadata_absent_legacy_exact_unsupported",
-    )
+    assert result.reason_codes == ("reader.metadata_absent_legacy_exact_unsupported",)
 
 
 def test_contract_reader_is_package_version_independent() -> None:
-    adapter = SyntheticAdapter(
-        reader_contracts=frozenset({"synthetic_reader_v1"})
-    )
+    adapter = SyntheticAdapter(reader_contracts=frozenset({"synthetic_reader_v1"}))
 
     result = diagnostics.diagnose_publication_support(
         context(),
         dependencies(
             adapter,
-            registry=producer_registry(
-                reader_contract="synthetic_reader_v1"
-            ),
+            registry=producer_registry(reader_contract="synthetic_reader_v1"),
             resolver=lambda _name: "9.9.9",
         ),
     )

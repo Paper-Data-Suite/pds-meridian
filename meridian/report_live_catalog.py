@@ -159,7 +159,12 @@ class LiveReportChoiceCatalog:
         if report_kind not in {guide.report_kind for guide in REPORT_GUIDES}:
             raise ReportSelectionUnavailable("Unknown report family.")
         if scope not in {
-            "class", "period", "student", "grade_item", "checkpoint", "mapping"
+            "class",
+            "period",
+            "student",
+            "grade_item",
+            "checkpoint",
+            "mapping",
         }:
             raise ReportSelectionUnavailable("Unknown report selection type.")
         try:
@@ -195,9 +200,7 @@ class LiveReportChoiceCatalog:
             period = self._period(root, folder, selected)
             if scope == "student":
                 roster = self.dependencies.roster_loader(root, folder.class_id)
-                names = [
-                    f"{row.first_name} {row.last_name}" for row in roster.students
-                ]
+                names = [f"{row.first_name} {row.last_name}" for row in roster.students]
                 return tuple(
                     ReportOption(
                         row.student_id,
@@ -245,7 +248,8 @@ class LiveReportChoiceCatalog:
                     )
                     found.append(
                         ReportOption(
-                            snapshot_id, f"Checkpoint {when}",
+                            snapshot_id,
+                            f"Checkpoint {when}",
                             f"Snapshot {snapshot_id}",
                         )
                     )

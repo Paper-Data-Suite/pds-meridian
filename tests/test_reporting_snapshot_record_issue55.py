@@ -391,8 +391,7 @@ def test_provenance_binding_is_typed_canonical_and_digest_bound() -> None:
     assert reporting_snapshot_provenance_binding_from_dict(data) == binding
 
 
-def test_provenance_binding_rejects_unknown_kind_noncanonical_bytes_and_bad_digest(
-) -> None:
+def test_provenance_binding_rejects_unknown_kind_noncanonical_and_bad_digest() -> None:
     canonical = b'{\n  "calendar_revision": 1\n}\n'
     with pytest.raises(
         ReportingSnapshotIntegrityError,
@@ -514,9 +513,10 @@ def test_snapshot_reference_uses_outer_canonical_snapshot_bytes() -> None:
 
     assert reference.class_id == value.class_id
     assert reference.snapshot_id == value.snapshot_id
-    assert reference.snapshot_sha256 == hashlib.sha256(
-        reporting_snapshot_to_json_bytes(value)
-    ).hexdigest()
+    assert (
+        reference.snapshot_sha256
+        == hashlib.sha256(reporting_snapshot_to_json_bytes(value)).hexdigest()
+    )
 
     data = reporting_snapshot_to_dict(value)
     integrity = data.pop("integrity")

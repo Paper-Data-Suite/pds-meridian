@@ -596,9 +596,7 @@ class GradePreviewObservation:
             raise GradePreviewTargetError("observation base status is invalid.")
         _optional_finite_decimal(self.base_grade, "observation base_grade")
         if self.base_result_status == "calculated" and self.base_grade is None:
-            raise GradePreviewTargetError(
-                "calculated observation requires base_grade."
-            )
+            raise GradePreviewTargetError("calculated observation requires base_grade.")
         if self.base_result_status != "calculated" and self.base_grade is not None:
             raise GradePreviewTargetError(
                 "blocked/insufficient observation must not carry base_grade."
@@ -827,12 +825,9 @@ def grade_preview_observation_from_explanation(
     """Project one rich explanation into the stable #54/#55 handoff contract."""
 
     if not isinstance(explanation, GradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "explanation must be GradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("explanation must be GradePreviewExplanation.")
     if any(
-        not isinstance(entry, GradePreviewBasisEntry)
-        for entry in extra_basis_entries
+        not isinstance(entry, GradePreviewBasisEntry) for entry in extra_basis_entries
     ):
         raise GradePreviewComparisonError(
             "extra_basis_entries must contain GradePreviewBasisEntry values."
@@ -918,9 +913,7 @@ def grade_preview_observation_to_dict(
         ),
         "policy_reference": grade_policy_reference_to_dict(value.policy_reference),
         "selected_override_reference": (
-            teacher_grade_override_reference_to_dict(
-                value.selected_override_reference
-            )
+            teacher_grade_override_reference_to_dict(value.selected_override_reference)
             if value.selected_override_reference is not None
             else None
         ),
@@ -1027,9 +1020,7 @@ def _common_basis_entries(
     explanation: GradePreviewExplanation,
 ) -> tuple[GradePreviewBasisEntry, ...]:
     policy = explanation.policy
-    state_treatment = {
-        rule.state: rule.consequence for rule in policy.state_treatment
-    }
+    state_treatment = {rule.state: rule.consequence for rule in policy.state_treatment}
     return (
         GradePreviewBasisEntry(
             "activation",
@@ -1040,9 +1031,7 @@ def _common_basis_entries(
             "policy",
             "grade_policy",
             str(
-                grade_policy_reference_to_dict(policy.policy_reference)[
-                    "policy_sha256"
-                ]
+                grade_policy_reference_to_dict(policy.policy_reference)["policy_sha256"]
             ),
         ),
         GradePreviewBasisEntry(
@@ -1055,12 +1044,8 @@ def _common_basis_entries(
             "grade_reassessment_handling",
             _semantic_digest(
                 {
-                    "selection_authority": (
-                        policy.reassessment_selection_authority
-                    ),
-                    "unresolved_handling": (
-                        policy.reassessment_unresolved_handling
-                    ),
+                    "selection_authority": (policy.reassessment_selection_authority),
+                    "unresolved_handling": (policy.reassessment_unresolved_handling),
                 }
             ),
         ),
@@ -1157,9 +1142,7 @@ def _override_to_dict(
         ),
         "replacement_grade": _optional_decimal_text(value.replacement_grade),
         "withdrawn_override_reference": (
-            teacher_grade_override_reference_to_dict(
-                value.withdrawn_override_reference
-            )
+            teacher_grade_override_reference_to_dict(value.withdrawn_override_reference)
             if value.withdrawn_override_reference is not None
             else None
         ),

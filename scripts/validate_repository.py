@@ -142,6 +142,7 @@ def validate(
                 f"cache_dir={temp / 'pytest-cache'}",
             ],
             [python, "-m", "ruff", "check", "."],
+            [python, "-m", "ruff", "format", "--check", "."],
             [python, "-m", "mypy", "--cache-dir", str(temp / "mypy-cache")],
             [python, "scripts/check_documentation.py"],
         )

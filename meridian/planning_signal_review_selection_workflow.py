@@ -49,9 +49,7 @@ class PlanningSignalReviewSelectionScopeError(
     code = "teacher_workflow.create_planning_signal.review_selection_invalid"
 
 
-class PlanningSignalReviewSelectionDependencyError(
-    PlanningSignalReviewSelectionError
-):
+class PlanningSignalReviewSelectionDependencyError(PlanningSignalReviewSelectionError):
     """Raised when exact #39 review state cannot be read safely."""
 
     code = "teacher_workflow.create_planning_signal.review_selection_dependency_error"
@@ -323,9 +321,7 @@ def commit_planning_signal_review_selection(
             preview.class_id,
             preview.derivation_id,
             preview.target_review_revision,
-            expected_current_review_revision=(
-                preview.expected_current_review_revision
-            ),
+            expected_current_review_revision=(preview.expected_current_review_revision),
         )
     except GroupingSignalReviewStorageConflictError as error:
         raise PlanningSignalReviewSelectionStaleError(str(error)) from error

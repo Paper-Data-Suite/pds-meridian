@@ -9,13 +9,9 @@ import tempfile
 import venv
 from pathlib import Path
 
-SNAPSHOT_PROGRAM = Path(__file__).with_name(
-    "smoke_program_reporting_snapshot.py"
-)
+SNAPSHOT_PROGRAM = Path(__file__).with_name("smoke_program_reporting_snapshot.py")
 PROGRAM = Path(__file__).with_name("smoke_program_report_exports.py")
-RELOAD_PROGRAM = Path(__file__).with_name(
-    "smoke_program_report_exports_reload.py"
-)
+RELOAD_PROGRAM = Path(__file__).with_name("smoke_program_report_exports_reload.py")
 
 
 def _environment() -> dict[str, str]:

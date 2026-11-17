@@ -175,10 +175,13 @@ def test_publication_list_cli_default_limit_is_finite(
         return diagnostics.PublicationListDiagnostic(request, ())
 
     monkeypatch.setattr(cli, "list_publication_diagnostics", fake_list)
-    assert cli.main(
-        ("publications", "list", "--workspace", "synthetic-workspace"),
-        dependencies=empty_dependencies(),
-    ) == 0
+    assert (
+        cli.main(
+            ("publications", "list", "--workspace", "synthetic-workspace"),
+            dependencies=empty_dependencies(),
+        )
+        == 0
+    )
     assert captured["limit"] == 50
 
 
@@ -210,10 +213,13 @@ def test_verify_text_explicitly_says_manifest_was_not_read(
             diagnostics.PublicationVerificationDiagnostic(context(), support)
         ),
     )
-    assert cli.main(
-        ("publications", "verify", PUB_ID, "--workspace", "synthetic-workspace"),
-        dependencies=empty_dependencies(),
-    ) == 0
+    assert (
+        cli.main(
+            ("publications", "verify", PUB_ID, "--workspace", "synthetic-workspace"),
+            dependencies=empty_dependencies(),
+        )
+        == 0
+    )
     output = capsys.readouterr().out
     assert "manifest access: not requested" in output
     assert "manifest bytes: not checked" in output
@@ -247,18 +253,21 @@ def test_verify_json_is_one_deterministic_document(
         "verify_publication_diagnostic",
         lambda workspace, publication_id, dependencies: result,
     )
-    assert cli.main(
-        (
-            "publications",
-            "verify",
-            PUB_ID,
-            "--workspace",
-            "synthetic-workspace",
-            "--format",
-            "json",
-        ),
-        dependencies=empty_dependencies(),
-    ) == 0
+    assert (
+        cli.main(
+            (
+                "publications",
+                "verify",
+                PUB_ID,
+                "--workspace",
+                "synthetic-workspace",
+                "--format",
+                "json",
+            ),
+            dependencies=empty_dependencies(),
+        )
+        == 0
+    )
     output = capsys.readouterr().out
     decoded = json.loads(output)
     assert decoded["diagnostic_output_version"] == "2"

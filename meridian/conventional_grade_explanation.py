@@ -75,9 +75,7 @@ class ConventionalGradeProvenanceExplanation:
             "attempt_selection",
             "reassessment",
         }:
-            raise GradePreviewTargetError(
-                "unsupported conventional provenance kind."
-            )
+            raise GradePreviewTargetError("unsupported conventional provenance kind.")
         if not isinstance(self.reference_key, str) or not self.reference_key:
             raise GradePreviewTargetError(
                 "conventional provenance reference_key must be nonempty text."
@@ -213,15 +211,11 @@ class ConventionalGradeCategoryExplanation:
             raise GradePreviewTargetError("category weight must be positive Decimal.")
         if self.status not in {"calculated", "blocked", "noncalculable"}:
             raise GradePreviewTargetError("unsupported category status.")
-        if len(set(self.included_grade_item_ids)) != len(
-            self.included_grade_item_ids
-        ):
+        if len(set(self.included_grade_item_ids)) != len(self.included_grade_item_ids):
             raise GradePreviewTargetError(
                 "included_grade_item_ids must not contain duplicates."
             )
-        if len(set(self.excluded_grade_item_ids)) != len(
-            self.excluded_grade_item_ids
-        ):
+        if len(set(self.excluded_grade_item_ids)) != len(self.excluded_grade_item_ids):
             raise GradePreviewTargetError(
                 "excluded_grade_item_ids must not contain duplicates."
             )
@@ -406,7 +400,6 @@ class ConventionalGradePreviewExplanation:
         object.__setattr__(self, "reasons", breakdown.reasons)
 
 
-
 def explain_conventional_grade_breakdown(
     workspace_root: str | Path,
     inputs: ConventionalGradeCalculationInput,
@@ -433,8 +426,7 @@ def explain_conventional_grade_breakdown(
             "conventional outcome does not reproduce from exact embedded inputs."
         )
     item_explanations = tuple(
-        _item_explanation(workspace_root, result)
-        for result in outcome.item_results
+        _item_explanation(workspace_root, result) for result in outcome.item_results
     )
     category_titles = {
         category.category_id: category.title
@@ -559,9 +551,7 @@ def conventional_grade_basis_entries(
         raise GradePreviewTargetError(
             "value must be ConventionalGradePreviewExplanation."
         )
-    return _conventional_grade_basis_entries(
-        value.mode, value.items, value.categories
-    )
+    return _conventional_grade_basis_entries(value.mode, value.items, value.categories)
 
 
 def conventional_grade_breakdown_basis_entries(
@@ -573,9 +563,7 @@ def conventional_grade_breakdown_basis_entries(
         raise GradePreviewTargetError(
             "value must be ConventionalGradeBreakdownExplanation."
         )
-    return _conventional_grade_basis_entries(
-        value.mode, value.items, value.categories
-    )
+    return _conventional_grade_basis_entries(value.mode, value.items, value.categories)
 
 
 def _conventional_grade_basis_entries(
@@ -648,7 +636,6 @@ def _conventional_grade_basis_entries(
             _semantic_digest(weighting),
         ),
     )
-
 
 
 def conventional_grade_breakdown_to_dict(
@@ -905,7 +892,5 @@ def _sha256(value: object, field_name: str) -> str:
     if not isinstance(value, str) or len(value) != 64:
         raise GradePreviewTargetError(f"{field_name} must be SHA-256 text.")
     if any(character not in "0123456789abcdef" for character in value):
-        raise GradePreviewTargetError(
-            f"{field_name} must be lowercase SHA-256 text."
-        )
+        raise GradePreviewTargetError(f"{field_name} must be lowercase SHA-256 text.")
     return value

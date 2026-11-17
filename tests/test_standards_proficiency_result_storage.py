@@ -205,8 +205,7 @@ def test_result_path_bounds_subject_and_hashes_raw_standard_id(
     )
     assert len(family.name) == 67
     assert relative == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        f"sp/r/{family.name}/1.json"
+        f"classes/synthetic_class_2026/modules/meridian/sp/r/{family.name}/1.json"
     )
     assert len(relative) <= 125
     assert len(f"{relative}.sha256") <= 132

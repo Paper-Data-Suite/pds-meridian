@@ -126,9 +126,7 @@ def test_scoreform_points_are_not_percentage_normalized() -> None:
         == "mapped"
     )
     assert (
-        map_native_value(
-            NativePointValue(9.6, 12), signature, profile, scale
-        ).status
+        map_native_value(NativePointValue(9.6, 12), signature, profile, scale).status
         == "unsupported"
     )
 
@@ -143,9 +141,7 @@ def test_scoreform_result_kinds_do_not_share_scalar_profiles() -> None:
         (ScalarMappingRule(True, "ready"), ScalarMappingRule(False, "novice")),
     )
     assert (
-        map_native_value(
-            NativeScalarValue(True), correctness, profile, scale
-        ).status
+        map_native_value(NativeScalarValue(True), correctness, profile, scale).status
         == "mapped"
     )
     selected_response = replace(correctness, result_kind="selected_response")
@@ -156,9 +152,7 @@ def test_scoreform_result_kinds_do_not_share_scalar_profiles() -> None:
         == "unsupported"
     )
     assert (
-        map_native_value(
-            NativeStateValue("blank"), correctness, profile, scale
-        ).status
+        map_native_value(NativeStateValue("blank"), correctness, profile, scale).status
         == "native_state"
     )
 
@@ -189,9 +183,7 @@ def test_quillan_024_scale_requires_explicit_exact_mapping() -> None:
     assert result.status == "mapped"
     assert result.proficiency_level_id == "ready"
     assert (
-        map_native_value(
-            NativeStateValue("unrated"), signature, profile, scale
-        ).status
+        map_native_value(NativeStateValue("unrated"), signature, profile, scale).status
         == "native_state"
     )
 
@@ -227,9 +219,7 @@ def test_concord_scale_semantics_and_target_kind_remain_exact() -> None:
         native_scale=source,
     )
     assert (
-        map_native_value(
-            NativeScaledValue(2, source), signature, profile, scale
-        ).status
+        map_native_value(NativeScaledValue(2, source), signature, profile, scale).status
         == "mapped"
     )
     group_signature = replace(signature, target_kind="core_group")

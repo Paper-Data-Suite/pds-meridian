@@ -212,13 +212,16 @@ def test_definition_first_write_and_exact_reload(tmp_path: Path) -> None:
         root, CLASS_ID, "quarter_grade_report", 1
     )
     assert loaded == result.stored
-    assert loaded.reference.definition_sha256 == hashlib.sha256(
-        loaded.content
-    ).hexdigest()
+    assert (
+        loaded.reference.definition_sha256 == hashlib.sha256(loaded.content).hexdigest()
+    )
     assert loaded.path.read_bytes() == loaded.content
-    assert reporting_definition_revision_digest_path(
-        root, CLASS_ID, "quarter_grade_report", 1
-    ).read_text(encoding="ascii") == loaded.definition_sha256 + "\n"
+    assert (
+        reporting_definition_revision_digest_path(
+            root, CLASS_ID, "quarter_grade_report", 1
+        ).read_text(encoding="ascii")
+        == loaded.definition_sha256 + "\n"
+    )
 
 
 def test_definition_exact_replay_is_idempotent(tmp_path: Path) -> None:
@@ -255,12 +258,14 @@ def test_definition_history_is_linear_and_historical_revision_survives(
     assert list_reporting_definition_revisions(
         root, CLASS_ID, "quarter_grade_report"
     ) == (1, 2)
-    assert load_reporting_definition_revision(
-        root, CLASS_ID, "quarter_grade_report", 1
-    ) == first
-    assert load_reporting_definition_revision(
-        root, CLASS_ID, "quarter_grade_report", 2
-    ) == second
+    assert (
+        load_reporting_definition_revision(root, CLASS_ID, "quarter_grade_report", 1)
+        == first
+    )
+    assert (
+        load_reporting_definition_revision(root, CLASS_ID, "quarter_grade_report", 2)
+        == second
+    )
 
 
 def test_definition_revision_gap_is_rejected(tmp_path: Path) -> None:
@@ -322,9 +327,7 @@ def test_long_reporting_ids_use_bounded_paths_and_round_trip(
         long_definition_id,
     )
     assert long_definition_id not in definition.relative_path
-    assert list_reporting_definition_ids(root, CLASS_ID) == (
-        long_definition_id,
-    )
+    assert list_reporting_definition_ids(root, CLASS_ID) == (long_definition_id,)
 
     normal_definition = write_reporting_definition_revision(
         root,
@@ -344,14 +347,15 @@ def test_long_reporting_ids_use_bounded_paths_and_round_trip(
     )
     assert len(snapshot.path.stem) == 67
     assert long_snapshot_id not in snapshot.relative_path
-    assert load_reporting_snapshot(
-        root,
-        CLASS_ID,
-        long_snapshot_id,
-    ).snapshot.snapshot_id == long_snapshot_id
-    assert list_reporting_snapshot_ids(root, CLASS_ID) == (
-        long_snapshot_id,
+    assert (
+        load_reporting_snapshot(
+            root,
+            CLASS_ID,
+            long_snapshot_id,
+        ).snapshot.snapshot_id
+        == long_snapshot_id
     )
+    assert list_reporting_snapshot_ids(root, CLASS_ID) == (long_snapshot_id,)
 
 
 def test_snapshot_first_write_exact_reload_and_reference(tmp_path: Path) -> None:
@@ -365,12 +369,15 @@ def test_snapshot_first_write_exact_reload_and_reference(tmp_path: Path) -> None
     assert result.disposition == "created"
     assert loaded == result.stored
     assert loaded.snapshot == snapshot
-    assert loaded.reference.snapshot_sha256 == hashlib.sha256(
-        loaded.content
-    ).hexdigest()
-    assert reporting_snapshot_digest_path(
-        root, CLASS_ID, "snapshot_001"
-    ).read_text(encoding="ascii") == loaded.snapshot_sha256 + "\n"
+    assert (
+        loaded.reference.snapshot_sha256 == hashlib.sha256(loaded.content).hexdigest()
+    )
+    assert (
+        reporting_snapshot_digest_path(root, CLASS_ID, "snapshot_001").read_text(
+            encoding="ascii"
+        )
+        == loaded.snapshot_sha256 + "\n"
+    )
 
 
 def test_snapshot_exact_replay_is_idempotent(tmp_path: Path) -> None:
@@ -449,9 +456,7 @@ def test_snapshot_predecessor_must_exist_with_exact_digest(tmp_path: Path) -> No
     written = write_reporting_snapshot(root, second)
     assert written.stored.snapshot.predecessor == predecessor
 
-    first_digest = reporting_snapshot_digest_path(
-        root, CLASS_ID, "snapshot_001"
-    )
+    first_digest = reporting_snapshot_digest_path(root, CLASS_ID, "snapshot_001")
     first_digest.write_text("f" * 64 + "\n", encoding="ascii")
     with pytest.raises(ReportingSnapshotStorageIntegrityError):
         load_reporting_snapshot(root, CLASS_ID, "snapshot_002")

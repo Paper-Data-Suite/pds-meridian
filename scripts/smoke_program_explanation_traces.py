@@ -328,9 +328,7 @@ def _grouping_policy(
             ),
             standard_id=STANDARD_ID,
             source_policy=(
-                academic_period_proficiency_aggregation_policy_reference(
-                    source_policy
-                )
+                academic_period_proficiency_aggregation_policy_reference(source_policy)
             ),
             target_scale=proficiency_scale_reference(target),
         ),
@@ -733,8 +731,7 @@ def _assert_core_signal_is_minimal(signal: GroupingSignalSet) -> None:
     assert all(set(item) == {"dimension_id", "band_count"} for item in dimensions)
     student_bands = cast(list[dict[str, object]], payload["student_bands"])
     assert all(
-        set(item) == {"student_id", "dimension_id", "band"}
-        for item in student_bands
+        set(item) == {"student_id", "dimension_id", "band"} for item in student_bands
     )
 
 
@@ -983,9 +980,7 @@ def _run_acceptance(root: Path) -> dict[str, str]:
     assert period_row.nested_grade_item_explanation is not None
     assert period_row.nested_grade_item_explanation.result_revision == 1
     period_json = academic_period_proficiency_explanation_to_json_bytes(period)
-    assert period_json == academic_period_proficiency_explanation_to_json_bytes(
-        period
-    )
+    assert period_json == academic_period_proficiency_explanation_to_json_bytes(period)
     period_text = render_academic_period_proficiency_explanation_text(period)
     assert period_text == render_academic_period_proficiency_explanation_text(period)
 
@@ -1015,9 +1010,7 @@ def _run_acceptance(root: Path) -> dict[str, str]:
         planning
     )
     planning_text = render_planning_signal_derivation_explanation_text(planning)
-    assert planning_text == render_planning_signal_derivation_explanation_text(
-        planning
-    )
+    assert planning_text == render_planning_signal_derivation_explanation_text(planning)
 
     exported = explain_planning_signal_export(
         workspace,

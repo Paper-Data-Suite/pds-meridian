@@ -323,9 +323,7 @@ def reassessment_directory(
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
     if validated_work.class_id != class_value:
-        raise ReassessmentStorageValidationError(
-            "work.class_id must match class_id."
-        )
+        raise ReassessmentStorageValidationError("work.class_id must match class_id.")
     _ = item
     path = class_module_dir(root, class_value, "meridian") / "reassess"
     _require_containment(root, path)
@@ -338,10 +336,7 @@ def reassessment_policies_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return (
-        reassessment_directory(workspace_root, class_id, grade_item_id, work)
-        / "p"
-    )
+    return reassessment_directory(workspace_root, class_id, grade_item_id, work) / "p"
 
 
 def reassessment_policy_path_key(
@@ -356,9 +351,7 @@ def reassessment_policy_path_key(
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
     if validated_work.class_id != class_value:
-        raise ReassessmentStorageValidationError(
-            "work.class_id must match class_id."
-        )
+        raise ReassessmentStorageValidationError("work.class_id must match class_id.")
     policy = _identifier(policy_id, "policy_id")
     return storage_path_key(
         "reassessment_policy",
@@ -377,19 +370,16 @@ def reassessment_policy_directory(
     work: ModuleWorkRef,
     policy_id: str,
 ) -> Path:
-    return (
-        reassessment_policies_directory(
-            workspace_root,
-            class_id,
-            grade_item_id,
-            work,
-        )
-        / reassessment_policy_path_key(
-            class_id,
-            grade_item_id,
-            work,
-            policy_id,
-        )
+    return reassessment_policies_directory(
+        workspace_root,
+        class_id,
+        grade_item_id,
+        work,
+    ) / reassessment_policy_path_key(
+        class_id,
+        grade_item_id,
+        work,
+        policy_id,
     )
 
 
@@ -401,9 +391,12 @@ def reassessment_policy_revision_path(
     policy_id: str,
     policy_revision: int,
 ) -> Path:
-    return reassessment_policy_directory(
-        workspace_root, class_id, grade_item_id, work, policy_id
-    ) / f"{_positive_int(policy_revision, 'policy_revision')}.json"
+    return (
+        reassessment_policy_directory(
+            workspace_root, class_id, grade_item_id, work, policy_id
+        )
+        / f"{_positive_int(policy_revision, 'policy_revision')}.json"
+    )
 
 
 def reassessment_policy_current_path(
@@ -413,9 +406,12 @@ def reassessment_policy_current_path(
     work: ModuleWorkRef,
     policy_id: str,
 ) -> Path:
-    return reassessment_policy_directory(
-        workspace_root, class_id, grade_item_id, work, policy_id
-    ) / "current.json"
+    return (
+        reassessment_policy_directory(
+            workspace_root, class_id, grade_item_id, work, policy_id
+        )
+        / "current.json"
+    )
 
 
 def reassessment_students_directory(
@@ -424,10 +420,7 @@ def reassessment_students_directory(
     grade_item_id: str,
     work: ModuleWorkRef,
 ) -> Path:
-    return (
-        reassessment_directory(workspace_root, class_id, grade_item_id, work)
-        / "s"
-    )
+    return reassessment_directory(workspace_root, class_id, grade_item_id, work) / "s"
 
 
 def reassessment_subject_directory(
@@ -456,9 +449,12 @@ def reassessment_decision_revision_path(
     student_id: str,
     decision_revision: int,
 ) -> Path:
-    return reassessment_subject_directory(
-        workspace_root, class_id, grade_item_id, work, student_id
-    ) / f"{_positive_int(decision_revision, 'decision_revision')}.json"
+    return (
+        reassessment_subject_directory(
+            workspace_root, class_id, grade_item_id, work, student_id
+        )
+        / f"{_positive_int(decision_revision, 'decision_revision')}.json"
+    )
 
 
 def reassessment_decision_current_path(
@@ -468,9 +464,12 @@ def reassessment_decision_current_path(
     work: ModuleWorkRef,
     student_id: str,
 ) -> Path:
-    return reassessment_subject_directory(
-        workspace_root, class_id, grade_item_id, work, student_id
-    ) / "current.json"
+    return (
+        reassessment_subject_directory(
+            workspace_root, class_id, grade_item_id, work, student_id
+        )
+        / "current.json"
+    )
 
 
 def reassessment_policy_revision_relative_path(
@@ -484,9 +483,7 @@ def reassessment_policy_revision_relative_path(
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
     if validated_work.class_id != class_value:
-        raise ReassessmentStorageValidationError(
-            "work.class_id must match class_id."
-        )
+        raise ReassessmentStorageValidationError("work.class_id must match class_id.")
     policy = _identifier(policy_id, "policy_id")
     policy_key = reassessment_policy_path_key(
         class_value,
@@ -512,9 +509,7 @@ def reassessment_decision_revision_relative_path(
     item = _identifier(grade_item_id, "grade_item_id")
     validated_work = _work(work)
     if validated_work.class_id != class_value:
-        raise ReassessmentStorageValidationError(
-            "work.class_id must match class_id."
-        )
+        raise ReassessmentStorageValidationError("work.class_id must match class_id.")
     student = _identifier(student_id, "student_id")
     revision = _positive_int(decision_revision, "decision_revision")
     subject_key = reassessment_subject_key(
@@ -699,9 +694,11 @@ def list_reassessment_policy_revisions(
     return _list_history_revisions(
         root,
         relation,
-        lambda number: load_reassessment_policy_revision(
-            root, class_id, grade_item_id, work, policy_id, number
-        ).policy,
+        lambda number: (
+            load_reassessment_policy_revision(
+                root, class_id, grade_item_id, work, policy_id, number
+            ).policy
+        ),
         validate_reassessment_policy_transition,
     )
 
@@ -816,9 +813,7 @@ def write_reassessment_decision_revision(
     digest_path = Path(str(target) + ".sha256")
     content = reassessment_decision_to_json_bytes(candidate)
     if len(content) > DEFAULT_MAXIMUM_REASSESSMENT_DECISION_BYTES:
-        raise ReassessmentStorageWriteError(
-            "Reassessment decision exceeds byte limit."
-        )
+        raise ReassessmentStorageWriteError("Reassessment decision exceeds byte limit.")
     digest = hashlib.sha256(content).hexdigest()
 
     # Exact immutable replay remains valid after later dependency drift.
@@ -974,9 +969,11 @@ def list_reassessment_decision_revisions(
     return _list_history_revisions(
         root,
         relation,
-        lambda number: load_reassessment_decision_revision(
-            root, class_id, grade_item_id, work, student_id, number
-        ).decision,
+        lambda number: (
+            load_reassessment_decision_revision(
+                root, class_id, grade_item_id, work, student_id, number
+            ).decision
+        ),
         validate_reassessment_decision_transition,
     )
 

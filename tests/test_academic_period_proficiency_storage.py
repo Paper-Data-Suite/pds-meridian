@@ -176,10 +176,7 @@ def test_policy_relative_path_is_class_local_and_scale_independent() -> None:
         CLASS_ID,
         "course_policy",
         1,
-    ) == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        f"ap/p/{policy_key}/1.json"
-    )
+    ) == (f"classes/synthetic_class_2026/modules/meridian/ap/p/{policy_key}/1.json")
 
 
 def test_long_policy_id_uses_bounded_key_and_round_trips(
@@ -203,12 +200,15 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
     assert long_policy_id not in stored.relative_path
     assert len(stored.relative_path) <= 125
     assert len(f"{stored.relative_path}.sha256") <= 132
-    assert load_academic_period_proficiency_policy_revision(
-        workspace,
-        CLASS_ID,
-        long_policy_id,
-        1,
-    ).policy.policy_id == long_policy_id
+    assert (
+        load_academic_period_proficiency_policy_revision(
+            workspace,
+            CLASS_ID,
+            long_policy_id,
+            1,
+        ).policy.policy_id
+        == long_policy_id
+    )
     assert list_academic_period_proficiency_policy_ids(
         workspace,
         CLASS_ID,
@@ -428,10 +428,7 @@ def test_policy_pointer_tamper_fails_closed(tmp_path: Path) -> None:
     data = json.loads(pointer.read_text(encoding="utf-8"))
     data["policy_sha256"] = "0" * 64
     pointer.write_bytes(
-        (
-            json.dumps(data, sort_keys=True, indent=2)
-            + "\n"
-        ).encode("utf-8")
+        (json.dumps(data, sort_keys=True, indent=2) + "\n").encode("utf-8")
     )
 
     with pytest.raises(
@@ -518,7 +515,6 @@ def test_policy_pointer_is_sha_bound_to_selected_revision(
     assert current is not None
     assert current.reference == stored.reference
     assert current.policy_sha256 == stored.policy_sha256
-
 
 
 def period_result_snapshot(
@@ -618,8 +614,7 @@ def test_result_family_path_uses_bounded_subject_and_hashed_standard() -> None:
         STANDARD_ID,
     )
     assert relative == (
-        "classes/synthetic_class_2026/modules/meridian/"
-        f"ap/r/{family.name}/1.json"
+        f"classes/synthetic_class_2026/modules/meridian/ap/r/{family.name}/1.json"
     )
     assert len(family.name) == 67
     assert len(relative) <= 125
@@ -691,9 +686,7 @@ def test_result_revision_load_verifies_exact_bytes_and_reference(
     assert stored.content == path.read_bytes()
     assert stored.reference.class_id == CLASS_ID
     assert stored.reference.period_id == PERIOD_ID
-    assert stored.reference.result_sha256 == hashlib.sha256(
-        stored.content
-    ).hexdigest()
+    assert stored.reference.result_sha256 == hashlib.sha256(stored.content).hexdigest()
 
 
 def test_result_history_is_contiguous_and_transition_validated(
@@ -824,6 +817,7 @@ def test_result_family_rejects_unexpected_entries(tmp_path: Path) -> None:
             STANDARD_ID,
             1,
         )
+
 
 def persist_result_top_level_dependencies(
     workspace: Path,
@@ -1073,22 +1067,28 @@ def test_result_write_does_not_auto_select_current(tmp_path: Path) -> None:
         period_result_snapshot(),
     )
 
-    assert get_current_academic_period_proficiency_result_revision(
-        workspace,
-        CLASS_ID,
-        SCHOOL_YEAR,
-        PERIOD_ID,
-        STUDENT_ID,
-        STANDARD_ID,
-    ) is None
-    assert load_current_academic_period_proficiency_result(
-        workspace,
-        CLASS_ID,
-        SCHOOL_YEAR,
-        PERIOD_ID,
-        STUDENT_ID,
-        STANDARD_ID,
-    ) is None
+    assert (
+        get_current_academic_period_proficiency_result_revision(
+            workspace,
+            CLASS_ID,
+            SCHOOL_YEAR,
+            PERIOD_ID,
+            STUDENT_ID,
+            STANDARD_ID,
+        )
+        is None
+    )
+    assert (
+        load_current_academic_period_proficiency_result(
+            workspace,
+            CLASS_ID,
+            SCHOOL_YEAR,
+            PERIOD_ID,
+            STUDENT_ID,
+            STANDARD_ID,
+        )
+        is None
+    )
 
 
 def test_result_current_selection_is_explicit_and_sha_bound(
@@ -1122,14 +1122,17 @@ def test_result_current_selection_is_explicit_and_sha_bound(
     )
     assert current is not None
     assert current.reference == stored.reference
-    assert get_current_academic_period_proficiency_result_revision(
-        workspace,
-        CLASS_ID,
-        SCHOOL_YEAR,
-        PERIOD_ID,
-        STUDENT_ID,
-        STANDARD_ID,
-    ) == 1
+    assert (
+        get_current_academic_period_proficiency_result_revision(
+            workspace,
+            CLASS_ID,
+            SCHOOL_YEAR,
+            PERIOD_ID,
+            STUDENT_ID,
+            STANDARD_ID,
+        )
+        == 1
+    )
 
 
 def test_result_selection_supports_cas_and_historical_reselection(
@@ -1251,4 +1254,3 @@ def test_result_current_pointer_digest_tamper_fails_closed(
             STUDENT_ID,
             STANDARD_ID,
         )
-

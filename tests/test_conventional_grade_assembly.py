@@ -405,9 +405,7 @@ def test_activation_calendar_revision_must_match_request(
         "resolve_grade_policy_activation",
         lambda *_args: SimpleNamespace(
             status="activated",
-            activation=SimpleNamespace(
-                decision=SimpleNamespace(calendar_revision=2)
-            ),
+            activation=SimpleNamespace(decision=SimpleNamespace(calendar_revision=2)),
             policy_reference=object(),
         ),
     )

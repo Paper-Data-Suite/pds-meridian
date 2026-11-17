@@ -45,8 +45,7 @@ class FakePreparedEnvironment:
     def fresh_working_directory(self, smoke_name: str) -> Path:
         self._counter += 1
         path = Path(
-            f"prepared-{self.matrix.matrix_id.value}-"
-            f"{self._counter:02d}-{smoke_name}"
+            f"prepared-{self.matrix.matrix_id.value}-{self._counter:02d}-{smoke_name}"
         )
         type(self).roots.append((self.matrix.matrix_id, smoke_name, path))
         return path
@@ -92,6 +91,7 @@ def test_issue96_central_runner_prepares_exact_migrated_matrix_order(
     def record(name: str):
         def action(*args: object) -> None:
             calls.append((name, args))
+
         return action
 
     monkeypatch.setattr(runner, "run_core_foundation_prepared_smoke", record("core"))
@@ -271,6 +271,7 @@ def test_issue96_adapter_helpers_receive_their_prepared_interpreters(
         def action(python: Path, *args: object) -> None:
             del args
             observed[name] = python
+
         return action
 
     monkeypatch.setattr(

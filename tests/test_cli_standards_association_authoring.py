@@ -189,10 +189,13 @@ def test_preview_uses_review_scope_and_does_not_write(
         lambda *args, **kwargs: pytest.fail("preview must not write"),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     _, inspect_kwargs = observed["inspect"]
@@ -267,10 +270,13 @@ def test_confirm_write_commits_exact_preview_without_selecting(
         commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [
@@ -307,10 +313,13 @@ def test_json_output_preserves_write_selection_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "written"

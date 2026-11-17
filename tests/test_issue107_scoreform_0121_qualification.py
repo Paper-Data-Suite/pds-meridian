@@ -38,9 +38,7 @@ def test_issue107_exact_upstream_release_authority_is_frozen() -> None:
     assert EXPECTED_SCOREFORM_RELEASE_TREE == (
         "bcc6270319b6234f000d348452072ab8943a2558"
     )
-    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == (
-        "scoreform-0.12.1-py3-none-any.whl"
-    )
+    assert EXPECTED_SCOREFORM_WHEEL_FILENAME == ("scoreform-0.12.1-py3-none-any.whl")
     assert EXPECTED_SCOREFORM_WHEEL_SHA256 == (
         "0f71b709eafe351052eac3e4f0d474b7bef36aeec347df05361b0a8995d44d32"
     )
@@ -55,9 +53,7 @@ def test_issue107_reader_rule_remains_exact_and_optional() -> None:
     project = tomllib.loads(_read("pyproject.toml"))["project"]
 
     assert project["dependencies"] == ["pds-core>=0.6.5,<0.7"]
-    assert project["optional-dependencies"]["scoreform"] == [
-        "scoreform>=0.13.0"
-    ]
+    assert project["optional-dependencies"]["scoreform"] == ["scoreform>=0.13.0"]
     assert SCOREFORM_READER_VERSION == "0.12.1"
     assert SCOREFORM_ADAPTER_DESCRIPTOR.supported_producer_reader_versions == (
         frozenset({"0.12.1"})

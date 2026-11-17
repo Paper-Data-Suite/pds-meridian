@@ -30,9 +30,7 @@ def _prepared() -> GuidedProjectionResult:
         GuidedProjectionResult,
         SimpleNamespace(
             authorized=SimpleNamespace(
-                current_context=SimpleNamespace(
-                    publication=SimpleNamespace(work=WORK)
-                )
+                current_context=SimpleNamespace(publication=SimpleNamespace(work=WORK))
             )
         ),
     )

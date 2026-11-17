@@ -338,8 +338,7 @@ def validate_grouping_signal_review_against_preview(
     )
     if exact_review.acknowledged_warning_ids != required_warnings:
         raise GroupingSignalReviewValidationError(
-            "accepted_for_export must acknowledge exactly every warning "
-            "diagnostic ID."
+            "accepted_for_export must acknowledge exactly every warning diagnostic ID."
         )
     return exact_review
 
@@ -421,9 +420,7 @@ def grouping_signal_review_sha256(
 ) -> str:
     """Return SHA-256 over exact canonical review JSON bytes."""
 
-    return hashlib.sha256(
-        grouping_signal_review_to_json_bytes(value)
-    ).hexdigest()
+    return hashlib.sha256(grouping_signal_review_to_json_bytes(value)).hexdigest()
 
 
 def grouping_signal_review_reference(
@@ -618,9 +615,7 @@ def _validate_revision_pair(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalReviewValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalReviewValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -652,9 +647,7 @@ def _optional_positive_int(value: object, field_name: str) -> int | None:
 
 def _diagnostic_ids(value: object, field_name: str) -> tuple[str, ...]:
     if not isinstance(value, tuple):
-        raise GroupingSignalReviewValidationError(
-            f"{field_name} must be a tuple."
-        )
+        raise GroupingSignalReviewValidationError(f"{field_name} must be a tuple.")
     items: list[str] = []
     for item in value:
         if not isinstance(item, str) or _DIAGNOSTIC_ID.fullmatch(item) is None:
@@ -671,9 +664,7 @@ def _diagnostic_ids(value: object, field_name: str) -> tuple[str, ...]:
 
 def _codes(value: object, field_name: str) -> tuple[str, ...]:
     if not isinstance(value, tuple):
-        raise GroupingSignalReviewValidationError(
-            f"{field_name} must be a tuple."
-        )
+        raise GroupingSignalReviewValidationError(f"{field_name} must be a tuple.")
     items: list[str] = []
     for item in value:
         if (
@@ -699,9 +690,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} must be nonempty text of at most {maximum} characters."
         )
     if "\n" in value or "\r" in value:
-        raise GroupingSignalReviewValidationError(
-            f"{field_name} must be one line."
-        )
+        raise GroupingSignalReviewValidationError(f"{field_name} must be one line.")
     return value
 
 
@@ -751,17 +740,13 @@ def _exact_mapping(
     label: str,
 ) -> dict[str, object]:
     if not isinstance(data, dict):
-        raise GroupingSignalReviewSerializationError(
-            f"{label} must be a JSON object."
-        )
+        raise GroupingSignalReviewSerializationError(f"{label} must be a JSON object.")
     if set(data) != keys:
         raise GroupingSignalReviewSerializationError(
             f"{label} keys do not match the exact contract."
         )
     if not all(isinstance(key, str) for key in data):
-        raise GroupingSignalReviewSerializationError(
-            f"{label} keys must be strings."
-        )
+        raise GroupingSignalReviewSerializationError(f"{label} keys must be strings.")
     return cast(dict[str, object], data)
 
 
@@ -775,9 +760,7 @@ def _require_list(value: object, field_name: str) -> list[object]:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalReviewSerializationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalReviewSerializationError(f"{field_name} must be a string.")
     return value
 
 

@@ -192,8 +192,7 @@ def test_scoreform_blank_ambiguous_and_correctness_remain_separate(
     items = tuple(
         item
         for item in scenario.projected["scoreform"].inventory.items
-        if item.subject is not None
-        and item.subject.student_id == SHARED_STUDENT_ID
+        if item.subject is not None and item.subject.student_id == SHARED_STUDENT_ID
     )
     states = tuple(
         item for item in items if item.result_kind == "selected_response_state"
@@ -230,14 +229,12 @@ def test_quillan_missingness_and_rating_families_do_not_collapse() -> None:
     primary = tuple(
         item
         for item in inventory.items
-        if item.subject is not None
-        and item.subject.student_id == SHARED_STUDENT_ID
+        if item.subject is not None and item.subject.student_id == SHARED_STUDENT_ID
     )
     secondary = tuple(
         item
         for item in inventory.items
-        if item.subject is not None
-        and item.subject.student_id == SECONDARY_STUDENT_ID
+        if item.subject is not None and item.subject.student_id == SECONDARY_STUDENT_ID
     )
 
     rated_observation = next(
@@ -282,8 +279,7 @@ def test_quillan_missingness_and_rating_families_do_not_collapse() -> None:
         "body_3": NativeStateValue("unrated"),
     }
     assert all(
-        not isinstance(value, NativeScaledValue)
-        for value in unrated_by_target.values()
+        not isinstance(value, NativeScaledValue) for value in unrated_by_target.values()
     )
 
     assert any(
@@ -297,7 +293,8 @@ def test_quillan_missingness_and_rating_families_do_not_collapse() -> None:
         for item in secondary
     )
     assert not any(
-        item.result_kind in {
+        item.result_kind
+        in {
             "overall_standard_rating",
             "standard_observation_rating",
         }

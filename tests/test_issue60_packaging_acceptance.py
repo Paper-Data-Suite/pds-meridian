@@ -48,15 +48,12 @@ def test_issue60_does_not_expand_runtime_wheel_or_dependencies() -> None:
         for producer in ("scoreform", "quillan", "pds-concord")
     )
     assert all(
-        "paper-data-suite" not in dependency
-        for dependency in project["dependencies"]
+        "paper-data-suite" not in dependency for dependency in project["dependencies"]
     )
 
 
 def test_issue60_remains_reachable_through_one_central_validator() -> None:
-    validator = Path("scripts/validate_repository.py").read_text(
-        encoding="utf-8"
-    )
+    validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
     runner = Path("scripts/installed_qualification_runner.py").read_text(
         encoding="utf-8"
     )
@@ -70,9 +67,9 @@ def test_issue60_remains_reachable_through_one_central_validator() -> None:
 
 
 def test_issue60_installed_program_pins_authenticated_sibling_versions() -> None:
-    program = Path(
-        "scripts/smoke_program_cross_policy_adversarial.py"
-    ).read_text(encoding="utf-8")
+    program = Path("scripts/smoke_program_cross_policy_adversarial.py").read_text(
+        encoding="utf-8"
+    )
 
     for token in (
         '"pds-core": "0.6.6"',

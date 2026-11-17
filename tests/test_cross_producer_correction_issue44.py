@@ -41,9 +41,7 @@ def _target(selection: str, revision: int | None = None) -> object:
 
 def _module_rows(value: object, module_id: str) -> tuple[object, ...]:
     return tuple(
-        row
-        for row in value.evidence
-        if row.source.work.module_id == module_id
+        row for row in value.evidence if row.source.work.module_id == module_id
     )
 
 
@@ -66,9 +64,7 @@ def test_fresh_scoreform_interpretation_binds_exact_core_correction(
         if entry.source.work.module_id == "scoreform"
     )
     assert len(old_scoreform) == 2
-    old_publication_ids = {
-        entry.source.publication_id for entry in old_scoreform
-    }
+    old_publication_ids = {entry.source.publication_id for entry in old_scoreform}
     assert len(old_publication_ids) == 1
 
     corrected = prepare_corrected_scoreform(scenario)
@@ -119,17 +115,12 @@ def test_fresh_scoreform_interpretation_binds_exact_core_correction(
         if entry.source.work.module_id == "scoreform"
     )
     assert len(fresh_scoreform) == 2
-    assert {entry.source.publication_id for entry in fresh_scoreform} == {
-        successor_id
-    }
+    assert {entry.source.publication_id for entry in fresh_scoreform} == {successor_id}
     attempt_revisions = {
-        entry.attempt_selection_reference.revision
-        for entry in fresh_scoreform
+        entry.attempt_selection_reference.revision for entry in fresh_scoreform
     }
     assert attempt_revisions == {2}
-    assert {entry.reassessment_reference.revision for entry in fresh_scoreform} == {
-        2
-    }
+    assert {entry.reassessment_reference.revision for entry in fresh_scoreform} == {2}
     by_kind = {entry.result_kind: entry for entry in fresh_scoreform}
     assert by_kind["question_correctness"].status == "excluded"
     assert (
@@ -213,9 +204,7 @@ def test_fresh_scoreform_interpretation_binds_exact_core_correction(
     assert {row.source.publication_id for row in historical_scoreform} == (
         old_publication_ids
     )
-    assert {row.source.publication_id for row in current_scoreform} == {
-        successor_id
-    }
+    assert {row.source.publication_id for row in current_scoreform} == {successor_id}
     assert successor_id not in {
         row.source.publication_id for row in historical_scoreform
     }

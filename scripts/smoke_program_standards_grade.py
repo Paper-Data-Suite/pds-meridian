@@ -509,9 +509,7 @@ def _persist_grade_item_result(
             if work.module_id == "scoreform"
             else "overall_standard_rating"
         ),
-        target_kind=(
-            "question" if work.module_id == "scoreform" else "standard"
-        ),
+        target_kind=("question" if work.module_id == "scoreform" else "standard"),
         status="performance",
         exclusion_reason=None,
         membership_reference=AggregationDecisionReference(

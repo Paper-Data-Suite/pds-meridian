@@ -305,8 +305,9 @@ def _observation(
     )
 
 
-def _conventional_detail(
-) -> tuple[dict[str, object], tuple[GradePreviewBasisEntry, ...]]:
+def _conventional_detail() -> tuple[
+    dict[str, object], tuple[GradePreviewBasisEntry, ...]
+]:
     reference = {
         "class_id": CLASS_ID,
         "grade_item_id": "unit_test",
@@ -520,9 +521,7 @@ def _hybrid_detail() -> tuple[dict[str, object], tuple[GradePreviewBasisEntry, .
         "conventional_formula_sha256": conventional_basis[
             ("formula", "conventional_formula")
         ],
-        "standards_formula_sha256": standards_basis[
-            ("formula", "standards_formula")
-        ],
+        "standards_formula_sha256": standards_basis[("formula", "standards_formula")],
     }
     participation = {
         "conventional": conventional_basis[
@@ -533,12 +532,8 @@ def _hybrid_detail() -> tuple[dict[str, object], tuple[GradePreviewBasisEntry, .
         ],
     }
     evidence = {
-        "conventional": conventional_basis[
-            ("evidence", "conventional_evidence_basis")
-        ],
-        "standards_based": standards_basis[
-            ("evidence", "standards_proficiency_basis")
-        ],
+        "conventional": conventional_basis[("evidence", "conventional_evidence_basis")],
+        "standards_based": standards_basis[("evidence", "standards_proficiency_basis")],
     }
     weighting = {
         "conventional_weight": "0.5",
@@ -722,9 +717,10 @@ def test_unavailable_exact_issue54_preview_reloads_without_fake_observation() ->
     assert frozen.summary.unavailable_count == 1
     assert frozen.rows[0].observation is None
     assert frozen.rows[0].explanation_json is None
-    assert frozen_grade_report_preview_sha256(frozen) == hashlib.sha256(
-        encoded
-    ).hexdigest()
+    assert (
+        frozen_grade_report_preview_sha256(frozen)
+        == hashlib.sha256(encoded).hexdigest()
+    )
 
 
 @pytest.mark.parametrize(

@@ -112,10 +112,7 @@ class StandardsGradeAssembly:
                 "target_scale must be StoredProficiencyScale."
             )
         standards = tuple(self.standards)
-        if any(
-            not isinstance(item, StandardsGradeStandardInput)
-            for item in standards
-        ):
+        if any(not isinstance(item, StandardsGradeStandardInput) for item in standards):
             raise StandardsGradeAssemblyScopeError(
                 "standards must contain StandardsGradeStandardInput values."
             )
@@ -175,10 +172,7 @@ class StandardsGradeComponentAssembly:
                 "target_scale must be StoredProficiencyScale."
             )
         standards = tuple(self.standards)
-        if any(
-            not isinstance(item, StandardsGradeStandardInput)
-            for item in standards
-        ):
+        if any(not isinstance(item, StandardsGradeStandardInput) for item in standards):
             raise StandardsGradeAssemblyScopeError(
                 "standards must contain StandardsGradeStandardInput values."
             )
@@ -341,14 +335,12 @@ def assemble_standards_grade_component(
 
     policy_value = policy.policy
     policy_configuration = policy_value.configuration
-    if (
-        policy_value.calculation_family == "standards_based"
-        and isinstance(policy_configuration, StandardsBasedGradeConfiguration)
+    if policy_value.calculation_family == "standards_based" and isinstance(
+        policy_configuration, StandardsBasedGradeConfiguration
     ):
         expected_configuration = policy_configuration
-    elif (
-        policy_value.calculation_family == "hybrid"
-        and isinstance(policy_configuration, HybridGradeConfiguration)
+    elif policy_value.calculation_family == "hybrid" and isinstance(
+        policy_configuration, HybridGradeConfiguration
     ):
         expected_configuration = policy_configuration.standards_based
     else:

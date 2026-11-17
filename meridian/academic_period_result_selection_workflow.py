@@ -32,9 +32,7 @@ class AcademicPeriodResultSelectionScopeError(
     code = "teacher_workflow.calculation_preview.academic_period_selection_invalid"
 
 
-class AcademicPeriodResultSelectionStaleError(
-    AcademicPeriodResultSelectionError
-):
+class AcademicPeriodResultSelectionStaleError(AcademicPeriodResultSelectionError):
     """Raised when reviewed #35 history/target/current state changes."""
 
     code = "teacher_workflow.calculation_preview.academic_period_selection_stale"
@@ -234,8 +232,7 @@ def commit_academic_period_result_selection_preview(
         raise AcademicPeriodResultSelectionStaleError(str(error)) from error
     if history != preview.history:
         raise AcademicPeriodResultSelectionStaleError(
-            "Persisted Academic Period result history changed after "
-            "selection preview."
+            "Persisted Academic Period result history changed after selection preview."
         )
 
     try:
@@ -256,8 +253,7 @@ def commit_academic_period_result_selection_preview(
         or target.snapshot != preview.target.snapshot
     ):
         raise AcademicPeriodResultSelectionStaleError(
-            "Target Academic Period proficiency result changed after "
-            "selection preview."
+            "Target Academic Period proficiency result changed after selection preview."
         )
 
     try:
@@ -269,9 +265,7 @@ def commit_academic_period_result_selection_preview(
             preview.student_id,
             preview.standard_id,
             preview.target_revision,
-            expected_current_result_revision=(
-                preview.expected_current_result_revision
-            ),
+            expected_current_result_revision=(preview.expected_current_result_revision),
         )
     except AcademicPeriodProficiencyStorageConflictError as error:
         raise AcademicPeriodResultSelectionStaleError(str(error)) from error
@@ -283,14 +277,11 @@ def commit_academic_period_result_selection_preview(
         or result.stored.snapshot != preview.target.snapshot
     ):
         raise AcademicPeriodResultSelectionError(
-            "Canonical Academic Period selector returned a different "
-            "persisted target."
+            "Canonical Academic Period selector returned a different persisted target."
         )
 
     return AcademicPeriodResultSelectionWorkflowResult(
         preview=preview,
         selection_result=result,
-        previous_current_result_revision=(
-            preview.expected_current_result_revision
-        ),
+        previous_current_result_revision=(preview.expected_current_result_revision),
     )

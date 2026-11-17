@@ -311,10 +311,7 @@ def replace_first_with_second_attempt(
     assert selection.selected is not None
     work = scenario.mixed.publications["scoreform"].work
     selected_attempts = selection.selected.decision.selected_attempts
-    by_sequence = {
-        attempt.native.sequence: attempt
-        for attempt in selected_attempts
-    }
+    by_sequence = {attempt.native.sequence: attempt for attempt in selected_attempts}
     first = by_sequence[1]
     second = by_sequence[2]
 
@@ -365,9 +362,7 @@ def replace_first_with_second_attempt(
         ),
         mode="replace",
         contributing_attempts=(second,),
-        replacement_relationships=(
-            ReplacementRelationship(second, (first,)),
-        ),
+        replacement_relationships=(ReplacementRelationship(second, (first,)),),
         combinations=(),
         recency_order=(),
         decision_revision=1,

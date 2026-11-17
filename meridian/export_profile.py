@@ -680,9 +680,7 @@ def _decode_json(data: bytes, label: str) -> object:
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:
-        raise ExportProfileSerializationError(
-            f"{label} is not valid UTF-8."
-        ) from error
+        raise ExportProfileSerializationError(f"{label} is not valid UTF-8.") from error
     try:
         return json.loads(
             text,
@@ -755,8 +753,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
             f"{field_name} exceeds maximum length {maximum}."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise ExportProfileValidationError(
             f"{field_name} must be single-line and free of control characters."

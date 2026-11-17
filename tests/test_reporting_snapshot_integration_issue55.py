@@ -609,7 +609,7 @@ def test_fresh_process_reloads_definition_snapshot_observation_comparison_and_se
     observation_path = tmp_path / "current_observation.json"
     observation_path.write_bytes(grade_preview_observation_to_json_bytes(observation))
 
-    program = r'''
+    program = r"""
 import json
 import sys
 from pathlib import Path
@@ -666,7 +666,7 @@ print(json.dumps({
     "comparison_changed": comparisons[0].changed,
     "selected_snapshot_id": selection.selection.snapshot_reference.snapshot_id,
 }, sort_keys=True))
-'''
+"""
     result = subprocess.run(
         [
             sys.executable,

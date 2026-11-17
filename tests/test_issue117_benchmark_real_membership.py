@@ -150,9 +150,7 @@ def _workspace(tmp_path: Path, producer: str) -> tuple[Path, ModuleWorkRef]:
             grade_item_id=GRADE_ITEM,
             grade_item_revision=1,
             grade_item_revision_sha256=stored_grade.revision_sha256,
-            work_reference=GradeItemWorkReference(
-                work=work, registration_revision=1
-            ),
+            work_reference=GradeItemWorkReference(work=work, registration_revision=1),
             membership_revision=1,
             supersedes_revision=None,
             decision="included",
@@ -174,9 +172,7 @@ def _workspace(tmp_path: Path, producer: str) -> tuple[Path, ModuleWorkRef]:
     )
     # These are genuine SHA-verified storage wrappers, not SimpleNamespace stand-ins.
     assert load_current_grade_item_revision(root, CLASS, GRADE_ITEM) is not None
-    loaded = load_current_grade_item_membership_decision(
-        root, CLASS, GRADE_ITEM, work
-    )
+    loaded = load_current_grade_item_membership_decision(root, CLASS, GRADE_ITEM, work)
     assert loaded is not None
     assert loaded.decision_sha256 == stored_membership.decision_sha256
     return root, work

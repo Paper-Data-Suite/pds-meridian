@@ -9,9 +9,7 @@ import tempfile
 import venv
 from pathlib import Path
 
-PROGRAM = Path(__file__).with_name(
-    "smoke_program_grouping_signal_preview_review.py"
-)
+PROGRAM = Path(__file__).with_name("smoke_program_grouping_signal_preview_review.py")
 
 
 def _environment() -> dict[str, str]:

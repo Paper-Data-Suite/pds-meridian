@@ -117,8 +117,7 @@ class PlanningSignalReadinessProjection:
         if snapshot is None:
             return None
         return sum(
-            item.disposition == "contributing"
-            for item in snapshot.student_derivations
+            item.disposition == "contributing" for item in snapshot.student_derivations
         )
 
     @property
@@ -184,12 +183,8 @@ def project_planning_signal_readiness(
         exact_policy_id,
     )
 
-    before_reference = (
-        None if selected_before is None else selected_before.reference
-    )
-    after_reference = (
-        None if selected_after is None else selected_after.reference
-    )
+    before_reference = None if selected_before is None else selected_before.reference
+    after_reference = None if selected_after is None else selected_after.reference
     if before_reference != after_reference:
         raise PlanningSignalWorkflowStaleError(
             "Selected grouping-signal policy changed during readiness projection."
@@ -208,10 +203,7 @@ def project_planning_signal_readiness(
             )
         policy_projection = None
     else:
-        if any(
-            blocker.code == "no_selected_policy"
-            for blocker in generation.blockers
-        ):
+        if any(blocker.code == "no_selected_policy" for blocker in generation.blockers):
             raise PlanningSignalWorkflowStaleError(
                 "Generation resolver observed no selected policy during projection."
             )

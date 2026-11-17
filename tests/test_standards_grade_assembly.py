@@ -379,8 +379,7 @@ def test_stale_selected_result_fails_closed_as_unresolved(
     assert assembled.outcome.status == "blocked"
     assert all(item.status == "unresolved" for item in assembled.standards)
     assert all(
-        "upstream_inputs_changed" in item.reason_codes
-        for item in assembled.standards
+        "upstream_inputs_changed" in item.reason_codes for item in assembled.standards
     )
 
 

@@ -36,9 +36,7 @@ class StandardsAssociationSelectionScopeError(
     code = "teacher_workflow.standards_review.association_selection_invalid"
 
 
-class StandardsAssociationSelectionStaleError(
-    StandardsAssociationSelectionError
-):
+class StandardsAssociationSelectionStaleError(StandardsAssociationSelectionError):
     """Raised when reviewed state changes before current selection."""
 
     code = "teacher_workflow.standards_review.association_selection_stale"

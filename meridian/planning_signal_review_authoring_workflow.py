@@ -54,9 +54,7 @@ class PlanningSignalReviewAuthoringScopeError(
     code = "teacher_workflow.create_planning_signal.review_authoring_invalid"
 
 
-class PlanningSignalReviewAuthoringDependencyError(
-    PlanningSignalReviewAuthoringError
-):
+class PlanningSignalReviewAuthoringDependencyError(PlanningSignalReviewAuthoringError):
     """Raised when canonical #39 review dependencies cannot be read safely."""
 
     code = "teacher_workflow.create_planning_signal.review_authoring_dependency_error"

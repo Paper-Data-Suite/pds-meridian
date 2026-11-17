@@ -71,8 +71,7 @@ class HybridGradeComponentExplanation:
     weighted_contribution: Decimal | None
     reason_codes: tuple[str, ...]
     breakdown: (
-        ConventionalGradeBreakdownExplanation
-        | StandardsGradeBreakdownExplanation
+        ConventionalGradeBreakdownExplanation | StandardsGradeBreakdownExplanation
     )
 
     def __post_init__(self) -> None:
@@ -87,9 +86,7 @@ class HybridGradeComponentExplanation:
                 "hybrid component weight must be a positive finite Decimal."
             )
         if self.source_status not in {"calculated", "blocked", "insufficient"}:
-            raise GradePreviewTargetError(
-                "unsupported hybrid component source status."
-            )
+            raise GradePreviewTargetError("unsupported hybrid component source status.")
         if self.action not in {"contribute", "exclude", "blocking"}:
             raise GradePreviewTargetError("unsupported hybrid component action.")
         if (
@@ -262,8 +259,7 @@ class HybridGradePreviewExplanation:
             )
         reasons = tuple(self.reasons)
         if any(
-            not isinstance(reason, HybridGradeReasonExplanation)
-            for reason in reasons
+            not isinstance(reason, HybridGradeReasonExplanation) for reason in reasons
         ):
             raise GradePreviewTargetError(
                 "reasons must contain HybridGradeReasonExplanation values."
@@ -307,9 +303,7 @@ def explain_hybrid_grade_preview(
     """Explain one exact persisted hybrid Grade result without mutation."""
 
     if not isinstance(snapshot, HybridGradeResultSnapshot):
-        raise GradePreviewTargetError(
-            "snapshot must be HybridGradeResultSnapshot."
-        )
+        raise GradePreviewTargetError("snapshot must be HybridGradeResultSnapshot.")
     try:
         snapshot.__post_init__()
         content = hybrid_grade_result_snapshot_to_json_bytes(snapshot)
@@ -358,9 +352,7 @@ def explain_hybrid_grade_preview(
         conventional_outcome = calculate_conventional_grade(
             snapshot.inputs.conventional
         )
-        standards_outcome = calculate_standards_grade(
-            snapshot.inputs.standards_based
-        )
+        standards_outcome = calculate_standards_grade(snapshot.inputs.standards_based)
     except ValueError as error:
         raise GradePreviewIntegrityError(
             f"embedded hybrid component basis is invalid: {error}"
@@ -410,9 +402,7 @@ def hybrid_grade_observation(
     """Project hybrid detail into the stable #54 observation handoff."""
 
     if not isinstance(value, HybridGradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "value must be HybridGradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("value must be HybridGradePreviewExplanation.")
     return grade_preview_observation_from_explanation(
         value.common,
         extra_basis_entries=hybrid_grade_basis_entries(value),
@@ -425,9 +415,7 @@ def hybrid_grade_basis_entries(
     """Return privacy-minimized hybrid semantic hashes for later comparison."""
 
     if not isinstance(value, HybridGradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "value must be HybridGradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("value must be HybridGradePreviewExplanation.")
     conventional_breakdown = value.conventional_component.breakdown
     standards_breakdown = value.standards_component.breakdown
     if not isinstance(
@@ -441,9 +429,7 @@ def hybrid_grade_basis_entries(
         raise GradePreviewIntegrityError(
             "standards component breakdown type changed unexpectedly."
         )
-    conventional = conventional_grade_breakdown_basis_entries(
-        conventional_breakdown
-    )
+    conventional = conventional_grade_breakdown_basis_entries(conventional_breakdown)
     standards = standards_grade_breakdown_basis_entries(standards_breakdown)
     component_identity = {
         "conventional": {
@@ -502,9 +488,7 @@ def hybrid_grade_basis_entries(
         "conventional_weight": _decimal_text(
             value.conventional_component.configured_weight
         ),
-        "standards_weight": _decimal_text(
-            value.standards_component.configured_weight
-        ),
+        "standards_weight": _decimal_text(value.standards_component.configured_weight),
         "conventional_component_weighting": _basis_sha256(
             conventional,
             "conventional_weighting",
@@ -573,15 +557,11 @@ def hybrid_grade_preview_explanation_to_dict(
     """Serialize hybrid explanation detail to deterministic JSON-native data."""
 
     if not isinstance(value, HybridGradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "value must be HybridGradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("value must be HybridGradePreviewExplanation.")
     return {
         "common": grade_preview_explanation_to_dict(value.common),
         "status": value.status,
-        "conventional_component": _component_to_dict(
-            value.conventional_component
-        ),
+        "conventional_component": _component_to_dict(value.conventional_component),
         "standards_component": _component_to_dict(value.standards_component),
         "formula": _formula_to_dict(value.formula),
         "reasons": [_reason_to_dict(reason) for reason in value.reasons],
@@ -624,9 +604,7 @@ def _component_explanation(
         source_status=component.source_status,
         action=component.action,
         component_algorithm_version=component.component_algorithm_version,
-        component_calculation_fingerprint=(
-            component.component_calculation_fingerprint
-        ),
+        component_calculation_fingerprint=(component.component_calculation_fingerprint),
         unrounded_grade=component.unrounded_grade,
         weighted_contribution=component.weighted_contribution,
         reason_codes=component.reason_codes,
@@ -671,9 +649,7 @@ def _component_to_dict(
         "source_status": value.source_status,
         "action": value.action,
         "component_algorithm_version": value.component_algorithm_version,
-        "component_calculation_fingerprint": (
-            value.component_calculation_fingerprint
-        ),
+        "component_calculation_fingerprint": (value.component_calculation_fingerprint),
         "unrounded_grade": _decimal_text(value.unrounded_grade),
         "weighted_contribution": _decimal_text(value.weighted_contribution),
         "reason_codes": list(value.reason_codes),
@@ -700,9 +676,7 @@ def _reason_to_dict(value: HybridGradeReasonExplanation) -> dict[str, object]:
 def _reason_codes(values: tuple[str, ...]) -> tuple[str, ...]:
     reasons = tuple(values)
     if any(not isinstance(reason, str) or not reason for reason in reasons):
-        raise GradePreviewTargetError(
-            "hybrid reason codes must contain nonempty text."
-        )
+        raise GradePreviewTargetError("hybrid reason codes must contain nonempty text.")
     if len(set(reasons)) != len(reasons):
         raise GradePreviewTargetError(
             "hybrid reason codes must not contain duplicates."

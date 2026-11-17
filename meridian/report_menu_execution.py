@@ -141,9 +141,7 @@ class LiveReportMenuExecutor:
             generated_at = self.dependencies.clock().astimezone(UTC)
             preview = self._build(context, prepared.report_kind, generated_at)
             if prepared.report_kind == "benchmark_analysis_instructional_response":
-                reobserved = self._build(
-                    context, prepared.report_kind, generated_at
-                )
+                reobserved = self._build(context, prepared.report_kind, generated_at)
                 if reobserved.preview_sha256 != preview.preview_sha256:
                     raise ReportMenuSelectionChangedError(
                         "The benchmark evidence changed during report generation. "
@@ -431,9 +429,7 @@ class LiveReportMenuExecutor:
                 for standard in item.target.standard_ids
             }
         )
-        current_results: dict[
-            tuple[str, str], StoredStandardProficiencyResult
-        ] = {}
+        current_results: dict[tuple[str, str], StoredStandardProficiencyResult] = {}
         scale_references: set[ProficiencyScaleReference] = set()
         source_references = list(projection_sources)
         for student_id in sorted(roster_rows):
@@ -478,9 +474,7 @@ class LiveReportMenuExecutor:
                 )
         else:
             current_scales = []
-            for scale_id in list_proficiency_scale_ids(
-                context.root, context.class_id
-            ):
+            for scale_id in list_proficiency_scale_ids(context.root, context.class_id):
                 current_scale = load_current_proficiency_scale(
                     context.root, context.class_id, scale_id
                 )
@@ -580,9 +574,12 @@ class LiveReportMenuExecutor:
                 level_id = current.snapshot.outcome.proficiency_level_id
                 if level_id is not None:
                     counts[level_id] = counts.get(level_id, 0) + 1
-            summary = "; ".join(
-                f"{level_id}={count}" for level_id, count in sorted(counts.items())
-            ) or "No selected proficiency results"
+            summary = (
+                "; ".join(
+                    f"{level_id}={count}" for level_id, count in sorted(counts.items())
+                )
+                or "No selected proficiency results"
+            )
             if len(results) != len(calculated):
                 summary += f"; insufficient={len(results) - len(calculated)}"
             standard_rows.append(
@@ -735,11 +732,9 @@ class LiveReportMenuExecutor:
                 )
                 snapshot = candidate.snapshot
                 if (
-                    snapshot.target_period.school_year
-                    != context.period.school_year
+                    snapshot.target_period.school_year != context.period.school_year
                     or snapshot.target_period.period_id != context.period.period_id
-                    or snapshot.calendar_revision
-                    != context.period.calendar_revision
+                    or snapshot.calendar_revision != context.period.calendar_revision
                 ):
                     continue
                 current = load_current_reporting_snapshot_selection(
@@ -893,9 +888,7 @@ def _benchmark_item_observations(
             }
             for question_id in sorted(question_ids):
                 question_items = tuple(
-                    item
-                    for item in work_items
-                    if item.target.target_id == question_id
+                    item for item in work_items if item.target.target_id == question_id
                 )
                 correctness = tuple(
                     item.value.value

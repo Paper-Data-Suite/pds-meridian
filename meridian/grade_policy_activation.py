@@ -94,9 +94,7 @@ class GradePolicyActivationDecision:
 
     def __post_init__(self) -> None:
         if self.schema_version != GRADE_POLICY_ACTIVATION_SCHEMA_VERSION:
-            raise GradePolicyActivationValidationError(
-                'schema_version must be "1".'
-            )
+            raise GradePolicyActivationValidationError('schema_version must be "1".')
         if self.record_type != GRADE_POLICY_ACTIVATION_RECORD_TYPE:
             raise GradePolicyActivationValidationError(
                 'record_type must be "meridian_grade_policy_activation".'
@@ -113,9 +111,7 @@ class GradePolicyActivationDecision:
                 f"target_period is invalid: {error}"
             ) from error
 
-        calendar_revision = _positive_int(
-            self.calendar_revision, "calendar_revision"
-        )
+        calendar_revision = _positive_int(self.calendar_revision, "calendar_revision")
         activation_revision = _positive_int(
             self.activation_revision, "activation_revision"
         )
@@ -505,9 +501,7 @@ def _exact_mapping(
     if not isinstance(data, Mapping):
         raise GradePolicyActivationValidationError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise GradePolicyActivationValidationError(
-            f"{label} keys must be strings."
-        )
+        raise GradePolicyActivationValidationError(f"{label} keys must be strings.")
     actual = frozenset(cast(Mapping[str, object], data).keys())
     if actual != keys:
         missing = sorted(keys - actual)
@@ -525,9 +519,7 @@ def _exact_mapping(
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradePolicyActivationValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyActivationValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:
@@ -559,9 +551,7 @@ def _sha256(value: object, field_name: str) -> str:
 
 def _bounded_text(value: object, field_name: str, maximum: int) -> str:
     if not isinstance(value, str):
-        raise GradePolicyActivationValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyActivationValidationError(f"{field_name} must be a string.")
     if not value or value != value.strip():
         raise GradePolicyActivationValidationError(
             f"{field_name} must be nonblank without edge whitespace."
@@ -579,9 +569,7 @@ def _bounded_text(value: object, field_name: str, maximum: int) -> str:
 
 def _aware_utc_datetime(value: object, field_name: str) -> datetime:
     if not isinstance(value, datetime):
-        raise GradePolicyActivationValidationError(
-            f"{field_name} must be a datetime."
-        )
+        raise GradePolicyActivationValidationError(f"{field_name} must be a datetime.")
     if value.tzinfo is None or value.utcoffset() is None:
         raise GradePolicyActivationValidationError(
             f"{field_name} must be timezone-aware."
@@ -602,9 +590,7 @@ def _datetime_from_text(value: object, field_name: str) -> datetime:
 
 def _require_str(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GradePolicyActivationValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GradePolicyActivationValidationError(f"{field_name} must be a string.")
     return value
 
 
@@ -616,7 +602,5 @@ def _optional_str(value: object, field_name: str) -> str | None:
 
 def _require_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise GradePolicyActivationValidationError(
-            f"{field_name} must be an integer."
-        )
+        raise GradePolicyActivationValidationError(f"{field_name} must be an integer.")
     return value

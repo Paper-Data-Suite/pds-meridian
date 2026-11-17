@@ -284,9 +284,7 @@ def _refresh_reassessment(
             selection.selected.decision_sha256,
         ),
         contributing_attempts=(second,),
-        replacement_relationships=(
-            ReplacementRelationship(second, (first,)),
-        ),
+        replacement_relationships=(ReplacementRelationship(second, (first,)),),
         decision_revision=2,
         supersedes_revision=1,
         rationale=(
@@ -375,9 +373,7 @@ def _replacement_bindings(
         ),
     }
     old_scoreform_bindings = tuple(
-        binding
-        for binding in old.bindings
-        if binding.source in old_scoreform_sources
+        binding for binding in old.bindings if binding.source in old_scoreform_sources
     )
     if len(old_scoreform_bindings) != 2:
         raise AssertionError("Expected two original ScoreForm aggregation bindings.")

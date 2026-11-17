@@ -47,10 +47,10 @@ def test_owner_action_catalog_is_exact_unique_and_deterministic() -> None:
     second = meridian_owner_action_definitions()
 
     assert first == second
-    assert tuple(
-        (item.destination_id, item.action_id, item.label)
-        for item in first
-    ) == EXPECTED_ACTIONS
+    assert (
+        tuple((item.destination_id, item.action_id, item.label) for item in first)
+        == EXPECTED_ACTIONS
+    )
     assert tuple(item.destination_id for item in first) == (
         MERIDIAN_OWNER_DESTINATION_IDS
     )

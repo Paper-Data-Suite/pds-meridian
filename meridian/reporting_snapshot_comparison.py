@@ -97,9 +97,7 @@ def reporting_snapshot_prior_grade_basis(
             continue
         if row.observation is None:
             return None
-        return prior_reporting_snapshot_grade_basis_from_observation(
-            row.observation
-        )
+        return prior_reporting_snapshot_grade_basis_from_observation(row.observation)
     raise ReportingSnapshotComparisonNotFoundError(
         "Exact Grade target is absent from the frozen ReportingSnapshot."
     )
@@ -202,9 +200,7 @@ def compare_reporting_snapshot_to_grade_report_preview(
             "current_preview must be GradeReportPreview."
         )
     observations = tuple(
-        row.observation
-        for row in current_preview.rows
-        if row.observation is not None
+        row.observation for row in current_preview.rows if row.observation is not None
     )
     return compare_reporting_snapshot_to_current_observations(
         snapshot,
@@ -286,9 +282,7 @@ def _require_scope(
 def _match_observations(
     prior: tuple[GradePreviewObservation, ...],
     current: tuple[GradePreviewObservation, ...],
-) -> tuple[
-    tuple[GradePreviewObservation | None, GradePreviewObservation | None], ...
-]:
+) -> tuple[tuple[GradePreviewObservation | None, GradePreviewObservation | None], ...]:
     prior_by_exact = {_exact_target_key(item.target): item for item in prior}
     current_by_exact = {_exact_target_key(item.target): item for item in current}
 
@@ -320,9 +314,7 @@ def _match_observations(
 def _by_logical_scope(
     values: tuple[GradePreviewObservation, ...],
 ) -> dict[tuple[str, str, str, str, int], tuple[GradePreviewObservation, ...]]:
-    grouped: dict[
-        tuple[str, str, str, str, int], list[GradePreviewObservation]
-    ] = {}
+    grouped: dict[tuple[str, str, str, str, int], list[GradePreviewObservation]] = {}
     for item in values:
         grouped.setdefault(_logical_target_key(item.target), []).append(item)
     return {

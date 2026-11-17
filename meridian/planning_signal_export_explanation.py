@@ -323,10 +323,7 @@ def render_planning_signal_export_explanation_text(
             f"{value.core_digest_algorithm}={value.core_signal_digest}"
         ),
         f"Receipt SHA-256: {value.receipt_sha256}",
-        (
-            "Derivation: "
-            f"{value.derivation_id} sha256={value.derivation_sha256}"
-        ),
+        (f"Derivation: {value.derivation_id} sha256={value.derivation_sha256}"),
         (
             "Preview: "
             f"{value.preview_id} sha256={value.preview_sha256} "

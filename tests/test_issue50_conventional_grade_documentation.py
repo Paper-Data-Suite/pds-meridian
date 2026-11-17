@@ -19,7 +19,7 @@ def test_issue50_pure_calculation_architecture_freezes_boundaries() -> None:
         "producer possible points != policy possible points",
         "missing or unresolved state != numeric zero",
         "There is no silent renormalization",
-        "CONVENTIONAL_GRADE_ALGORITHM_VERSION = \"1\"",
+        'CONVENTIONAL_GRADE_ALGORITHM_VERSION = "1"',
         "Grade Item conventional input\n    != conventional Grade calculation",
         "!= ReportingSnapshot",
         "!= official Grade",

@@ -111,10 +111,13 @@ def test_without_confirmation_previews_and_performs_no_selection(
         lambda *args: pytest.fail("unconfirmed selection must not commit"),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     routed = observed["args"]
@@ -160,10 +163,13 @@ def test_confirm_select_commits_exact_preview_without_authoring(
         fake_commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-select"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [("synthetic-workspace", preview)]
@@ -187,10 +193,13 @@ def test_json_output_reports_historical_target_and_selection_result(
         lambda *args: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "selected"
@@ -210,13 +219,13 @@ def test_invalid_work_identity_uses_policy_selection_error_boundary(
     arguments = list(_arguments())
     arguments[4] = "ScoreForm"
 
-    assert cli.main(
-        tuple(arguments),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        cli.main(
+            tuple(arguments),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 1
+    )
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert (
-        "teacher_workflow.attempt_decisions.policy_selection_invalid"
-        in captured.err
-    )
+    assert "teacher_workflow.attempt_decisions.policy_selection_invalid" in captured.err

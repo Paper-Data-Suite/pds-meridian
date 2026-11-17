@@ -151,9 +151,7 @@ def test_core_diagnostics_treat_partial_coverage_as_missing_warning(
     assert tuple(
         (item.code, item.severity, item.student_id, item.dimension_id)
         for item in report.findings
-    ) == (
-        ("missing_student_signal", "warning", "student_003", "analysis"),
-    )
+    ) == (("missing_student_signal", "warning", "student_003", "analysis"),)
     dimension = report.dimensions[0]
     assert dimension.roster_student_count == 3
     assert dimension.signal_entry_count == 2

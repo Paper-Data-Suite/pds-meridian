@@ -88,10 +88,7 @@ def main() -> None:
     assert grade_items.items[0].title == "Synthetic Grade Item"
     assert grade_items.items[0].selection_state == "selected_latest"
     assert grade_items.items[0].memberships[0].decision == "included"
-    assert (
-        grade_items.items[0].memberships[0].academic_period_id
-        == "mp1"
-    )
+    assert grade_items.items[0].memberships[0].academic_period_id == "mp1"
 
     derivation_ids = list_grouping_signal_derivation_ids(workspace, CLASS_ID)
     assert len(derivation_ids) == 1

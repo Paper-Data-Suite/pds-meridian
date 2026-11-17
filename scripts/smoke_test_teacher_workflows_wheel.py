@@ -9,12 +9,8 @@ import tempfile
 import venv
 from pathlib import Path
 
-BASELINE_PROGRAM = Path(__file__).with_name(
-    "smoke_program_grouping_signal_export.py"
-)
-WORKFLOW_PROGRAM = Path(__file__).with_name(
-    "smoke_program_teacher_workflows.py"
-)
+BASELINE_PROGRAM = Path(__file__).with_name("smoke_program_grouping_signal_export.py")
+WORKFLOW_PROGRAM = Path(__file__).with_name("smoke_program_teacher_workflows.py")
 
 
 def _environment() -> dict[str, str]:
@@ -67,8 +63,8 @@ def smoke_test(meridian_wheel: Path, core_wheel: Path) -> None:
         _run([str(python), "-m", "pip", "check"], outside)
 
         # Seed a complete exact #27-#40 synthetic state through the existing
-        #40 installed acceptance harness, then exercise #41 over those durable
-        #canonical records from the same outside directory.
+        # 40 installed acceptance harness, then exercise #41 over those durable
+        # canonical records from the same outside directory.
         _run([str(python), str(BASELINE_PROGRAM.resolve())], outside)
         _run([str(python), str(WORKFLOW_PROGRAM.resolve())], outside)
 

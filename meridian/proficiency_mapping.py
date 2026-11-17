@@ -801,9 +801,7 @@ class NativeValueMappingOutcome:
 
 def validate_proficiency_scale(value: ProficiencyScale) -> ProficiencyScale:
     if not isinstance(value, ProficiencyScale):
-        raise ProficiencyMappingValidationError(
-            "value must be a ProficiencyScale."
-        )
+        raise ProficiencyMappingValidationError("value must be a ProficiencyScale.")
     value.__post_init__()
     return value
 
@@ -1631,18 +1629,14 @@ def _scalar_from_dict(data: object, label: str) -> NativeScalar:
 
 def _native_scalar(value: object, field_name: str) -> NativeScalar:
     if isinstance(value, str):
-        return _bounded_text(
-            value, field_name, MAXIMUM_PROFICIENCY_TEXT_LENGTH
-        )
+        return _bounded_text(value, field_name, MAXIMUM_PROFICIENCY_TEXT_LENGTH)
     if type(value) is bool:
         return value
     if type(value) is int:
         return value
     if type(value) is float:
         if not math.isfinite(value):
-            raise ProficiencyMappingValidationError(
-                f"{field_name} must be finite."
-            )
+            raise ProficiencyMappingValidationError(f"{field_name} must be finite.")
         return value
     raise ProficiencyMappingValidationError(
         f"{field_name} must be a string, integer, finite float, or boolean."
@@ -1662,13 +1656,9 @@ def _finite_number(value: object, field_name: str) -> int | float:
         return value
     if type(value) is float:
         if not math.isfinite(value):
-            raise ProficiencyMappingValidationError(
-                f"{field_name} must be finite."
-            )
+            raise ProficiencyMappingValidationError(f"{field_name} must be finite.")
         return value
-    raise ProficiencyMappingValidationError(
-        f"{field_name} must be a finite number."
-    )
+    raise ProficiencyMappingValidationError(f"{field_name} must be a finite number.")
 
 
 def _optional_finite_number(value: object, field_name: str) -> int | float | None:
@@ -1691,9 +1681,7 @@ def _mapping_kind(value: object) -> MappingKind:
 
 def _mapping_status(value: object) -> MappingStatus:
     if value not in {"mapped", "unmapped", "unsupported", "native_state"}:
-        raise ProficiencyMappingValidationError(
-            "unsupported mapping outcome status."
-        )
+        raise ProficiencyMappingValidationError("unsupported mapping outcome status.")
     return value
 
 
@@ -1786,9 +1774,7 @@ def _aware_utc_datetime(value: object, field_name: str) -> datetime:
         or value.tzinfo is None
         or value.utcoffset() is None
     ):
-        raise ProficiencyMappingValidationError(
-            f"{field_name} must be timezone-aware."
-        )
+        raise ProficiencyMappingValidationError(f"{field_name} must be timezone-aware.")
     return value.astimezone(UTC)
 
 

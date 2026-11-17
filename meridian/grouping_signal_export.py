@@ -50,12 +50,8 @@ def build_grouping_signal_export_candidate(
     """
 
     try:
-        exact_derivation = validate_grouping_signal_derivation_snapshot(
-            derivation
-        )
-        derivation_reference = grouping_signal_derivation_reference(
-            exact_derivation
-        )
+        exact_derivation = validate_grouping_signal_derivation_snapshot(derivation)
+        derivation_reference = grouping_signal_derivation_reference(exact_derivation)
     except GroupingSignalDerivationValidationError as error:
         raise GroupingSignalExportProjectionError(
             f"Grouping-signal derivation is invalid: {error}"

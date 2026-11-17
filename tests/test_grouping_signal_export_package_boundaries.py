@@ -3,9 +3,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-PRODUCER_ROOTS = frozenset(
-    {"scoreform", "quillan", "concord", "portia", "vitrine"}
-)
+PRODUCER_ROOTS = frozenset({"scoreform", "quillan", "concord", "portia", "vitrine"})
 RUNTIME_MODULES = (
     Path("meridian/grouping_signal_export.py"),
     Path("meridian/grouping_signal_export_eligibility.py"),
@@ -37,12 +35,8 @@ def test_issue40_has_no_sibling_runtime_dependency() -> None:
 
 
 def test_issue40_release_files_are_guarded() -> None:
-    wheel_checker = Path("scripts/check_package.py").read_text(
-        encoding="utf-8"
-    )
-    sdist_checker = Path("scripts/check_sdist.py").read_text(
-        encoding="utf-8"
-    )
+    wheel_checker = Path("scripts/check_package.py").read_text(encoding="utf-8")
+    sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
 
     for path in RUNTIME_MODULES:
         member = path.as_posix()
@@ -64,9 +58,9 @@ def test_issue40_release_files_are_guarded() -> None:
 
 
 def test_issue40_handoff_and_boundaries() -> None:
-    text = Path(
-        "docs/architecture/grouping-signal-core-export.md"
-    ).read_text(encoding="utf-8")
+    text = Path("docs/architecture/grouping-signal-core-export.md").read_text(
+        encoding="utf-8"
+    )
 
     for statement in (
         "accepted_for_export",

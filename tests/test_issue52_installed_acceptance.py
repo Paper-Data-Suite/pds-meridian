@@ -7,12 +7,10 @@ def test_issue52_installed_smoke_is_exact_and_fresh_process() -> None:
     wrapper = Path("scripts/smoke_test_hybrid_grade_wheel.py").read_text(
         encoding="utf-8"
     )
-    program = Path("scripts/smoke_program_hybrid_grade.py").read_text(
+    program = Path("scripts/smoke_program_hybrid_grade.py").read_text(encoding="utf-8")
+    reload_program = Path("scripts/smoke_program_hybrid_grade_reload.py").read_text(
         encoding="utf-8"
     )
-    reload_program = Path(
-        "scripts/smoke_program_hybrid_grade_reload.py"
-    ).read_text(encoding="utf-8")
 
     for token in (
         'metadata.version("pds-core") == "0.6.6"',
@@ -20,8 +18,8 @@ def test_issue52_installed_smoke_is_exact_and_fresh_process() -> None:
         'metadata.version("quillan") == "0.10.6"',
         'metadata.version("pds-concord")',
         'importlib.util.find_spec("concord") is None',
-        'import smoke_program_conventional_grade as conventional',
-        'import smoke_program_standards_grade as standards',
+        "import smoke_program_conventional_grade as conventional",
+        "import smoke_program_standards_grade as standards",
         "assemble_hybrid_grade_calculation",
         "write_hybrid_grade_result_revision",
         "select_hybrid_grade_result_revision",
@@ -51,9 +49,7 @@ def test_issue52_installed_smoke_is_exact_and_fresh_process() -> None:
 
 
 def test_issue52_installed_smoke_preserves_one_hybrid_authority() -> None:
-    program = Path("scripts/smoke_program_hybrid_grade.py").read_text(
-        encoding="utf-8"
-    )
+    program = Path("scripts/smoke_program_hybrid_grade.py").read_text(encoding="utf-8")
     for token in (
         'calculation_family="hybrid"',
         "HybridGradeConfiguration(",

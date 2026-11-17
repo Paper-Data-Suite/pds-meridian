@@ -55,9 +55,7 @@ from meridian.teacher_grade_override_workflow import (
 )
 
 
-class TeacherGradeOverrideSelectionScopeError(
-    TeacherGradeOverrideWorkflowScopeError
-):
+class TeacherGradeOverrideSelectionScopeError(TeacherGradeOverrideWorkflowScopeError):
     """Raised when a teacher-facing override selection request is invalid."""
 
     code = "teacher_workflow.grade_override.selection_invalid"
@@ -69,9 +67,7 @@ class TeacherGradeOverrideSelectionStaleError(TeacherGradeOverrideWorkflowError)
     code = "teacher_workflow.grade_override.selection_stale"
 
 
-class TeacherGradeOverrideWithdrawalScopeError(
-    TeacherGradeOverrideWorkflowScopeError
-):
+class TeacherGradeOverrideWithdrawalScopeError(TeacherGradeOverrideWorkflowScopeError):
     """Raised when an override cannot be withdrawn under the v1 lifecycle."""
 
     code = "teacher_workflow.grade_override.withdrawal_invalid"
@@ -395,10 +391,7 @@ def commit_teacher_grade_override_selection_preview(
             target.calculation_family,
             target.override_revision,
         )
-        if (
-            stored.reference != target
-            or stored.decision != preview.target_decision
-        ):
+        if stored.reference != target or stored.decision != preview.target_decision:
             raise TeacherGradeOverrideSelectionStaleError(
                 "Selection target changed after preview."
             )

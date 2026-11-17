@@ -495,9 +495,7 @@ def _reader_profile(
         module_id="synthetic_producer",
         display_name="Synthetic Producer",
         supported_core_publication_schema_versions=frozenset({"1"}),
-        supported_academic_work_contract_versions=frozenset(
-            {"producer_contract_1"}
-        ),
+        supported_academic_work_contract_versions=frozenset({"producer_contract_1"}),
         publication_contracts=(
             PublicationContractSupport(
                 publication_kind="academic_result_set",
@@ -566,8 +564,9 @@ def test_explicit_unsupported_contract_never_falls_back_to_legacy_version() -> N
     assert resolver_called is False
 
 
-def test_registry_injects_exact_contract_reader_version_into_projection_request(
-) -> None:
+def test_registry_injects_exact_contract_reader_version_into_projection_request() -> (
+    None
+):
     selected = descriptor(
         reader_contracts=frozenset({"synthetic_reader_v1"}),
     )

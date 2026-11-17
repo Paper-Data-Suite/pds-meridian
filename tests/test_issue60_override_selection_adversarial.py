@@ -300,13 +300,16 @@ def test_result_selection_and_override_lifecycle_remain_explicit(
     )
 
     # Writing r2 does not move the explicit current-result selector.
-    assert issue50.get_current_conventional_grade_result_revision(
-        root,
-        issue50.CLASS_ID,
-        SHARED_STUDENT_ID,
-        issue50.PERIOD,
-        issue50.CALENDAR_REVISION,
-    ) == 1
+    assert (
+        issue50.get_current_conventional_grade_result_revision(
+            root,
+            issue50.CLASS_ID,
+            SHARED_STUDENT_ID,
+            issue50.PERIOD,
+            issue50.CALENDAR_REVISION,
+        )
+        == 1
+    )
     still_one = issue50.load_current_conventional_grade_result(
         root,
         issue50.CLASS_ID,

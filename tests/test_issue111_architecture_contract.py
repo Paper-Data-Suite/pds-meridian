@@ -41,14 +41,16 @@ def test_existing_reader_interfaces_and_versions_are_audited() -> None:
         source = _source(producer)
         tree = ast.parse(source)
         reader_imports = [
-            node for node in ast.walk(tree)
+            node
+            for node in ast.walk(tree)
             if isinstance(node, ast.ImportFrom)
             and node.module == f"{producer}.academic_result_reader"
         ]
         assert reader_imports
         assert any(
             alias.name == "read_academic_result_manifest"
-            for node in reader_imports for alias in node.names
+            for node in reader_imports
+            for alias in node.names
         )
         assert "supported_producer_reader_contracts=" in source
         assert "legacy_exact_reader_versions=" in source

@@ -186,10 +186,9 @@ def test_cache_key_excludes_capture_time_and_inventory(
     first = snapshot(fixture_loader)
     later = replace(first, captured_at=datetime(2026, 8, 7, 12, tzinfo=UTC))
     assert first.cache_key == later.cache_key
-    assert (
-        projection_snapshot_to_json_bytes(first)
-        != projection_snapshot_to_json_bytes(later)
-    )
+    assert projection_snapshot_to_json_bytes(
+        first
+    ) != projection_snapshot_to_json_bytes(later)
 
 
 def test_material_identity_change_changes_cache_key(
@@ -211,10 +210,7 @@ def test_canonical_cache_path_is_digest_bound(tmp_path: Path) -> None:
     key = "a" * 64
     digest = "b" * 64
     relative = projection_cache_relative_path(publication, key, digest)
-    assert relative == (
-        "cache/meridian/projections/"
-        f"{publication}/{key}/{digest}.json"
-    )
+    assert relative == (f"cache/meridian/projections/{publication}/{key}/{digest}.json")
     assert projection_cache_path(tmp_path, publication, key, digest) == (
         tmp_path
         / "cache"

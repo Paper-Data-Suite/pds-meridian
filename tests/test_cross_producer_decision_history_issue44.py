@@ -45,9 +45,7 @@ def _trace_target(
 
 def _scoreform_rows(value: object) -> tuple[object, ...]:
     return tuple(
-        row
-        for row in value.evidence
-        if row.source.work.module_id == "scoreform"
+        row for row in value.evidence if row.source.work.module_id == "scoreform"
     )
 
 
@@ -78,9 +76,7 @@ def test_teacher_attempt_reassessment_change_revises_basis_not_history(
     )
     assert len(original_scoreform) == 2
     original_sources = {entry.source for entry in original_scoreform}
-    original_by_kind = {
-        entry.result_kind: entry for entry in original_scoreform
-    }
+    original_by_kind = {entry.result_kind: entry for entry in original_scoreform}
     assert original_by_kind["question_correctness"].status == "excluded"
     assert (
         original_by_kind["question_correctness"].exclusion_reason
@@ -95,8 +91,7 @@ def test_teacher_attempt_reassessment_change_revises_basis_not_history(
     assert reassessment.selected.decision.decision_revision == 2
     assert (
         reassessment.attempt_selection.selected is not None
-        and reassessment.attempt_selection.selected.decision.decision_revision
-        == 2
+        and reassessment.attempt_selection.selected.decision.decision_revision == 2
     )
 
     fresh_inputs = standards_storage.resolve_standard_aggregation_inputs(
@@ -114,33 +109,21 @@ def test_teacher_attempt_reassessment_change_revises_basis_not_history(
         if entry.source.work.module_id == "scoreform"
     )
     assert {entry.source for entry in fresh_scoreform} == original_sources
-    assert {
-        entry.source.publication_id for entry in fresh_scoreform
-    } == {
+    assert {entry.source.publication_id for entry in fresh_scoreform} == {
         entry.source.publication_id for entry in original_scoreform
     }
     assert {
-        entry.attempt_selection_reference.revision
-        for entry in fresh_scoreform
+        entry.attempt_selection_reference.revision for entry in fresh_scoreform
     } == {2}
-    assert {
-        entry.reassessment_reference.revision
-        for entry in fresh_scoreform
-    } == {2}
+    assert {entry.reassessment_reference.revision for entry in fresh_scoreform} == {2}
 
     fresh_by_kind = {entry.result_kind: entry for entry in fresh_scoreform}
     assert fresh_by_kind["question_correctness"].status == "performance"
-    assert (
-        fresh_by_kind["question_correctness"].proficiency_level_id
-        == "proficient"
-    )
+    assert fresh_by_kind["question_correctness"].proficiency_level_id == "proficient"
     assert fresh_by_kind["question_correctness"].exclusion_reason is None
     assert fresh_by_kind["selected_response_state"].status == "native_state"
     assert fresh_by_kind["selected_response_state"].native_state is not None
-    assert (
-        fresh_by_kind["selected_response_state"].native_state.code
-        == "ambiguous"
-    )
+    assert fresh_by_kind["selected_response_state"].native_state.code == "ambiguous"
 
     unchanged_old = tuple(
         entry
@@ -227,41 +210,24 @@ def test_teacher_attempt_reassessment_change_revises_basis_not_history(
     assert {row.source for row in historical_rows} == original_sources
     assert {row.source for row in current_rows} == original_sources
 
+    assert {_stage(row, "attempt_selection").revision for row in historical_rows} == {1}
+    assert {_stage(row, "reassessment").revision for row in historical_rows} == {1}
+    assert {_stage(row, "attempt_selection").revision for row in current_rows} == {2}
+    assert {_stage(row, "reassessment").revision for row in current_rows} == {2}
     assert {
-        _stage(row, "attempt_selection").revision for row in historical_rows
-    } == {1}
-    assert {
-        _stage(row, "reassessment").revision for row in historical_rows
-    } == {1}
-    assert {
-        _stage(row, "attempt_selection").revision for row in current_rows
-    } == {2}
-    assert {
-        _stage(row, "reassessment").revision for row in current_rows
-    } == {2}
-    assert {
-        _detail(_stage(row, "reassessment"), "mode")
-        for row in historical_rows
+        _detail(_stage(row, "reassessment"), "mode") for row in historical_rows
     } == {"replace"}
-    assert {
-        _detail(_stage(row, "reassessment"), "mode")
-        for row in current_rows
-    } == {"retain"}
+    assert {_detail(_stage(row, "reassessment"), "mode") for row in current_rows} == {
+        "retain"
+    }
 
     historical_correctness = next(
-        row
-        for row in historical_rows
-        if row.result_kind == "question_correctness"
+        row for row in historical_rows if row.result_kind == "question_correctness"
     )
     current_correctness = next(
-        row
-        for row in current_rows
-        if row.result_kind == "question_correctness"
+        row for row in current_rows if row.result_kind == "question_correctness"
     )
     assert historical_correctness.aggregation_status == "excluded"
-    assert (
-        historical_correctness.exclusion_reason
-        == "reassessment_noncontributing"
-    )
+    assert historical_correctness.exclusion_reason == "reassessment_noncontributing"
     assert current_correctness.aggregation_status == "performance"
     assert current_correctness.proficiency_level_id == "proficient"

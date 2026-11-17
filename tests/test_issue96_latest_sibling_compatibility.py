@@ -18,9 +18,7 @@ def test_issue96_latest_stable_quillan_identity_is_exact() -> None:
     assert EXPECTED_QUILLAN_WHEEL_SHA256 == (
         "031e5a5455c222da6b9a7d8f72e7823dd4c61acde7d90ddce94b49d9bcbe123f"
     )
-    assert str(EXPECTED_QUILLAN_EXTRA) == (
-        'quillan>=0.10.6; extra == "quillan"'
-    )
+    assert str(EXPECTED_QUILLAN_EXTRA) == ('quillan>=0.10.6; extra == "quillan"')
 
 
 def test_issue111_ci_uses_authenticated_quillan_0106_release() -> None:
@@ -32,9 +30,7 @@ def test_issue111_ci_uses_authenticated_quillan_0106_release() -> None:
 
 
 def test_issue96_documentation_preserves_0103_qualification_history() -> None:
-    adapter = Path("docs/architecture/quillan-adapter.md").read_text(
-        encoding="utf-8"
-    )
+    adapter = Path("docs/architecture/quillan-adapter.md").read_text(encoding="utf-8")
     matrix = Path("docs/development/installed-qualification-matrix.md").read_text(
         encoding="utf-8"
     )
@@ -47,9 +43,7 @@ def test_issue96_documentation_preserves_0103_qualification_history() -> None:
 
 
 def test_issue111_preserves_legacy_fixture_and_uses_current_installed_quillan() -> None:
-    support = Path("tests/cross_producer_test_support.py").read_text(
-        encoding="utf-8"
-    )
+    support = Path("tests/cross_producer_test_support.py").read_text(encoding="utf-8")
     native = Path("tests/cross_producer_native_states_support.py").read_text(
         encoding="utf-8"
     )
@@ -67,9 +61,7 @@ def test_issue111_preserves_legacy_fixture_and_uses_current_installed_quillan() 
 
 
 def test_issue111_package_metadata_test_tracks_current_quillan_floor() -> None:
-    package_test = Path("tests/test_package_metadata.py").read_text(
-        encoding="utf-8"
-    )
+    package_test = Path("tests/test_package_metadata.py").read_text(encoding="utf-8")
 
-    assert 'quillan>=0.10.6; extra == \'quillan\'' in package_test
-    assert 'quillan==0.10.3; extra == \'quillan\'' not in package_test
+    assert "quillan>=0.10.6; extra == 'quillan'" in package_test
+    assert "quillan==0.10.3; extra == 'quillan'" not in package_test

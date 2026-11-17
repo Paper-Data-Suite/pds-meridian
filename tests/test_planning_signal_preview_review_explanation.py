@@ -270,9 +270,7 @@ def test_selected_accepted_review_reports_live_staleness_without_rewriting_previ
     assert explained.review is not None
     assert explained.review.applicability_status == "stale"
     assert explained.export_eligibility.block_code == "review_stale"
-    assert explained.export_eligibility.reason_codes == (
-        "source_proficiency_changed",
-    )
+    assert explained.export_eligibility.reason_codes == ("source_proficiency_changed",)
 
 
 def test_selected_rejected_review_is_not_export_eligible(

@@ -173,9 +173,7 @@ def test_confirmed_json_preserves_review_and_export_boundaries(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _source_args("--confirm-preview-write", "--format", "json")
-    ) == 0
+    assert cli.main(_source_args("--confirm-preview-write", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["task"] == "create-planning-signal"
@@ -195,9 +193,7 @@ def test_confirmed_json_preserves_review_and_export_boundaries(
 def test_preview_source_arguments_must_be_paired(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _arguments("--preview-derivation-id", DERIVATION_ID)
-    ) == 1
+    assert cli.main(_arguments("--preview-derivation-id", DERIVATION_ID)) == 1
     assert "preview source requires both" in capsys.readouterr().err
 
 
@@ -211,10 +207,13 @@ def test_preview_write_confirmation_requires_exact_source(
 def test_preview_stage_cannot_be_combined_with_derivation_write(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _source_args(
-            "--confirm-preview-write",
-            "--confirm-derivation-write",
+    assert (
+        cli.main(
+            _source_args(
+                "--confirm-preview-write",
+                "--confirm-derivation-write",
+            )
         )
-    ) == 1
+        == 1
+    )
     assert "cannot be combined" in capsys.readouterr().err

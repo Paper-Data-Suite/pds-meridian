@@ -16,6 +16,7 @@ from issue123_navigation_audit import (  # noqa: E402
     BASE_COMMIT,
     CONTROLLERS,
     REPORT_SCOPES,
+    REVIEWED_RUFF_0161_BLOBS,
     ROUTES,
     SNAPSHOT_PATH,
     SOURCE_BLOBS,
@@ -33,6 +34,17 @@ def test_slice1_is_pinned_to_reviewed_branch_and_source_blobs() -> None:
     assert len(SOURCE_BLOBS) == 17
     verify_sources(_REPO)
     verify_route_inventory(_REPO)
+
+
+def test_h2_ruff_0161_review_accepts_only_two_exact_source_blobs() -> None:
+    guided_blob = "7f4a19d8294b19b5239fa2573d4c5cbfffe0238e"
+    catalog_blob = "6108b70e66587a210fb41b2bf70a12e16c66d5ac"
+    assert REVIEWED_RUFF_0161_BLOBS == {
+        "meridian/report_guided_selection.py": guided_blob,
+        "meridian/report_live_catalog.py": catalog_blob,
+    }
+    for path, expected_blob in REVIEWED_RUFF_0161_BLOBS.items():
+        assert git_blob_sha((_REPO / path).read_bytes()) == expected_blob
 
 
 def test_slice1_exact_operation_inventory_covers_all_eight_menus() -> None:

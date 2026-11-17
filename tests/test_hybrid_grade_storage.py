@@ -95,20 +95,26 @@ def test_write_is_immutable_private_path_and_does_not_select(
         PERIOD,
         1,
     ) == (1,)
-    assert get_current_hybrid_grade_result_revision(
-        root,
-        CLASS_ID,
-        STUDENT_ID,
-        PERIOD,
-        1,
-    ) is None
-    assert load_current_hybrid_grade_result(
-        root,
-        CLASS_ID,
-        STUDENT_ID,
-        PERIOD,
-        1,
-    ) is None
+    assert (
+        get_current_hybrid_grade_result_revision(
+            root,
+            CLASS_ID,
+            STUDENT_ID,
+            PERIOD,
+            1,
+        )
+        is None
+    )
+    assert (
+        load_current_hybrid_grade_result(
+            root,
+            CLASS_ID,
+            STUDENT_ID,
+            PERIOD,
+            1,
+        )
+        is None
+    )
     assert len(calls) == 2
     for args, _kwargs in calls:
         assert args[-1] == ()

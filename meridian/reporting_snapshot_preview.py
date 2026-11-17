@@ -89,9 +89,7 @@ _TARGET_KEYS: Final[frozenset[str]] = frozenset(
         "calculation_family",
     }
 )
-_BASIS_ENTRY_KEYS: Final[frozenset[str]] = frozenset(
-    {"dimension", "key", "sha256"}
-)
+_BASIS_ENTRY_KEYS: Final[frozenset[str]] = frozenset({"dimension", "key", "sha256"})
 _PREVIEW_KEYS: Final[frozenset[str]] = frozenset({"summary", "rows"})
 _ROW_KEYS: Final[frozenset[str]] = frozenset(
     {"target", "status", "unavailable_reason", "explanation", "observation"}
@@ -320,9 +318,7 @@ _STANDARDS_FORMULA_KEYS: Final[frozenset[str]] = frozenset(
 _PROFILE_CONSTRAINT_KEYS: Final[frozenset[str]] = frozenset(
     {"groups", "bands", "fallback_band_id"}
 )
-_PROFILE_GROUP_KEYS: Final[frozenset[str]] = frozenset(
-    {"group_id", "standard_ids"}
-)
+_PROFILE_GROUP_KEYS: Final[frozenset[str]] = frozenset({"group_id", "standard_ids"})
 _PROFILE_CONSTRAINT_BAND_KEYS: Final[frozenset[str]] = frozenset(
     {"band_id", "priority", "minimum_grade", "maximum_grade", "predicates"}
 )
@@ -569,9 +565,7 @@ def grade_preview_observation_from_dict(data: object) -> GradePreviewObservation
         )
         entries = tuple(
             GradePreviewBasisEntry(
-                dimension=_require_str(
-                    entry["dimension"], "basis.dimension"
-                ),  # type: ignore[arg-type]
+                dimension=_require_str(entry["dimension"], "basis.dimension"),  # type: ignore[arg-type]
                 key=_require_str(entry["key"], "basis.key"),
                 sha256=_require_str(entry["sha256"], "basis.sha256"),
             )
@@ -645,8 +639,7 @@ def frozen_grade_report_preview_from_dict(data: object) -> FrozenGradeReportPrev
     mapping = _exact_mapping(data, _PREVIEW_KEYS, "GradeReportPreview")
     summary = _summary_from_dict(mapping["summary"])
     rows = tuple(
-        _row_from_dict(item)
-        for item in _require_list(mapping["rows"], "rows")
+        _row_from_dict(item) for item in _require_list(mapping["rows"], "rows")
     )
     canonical = _canonical_json_bytes(mapping)
     return FrozenGradeReportPreview(
@@ -870,9 +863,7 @@ def _validate_common_explanation(
             "common freshness status does not match frozen observation."
         )
     if (
-        _string_tuple(
-            common["base_freshness_reasons"], "base_freshness_reasons"
-        )
+        _string_tuple(common["base_freshness_reasons"], "base_freshness_reasons")
         != observation.base_freshness_reasons
     ):
         raise ReportingSnapshotPreviewIntegrityError(
@@ -899,9 +890,7 @@ def _validate_common_explanation(
         )
     _require_str(policy["title"], "policy.title")
     if (
-        _require_str(
-            policy["calculation_family"], "policy.calculation_family"
-        )
+        _require_str(policy["calculation_family"], "policy.calculation_family")
         != target.calculation_family
     ):
         raise ReportingSnapshotPreviewIntegrityError(
@@ -937,17 +926,16 @@ def _validate_common_explanation(
         policy["reassessment_handling"], _REASSESSMENT_KEYS, "reassessment_handling"
     )
     if (
-        _require_str(
-            reassessment["selection_authority"], "selection_authority"
-        )
+        _require_str(reassessment["selection_authority"], "selection_authority")
         != "v02_attempt_and_reassessment_state"
     ):
         raise ReportingSnapshotPreviewIntegrityError(
             "unsupported reassessment selection authority."
         )
-    if _require_str(
-        reassessment["unresolved_handling"], "unresolved_handling"
-    ) not in {"exclude", "blocking"}:
+    if _require_str(reassessment["unresolved_handling"], "unresolved_handling") not in {
+        "exclude",
+        "blocking",
+    }:
         raise ReportingSnapshotPreviewIntegrityError(
             "unsupported reassessment unresolved handling."
         )
@@ -959,9 +947,7 @@ def _validate_common_explanation(
         )
     _require_str(rounding["mode"], "rounding.mode")
     if (
-        _require_str(
-            rounding["application_stage"], "rounding.application_stage"
-        )
+        _require_str(rounding["application_stage"], "rounding.application_stage")
         != "final"
     ):
         raise ReportingSnapshotPreviewIntegrityError(
@@ -1013,25 +999,23 @@ def _validate_common_explanation(
         _require_str(override["actor_id"], "override.actor_id")
         _require_str(override["rationale"], "override.rationale")
         _utc_datetime_text(override["decided_at"], "override.decided_at")
-        if _string_tuple(
-            override["reasons"], "override.reasons"
-        ) != tuple(_expected_override_reasons(observation.override_applicability)):
+        if _string_tuple(override["reasons"], "override.reasons") != tuple(
+            _expected_override_reasons(observation.override_applicability)
+        ):
             raise ReportingSnapshotPreviewIntegrityError(
                 "selected override reasons do not match frozen observation."
             )
 
     if (
-        _require_str(
-            common["override_applicability"], "override_applicability"
-        )
+        _require_str(common["override_applicability"], "override_applicability")
         != observation.override_applicability
     ):
         raise ReportingSnapshotPreviewIntegrityError(
             "common override applicability does not match frozen observation."
         )
-    if _string_tuple(
-        common["override_reasons"], "override_reasons"
-    ) != tuple(_expected_override_reasons(observation.override_applicability)):
+    if _string_tuple(common["override_reasons"], "override_reasons") != tuple(
+        _expected_override_reasons(observation.override_applicability)
+    ):
         raise ReportingSnapshotPreviewIntegrityError(
             "common override reasons do not match frozen observation."
         )
@@ -1130,9 +1114,7 @@ def _validate_conventional_detail(
 
     participation = [
         {
-            "reference": dict(
-                cast(Mapping[str, object], item["grade_item_reference"])
-            ),
+            "reference": dict(cast(Mapping[str, object], item["grade_item_reference"])),
             "category_id": item["category_id"],
             "policy_possible_points": item["policy_possible_points"],
         }
@@ -1155,9 +1137,9 @@ def _validate_conventional_detail(
     }
     evidence = [
         {
-            "grade_item_id": cast(
-                Mapping[str, object], item["grade_item_reference"]
-            )["grade_item_id"],
+            "grade_item_id": cast(Mapping[str, object], item["grade_item_reference"])[
+                "grade_item_id"
+            ],
             "source_state": item["source_state"],
             "action": item["action"],
             "earned": item["earned"],
@@ -1165,9 +1147,7 @@ def _validate_conventional_detail(
             "reason_codes": list(cast(tuple[str, ...], item["reason_codes"])),
             "provenance": [
                 dict(value)
-                for value in cast(
-                    tuple[Mapping[str, object], ...], item["provenance"]
-                )
+                for value in cast(tuple[Mapping[str, object], ...], item["provenance"])
             ],
         }
         for item in items
@@ -1404,9 +1384,7 @@ def _validate_standards_formula(
             "standards.formula does not match an exact supported schema."
         )
 
-    aggregation = _require_str(
-        formula["aggregation_strategy"], "aggregation_strategy"
-    )
+    aggregation = _require_str(formula["aggregation_strategy"], "aggregation_strategy")
     if aggregation not in {"weighted_mean", "profile_constrained_mean"}:
         raise ReportingSnapshotPreviewIntegrityError(
             "standards aggregation_strategy is unsupported."
@@ -1531,8 +1509,7 @@ def _validate_standards_formula(
                 )
         elif selected_band_id is None:
             if any(
-                value is not None
-                for value in (minimum_band, maximum_band, adjustment)
+                value is not None for value in (minimum_band, maximum_band, adjustment)
             ):
                 raise ReportingSnapshotPreviewIntegrityError(
                     "indeterminate profile snapshot must not invent selection."
@@ -1545,9 +1522,7 @@ def _validate_standards_formula(
             configured = next(
                 (
                     band
-                    for band in cast(
-                        list[Mapping[str, object]], constraints["bands"]
-                    )
+                    for band in cast(list[Mapping[str, object]], constraints["bands"])
                     if band["band_id"] == selected_band_id
                 ),
                 None,
@@ -1566,9 +1541,7 @@ def _validate_standards_formula(
             evaluated = next(
                 (
                     band
-                    for band in cast(
-                        list[Mapping[str, object]], evaluation["bands"]
-                    )
+                    for band in cast(list[Mapping[str, object]], evaluation["bands"])
                     if band["band_id"] == selected_band_id
                 ),
                 None,
@@ -1677,9 +1650,7 @@ def _validate_profile_constraints(data: object) -> dict[str, object]:
                 "profile band minimum must not exceed maximum."
             )
         predicates: list[dict[str, object]] = []
-        for raw_predicate in _require_list(
-            band["predicates"], "profile.predicates"
-        ):
+        for raw_predicate in _require_list(band["predicates"], "profile.predicates"):
             predicate = _exact_mapping(
                 raw_predicate, _PROFILE_PREDICATE_KEYS, "profile predicate"
             )
@@ -1695,9 +1666,7 @@ def _validate_profile_constraints(data: object) -> dict[str, object]:
                 raise ReportingSnapshotPreviewIntegrityError(
                     "profile predicate kind is unsupported."
                 )
-            group_id = _require_str(
-                predicate["group_id"], "profile.predicate.group_id"
-            )
+            group_id = _require_str(predicate["group_id"], "profile.predicate.group_id")
             if group_id not in group_ids:
                 raise ReportingSnapshotPreviewIntegrityError(
                     "profile predicate group is absent from frozen policy."
@@ -1709,9 +1678,7 @@ def _validate_profile_constraints(data: object) -> dict[str, object]:
             minimum_count = (
                 None
                 if predicate["minimum_count"] is None
-                else _positive_int(
-                    predicate["minimum_count"], "profile.minimum_count"
-                )
+                else _positive_int(predicate["minimum_count"], "profile.minimum_count")
             )
             minimum_proportion = _canonical_optional_decimal_text(
                 predicate["minimum_proportion"], "profile.minimum_proportion"
@@ -1778,9 +1745,7 @@ def _validate_profile_constraints(data: object) -> dict[str, object]:
             "profile bands must use ordered contiguous priorities."
         )
     fallback = _require_str(value["fallback_band_id"], "profile.fallback_band_id")
-    fallback_band = next(
-        (band for band in bands if band["band_id"] == fallback), None
-    )
+    fallback_band = next((band for band in bands if band["band_id"] == fallback), None)
     if fallback_band is None:
         raise ReportingSnapshotPreviewIntegrityError(
             "profile fallback band is absent from frozen policy."
@@ -1789,11 +1754,7 @@ def _validate_profile_constraints(data: object) -> dict[str, object]:
         raise ReportingSnapshotPreviewIntegrityError(
             "profile fallback must be lowest priority without predicates."
         )
-    if any(
-        not band["predicates"]
-        for band in bands
-        if band["band_id"] != fallback
-    ):
+    if any(not band["predicates"] for band in bands if band["band_id"] != fallback):
         raise ReportingSnapshotPreviewIntegrityError(
             "non-fallback profile bands require predicates."
         )
@@ -1870,9 +1831,7 @@ def _validate_profile_predicate_evaluation(data: object) -> dict[str, object]:
         )
     group_size = _positive_int(value["group_size"], "predicate.group_size")
     known_count = _nonnegative_int(value["known_count"], "predicate.known_count")
-    unknown_count = _nonnegative_int(
-        value["unknown_count"], "predicate.unknown_count"
-    )
+    unknown_count = _nonnegative_int(value["unknown_count"], "predicate.unknown_count")
     at_or_above_count = _nonnegative_int(
         value["at_or_above_count"], "predicate.at_or_above_count"
     )
@@ -2237,9 +2196,7 @@ def _summary_from_dict(data: object) -> GradeReportPreviewSummary:
             base_insufficient_count=_nonnegative_int(
                 mapping["base_insufficient_count"], "base_insufficient_count"
             ),
-            current_count=_nonnegative_int(
-                mapping["current_count"], "current_count"
-            ),
+            current_count=_nonnegative_int(mapping["current_count"], "current_count"),
             stale_count=_nonnegative_int(mapping["stale_count"], "stale_count"),
             effective_numeric_count=_nonnegative_int(
                 mapping["effective_numeric_count"], "effective_numeric_count"
@@ -2415,9 +2372,7 @@ def _require_mapping(data: object, label: str) -> Mapping[str, object]:
     if not isinstance(data, Mapping):
         raise ReportingSnapshotPreviewIntegrityError(f"{label} must be an object.")
     if any(not isinstance(key, str) for key in data):
-        raise ReportingSnapshotPreviewIntegrityError(
-            f"{label} keys must be strings."
-        )
+        raise ReportingSnapshotPreviewIntegrityError(f"{label} keys must be strings.")
     return cast(Mapping[str, object], data)
 
 
@@ -2429,9 +2384,7 @@ def _require_list(value: object, label: str) -> list[object]:
 
 def _require_str(value: object, label: str) -> str:
     if not isinstance(value, str) or not value:
-        raise ReportingSnapshotPreviewIntegrityError(
-            f"{label} must be nonempty text."
-        )
+        raise ReportingSnapshotPreviewIntegrityError(f"{label} must be nonempty text.")
     return value
 
 
@@ -2526,9 +2479,7 @@ def _utc_datetime_text(value: object, label: str) -> datetime:
             f"{label} must be a valid ISO datetime."
         ) from error
     if parsed.tzinfo is None or parsed.utcoffset() is None:
-        raise ReportingSnapshotPreviewIntegrityError(
-            f"{label} must be timezone-aware."
-        )
+        raise ReportingSnapshotPreviewIntegrityError(f"{label} must be timezone-aware.")
     utc = parsed.astimezone(UTC)
     if utc.isoformat() != text:
         raise ReportingSnapshotPreviewIntegrityError(

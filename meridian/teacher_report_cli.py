@@ -126,9 +126,7 @@ def add_teacher_reports_cli(
         "--save-plan-id",
         help="Stable plan identity to save after live revalidation.",
     )
-    benchmark.add_argument(
-        "--teacher-id", help="Teacher attribution for a saved plan."
-    )
+    benchmark.add_argument("--teacher-id", help="Teacher attribution for a saved plan.")
     benchmark.add_argument(
         "--confirm-save",
         action="store_true",
@@ -142,8 +140,7 @@ def add_teacher_reports_cli(
     benchmark.add_argument(
         "--output",
         help=(
-            "Optional new local output path; existing different files are not "
-            "replaced."
+            "Optional new local output path; existing different files are not replaced."
         ),
     )
     benchmark.set_defaults(handler=_handle_benchmark, show_group_help=None)
@@ -230,9 +227,7 @@ def _handle_benchmark(
             raise ValueError("input is not a benchmark analysis planner preview.")
     elif load_plan_id is not None:
         if workspace is None or args.class_id is None:
-            raise ValueError(
-                "--load-plan-id requires --workspace and --class-id."
-            )
+            raise ValueError("--load-plan-id requires --workspace and --class-id.")
         if any(
             value is not None
             for value in (args.period_id, args.grade_item_id, args.checkpoint_id)
@@ -254,9 +249,7 @@ def _handle_benchmark(
         preview = loaded.revision.report
         currentness = loaded.revision.currentness
     else:
-        if workspace is None or any(
-            value is None for value in required_live_values
-        ):
+        if workspace is None or any(value is None for value in required_live_values):
             raise ValueError(
                 "provide --input, or provide --workspace, --class-id, "
                 "--period-id, and --grade-item-id."
@@ -296,9 +289,7 @@ def _handle_benchmark(
                 "--save-plan-id requires --workspace, --class-id, and --teacher-id."
             )
         if not args.confirm_save:
-            raise ValueError(
-                "saving a planner requires explicit --confirm-save."
-            )
+            raise ValueError("saving a planner requires explicit --confirm-save.")
         if executor is not None and prepared is not None:
             executor.revalidate(prepared, preview)
         revisions = list_benchmark_plan_revisions(
@@ -327,11 +318,7 @@ def _handle_benchmark(
                 True,
                 currentness,
                 preview,
-                (
-                    None
-                    if previous is None
-                    else previous.revision_sha256
-                ),
+                (None if previous is None else previous.revision_sha256),
             ),
         )
         print(
@@ -340,14 +327,10 @@ def _handle_benchmark(
             file=sys.stderr,
         )
     elif args.confirm_save or args.teacher_id is not None:
-        raise ValueError(
-            "--confirm-save and --teacher-id require --save-plan-id."
-        )
+        raise ValueError("--confirm-save and --teacher-id require --save-plan-id.")
     representation = cast(TeacherReportRenderFormat, args.format)
     if args.output:
-        result = write_teacher_report_file(
-            args.output, preview, representation
-        )
+        result = write_teacher_report_file(args.output, preview, representation)
         print(f"{result.disposition}: {args.output} ({result.payload_sha256})")
     else:
         print(render_teacher_report(preview, representation).decode("utf-8"), end="")

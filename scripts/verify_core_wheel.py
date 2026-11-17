@@ -121,9 +121,7 @@ def verify_installed_core() -> None:
         )
 
     distribution = importlib.metadata.distribution(CORE_DISTRIBUTION_NAME)
-    metadata_package = Path(
-        str(distribution.locate_file(CORE_IMPORT_NAME))
-    ).resolve()
+    metadata_package = Path(str(distribution.locate_file(CORE_IMPORT_NAME))).resolve()
     if imported.parent != metadata_package:
         raise CoreVerificationError(
             "Installed pds-core metadata and imported pds_core package disagree."

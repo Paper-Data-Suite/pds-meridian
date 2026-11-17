@@ -110,9 +110,7 @@ def policy(
             ),
             standard_id=STANDARD_ID,
             source_policy=(
-                academic_period_proficiency_aggregation_policy_reference(
-                    exact_source
-                )
+                academic_period_proficiency_aggregation_policy_reference(exact_source)
             ),
             target_scale=proficiency_scale_reference(exact_scale),
         ),
@@ -184,12 +182,15 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
         long_policy_id,
     )
     assert long_policy_id not in stored.relative_path
-    assert storage.load_grouping_signal_policy_revision(
-        tmp_path,
-        CLASS_ID,
-        long_policy_id,
-        1,
-    ).policy.policy_id == long_policy_id
+    assert (
+        storage.load_grouping_signal_policy_revision(
+            tmp_path,
+            CLASS_ID,
+            long_policy_id,
+            1,
+        ).policy.policy_id
+        == long_policy_id
+    )
     assert storage.list_grouping_signal_policy_ids(
         tmp_path,
         CLASS_ID,
@@ -273,11 +274,14 @@ def test_newer_revision_does_not_change_explicit_selection(
         expected_current_policy_revision=None,
     )
     storage.write_grouping_signal_policy_revision(tmp_path, policy(revision=2))
-    assert storage.get_current_grouping_signal_policy_revision(
-        tmp_path,
-        CLASS_ID,
-        first.policy_id,
-    ) == 1
+    assert (
+        storage.get_current_grouping_signal_policy_revision(
+            tmp_path,
+            CLASS_ID,
+            first.policy_id,
+        )
+        == 1
+    )
 
 
 def test_explicit_selection_is_cas_protected_and_historical(
@@ -494,11 +498,14 @@ def test_policy_ids_are_deterministic_and_do_not_imply_selection(
         tmp_path,
         CLASS_ID,
     ) == ("a_policy", "z_policy")
-    assert storage.get_current_grouping_signal_policy_revision(
-        tmp_path,
-        CLASS_ID,
-        "a_policy",
-    ) is None
+    assert (
+        storage.get_current_grouping_signal_policy_revision(
+            tmp_path,
+            CLASS_ID,
+            "a_policy",
+        )
+        is None
+    )
 
 
 def test_unexpected_visible_policy_entry_fails_closed(

@@ -296,8 +296,7 @@ def _matches_filters(item: EvidenceItem, filters: EvidenceFilters) -> bool:
     if filters.item_ids and item.item_id not in filters.item_ids:
         return False
     if filters.student_ids and (
-        item.subject is None
-        or item.subject.student_id not in filters.student_ids
+        item.subject is None or item.subject.student_id not in filters.student_ids
     ):
         return False
     if filters.target_kinds and item.target.target_kind not in filters.target_kinds:
@@ -486,9 +485,7 @@ def _target_to_dict(item: EvidenceItem) -> dict[str, object]:
 def _evidence_item_to_dict(item: EvidenceItem) -> dict[str, object]:
     return {
         "item_id": item.item_id,
-        "student_id": (
-            item.subject.student_id if item.subject is not None else None
-        ),
+        "student_id": (item.subject.student_id if item.subject is not None else None),
         "target": _target_to_dict(item),
         "result_kind": item.result_kind,
         "value": _value_to_dict(item),
@@ -633,9 +630,7 @@ class PublicationSupportDiagnostic:
         if self.reader_state not in _READER_STATES:
             raise DiagnosticsDependencyError("reader_state is invalid.")
         if self.reader_compatibility_mode not in _READER_COMPATIBILITY_MODES:
-            raise DiagnosticsDependencyError(
-                "reader_compatibility_mode is invalid."
-            )
+            raise DiagnosticsDependencyError("reader_compatibility_mode is invalid.")
         if self.overall_state not in _SUPPORT_STATES:
             raise DiagnosticsDependencyError("overall_state is invalid.")
         if self.compatibility_codes != _codes(self.compatibility_codes):
@@ -965,9 +960,7 @@ def diagnose_publication_support(
                 contract = reader_compatibility.contract_identity
 
                 if runtime is not None:
-                    installed_reader_version = (
-                        runtime.installed_distribution_version
-                    )
+                    installed_reader_version = runtime.installed_distribution_version
                 if contract is not None:
                     reader_contract_version = contract.reader_contract_version
 
@@ -1121,9 +1114,7 @@ def _support_to_dict(value: PublicationSupportDiagnostic) -> dict[str, object]:
             "installed_version": value.installed_reader_version,
             "contract_version": value.reader_contract_version,
             "supported_contracts": list(value.supported_reader_contracts),
-            "legacy_exact_versions": list(
-                value.legacy_exact_reader_versions
-            ),
+            "legacy_exact_versions": list(value.legacy_exact_reader_versions),
         },
     }
 

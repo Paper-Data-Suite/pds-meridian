@@ -3,6 +3,7 @@
 This module owns immutable #39 preview-domain state only. It performs no
 workspace reads, persistence, teacher review, Core export, or Concord work.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -494,9 +495,7 @@ def build_grouping_signal_preview_snapshot(
     )
     contributing = sum(row.disposition == "contributing" for row in rows)
     missing = sum(row.source_state == "missing" for row in rows)
-    insufficient = sum(
-        row.source_state == "insufficient_evidence" for row in rows
-    )
+    insufficient = sum(row.source_state == "insufficient_evidence" for row in rows)
     occupied = sum(bool(summary.student_ids) for summary in summaries)
     coverage = GroupingSignalPreviewCoverage(
         len(rows),
@@ -576,9 +575,10 @@ def grouping_signal_preview_diagnostic_id(
         "bands": list(_positive_tuple(bands, "bands")),
         "details": list(_codes(details, "details")),
     }
-    return GROUPING_SIGNAL_DIAGNOSTIC_ID_PREFIX + hashlib.sha256(
-        _canonical(payload)
-    ).hexdigest()
+    return (
+        GROUPING_SIGNAL_DIAGNOSTIC_ID_PREFIX
+        + hashlib.sha256(_canonical(payload)).hexdigest()
+    )
 
 
 def grouping_signal_preview_id(fingerprint: str) -> str:
@@ -616,7 +616,6 @@ def grouping_signal_preview_reference(
     )
 
 
-
 def grouping_signal_preview_reference_to_dict(
     value: GroupingSignalPreviewReference,
 ) -> dict[str, object]:
@@ -643,6 +642,7 @@ def grouping_signal_preview_reference_from_dict(
         _str(m["preview_id"], "preview_id"),
         _str(m["preview_sha256"], "preview_sha256"),
     )
+
 
 def validate_grouping_signal_preview_snapshot(
     value: GroupingSignalPreviewSnapshot,
@@ -703,15 +703,13 @@ def grouping_signal_preview_snapshot_from_dict(
         ),
         _coverage_from(m["coverage"]),
         tuple(
-            _summary_from(item)
-            for item in _list(m["band_summaries"], "band_summaries")
+            _summary_from(item) for item in _list(m["band_summaries"], "band_summaries")
         ),
         tuple(_row_from(item) for item in _list(m["student_rows"], "student_rows")),
         tuple(_tie_from(item) for item in _list(m["tie_groups"], "tie_groups")),
         _currentness_from(m["currentness"]),
         tuple(
-            _diagnostic_from(item)
-            for item in _list(m["diagnostics"], "diagnostics")
+            _diagnostic_from(item) for item in _list(m["diagnostics"], "diagnostics")
         ),
         _str(m["preview_fingerprint"], "preview_fingerprint"),
     )
@@ -1193,8 +1191,7 @@ def _summary_from(data: object) -> GroupingSignalPreviewBandSummary:
             for item in _list(m["proficiency_level_ids"], "proficiency_level_ids")
         ),
         tuple(
-            _str(item, "student_id")
-            for item in _list(m["student_ids"], "student_ids")
+            _str(item, "student_id") for item in _list(m["student_ids"], "student_ids")
         ),
     )
     if _int(m["student_count"], "student_count") != summary.student_count:
@@ -1223,8 +1220,7 @@ def _tie_from(data: object) -> GroupingSignalPreviewTieGroup:
         _int(m["scale_position"], "scale_position"),
         _int(m["band"], "band"),
         tuple(
-            _str(item, "student_id")
-            for item in _list(m["student_ids"], "student_ids")
+            _str(item, "student_id") for item in _list(m["student_ids"], "student_ids")
         ),
     )
 
@@ -1300,8 +1296,7 @@ def _diagnostic_from(data: object) -> GroupingSignalPreviewDiagnostic:
         cast(PreviewDiagnosticCode, _str(m["code"], "code")),
         cast(PreviewSeverity, _str(m["severity"], "severity")),
         tuple(
-            _str(item, "student_id")
-            for item in _list(m["student_ids"], "student_ids")
+            _str(item, "student_id") for item in _list(m["student_ids"], "student_ids")
         ),
         tuple(_int(item, "band") for item in _list(m["bands"], "bands")),
         tuple(_str(item, "detail") for item in _list(m["details"], "details")),

@@ -189,8 +189,7 @@ class ConventionalGradeWorkEvidenceSpec:
                 "authorized_snapshots must be an iterable."
             ) from error
         if any(
-            not isinstance(value, AuthorizedProjectionSnapshot)
-            for value in snapshots
+            not isinstance(value, AuthorizedProjectionSnapshot) for value in snapshots
         ):
             raise ConventionalGradeAssemblyScopeError(
                 "authorized_snapshots must contain only "
@@ -274,8 +273,7 @@ class ConventionalGradeComponentAssembly:
     def __post_init__(self) -> None:
         specs = tuple(self.work_evidence)
         if any(
-            not isinstance(item, ConventionalGradeWorkEvidenceSpec)
-            for item in specs
+            not isinstance(item, ConventionalGradeWorkEvidenceSpec) for item in specs
         ):
             raise ConventionalGradeAssemblyScopeError(
                 "work_evidence must contain ConventionalGradeWorkEvidenceSpec values."
@@ -392,9 +390,7 @@ def assemble_conventional_grade_calculation(
         for participation in policy.configuration.items
     }
     extras = tuple(
-        spec
-        for spec in specs
-        if spec.grade_item_id not in policy_grade_item_ids
+        spec for spec in specs if spec.grade_item_id not in policy_grade_item_ids
     )
     if extras:
         raise ConventionalGradeAssemblyScopeError(
@@ -481,14 +477,12 @@ def assemble_conventional_grade_component(
 
     policy_value = policy.policy
     policy_configuration = policy_value.configuration
-    if (
-        policy_value.calculation_family == "conventional"
-        and isinstance(policy_configuration, ConventionalGradeConfiguration)
+    if policy_value.calculation_family == "conventional" and isinstance(
+        policy_configuration, ConventionalGradeConfiguration
     ):
         expected_configuration = policy_configuration
-    elif (
-        policy_value.calculation_family == "hybrid"
-        and isinstance(policy_configuration, HybridGradeConfiguration)
+    elif policy_value.calculation_family == "hybrid" and isinstance(
+        policy_configuration, HybridGradeConfiguration
     ):
         expected_configuration = policy_configuration.conventional
     else:
@@ -520,8 +514,7 @@ def assemble_conventional_grade_component(
 
     specs = _validate_work_evidence(work_evidence, class_value)
     policy_grade_item_ids = {
-        participation.grade_item.grade_item_id
-        for participation in configuration.items
+        participation.grade_item.grade_item_id for participation in configuration.items
     }
     extras = tuple(
         spec for spec in specs if spec.grade_item_id not in policy_grade_item_ids
@@ -548,9 +541,7 @@ def assemble_conventional_grade_component(
                 target_period=period,
                 calendar_revision=calendar,
                 participation=participation,
-                work_evidence=by_grade_item[
-                    participation.grade_item.grade_item_id
-                ],
+                work_evidence=by_grade_item[participation.grade_item.grade_item_id],
             )
         )
 
@@ -648,8 +639,7 @@ def _assemble_policy_item(
             continue
         period_memberships.append(stored)
         if (
-            decision.grade_item_revision
-            != participation.grade_item.grade_item_revision
+            decision.grade_item_revision != participation.grade_item.grade_item_revision
             or decision.grade_item_revision_sha256
             != participation.grade_item.grade_item_revision_sha256
         ):
@@ -764,11 +754,7 @@ def _assemble_policy_item(
     item_provenance = _merge_provenance(
         tuple(all_provenance),
         tuple(reference for point in points for reference in point.provenance),
-        tuple(
-            reference
-            for signal in signals
-            for reference in signal.provenance
-        ),
+        tuple(reference for signal in signals for reference in signal.provenance),
     )
 
     if len(points) > 1:
@@ -905,9 +891,7 @@ def _assemble_available_work(
         if isinstance(item.value, NativePointValue):
             points.append(_PointObservation(item.value, point_provenance))
         else:
-            fallback_signals.append(
-                _nonpoint_value_signal(item, point_provenance)
-            )
+            fallback_signals.append(_nonpoint_value_signal(item, point_provenance))
 
     if not source_items:
         state = "insufficient_evidence" if nonstudent_seen else "missing"
@@ -937,9 +921,7 @@ def _assemble_available_work(
         _merge_provenance(
             (membership_ref,),
             tuple(
-                reference
-                for refs in source_provenance.values()
-                for reference in refs
+                reference for refs in source_provenance.values() for reference in refs
             ),
             decision_provenance,
         ),
@@ -1011,9 +993,7 @@ def _resolve_work_attempt_scope(
         and value.reassessment.operative_reassessment
     )
     if len(operative) > 1:
-        provenance = _merge_provenance(
-            *(value.provenance for value in operative)
-        )
+        provenance = _merge_provenance(*(value.provenance for value in operative))
         return (
             frozenset(),
             _StateSignal(
@@ -1040,9 +1020,7 @@ def _resolve_work_attempt_scope(
         value.reassessment.status in {"selected_none", "not_applicable"}
         for value in resolutions
     ):
-        provenance = _merge_provenance(
-            *(value.provenance for value in selected_none)
-        )
+        provenance = _merge_provenance(*(value.provenance for value in selected_none))
         return (
             frozenset(),
             _StateSignal(
@@ -1207,9 +1185,7 @@ def _validate_work_evidence(
     class_id: str,
 ) -> tuple[ConventionalGradeWorkEvidenceSpec, ...]:
     if isinstance(value, (str, bytes)):
-        raise ConventionalGradeAssemblyScopeError(
-            "work_evidence must be an iterable."
-        )
+        raise ConventionalGradeAssemblyScopeError("work_evidence must be an iterable.")
     try:
         specs = tuple(cast(Iterable[object], value))
     except TypeError as error:
@@ -1289,9 +1265,7 @@ def _source_provenance(
 ) -> ConventionalGradeProvenanceReference:
     return ConventionalGradeProvenanceReference(
         kind="source",
-        reference_key=(
-            f"{source.publication_id}:{source.cache_key}:{source.item_id}"
-        ),
+        reference_key=(f"{source.publication_id}:{source.cache_key}:{source.item_id}"),
         reference_sha256=source.snapshot_digest,
     )
 

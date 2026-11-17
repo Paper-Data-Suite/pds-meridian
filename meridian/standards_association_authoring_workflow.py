@@ -52,9 +52,7 @@ class StandardsAssociationAuthoringScopeError(
     code = "teacher_workflow.standards_review.association_authoring_invalid"
 
 
-class StandardsAssociationAuthoringStaleError(
-    StandardsAssociationAuthoringError
-):
+class StandardsAssociationAuthoringStaleError(StandardsAssociationAuthoringError):
     """Raised when reviewed #27/#28/#33 state changed before write."""
 
     code = "teacher_workflow.standards_review.association_authoring_stale"
@@ -116,10 +114,7 @@ class StandardsAssociationAuthoringResult:
 
     @property
     def selection_changed_during_write(self) -> bool:
-        return (
-            self.selected_revision_before_write
-            != self.selected_revision_after_write
-        )
+        return self.selected_revision_before_write != self.selected_revision_after_write
 
     @property
     def selection_action(self) -> str:
@@ -186,9 +181,7 @@ def preview_standards_association_authoring(
             source=projection.source,
             standard_id=projection.standard_id,
             association_revision=next_revision,
-            supersedes_revision=(
-                None if next_revision == 1 else next_revision - 1
-            ),
+            supersedes_revision=(None if next_revision == 1 else next_revision - 1),
             disposition=disposition,
             basis=basis,
             actor=StandardEvidenceActor(
@@ -227,18 +220,10 @@ def preview_standards_association_authoring(
         history=history,
         latest_revision_sha256=latest_sha256,
         expected_current_association_revision=selected,
-        grade_item_revision=(
-            dependencies.grade_item.revision.grade_item_revision
-        ),
-        grade_item_revision_sha256=(
-            dependencies.grade_item.revision_sha256
-        ),
-        membership_revision=(
-            dependencies.membership.decision.membership_revision
-        ),
-        membership_revision_sha256=(
-            dependencies.membership.decision_sha256
-        ),
+        grade_item_revision=(dependencies.grade_item.revision.grade_item_revision),
+        grade_item_revision_sha256=(dependencies.grade_item.revision_sha256),
+        membership_revision=(dependencies.membership.decision.membership_revision),
+        membership_revision_sha256=(dependencies.membership.decision_sha256),
         standard_resolved=dependencies.standard_resolution.resolved,
         standard_active=dependencies.standard_resolution.active,
     )
@@ -301,8 +286,7 @@ def commit_standards_association_authoring_preview(
     if (
         dependencies.grade_item.revision.grade_item_revision
         != preview.grade_item_revision
-        or dependencies.grade_item.revision_sha256
-        != preview.grade_item_revision_sha256
+        or dependencies.grade_item.revision_sha256 != preview.grade_item_revision_sha256
     ):
         raise StandardsAssociationAuthoringStaleError(
             "Selected Grade Item revision changed after association preview."
@@ -310,17 +294,14 @@ def commit_standards_association_authoring_preview(
     if (
         dependencies.membership.decision.membership_revision
         != preview.membership_revision
-        or dependencies.membership.decision_sha256
-        != preview.membership_revision_sha256
+        or dependencies.membership.decision_sha256 != preview.membership_revision_sha256
     ):
         raise StandardsAssociationAuthoringStaleError(
             "Grade Item membership changed after association preview."
         )
     if (
-        dependencies.standard_resolution.resolved
-        != preview.standard_resolved
-        or dependencies.standard_resolution.active
-        != preview.standard_active
+        dependencies.standard_resolution.resolved != preview.standard_resolved
+        or dependencies.standard_resolution.active != preview.standard_active
     ):
         raise StandardsAssociationAuthoringStaleError(
             "Core Standard resolution changed after association preview."

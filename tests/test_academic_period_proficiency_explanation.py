@@ -267,9 +267,7 @@ def _write_membership(
             class_id=CLASS_ID,
             grade_item_id=grade_item.grade_item_id,
             grade_item_revision=grade_item.grade_item_revision,
-            grade_item_revision_sha256=(
-                grade_item.grade_item_revision_sha256
-            ),
+            grade_item_revision_sha256=(grade_item.grade_item_revision_sha256),
             work_reference=GradeItemWorkReference(
                 work=work,
                 registration_revision=1,
@@ -591,10 +589,7 @@ def test_grade_item_rows_distinguish_insufficient_missing_and_period_mismatch(
     write_academic_period_proficiency_result_revision(root, snapshot)
 
     explanation = explain_academic_period_proficiency(root, _target())
-    rows = {
-        item.grade_item.grade_item_id: item
-        for item in explanation.grade_items
-    }
+    rows = {item.grade_item.grade_item_id: item for item in explanation.grade_items}
 
     assert rows["item_a"].status == "insufficient_evidence"
     assert rows["item_a"].contributed is False

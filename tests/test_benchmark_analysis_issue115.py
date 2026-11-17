@@ -39,9 +39,7 @@ from meridian.teacher_report import (
 from meridian.teacher_report_render import render_teacher_report
 
 NOW = datetime(2026, 10, 14, 15, 0, tzinfo=UTC)
-SOURCE = TeacherReportSourceReference(
-    "publication", "assessment_1", "a" * 64
-)
+SOURCE = TeacherReportSourceReference("publication", "assessment_1", "a" * 64)
 
 
 def _preview() -> TeacherReportPreview:
@@ -56,9 +54,7 @@ def _preview() -> TeacherReportPreview:
             BenchmarkStudentResult(
                 "student_1", "Ada One", True, True, "valid", "8/10", "advanced"
             ),
-            BenchmarkStudentResult(
-                "student_2", "Bo Two", True, True, "missing_result"
-            ),
+            BenchmarkStudentResult("student_2", "Bo Two", True, True, "missing_result"),
             BenchmarkStudentResult(
                 "student_3", "Cy Three", False, False, "not_assessed"
             ),
@@ -254,9 +250,12 @@ def test_plan_revisions_are_append_only_and_keep_history(tmp_path: Path) -> None
     )
     write_benchmark_plan_revision(tmp_path, second)
     assert list_benchmark_plan_revisions(tmp_path, "class_1", "plan_1") == (1, 2)
-    assert load_latest_benchmark_plan_revision(
-        tmp_path, "class_1", "plan_1"
-    ).revision.plan_revision == 2
+    assert (
+        load_latest_benchmark_plan_revision(
+            tmp_path, "class_1", "plan_1"
+        ).revision.plan_revision
+        == 2
+    )
 
 
 def test_cli_can_confirm_save_and_reopen_plan_revision(
@@ -292,41 +291,47 @@ def test_cli_can_confirm_save_and_reopen_plan_revision(
         encoding="utf-8",
     )
 
-    assert main(
-        (
-            "reports",
-            "benchmark",
-            "--input",
-            str(source),
-            "--workspace",
-            str(tmp_path),
-            "--class-id",
-            "class_1",
-            "--save-plan-id",
-            "plan_1",
-            "--teacher-id",
-            "teacher_1",
-            "--confirm-save",
-            "--format",
-            "json",
+    assert (
+        main(
+            (
+                "reports",
+                "benchmark",
+                "--input",
+                str(source),
+                "--workspace",
+                str(tmp_path),
+                "--class-id",
+                "class_1",
+                "--save-plan-id",
+                "plan_1",
+                "--teacher-id",
+                "teacher_1",
+                "--confirm-save",
+                "--format",
+                "json",
+            )
         )
-    ) == 0
+        == 0
+    )
     saved_output = capsys.readouterr()
     assert "planner revision 1 created" in saved_output.err
 
-    assert main(
-        (
-            "reports",
-            "benchmark",
-            "--workspace",
-            str(tmp_path),
-            "--class-id",
-            "class_1",
-            "--load-plan-id",
-            "plan_1",
-            "--format",
-            "json",
+    assert (
+        main(
+            (
+                "reports",
+                "benchmark",
+                "--workspace",
+                str(tmp_path),
+                "--class-id",
+                "class_1",
+                "--load-plan-id",
+                "plan_1",
+                "--format",
+                "json",
+            )
         )
-    ) == 0
+        == 0
+    )
     reopened = json.loads(capsys.readouterr().out)
     assert reopened["report_kind"] == "benchmark_analysis_instructional_response"

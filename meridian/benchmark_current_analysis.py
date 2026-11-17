@@ -106,9 +106,7 @@ def _student_results(
         else:
             status = "insufficient_evidence"
         attempts = {
-            item.target.target_id: (
-                f"{item.value.earned}/{item.value.possible}"
-            )
+            item.target.target_id: (f"{item.value.earned}/{item.value.possible}")
             for item in evidence
             if item.result_kind == "attempt_points"
             and isinstance(item.value, NativePointValue)
@@ -125,9 +123,7 @@ def _student_results(
                 tested=bool(evidence),
                 result_status=status,
                 native_score=native_score if status == "valid" else None,
-                selected_proficiency=(
-                    proficiency if status == "valid" else None
-                ),
+                selected_proficiency=(proficiency if status == "valid" else None),
             )
         )
     return tuple(results)
@@ -172,8 +168,7 @@ def build_current_benchmark_analysis(
         )
         if membership.decision.academic_period is not None
         and membership.decision.academic_period.period == target_period
-        and membership.decision.academic_period.calendar_revision
-        == calendar_revision
+        and membership.decision.academic_period.calendar_revision == calendar_revision
     )
     if not memberships:
         raise CurrentBenchmarkUnavailableError(
@@ -252,7 +247,8 @@ def build_current_benchmark_analysis(
             published = prepared.canonical_context.publication
             sources.append(
                 TeacherReportSourceReference(
-                    "publication", published.publication_id,
+                    "publication",
+                    published.publication_id,
                     published.manifest_digest,
                 )
             )
@@ -284,16 +280,22 @@ def build_current_benchmark_analysis(
         student_id: tuple(items[key] for key in sorted(items))
         for student_id, items in by_student.items()
     }
-    standards = tuple(sorted({
-        standard_id for item in all_items
-        for standard_id in item.target.standard_ids
-    }))
+    standards = tuple(
+        sorted(
+            {
+                standard_id
+                for item in all_items
+                for standard_id in item.target.standard_ids
+            }
+        )
+    )
     level_by_student: dict[str, set[str]] = {}
     scale_refs: set[ProficiencyScaleReference] = set()
     standard_observations: list[BenchmarkStandardObservation] = []
     for standard_id in standards:
         assessed = {
-            student_id for student_id, items in observed.items()
+            student_id
+            for student_id, items in observed.items()
             if any(standard_id in item.target.standard_ids for item in items)
         }
         counts: dict[str, int] = {}
@@ -320,9 +322,10 @@ def build_current_benchmark_analysis(
                 if student_id in assessed:
                     counts[level] = counts.get(level, 0) + 1
                     calculated_count += 1
-        summary = "; ".join(
-            f"{level}={count}" for level, count in sorted(counts.items())
-        ) or "No selected proficiency results"
+        summary = (
+            "; ".join(f"{level}={count}" for level, count in sorted(counts.items()))
+            or "No selected proficiency results"
+        )
         standard_observations.append(
             BenchmarkStandardObservation(
                 standard_id=standard_id,
@@ -347,10 +350,10 @@ def build_current_benchmark_analysis(
             )
     else:
         available = tuple(
-            existing for scale_id in list_proficiency_scale_ids(root, class_id)
-            if (existing := load_current_proficiency_scale(
-                root, class_id, scale_id
-            )) is not None
+            existing
+            for scale_id in list_proficiency_scale_ids(root, class_id)
+            if (existing := load_current_proficiency_scale(root, class_id, scale_id))
+            is not None
         )
         if len(available) != 1:
             raise CurrentBenchmarkUnavailableError(

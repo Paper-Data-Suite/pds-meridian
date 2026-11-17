@@ -94,8 +94,9 @@ def test_issue45_program_pins_released_versions_and_installed_origins() -> None:
         assert required in program
 
 
-def test_issue45_program_persists_explicit_grade_item_attempt_and_standard_state(
-) -> None:
+def test_issue45_program_persists_explicit_grade_item_attempt_and_standard_state() -> (
+    None
+):
     program = PROGRAM.read_text(encoding="utf-8")
 
     for required in (
@@ -126,8 +127,8 @@ def test_issue45_program_calculates_contributor_and_missing_noncontributor() -> 
     for required in (
         "write_proficiency_scale_revision",
         "write_mapping_profile_revision",
-        "ScalarMappingRule(False, \"beginning\")",
-        "ScalarMappingRule(True, \"proficient\")",
+        'ScalarMappingRule(False, "beginning")',
+        'ScalarMappingRule(True, "proficient")',
         'ScaledLevelMappingRule(3, "proficient")',
         "resolve_standard_aggregation_inputs",
         "calculate_standard_proficiency",
@@ -190,8 +191,9 @@ def test_issue45_program_calculates_and_explains_academic_period_proficiency() -
         assert required in program
 
 
-def test_issue45_program_derives_reviews_and_exports_privacy_minimal_core_signal(
-) -> None:
+def test_issue45_program_derives_reviews_and_exports_privacy_minimal_core_signal() -> (
+    None
+):
     program = PROGRAM.read_text(encoding="utf-8")
 
     for required in (
@@ -222,8 +224,8 @@ def test_issue45_program_derives_reviews_and_exports_privacy_minimal_core_signal
     ):
         assert required in program
 
-    assert 'signal.student_bands[0].student_id == STUDENT_ID' in program
-    assert 'item.student_id != NONCONTRIBUTOR_ID' in program
+    assert "signal.student_bands[0].student_id == STUDENT_ID" in program
+    assert "item.student_id != NONCONTRIBUTOR_ID" in program
 
 
 def test_issue45_wrapper_runs_fresh_process_reload() -> None:
@@ -256,7 +258,7 @@ def test_issue45_fresh_process_reload_verifies_persisted_history() -> None:
         "load_publication_record",
         "verify_publication_manifest",
         "load_authorized_projection_snapshot",
-        'requested_student_ids=(STUDENT_ID, NONCONTRIBUTOR_ID)',
+        "requested_student_ids=(STUDENT_ID, NONCONTRIBUTOR_ID)",
         'authorized.assessment.reuse_status == "reusable"',
         "GradeItemProficiencyTraceTarget",
         "AcademicPeriodProficiencyTraceTarget",

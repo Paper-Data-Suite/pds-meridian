@@ -249,10 +249,7 @@ class PreparedInstalledEnvironment:
                 "-m",
                 "pip",
                 "install",
-                *(
-                    str(path)
-                    for path in self.wheels.for_matrix(self.matrix)
-                ),
+                *(str(path) for path in self.wheels.for_matrix(self.matrix)),
             ]
             self._run_setup("package installation", install_command)
             self._run_setup(
@@ -312,11 +309,7 @@ class PreparedInstalledEnvironment:
         ).strip("-")
         if not safe_name:
             safe_name = "smoke"
-        directory = (
-            self.root
-            / "smokes"
-            / f"{self._smoke_counter:02d}-{safe_name}"
-        )
+        directory = self.root / "smokes" / f"{self._smoke_counter:02d}-{safe_name}"
         directory.mkdir(parents=True, exist_ok=False)
         return directory
 
@@ -373,8 +366,7 @@ class PreparedInstalledEnvironment:
             self.wheels.identities_for_matrix(self.matrix)
         except PreparedEnvironmentError as exc:
             raise PreparedEnvironmentError(
-                f"Matrix {self.matrix.matrix_id.value!r} has invalid wheel input: "
-                f"{exc}"
+                f"Matrix {self.matrix.matrix_id.value!r} has invalid wheel input: {exc}"
             ) from exc
 
     def _outside_directory(self) -> Path:
@@ -406,8 +398,7 @@ class PreparedInstalledEnvironment:
         absent_modules = self.matrix.excluded_producers
         identities = self.wheels.identities_for_matrix(self.matrix)
         expected_distributions = tuple(
-            (identity.distribution, identity.version)
-            for identity in identities
+            (identity.distribution, identity.version) for identity in identities
         )
         producer_distributions = {
             "scoreform": "scoreform",
@@ -441,12 +432,12 @@ class PreparedInstalledEnvironment:
             "); "
             "assert all(importlib.util.find_spec(name) is None for name in absent); "
             "exec("
-            "\"def _distribution_absent(distribution):\\n"
+            '"def _distribution_absent(distribution):\\n'
             "    try:\\n"
             "        metadata.version(distribution)\\n"
             "    except metadata.PackageNotFoundError:\\n"
             "        return True\\n"
-            "    return False\""
+            '    return False"'
             "); "
             "assert all(_distribution_absent(name) "
             "for name in absent_distributions)"
@@ -472,9 +463,5 @@ class PreparedInstalledEnvironment:
                 "the installed package set."
             ) from exc
         return tuple(
-            sorted(
-                line.strip()
-                for line in result.stdout.splitlines()
-                if line.strip()
-            )
+            sorted(line.strip() for line in result.stdout.splitlines() if line.strip())
         )

@@ -27,9 +27,9 @@ def test_issue42_installed_smoke_is_release_guarded() -> None:
         encoding="utf-8"
     )
 
-    core_runner = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
+    core_runner = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "scripts.installed_qualification_runner" in validator
     assert "explanation-traces" in core_runner

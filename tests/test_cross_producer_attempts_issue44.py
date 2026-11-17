@@ -40,8 +40,7 @@ def test_real_scoreform_selection_and_reassessment_do_not_rank_by_score(
 
     assert derivation.status == "applicable"
     assert tuple(
-        candidate.attempt.native.sequence
-        for candidate in derivation.candidates
+        candidate.attempt.native.sequence for candidate in derivation.candidates
     ) == (1, 2)
     assert all(candidate.eligible_evidence for candidate in derivation.candidates)
 
@@ -61,8 +60,7 @@ def test_real_scoreform_selection_and_reassessment_do_not_rank_by_score(
     assert reassessment.status == "resolved"
     assert reassessment.operative_reassessment
     assert tuple(
-        attempt.native.sequence
-        for attempt in reassessment.contributing_attempts
+        attempt.native.sequence for attempt in reassessment.contributing_attempts
     ) == (2,)
     assert reassessment.selected is not None
     relationship = reassessment.selected.decision.replacement_relationships[0]

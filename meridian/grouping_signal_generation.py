@@ -155,11 +155,15 @@ class GroupingSignalGenerationBlocker:
                 raise GroupingSignalGenerationValidationError(
                     "freshness_reasons are valid only for stale_result."
                 )
-            if self.code in {
-                "insufficient_evidence",
-                "selected_result_mismatch",
-                "current_basis_unavailable",
-            } and source_result is None:
+            if (
+                self.code
+                in {
+                    "insufficient_evidence",
+                    "selected_result_mismatch",
+                    "current_basis_unavailable",
+                }
+                and source_result is None
+            ):
                 raise GroupingSignalGenerationValidationError(
                     f"{self.code} requires exact selected result provenance."
                 )
@@ -186,8 +190,7 @@ class GroupingSignalGenerationCandidate:
             )
         blockers = tuple(self.blockers)
         if any(
-            not isinstance(item, GroupingSignalGenerationBlocker)
-            for item in blockers
+            not isinstance(item, GroupingSignalGenerationBlocker) for item in blockers
         ):
             raise GroupingSignalGenerationValidationError(
                 "blockers contains an invalid generation blocker."
@@ -225,8 +228,7 @@ class GroupingSignalGenerationResult:
             )
         blockers = tuple(self.blockers)
         if any(
-            not isinstance(item, GroupingSignalGenerationBlocker)
-            for item in blockers
+            not isinstance(item, GroupingSignalGenerationBlocker) for item in blockers
         ):
             raise GroupingSignalGenerationValidationError(
                 "blockers contains an invalid generation blocker."
@@ -333,13 +335,12 @@ def generate_grouping_signal_derivation(
         current_inputs,
     )
 
+
 def resolve_grouping_signal_derivation_from_current_inputs(
     workspace_root: str | Path,
     class_id: str,
     policy_id: str,
-    current_inputs_by_student: Mapping[
-        str, AcademicPeriodProficiencyAggregationInputs
-    ],
+    current_inputs_by_student: Mapping[str, AcademicPeriodProficiencyAggregationInputs],
 ) -> GroupingSignalGenerationCandidate:
     """Resolve #38 from explicit current #35 inputs without persisting it."""
 
@@ -368,9 +369,7 @@ def generate_grouping_signal_derivation_from_current_inputs(
     workspace_root: str | Path,
     class_id: str,
     policy_id: str,
-    current_inputs_by_student: Mapping[
-        str, AcademicPeriodProficiencyAggregationInputs
-    ],
+    current_inputs_by_student: Mapping[str, AcademicPeriodProficiencyAggregationInputs],
 ) -> GroupingSignalGenerationResult:
     """Generate #38 from explicit current #35 inputs and persist it."""
 
@@ -393,6 +392,7 @@ def generate_grouping_signal_derivation_from_current_inputs(
         roster_basis,
         current_inputs,
     )
+
 
 def _load_selected_policy(
     root: Path,
@@ -422,6 +422,7 @@ def _no_selected_policy_candidate() -> GroupingSignalGenerationCandidate:
         )
     )
 
+
 def _no_selected_policy_result() -> GroupingSignalGenerationResult:
     return _blocked(
         (
@@ -432,6 +433,7 @@ def _no_selected_policy_result() -> GroupingSignalGenerationResult:
             ),
         )
     )
+
 
 def _resolve_grouping_signal_derivation_from_resolved_state(
     root: Path,
@@ -450,9 +452,7 @@ def _resolve_grouping_signal_derivation_from_resolved_state(
             "Selected #37 policy dependencies could not be verified."
         ) from error
 
-    unknown_current_inputs = sorted(
-        set(current_inputs) - set(roster_basis.student_ids)
-    )
+    unknown_current_inputs = sorted(set(current_inputs) - set(roster_basis.student_ids))
     if unknown_current_inputs:
         raise GroupingSignalGenerationValidationError(
             "current_inputs_by_student contains out-of-roster student IDs: "
@@ -743,9 +743,7 @@ def _root(value: str | Path) -> Path:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise GroupingSignalGenerationValidationError(
-            f"{field_name} must be a string."
-        )
+        raise GroupingSignalGenerationValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

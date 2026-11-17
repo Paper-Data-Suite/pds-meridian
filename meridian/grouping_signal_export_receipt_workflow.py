@@ -35,9 +35,7 @@ class GroupingSignalExportReceiptIntegrityError(
     code = "receipt_integrity_failed"
 
 
-class GroupingSignalExportPartialSuccessError(
-    GroupingSignalExportReceiptWorkflowError
-):
+class GroupingSignalExportPartialSuccessError(GroupingSignalExportReceiptWorkflowError):
     """Core is exact and durable, but Meridian receipt persistence failed."""
 
     code = "partial_core_write_success"

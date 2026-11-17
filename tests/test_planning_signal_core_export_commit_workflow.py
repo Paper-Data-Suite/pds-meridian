@@ -142,9 +142,7 @@ def test_commit_rejects_selected_review_drift_before_core_write(
         expected_current_review_revision=1,
     )
 
-    with pytest.raises(
-        workflow.PlanningSignalCoreExportCommitStaleError
-    ) as raised:
+    with pytest.raises(workflow.PlanningSignalCoreExportCommitStaleError) as raised:
         workflow.commit_planning_signal_core_export(root, preview)
 
     assert raised.value.block_code == "review_selection_changed"

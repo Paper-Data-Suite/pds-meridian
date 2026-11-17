@@ -112,9 +112,7 @@ def decision(
             )
         ),
         reason_codes=(
-            ()
-            if disposition == "included"
-            else (f"eligibility.{disposition}",)
+            () if disposition == "included" else (f"eligibility.{disposition}",)
         ),
         rationale=None,
         source_state=state,
@@ -159,12 +157,15 @@ def test_canonical_storage_path_uses_deterministic_source_key(tmp_path: Path) ->
     assert len(source_key) == 67
     assert len(path.relative_to(workspace).as_posix()) <= 126
     assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 133
-    assert storage.evidence_eligibility_revision_relative_path(
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        source(),
-        1,
-    ) == path.relative_to(workspace).as_posix()
+    assert (
+        storage.evidence_eligibility_revision_relative_path(
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            source(),
+            1,
+        )
+        == path.relative_to(workspace).as_posix()
+    )
 
 
 def test_revision_write_is_immutable_idempotent_and_not_current(
@@ -174,21 +175,27 @@ def test_revision_write_is_immutable_idempotent_and_not_current(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     first = storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     second = storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     assert first.disposition == "created"
     assert second.disposition == "existing"
     assert first.stored.content == second.stored.content
-    assert storage.get_current_evidence_eligibility_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, source()
-    ) is None
+    assert (
+        storage.get_current_evidence_eligibility_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, source()
+        )
+        is None
+    )
     assert first.stored.path.read_bytes() == first.stored.content
     assert (
-        hashlib.sha256(first.stored.content).hexdigest()
-        == first.stored.decision_sha256
+        hashlib.sha256(first.stored.content).hexdigest() == first.stored.decision_sha256
     )
 
 
@@ -199,12 +206,16 @@ def test_same_revision_identity_with_different_content_conflicts(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     changed = replace(decision(), rationale="Teacher reviewed this evidence.")
     with pytest.raises(storage.EvidenceEligibilityStorageConflictError):
         storage.write_evidence_eligibility_revision(
-            workspace, changed, authorized_snapshot=object()  # type: ignore[arg-type]
+            workspace,
+            changed,
+            authorized_snapshot=object(),  # type: ignore[arg-type]
         )
 
 
@@ -215,7 +226,9 @@ def test_contiguous_history_and_explicit_selection(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     first_selection = storage.select_evidence_eligibility_revision(
         workspace,
@@ -236,9 +249,12 @@ def test_contiguous_history_and_explicit_selection(
     assert storage.list_evidence_eligibility_revisions(
         workspace, CLASS_ID, GRADE_ITEM_ID, source()
     ) == (1, 2)
-    assert storage.get_current_evidence_eligibility_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, source()
-    ) == 1
+    assert (
+        storage.get_current_evidence_eligibility_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, source()
+        )
+        == 1
+    )
     second_selection = storage.select_evidence_eligibility_revision(
         workspace,
         CLASS_ID,
@@ -249,9 +265,12 @@ def test_contiguous_history_and_explicit_selection(
         expected_current_eligibility_revision=1,
     )
     assert second_selection.disposition == "updated"
-    assert storage.load_current_evidence_eligibility_decision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, source()
-    ).decision.disposition == "excluded"  # type: ignore[union-attr]
+    assert (
+        storage.load_current_evidence_eligibility_decision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, source()
+        ).decision.disposition
+        == "excluded"
+    )  # type: ignore[union-attr]
 
 
 def test_historical_reselection_is_explicit(
@@ -262,7 +281,9 @@ def test_historical_reselection_is_explicit(
     workspace = root(tmp_path)
     for value in (decision(), decision(revision=2, disposition="excluded")):
         storage.write_evidence_eligibility_revision(
-            workspace, value, authorized_snapshot=object()  # type: ignore[arg-type]
+            workspace,
+            value,
+            authorized_snapshot=object(),  # type: ignore[arg-type]
         )
     storage.select_evidence_eligibility_revision(
         workspace,
@@ -292,7 +313,9 @@ def test_stale_compare_and_swap_fails(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     storage.select_evidence_eligibility_revision(
         workspace,
@@ -324,7 +347,9 @@ def test_tampered_revision_and_digest_fail_closed(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     stored = storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     ).stored
     stored.path.write_bytes(stored.content.replace(b'"included"', b'"excluded"'))
     with pytest.raises(
@@ -354,7 +379,9 @@ def test_crlf_digest_sidecar_is_noncanonical(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     stored = storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     ).stored
     digest_path = storage.evidence_eligibility_revision_digest_path(
         workspace, CLASS_ID, GRADE_ITEM_ID, source(), 1
@@ -375,7 +402,9 @@ def test_pointer_digest_tamper_fails_closed(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     storage.select_evidence_eligibility_revision(
         workspace,
@@ -409,7 +438,9 @@ def test_unexpected_visible_entry_fails_closed(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     stored = storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     ).stored
     relation = stored.path.parent
     (relation / "unexpected.txt").write_text("unexpected\n")
@@ -428,7 +459,9 @@ def test_lock_conflict_fails_without_overwrite(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     relation = storage.evidence_eligibility_source_directory(
         workspace, CLASS_ID, GRADE_ITEM_ID, source()
@@ -449,7 +482,9 @@ def test_bounded_read_rejects_oversized_revision(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     with pytest.raises(storage.EvidenceEligibilityStorageTooLargeError):
         storage.load_evidence_eligibility_revision(
@@ -470,12 +505,16 @@ def test_source_histories_are_listed_deterministically(
     workspace = root(tmp_path)
     first = decision()
     storage.write_evidence_eligibility_revision(
-        workspace, first, authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        first,
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     other_source = replace(source(), item_id="scoreform_item_2")
     other = replace(first, source=other_source)
     storage.write_evidence_eligibility_revision(
-        workspace, other, authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        other,
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     listed = storage.list_evidence_eligibility_sources(
         workspace, CLASS_ID, GRADE_ITEM_ID, WORK
@@ -524,8 +563,7 @@ def test_observe_source_state_distinguishes_current_superseded_and_withdrawn(
         lambda *args: (current_pub, successor),
     )
     assert (
-        storage.observe_evidence_source_state(workspace, source()).state
-        == "superseded"
+        storage.observe_evidence_source_state(workspace, source()).state == "superseded"
     )
 
     withdrawal = SimpleNamespace(withdrawn_at=NOW)
@@ -547,7 +585,9 @@ def test_symlinked_revision_is_rejected_when_supported(
     allow_dependencies(monkeypatch)
     workspace = root(tmp_path)
     stored = storage.write_evidence_eligibility_revision(
-        workspace, decision(), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     ).stored
     original = stored.path
     replacement = original.with_name("replacement.json")

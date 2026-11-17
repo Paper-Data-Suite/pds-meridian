@@ -133,10 +133,13 @@ def test_default_is_preview_only(
         lambda *args, **kwargs: pytest.fail("preview must not write"),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [
@@ -144,9 +147,7 @@ def test_default_is_preview_only(
             ("synthetic-workspace", reviewed),
             {
                 "actor_id": "teacher_42",
-                "calculated_at": datetime(
-                    2026, 9, 2, 20, 30, tzinfo=UTC
-                ),
+                "calculated_at": datetime(2026, 9, 2, 20, 30, tzinfo=UTC),
             },
         )
     ]
@@ -184,10 +185,13 @@ def test_confirm_write_commits_exact_preview(
         commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [(("synthetic-workspace", persistence), {})]
@@ -217,10 +221,13 @@ def test_json_result_preserves_write_select_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "written"
@@ -256,10 +263,13 @@ def test_concurrent_selection_change_is_reported_not_overwritten(
         lambda *args, **kwargs: result,
     )
 
-    assert cli.main(
-        _arguments("--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert "WARNING: current result selection changed concurrently: 1 -> 2" in output

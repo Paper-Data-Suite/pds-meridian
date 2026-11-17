@@ -67,7 +67,7 @@ def test_issue53_installed_smoke_is_isolated_and_explicit() -> None:
         'selected.decision.decision == "withdraw"',
         'effective.override_applicability == "withdrawn"',
         'effective.effective_source == "base"',
-        'history == (1, 2)',
+        "history == (1, 2)",
         "Original override digest changed after withdrawal.",
         "Producer source changed",
     ):

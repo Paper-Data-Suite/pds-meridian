@@ -181,9 +181,7 @@ def _export_preview() -> object:
             snapshot_digest_algorithm="sha256",
             snapshot_digest=DERIVATION_SHA256,
         ),
-        dimensions=(
-            SimpleNamespace(dimension_id="reading_support", band_count=2),
-        ),
+        dimensions=(SimpleNamespace(dimension_id="reading_support", band_count=2),),
         student_bands=(
             SimpleNamespace(
                 student_id="student_001",
@@ -308,9 +306,7 @@ def test_core_export_preview_json_exposes_exact_candidate_and_boundaries(
 def test_core_export_preview_arguments_must_be_paired(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _review_source_args("--export-signal-set-id", SIGNAL_SET_ID)
-    ) == 1
+    assert cli.main(_review_source_args("--export-signal-set-id", SIGNAL_SET_ID)) == 1
     error = capsys.readouterr().err
     assert "core_export_preview_invalid" in error
     assert "requires both --export-signal-set-id and --export-created-at" in error
@@ -319,14 +315,17 @@ def test_core_export_preview_arguments_must_be_paired(
 def test_core_export_preview_requires_exact_persisted_preview(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _arguments(
-            "--export-signal-set-id",
-            SIGNAL_SET_ID,
-            "--export-created-at",
-            CREATED_AT,
+    assert (
+        cli.main(
+            _arguments(
+                "--export-signal-set-id",
+                SIGNAL_SET_ID,
+                "--export-created-at",
+                CREATED_AT,
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "core_export_preview_invalid" in error
     assert "requires an exact persisted #39 preview" in error
@@ -335,14 +334,17 @@ def test_core_export_preview_requires_exact_persisted_preview(
 def test_core_export_preview_cannot_be_combined_with_review_selection(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _export_args(
-            "--select-review-revision",
-            "2",
-            "--select-review-sha256",
-            REVIEW_SHA256,
+    assert (
+        cli.main(
+            _export_args(
+                "--select-review-revision",
+                "2",
+                "--select-review-sha256",
+                REVIEW_SHA256,
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "core_export_preview_invalid" in error
     assert "cannot be combined with review authoring or review selection" in error
@@ -351,16 +353,19 @@ def test_core_export_preview_cannot_be_combined_with_review_selection(
 def test_core_export_preview_cannot_be_combined_with_review_authoring(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _export_args(
-            "--review-decision",
-            "rejected",
-            "--review-actor-id",
-            "teacher_local",
-            "--reviewed-at",
-            "2026-09-03T11:30:00Z",
+    assert (
+        cli.main(
+            _export_args(
+                "--review-decision",
+                "rejected",
+                "--review-actor-id",
+                "teacher_local",
+                "--reviewed-at",
+                "2026-09-03T11:30:00Z",
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "core_export_preview_invalid" in error
     assert "cannot be combined with review authoring or review selection" in error

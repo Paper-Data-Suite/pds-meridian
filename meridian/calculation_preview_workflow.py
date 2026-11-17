@@ -39,9 +39,7 @@ class CalculationPreviewWorkflowScopeError(
     code = "teacher_workflow.calculation_preview_invalid"
 
 
-class CalculationPreviewWorkflowDependencyError(
-    CalculationPreviewWorkflowError
-):
+class CalculationPreviewWorkflowDependencyError(CalculationPreviewWorkflowError):
     """Raised when exact stored #32/#34 dependencies cannot be verified."""
 
     code = "teacher_workflow.calculation_preview_dependency_invalid"
@@ -181,14 +179,10 @@ def build_calculation_preview_projection(
         policy_reference=stored_policy.reference,
         policy_title=policy.title,
         strategy=policy.strategy,
-        minimum_performance_observations=(
-            policy.minimum_performance_observations
-        ),
+        minimum_performance_observations=(policy.minimum_performance_observations),
         mode_tie_rule=policy.mode_tie_rule,
         median_even_rule=policy.median_even_rule,
-        blocking_exclusion_reasons=tuple(
-            policy.blocking_exclusion_reasons
-        ),
+        blocking_exclusion_reasons=tuple(policy.blocking_exclusion_reasons),
         native_state_handling=policy.native_state_handling,
         outcome=outcome,
         input_entry_count=len(inputs.entries),

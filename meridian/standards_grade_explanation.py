@@ -90,9 +90,7 @@ class StandardsGradeConversionExplanation:
             not isinstance(self.proficiency_level_id, str)
             or not self.proficiency_level_id
         ):
-            raise GradePreviewTargetError(
-                "proficiency_level_id must be nonempty text."
-            )
+            raise GradePreviewTargetError("proficiency_level_id must be nonempty text.")
         if (
             not isinstance(self.grade_value, Decimal)
             or not self.grade_value.is_finite()
@@ -503,7 +501,6 @@ class StandardsGradePreviewExplanation:
         object.__setattr__(self, "reasons", breakdown.reasons)
 
 
-
 def explain_standards_grade_breakdown(
     workspace_root: str | Path,
     inputs: StandardsGradeCalculationInput,
@@ -512,9 +509,7 @@ def explain_standards_grade_breakdown(
     """Explain one exact standards calculation basis without current state."""
 
     if not isinstance(inputs, StandardsGradeCalculationInput):
-        raise GradePreviewTargetError(
-            "inputs must be StandardsGradeCalculationInput."
-        )
+        raise GradePreviewTargetError("inputs must be StandardsGradeCalculationInput.")
     if not isinstance(outcome, StandardsGradeCalculationOutcome):
         raise GradePreviewTargetError(
             "outcome must be StandardsGradeCalculationOutcome."
@@ -564,9 +559,7 @@ def explain_standards_grade_breakdown(
     )
     return StandardsGradeBreakdownExplanation(
         status=outcome.status,
-        target_scale=StandardsGradeScaleExplanation(
-            inputs.configuration.target_scale
-        ),
+        target_scale=StandardsGradeScaleExplanation(inputs.configuration.target_scale),
         conversions=tuple(
             StandardsGradeConversionExplanation(
                 proficiency_level_id=item.proficiency_level_id,
@@ -591,9 +584,7 @@ def explain_standards_grade_preview(
     """Explain one exact persisted standards Grade result without mutation."""
 
     if not isinstance(snapshot, StandardsGradeResultSnapshot):
-        raise GradePreviewTargetError(
-            "snapshot must be StandardsGradeResultSnapshot."
-        )
+        raise GradePreviewTargetError("snapshot must be StandardsGradeResultSnapshot.")
     try:
         snapshot.__post_init__()
         result_reference = standards_grade_result_reference(snapshot)
@@ -655,9 +646,7 @@ def standards_grade_observation(
     """Project standards detail into the stable #54 observation handoff."""
 
     if not isinstance(value, StandardsGradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "value must be StandardsGradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("value must be StandardsGradePreviewExplanation.")
     return grade_preview_observation_from_explanation(
         value.common,
         extra_basis_entries=standards_grade_basis_entries(value),
@@ -670,9 +659,7 @@ def standards_grade_basis_entries(
     """Return privacy-minimized semantic hashes for future snapshot comparison."""
 
     if not isinstance(value, StandardsGradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "value must be StandardsGradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("value must be StandardsGradePreviewExplanation.")
     return _standards_grade_basis_entries(
         value.target_scale,
         value.conversions,
@@ -737,9 +724,7 @@ def _standards_grade_basis_entries(
                 else None
             ),
             "result_algorithm_version": item.result_algorithm_version,
-            "result_calculation_fingerprint": (
-                item.result_calculation_fingerprint
-            ),
+            "result_calculation_fingerprint": (item.result_calculation_fingerprint),
             "proficiency_level_id": item.proficiency_level_id,
             "freshness_status": item.freshness_status,
             "freshness_reasons": list(item.freshness_reasons),
@@ -870,9 +855,7 @@ def standards_grade_preview_explanation_to_dict(
     """Serialize standards explanation detail to deterministic JSON-native data."""
 
     if not isinstance(value, StandardsGradePreviewExplanation):
-        raise GradePreviewTargetError(
-            "value must be StandardsGradePreviewExplanation."
-        )
+        raise GradePreviewTargetError("value must be StandardsGradePreviewExplanation.")
     return {
         "common": grade_preview_explanation_to_dict(value.common),
         "status": value.status,
@@ -966,10 +949,7 @@ def _verify_nested_proficiency(
         raise GradePreviewIntegrityError(
             "nested proficiency algorithm version does not match Grade result."
         )
-    if (
-        nested.calculation_fingerprint
-        != result.result_calculation_fingerprint
-    ):
+    if nested.calculation_fingerprint != result.result_calculation_fingerprint:
         raise GradePreviewIntegrityError(
             "nested proficiency fingerprint does not match Grade result."
         )
@@ -990,8 +970,7 @@ def _verify_nested_proficiency(
     if result.source_state == "calculated":
         if (
             nested.calculation.status != "calculated"
-            or nested.calculation.proficiency_level_id
-            != result.proficiency_level_id
+            or nested.calculation.proficiency_level_id != result.proficiency_level_id
         ):
             raise GradePreviewIntegrityError(
                 "nested calculated proficiency does not match Grade result value."
@@ -1011,9 +990,7 @@ def _standard_to_dict(
         "source_state": value.source_state,
         "action": value.action,
         "result_reference": (
-            academic_period_proficiency_result_reference_to_dict(
-                value.result_reference
-            )
+            academic_period_proficiency_result_reference_to_dict(value.result_reference)
             if value.result_reference is not None
             else None
         ),
@@ -1094,9 +1071,7 @@ def _profile_constraints_to_dict(
                         "predicate_id": predicate.predicate_id,
                         "kind": predicate.kind,
                         "group_id": predicate.group_id,
-                        "proficiency_level_id": (
-                            predicate.proficiency_level_id
-                        ),
+                        "proficiency_level_id": (predicate.proficiency_level_id),
                         "minimum_count": predicate.minimum_count,
                         "minimum_proportion": _decimal_text(
                             predicate.minimum_proportion

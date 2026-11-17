@@ -111,8 +111,9 @@ def test_profile_is_frozen_slotted_and_preserves_column_order() -> None:
     assert not hasattr(value, "__dict__")
 
 
-def test_snapshot_source_registry_is_closed_and_not_arbitrary_object_traversal(
-) -> None:
+def test_snapshot_source_registry_is_closed_and_not_arbitrary_object_traversal() -> (
+    None
+):
     for source in (
         "snapshot.class_id",
         "snapshot.snapshot_id",
@@ -256,9 +257,10 @@ def test_profile_round_trips_canonically_and_reference_binds_exact_bytes() -> No
 
     reference = export_profile_reference(value)
     assert reference.profile_sha256 == hashlib.sha256(encoded).hexdigest()
-    assert export_profile_reference_from_dict(
-        export_profile_reference_to_dict(reference)
-    ) == reference
+    assert (
+        export_profile_reference_from_dict(export_profile_reference_to_dict(reference))
+        == reference
+    )
 
 
 def test_profile_serialization_uses_exact_schema_at_each_level() -> None:
@@ -298,8 +300,7 @@ def test_profile_json_rejects_noncanonical_duplicate_and_nonfinite_encodings() -
     canonical = export_profile_revision_to_json_bytes(profile()).decode("utf-8")
     duplicate = canonical.replace(
         '  "class_id": "synthetic_class_2026",',
-        '  "class_id": "synthetic_class_2026",\n'
-        '  "class_id": "synthetic_class_2026",',
+        '  "class_id": "synthetic_class_2026",\n  "class_id": "synthetic_class_2026",',
         1,
     ).encode("utf-8")
     with pytest.raises(ExportProfileSerializationError, match="duplicate JSON"):
@@ -399,8 +400,9 @@ def test_reference_requires_exact_digest_and_path_safe_identity() -> None:
         replace(reference, profile_id="../escape")
 
 
-def test_profile_contract_contains_representation_not_grade_calculation_semantics(
-) -> None:
+def test_profile_contract_contains_representation_not_grade_calculation_semantics() -> (
+    None
+):
     encoded = export_profile_revision_to_json_bytes(profile()).decode("utf-8")
 
     assert "calculation_formula" not in encoded

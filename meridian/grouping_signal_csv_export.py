@@ -152,10 +152,9 @@ def export_grouping_signal_csv(
         raise GroupingSignalCsvExportIntegrityError(
             "Core CSV round-trip does not reproduce the exact stored signal."
         )
-    if (
-        grouping_signal_set_to_json_bytes(reconstructed)
-        != grouping_signal_set_to_json_bytes(signal)
-    ):
+    if grouping_signal_set_to_json_bytes(
+        reconstructed
+    ) != grouping_signal_set_to_json_bytes(signal):
         raise GroupingSignalCsvExportIntegrityError(
             "Core CSV round-trip changed canonical grouping-signal JSON bytes."
         )

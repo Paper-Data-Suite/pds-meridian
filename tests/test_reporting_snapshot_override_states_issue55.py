@@ -235,8 +235,7 @@ def test_applicable_override_freezes_exact_precedence_and_survives_withdrawal(
     historical_observation = historical.snapshot.report_preview.rows[0].observation
     assert historical_observation is not None
     assert (
-        historical_observation.selected_override_reference
-        == frozen_override_reference
+        historical_observation.selected_override_reference == frozen_override_reference
     )
     assert historical_observation.override_applicability == "applicable"
     assert historical_observation.override_replacement_grade == REPLACEMENT_GRADE

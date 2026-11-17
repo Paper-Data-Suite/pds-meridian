@@ -203,8 +203,7 @@ def test_input_and_outcome_canonical_round_trip() -> None:
 
     outcome_payload = standards_grade_calculation_outcome_to_json_bytes(outcome)
     assert (
-        standards_grade_calculation_outcome_from_json_bytes(outcome_payload)
-        == outcome
+        standards_grade_calculation_outcome_from_json_bytes(outcome_payload) == outcome
     )
 
 

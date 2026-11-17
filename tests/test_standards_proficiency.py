@@ -112,8 +112,6 @@ def policy(
     )
 
 
-
-
 def calculation_scale(
     level_ids: tuple[str, ...] = (
         "emerging",
@@ -371,8 +369,9 @@ def test_strategy_rejects_irrelevant_or_missing_tie_rules() -> None:
 def test_minimum_performance_observations_is_positive_and_bounded() -> None:
     assert policy(minimum=1).minimum_performance_observations == 1
     assert (
-        policy(minimum=MAXIMUM_STANDARD_PROFICIENCY_OBSERVATIONS)
-        .minimum_performance_observations
+        policy(
+            minimum=MAXIMUM_STANDARD_PROFICIENCY_OBSERVATIONS
+        ).minimum_performance_observations
         == MAXIMUM_STANDARD_PROFICIENCY_OBSERVATIONS
     )
     with pytest.raises(StandardProficiencyValidationError, match="positive"):
@@ -404,9 +403,7 @@ def test_blocking_reasons_are_closed_to_unresolved_problem_states() -> None:
         "nonstudent_target",
         "student_mismatch",
     ):
-        assert not is_blockable_standard_aggregation_exclusion_reason(
-            deliberate
-        )
+        assert not is_blockable_standard_aggregation_exclusion_reason(deliberate)
         with pytest.raises(
             StandardProficiencyValidationError,
             match="nonblocking",
@@ -428,10 +425,7 @@ def test_blocking_reasons_reject_duplicates() -> None:
 def test_native_state_handling_is_explicit(
     handling: NativeStateHandling,
 ) -> None:
-    assert (
-        policy(native_state_handling=handling).native_state_handling
-        == handling
-    )
+    assert policy(native_state_handling=handling).native_state_handling == handling
 
 
 def test_target_scale_must_match_policy_class() -> None:
@@ -529,10 +523,7 @@ def test_policy_json_round_trip_is_canonical_and_exact() -> None:
     assert encoded.endswith(b"\n")
     assert b"\r" not in encoded
     assert b'"strategy": "mode"' in encoded
-    assert (
-        standard_proficiency_calculation_policy_from_json_bytes(encoded)
-        == value
-    )
+    assert standard_proficiency_calculation_policy_from_json_bytes(encoded) == value
     assert b"2026-08-27T23:00:00.000000Z" in encoded
 
 
@@ -593,7 +584,6 @@ def test_policy_reference_binds_exact_revision_and_canonical_digest() -> None:
     assert changed_ref.policy_sha256 != first_ref.policy_sha256
 
 
-
 def test_calculation_highest_and_lowest_use_scale_positions_only() -> None:
     scale = calculation_scale(("alpha", "omega", "middle"))
     inputs = calculation_inputs(
@@ -618,8 +608,7 @@ def test_calculation_highest_and_lowest_use_scale_positions_only() -> None:
     assert highest.proficiency_level_id == "middle"
     assert lowest.proficiency_level_id == "alpha"
     assert tuple(
-        (item.proficiency_level_id, item.count)
-        for item in highest.level_counts
+        (item.proficiency_level_id, item.count) for item in highest.level_counts
     ) == (
         ("alpha", 1),
         ("omega", 1),
@@ -682,9 +671,9 @@ def test_median_even_uses_explicit_policy(
     assert outcome.tie_resolution.kind == "median_even"
     assert outcome.tie_resolution.rule == rule
     if rule == "insufficient":
-        assert tuple(
-            reason.kind for reason in outcome.insufficiency_reasons
-        ) == ("unresolved_even_median",)
+        assert tuple(reason.kind for reason in outcome.insufficiency_reasons) == (
+            "unresolved_even_median",
+        )
 
 
 def test_mode_unique_winner_uses_counts_not_input_order() -> None:
@@ -742,9 +731,9 @@ def test_mode_tie_uses_explicit_policy(
     assert outcome.tie_resolution is not None
     assert outcome.tie_resolution.kind == "mode_tie"
     if rule == "insufficient":
-        assert tuple(
-            reason.kind for reason in outcome.insufficiency_reasons
-        ) == ("unresolved_mode_tie",)
+        assert tuple(reason.kind for reason in outcome.insufficiency_reasons) == (
+            "unresolved_mode_tie",
+        )
 
 
 def test_no_performance_is_insufficient_not_lowest_proficiency() -> None:
@@ -761,9 +750,9 @@ def test_no_performance_is_insufficient_not_lowest_proficiency() -> None:
     )
     assert outcome.status == "insufficient_evidence"
     assert outcome.proficiency_level_id is None
-    assert tuple(
-        reason.kind for reason in outcome.insufficiency_reasons
-    ) == ("no_performance_evidence",)
+    assert tuple(reason.kind for reason in outcome.insufficiency_reasons) == (
+        "no_performance_evidence",
+    )
 
 
 def test_minimum_performance_count_is_checked_before_strategy() -> None:
@@ -938,13 +927,8 @@ def test_outcome_explanation_and_fingerprint_are_deterministic() -> None:
     assert first.native_state_count == 1
     assert first.excluded_count == 1
     assert tuple(item.status for item in first.explanation_entries) == (
-        tuple(
-            entry.status
-            for entry in inputs.entries
-        )
+        tuple(entry.status for entry in inputs.entries)
     )
-    assert {
-        item.source_key for item in first.explanation_entries
-    } == {
+    assert {item.source_key for item in first.explanation_entries} == {
         evidence_source_key(entry.source) for entry in inputs.entries
     }

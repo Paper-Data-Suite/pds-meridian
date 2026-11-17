@@ -156,7 +156,6 @@ def _projection() -> object:
     )
 
 
-
 def _selection_args(*extra: str) -> tuple[str, ...]:
     return _review_source_args(
         "--select-review-revision",
@@ -297,7 +296,7 @@ def test_confirm_review_selection_commits_only_selector(
     assert cli.main(_selection_args("--confirm-review-select")) == 0
     output = capsys.readouterr().out
 
-    assert observed == [(('synthetic-workspace', preview), {})]
+    assert observed == [(("synthetic-workspace", preview), {})]
     assert "review selection confirmation supplied: yes" in output
     assert "#39 review selected: revision 1 (created)" in output
     assert f"selected review SHA-256: {REVIEW_SHA256}" in output
@@ -320,9 +319,7 @@ def test_confirmed_selection_json_preserves_export_boundary(
         lambda *args, **kwargs: _selection_result(),
     )
 
-    assert cli.main(
-        _selection_args("--confirm-review-select", "--format", "json")
-    ) == 0
+    assert cli.main(_selection_args("--confirm-review-select", "--format", "json")) == 0
     data = json.loads(capsys.readouterr().out)
 
     assert data["task"] == "create-planning-signal"
@@ -341,9 +338,7 @@ def test_confirmed_selection_json_preserves_export_boundary(
 def test_review_selection_target_arguments_must_be_paired(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _review_source_args("--select-review-revision", "1")
-    ) == 1
+    assert cli.main(_review_source_args("--select-review-revision", "1")) == 1
     error = capsys.readouterr().err
     assert "review_selection_invalid" in error
     assert "requires both --select-review-revision" in error
@@ -352,14 +347,17 @@ def test_review_selection_target_arguments_must_be_paired(
 def test_review_selection_requires_exact_preview_source(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _arguments(
-            "--select-review-revision",
-            "1",
-            "--select-review-sha256",
-            REVIEW_SHA256,
+    assert (
+        cli.main(
+            _arguments(
+                "--select-review-revision",
+                "1",
+                "--select-review-sha256",
+                REVIEW_SHA256,
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "review_selection_invalid" in error
     assert "requires an exact persisted #39 preview" in error
@@ -368,16 +366,19 @@ def test_review_selection_requires_exact_preview_source(
 def test_review_selection_cannot_be_combined_with_review_authoring(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _selection_args(
-            "--review-decision",
-            "rejected",
-            "--review-actor-id",
-            "teacher_local",
-            "--reviewed-at",
-            REVIEWED_AT,
+    assert (
+        cli.main(
+            _selection_args(
+                "--review-decision",
+                "rejected",
+                "--review-actor-id",
+                "teacher_local",
+                "--reviewed-at",
+                REVIEWED_AT,
+            )
         )
-    ) == 1
+        == 1
+    )
     error = capsys.readouterr().err
     assert "review_selection_invalid" in error
     assert "cannot be combined" in error
@@ -386,9 +387,7 @@ def test_review_selection_cannot_be_combined_with_review_authoring(
 def test_confirm_review_select_requires_exact_selection_target(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    assert cli.main(
-        _review_source_args("--confirm-review-select")
-    ) == 1
+    assert cli.main(_review_source_args("--confirm-review-select")) == 1
     error = capsys.readouterr().err
     assert "review_selection_invalid" in error
     assert "requires an exact persisted #39 review target" in error

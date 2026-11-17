@@ -26,9 +26,7 @@ def test_slice5_optional_extras_are_contract_advertising_floors() -> None:
     assert EXPECTED_SCOREFORM_EXTRA == Requirement(
         "scoreform>=0.13.0; extra == 'scoreform'"
     )
-    assert EXPECTED_QUILLAN_EXTRA == Requirement(
-        "quillan>=0.10.6; extra == 'quillan'"
-    )
+    assert EXPECTED_QUILLAN_EXTRA == Requirement("quillan>=0.10.6; extra == 'quillan'")
     assert EXPECTED_CONCORD_EXTRA == Requirement(
         "pds-concord>=0.3.2; extra == 'concord'"
     )
@@ -39,9 +37,9 @@ def test_slice5_diagnostics_schema_is_v2() -> None:
 
 
 def test_slice5_current_matrix_names_contract_and_legacy_boundaries() -> None:
-    text = (
-        ROOT / "docs/architecture/current-reader-compatibility.md"
-    ).read_text(encoding="utf-8")
+    text = (ROOT / "docs/architecture/current-reader-compatibility.md").read_text(
+        encoding="utf-8"
+    )
 
     for token in (
         "scoreform>=0.13.0",

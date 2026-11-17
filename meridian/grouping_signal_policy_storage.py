@@ -80,9 +80,7 @@ GroupingSignalPolicySelectDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -134,9 +132,7 @@ class GroupingSignalPolicyStorageConflictError(GroupingSignalPolicyStorageError)
     code = "grouping_signal_policy.conflict"
 
 
-class GroupingSignalPolicyStorageLockError(
-    GroupingSignalPolicyStorageConflictError
-):
+class GroupingSignalPolicyStorageLockError(GroupingSignalPolicyStorageConflictError):
     """Raised when another writer owns one logical policy family."""
 
     code = "grouping_signal_policy.locked"
@@ -148,17 +144,13 @@ class GroupingSignalPolicyStorageIntegrityError(GroupingSignalPolicyStorageError
     code = "grouping_signal_policy.integrity_failed"
 
 
-class GroupingSignalPolicyStorageTooLargeError(
-    GroupingSignalPolicyStorageReadError
-):
+class GroupingSignalPolicyStorageTooLargeError(GroupingSignalPolicyStorageReadError):
     """Raised when persisted grouping-signal policy state exceeds read bounds."""
 
     code = "grouping_signal_policy.too_large"
 
 
-class GroupingSignalPolicyDependencyError(
-    GroupingSignalPolicyStorageConflictError
-):
+class GroupingSignalPolicyDependencyError(GroupingSignalPolicyStorageConflictError):
     """Raised when exact academic dependencies cannot be verified."""
 
     code = "grouping_signal_policy.dependency_invalid"
@@ -200,9 +192,7 @@ class StoredGroupingSignalDerivationPolicy:
                 "policy_sha256 does not match exact immutable content."
             )
         try:
-            decoded = grouping_signal_derivation_policy_from_json_bytes(
-                self.content
-            )
+            decoded = grouping_signal_derivation_policy_from_json_bytes(self.content)
         except (
             GroupingSignalPolicySerializationError,
             GroupingSignalPolicyValidationError,
@@ -299,10 +289,9 @@ def grouping_signal_policy_directory(
     policy_id: str,
 ) -> Path:
     policy = _identifier(policy_id, "policy_id")
-    return (
-        grouping_signal_policies_directory(workspace_root, class_id)
-        / grouping_signal_policy_path_key(class_id, policy)
-    )
+    return grouping_signal_policies_directory(
+        workspace_root, class_id
+    ) / grouping_signal_policy_path_key(class_id, policy)
 
 
 def grouping_signal_policy_revisions_directory(
@@ -310,11 +299,14 @@ def grouping_signal_policy_revisions_directory(
     class_id: str,
     policy_id: str,
 ) -> Path:
-    return grouping_signal_policy_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / "revisions"
+    return (
+        grouping_signal_policy_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / "revisions"
+    )
 
 
 def grouping_signal_policy_revision_path(
@@ -324,11 +316,14 @@ def grouping_signal_policy_revision_path(
     policy_revision: int,
 ) -> Path:
     revision = _positive_int(policy_revision, "policy_revision")
-    return grouping_signal_policy_revisions_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / f"{revision}.json"
+    return (
+        grouping_signal_policy_revisions_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / f"{revision}.json"
+    )
 
 
 def grouping_signal_policy_current_path(
@@ -336,11 +331,14 @@ def grouping_signal_policy_current_path(
     class_id: str,
     policy_id: str,
 ) -> Path:
-    return grouping_signal_policy_directory(
-        workspace_root,
-        class_id,
-        policy_id,
-    ) / "current.json"
+    return (
+        grouping_signal_policy_directory(
+            workspace_root,
+            class_id,
+            policy_id,
+        )
+        / "current.json"
+    )
 
 
 def grouping_signal_policy_revision_relative_path(
@@ -369,9 +367,7 @@ def validate_grouping_signal_policy_dependencies(
     period_ref = basis.target_period.period
 
     try:
-        metadata = load_class_metadata(
-            class_metadata_path(root, candidate.class_id)
-        )
+        metadata = load_class_metadata(class_metadata_path(root, candidate.class_id))
     except ClassMetadataError as error:
         raise GroupingSignalPolicyDependencyError(
             "Exact Core class metadata is unavailable for grouping-signal policy."
@@ -917,8 +913,7 @@ def _grouping_signal_policy_id_from_directory(
         GroupingSignalPolicyValidationError,
     ) as error:
         raise GroupingSignalPolicyStorageIntegrityError(
-            "Grouping-signal policy directory lacks a valid authoritative "
-            "revision 1."
+            "Grouping-signal policy directory lacks a valid authoritative revision 1."
         ) from error
     if policy.class_id != class_id or policy.policy_revision != 1:
         raise GroupingSignalPolicyStorageIntegrityError(

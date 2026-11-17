@@ -160,9 +160,10 @@ def test_projection_preserves_every_student_attempt_response_and_order() -> None
     assert len({item.item_id for item in first.items}) == 24
     assert all(item.item_id.startswith("scoreform_") for item in first.items)
     assert all(len(item.item_id) == 74 for item in first.items)
-    assert tuple(item.subject.student_id for item in first.items[:16]) == (
-        "student_synthetic_001",
-    ) * 16
+    assert (
+        tuple(item.subject.student_id for item in first.items[:16])
+        == ("student_synthetic_001",) * 16
+    )
     assert tuple(item.result_kind for item in first.items[:10]) == (
         "attempt_points",
         "result_origin",
@@ -310,16 +311,13 @@ def test_projection_preserves_punctuation_bearing_standards_identities() -> None
     assert parsed.assignment.questions[0].standard_ids[:-1] == standard_ids
     assert request.manifest_bytes == source_before
     projected = tuple(
-        item
-        for item in inventory.items
-        if item.target.target_id == "question_1"
+        item for item in inventory.items if item.target.target_id == "question_1"
     )
     assert projected
     assert all(item.target.standard_ids[:-1] == standard_ids for item in projected)
     assert all(
         any(
-            reference.kind == "standards_profile"
-            and reference.identifier == profile_id
+            reference.kind == "standards_profile" and reference.identifier == profile_id
             for reference in item.provenance.native.references
         )
         for item in inventory.items

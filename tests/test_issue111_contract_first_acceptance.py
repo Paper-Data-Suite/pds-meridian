@@ -51,9 +51,7 @@ def _profile(
         if reader_contract is None
         else (
             PublicationReaderSupport(
-                manifest_contract_version=(
-                    descriptor.key.manifest_contract_version
-                ),
+                manifest_contract_version=(descriptor.key.manifest_contract_version),
                 distribution_name=(
                     descriptor.producer_reader_distribution
                     if distribution_name is None

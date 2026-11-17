@@ -265,8 +265,7 @@ def test_minimum_calculated_results_requires_positive_nonboolean_integer(
 def test_minimum_calculated_results_is_bounded() -> None:
     value = policy(minimum=MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULTS)
     assert (
-        value.minimum_calculated_results
-        == MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULTS
+        value.minimum_calculated_results == MAXIMUM_ACADEMIC_PERIOD_PROFICIENCY_RESULTS
     )
     with pytest.raises(
         AcademicPeriodProficiencyValidationError,
@@ -375,9 +374,7 @@ def test_policy_mapping_and_json_round_trip_are_exact_and_stable() -> None:
     }
     assert academic_period_proficiency_aggregation_policy_from_dict(data) == original
 
-    payload = academic_period_proficiency_aggregation_policy_to_json_bytes(
-        original
-    )
+    payload = academic_period_proficiency_aggregation_policy_to_json_bytes(original)
     assert payload.endswith(b"\n")
     assert (
         academic_period_proficiency_aggregation_policy_from_json_bytes(payload)
@@ -398,9 +395,7 @@ def test_policy_reference_binds_exact_canonical_policy_bytes() -> None:
         academic_period_proficiency_aggregation_policy_sha256(value)
     )
 
-    data = academic_period_proficiency_aggregation_policy_reference_to_dict(
-        reference
-    )
+    data = academic_period_proficiency_aggregation_policy_reference_to_dict(reference)
     assert (
         academic_period_proficiency_aggregation_policy_reference_from_dict(data)
         == reference
@@ -444,9 +439,7 @@ def test_policy_mapping_rejects_missing_unknown_and_nonstring_keys() -> None:
 
 
 def test_policy_json_rejects_duplicate_keys_and_nonstandard_constants() -> None:
-    payload = (
-        b'{"schema_version":"1","schema_version":"1","record_type":"x"}'
-    )
+    payload = b'{"schema_version":"1","schema_version":"1","record_type":"x"}'
     with pytest.raises(
         AcademicPeriodProficiencySerializationError,
         match="duplicate JSON object key",
@@ -457,9 +450,7 @@ def test_policy_json_rejects_duplicate_keys_and_nonstandard_constants() -> None:
         AcademicPeriodProficiencySerializationError,
         match="non-standard JSON numeric constant",
     ):
-        academic_period_proficiency_aggregation_policy_from_json_bytes(
-            b'{"value":NaN}'
-        )
+        academic_period_proficiency_aggregation_policy_from_json_bytes(b'{"value":NaN}')
 
 
 def test_policy_json_rejects_invalid_utf8_and_nonobject_top_level() -> None:
@@ -467,18 +458,13 @@ def test_policy_json_rejects_invalid_utf8_and_nonobject_top_level() -> None:
         AcademicPeriodProficiencySerializationError,
         match="UTF-8",
     ):
-        academic_period_proficiency_aggregation_policy_from_json_bytes(
-            b"\xff"
-        )
+        academic_period_proficiency_aggregation_policy_from_json_bytes(b"\xff")
 
     with pytest.raises(
         AcademicPeriodProficiencySerializationError,
         match="JSON object",
     ):
-        academic_period_proficiency_aggregation_policy_from_json_bytes(
-            b"[]"
-        )
-
+        academic_period_proficiency_aggregation_policy_from_json_bytes(b"[]")
 
 
 def period_target(
@@ -974,10 +960,7 @@ def test_target_and_membership_basis_are_frozen_exact_snapshots() -> None:
 def test_membership_basis_round_trip_preserves_exact_period_provenance() -> None:
     original = membership_basis(calendar_revision=3, period_id="semester_1")
     data = academic_period_proficiency_membership_basis_to_dict(original)
-    assert (
-        academic_period_proficiency_membership_basis_from_dict(data)
-        == original
-    )
+    assert academic_period_proficiency_membership_basis_from_dict(data) == original
     assert (
         academic_period_proficiency_target_from_dict(
             academic_period_proficiency_target_to_dict(original.academic_period)
@@ -1167,9 +1150,7 @@ def test_inputs_json_rejects_noncanonical_equivalent_payload() -> None:
         AcademicPeriodProficiencySerializationError,
         match="not canonical JSON",
     ):
-        academic_period_proficiency_aggregation_inputs_from_json_bytes(
-            noncanonical
-        )
+        academic_period_proficiency_aggregation_inputs_from_json_bytes(noncanonical)
 
 
 def test_policy_json_also_rejects_noncanonical_equivalent_payload() -> None:
@@ -1182,9 +1163,7 @@ def test_policy_json_also_rejects_noncanonical_equivalent_payload() -> None:
         AcademicPeriodProficiencySerializationError,
         match="not canonical JSON",
     ):
-        academic_period_proficiency_aggregation_policy_from_json_bytes(
-            noncanonical
-        )
+        academic_period_proficiency_aggregation_policy_from_json_bytes(noncanonical)
 
 
 def academic_period_calendar(
@@ -1475,7 +1454,6 @@ def calculation_inputs(
     )
 
 
-
 def test_membership_basis_from_exact_included_decision_binds_canonical_digest() -> None:
     decision = membership_decision()
     basis = exact_membership_basis_from_decision(decision)
@@ -1483,9 +1461,12 @@ def test_membership_basis_from_exact_included_decision_binds_canonical_digest() 
     assert basis.membership_revision == decision.membership_revision
     assert basis.work_reference == decision.work_reference
     assert basis.academic_period == period_target()
-    assert basis.membership_sha256 == hashlib.sha256(
-        grade_item_membership_decision_to_json_bytes(decision)
-    ).hexdigest()
+    assert (
+        basis.membership_sha256
+        == hashlib.sha256(
+            grade_item_membership_decision_to_json_bytes(decision)
+        ).hexdigest()
+    )
 
 
 def test_membership_basis_from_decision_rejects_wrong_digest_and_excluded() -> None:
@@ -1699,7 +1680,6 @@ def test_inputs_bind_scope_and_reject_policy_scope_mismatch() -> None:
             calculation_policy(scale, scope="direct"),
             scale,
         )
-
 
 
 def test_academic_period_algorithm_version_is_explicit() -> None:
@@ -2063,9 +2043,7 @@ def test_outcome_json_round_trip_is_canonical_and_exact() -> None:
         scale,
     )
     assert isinstance(outcome, AcademicPeriodProficiencyCalculationOutcome)
-    payload = academic_period_proficiency_calculation_outcome_to_json_bytes(
-        outcome
-    )
+    payload = academic_period_proficiency_calculation_outcome_to_json_bytes(outcome)
     assert payload.endswith(b"\n")
     assert (
         academic_period_proficiency_calculation_outcome_from_json_bytes(payload)
@@ -2078,8 +2056,6 @@ def test_outcome_json_round_trip_is_canonical_and_exact() -> None:
         academic_period_proficiency_calculation_outcome_from_json_bytes(
             payload.replace(b"\n", b"", 1)
         )
-
-
 
 
 def period_result_snapshot(
@@ -2202,8 +2178,7 @@ def test_period_result_transition_uses_durable_period_not_calendar_revision() ->
     )
     assert second.supersedes_revision == 1
     assert (
-        validate_academic_period_proficiency_result_transition(first, second)
-        == second
+        validate_academic_period_proficiency_result_transition(first, second) == second
     )
 
     different_period_family = period_result_snapshot(
@@ -2231,10 +2206,7 @@ def test_period_result_json_round_trip_is_canonical_and_preserves_inputs() -> No
     assert b"\r" not in encoded
     assert b'"period_membership_scope": "direct"' in encoded
     assert b'"calendar_revision": 1' in encoded
-    assert (
-        academic_period_proficiency_result_snapshot_from_json_bytes(encoded)
-        == value
-    )
+    assert academic_period_proficiency_result_snapshot_from_json_bytes(encoded) == value
 
 
 def test_period_result_json_rejects_duplicate_unknown_and_noncanonical() -> None:
@@ -2282,9 +2254,12 @@ def test_period_result_reference_binds_durable_family_and_snapshot_bytes() -> No
     assert reference.standard_id == "urn:standard:period"
     assert reference.result_revision == 1
     assert len(reference.result_sha256) == 64
-    assert academic_period_proficiency_result_reference_from_dict(
-        academic_period_proficiency_result_reference_to_dict(reference)
-    ) == reference
+    assert (
+        academic_period_proficiency_result_reference_from_dict(
+            academic_period_proficiency_result_reference_to_dict(reference)
+        )
+        == reference
+    )
 
 
 def test_period_result_calculated_at_is_audit_metadata_only() -> None:
@@ -2308,6 +2283,7 @@ def test_period_result_calculated_at_requires_timezone_and_canonicalizes() -> No
 
     offset = NOW.astimezone(timezone(timedelta(hours=-4)))
     assert replace(value, calculated_at=offset).calculated_at == NOW
+
 
 def test_period_result_freshness_is_current_for_exact_same_basis() -> None:
     result = period_result_snapshot()
@@ -2469,4 +2445,3 @@ def test_period_result_freshness_value_rejects_invalid_status_reason_pairs() -> 
         AcademicPeriodProficiencyResultFreshness("current", ("inputs_changed",))
     with pytest.raises(AcademicPeriodProficiencyValidationError):
         AcademicPeriodProficiencyResultFreshness("stale", ())
-

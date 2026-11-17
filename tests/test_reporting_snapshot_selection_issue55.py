@@ -219,12 +219,18 @@ def _select(root: Path, snapshot, expected, minute: int):
 def test_no_current_selection_before_explicit_selection(tmp_path: Path) -> None:
     root, _, snapshot_a, _ = _setup_snapshots(tmp_path)
 
-    assert get_current_reporting_snapshot_selection_reference(
-        root, CLASS_ID, "quarter_grade_report", PERIOD, 1
-    ) is None
-    assert load_current_reporting_snapshot(
-        root, CLASS_ID, "quarter_grade_report", PERIOD, 1
-    ) is None
+    assert (
+        get_current_reporting_snapshot_selection_reference(
+            root, CLASS_ID, "quarter_grade_report", PERIOD, 1
+        )
+        is None
+    )
+    assert (
+        load_current_reporting_snapshot(
+            root, CLASS_ID, "quarter_grade_report", PERIOD, 1
+        )
+        is None
+    )
     assert load_reporting_snapshot(root, CLASS_ID, snapshot_a.snapshot.snapshot_id)
 
 
@@ -254,9 +260,7 @@ def test_first_explicit_selection_creates_digest_bound_pointer(tmp_path: Path) -
 def test_current_selection_round_trips_canonically(tmp_path: Path) -> None:
     root, _, snapshot_a, _ = _setup_snapshots(tmp_path)
     result = _select(root, snapshot_a, None, 10)
-    encoded = reporting_snapshot_selection_to_json_bytes(
-        result.selection.selection
-    )
+    encoded = reporting_snapshot_selection_to_json_bytes(result.selection.selection)
 
     assert reporting_snapshot_selection_from_json_bytes(encoded) == (
         result.selection.selection
@@ -272,8 +276,7 @@ def test_selection_path_is_privacy_safe_and_scope_local(tmp_path: Path) -> None:
         CLASS_ID, "quarter_grade_report", PERIOD, 1
     )
     assert result.selection.relative_path == (
-        "classes/english_12/modules/meridian/rs/"
-        f"{scope_key}/current.json"
+        f"classes/english_12/modules/meridian/rs/{scope_key}/current.json"
     )
     assert "student_001" not in result.selection.relative_path
     assert result.selection.relative_path == reporting_snapshot_selection_relative_path(
@@ -366,9 +369,12 @@ def test_newer_snapshot_and_relationship_do_not_imply_selection(
     assert current.reference == snapshot_a.reference
     assert snapshot_b.snapshot.created_at > snapshot_a.snapshot.created_at
     assert snapshot_b.snapshot.predecessor is not None
-    assert get_current_reporting_snapshot_selection_reference(
-        root, CLASS_ID, "quarter_grade_report", PERIOD, 1
-    ) == first.selection.reference
+    assert (
+        get_current_reporting_snapshot_selection_reference(
+            root, CLASS_ID, "quarter_grade_report", PERIOD, 1
+        )
+        == first.selection.reference
+    )
 
 
 def test_select_new_snapshot_updates_revision_and_prior_exact_state(
@@ -495,9 +501,12 @@ def test_different_calendar_revision_is_a_different_selection_scope(
     root, _, snapshot_a, _ = _setup_snapshots(tmp_path)
     current = _select(root, snapshot_a, None, 10)
 
-    assert get_current_reporting_snapshot_selection_reference(
-        root, CLASS_ID, "quarter_grade_report", PERIOD, 2
-    ) is None
+    assert (
+        get_current_reporting_snapshot_selection_reference(
+            root, CLASS_ID, "quarter_grade_report", PERIOD, 2
+        )
+        is None
+    )
     with pytest.raises(ReportingSnapshotSelectionValidationError, match="different"):
         select_reporting_snapshot(
             root,
@@ -546,9 +555,7 @@ def test_noncanonical_current_selector_fails_closed(tmp_path: Path) -> None:
     root, _, snapshot_a, _ = _setup_snapshots(tmp_path)
     result = _select(root, snapshot_a, None, 10)
     data = json.loads(result.selection.content)
-    result.selection.path.write_bytes(
-        json.dumps(data, sort_keys=True).encode("utf-8")
-    )
+    result.selection.path.write_bytes(json.dumps(data, sort_keys=True).encode("utf-8"))
 
     with pytest.raises(
         ReportingSnapshotSelectionIntegrityError,

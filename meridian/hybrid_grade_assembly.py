@@ -273,9 +273,7 @@ def assemble_hybrid_grade_calculation(
 
 def _period(value: AcademicPeriodRef) -> AcademicPeriodRef:
     if not isinstance(value, AcademicPeriodRef):
-        raise HybridGradeAssemblyScopeError(
-            "target_period must be AcademicPeriodRef."
-        )
+        raise HybridGradeAssemblyScopeError("target_period must be AcademicPeriodRef.")
     try:
         return validate_academic_period_ref(value)
     except AcademicPeriodValidationError as error:
@@ -293,7 +291,5 @@ def _identifier(value: object, field_name: str) -> str:
 
 def _positive_int(value: object, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise HybridGradeAssemblyScopeError(
-            f"{field_name} must be a positive integer."
-        )
+        raise HybridGradeAssemblyScopeError(f"{field_name} must be a positive integer.")
     return value

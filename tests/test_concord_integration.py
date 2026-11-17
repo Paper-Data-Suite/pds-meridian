@@ -200,9 +200,7 @@ def test_released_concord_core_handoff_projection_cache_and_diagnostics(
     assert ready.adapter_id == "concord.academic_result"
     assert ready.adapter_key is not None
     assert ready.adapter_key.source_record_kind == "activity"
-    assert ready.adapter_key.source_record_contract_version == (
-        "concord_activity_v1"
-    )
+    assert ready.adapter_key.source_record_contract_version == ("concord_activity_v1")
     assert ready.reader_state == "ready"
     assert ready.reader_distribution == "pds-concord"
     assert ready.installed_reader_version == "0.3.0"

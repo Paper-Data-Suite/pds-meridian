@@ -40,6 +40,7 @@ from meridian.ingestion import CatalogDiscoveryError, PublicationIngestionError
 from meridian.menu_teacher_assessment_discovery import (
     run_teacher_published_assessment_setup,
 )
+from meridian.menu_teacher_assessment_eligibility import run_assessment_eligibility_menu
 from meridian.menu_teacher_attempts import run_guided_attempt_menu
 from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
 from meridian.menu_teacher_standards import run_guided_standard_menu
@@ -103,6 +104,18 @@ EligibilityHandler: TypeAlias = Callable[
 ]
 AttemptHandler: TypeAlias = EligibilityHandler
 StandardsHandler: TypeAlias = EligibilityHandler
+AssessmentEligibilityHandler: TypeAlias = Callable[
+    [
+        Path,
+        GuidedProjectionResult,
+        TeacherEvidenceInboxItem,
+        TeacherSessionContext,
+        InputFunction,
+        TextIO,
+        ClearFunction,
+    ],
+    None,
+]
 
 
 class _RefreshEvidenceInbox(Exception):
@@ -255,6 +268,7 @@ class TeacherEvidenceInboxMenuDependencies:
     continuation_resolver: ContinuationResolver | None = None
     catalog_rebuilder: CatalogRebuilder = rebuild_academic_catalog
     setup_published_assessment: PublishedAssessmentSetupHandler | None = None
+    assessment_eligibility_handler: AssessmentEligibilityHandler | None = None
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -406,6 +420,28 @@ def default_teacher_evidence_inbox_menu_dependencies(
             assessment_bridge_dependencies=grade_item_bridge_dependencies,
         )
 
+    def handle_assessment_eligibility(
+        root: Path,
+        prepared: GuidedProjectionResult,
+        inbox_item: TeacherEvidenceInboxItem,
+        session: TeacherSessionContext,
+        input_fn: InputFunction,
+        output: TextIO,
+        clear_fn: ClearFunction,
+    ) -> None:
+        run_assessment_eligibility_menu(
+            workspace_root=root,
+            prepared=prepared,
+            class_label=inbox_item.class_label,
+            assessment_title=inbox_item.work_title,
+            session_context=session,
+            dependencies=eligibility_dependencies,
+            diagnostics=active,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
@@ -417,6 +453,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
         standards_handler=handle_standards,
         continuation_resolver=resolve_continuation,
         setup_published_assessment=setup_published,
+        assessment_eligibility_handler=handle_assessment_eligibility,
     )
 
 
@@ -721,6 +758,8 @@ def _render_review_summary(
     output: TextIO,
     item: TeacherEvidenceInboxItem,
     review: TeacherEvidenceReview,
+    *,
+    assessment_eligibility_available: bool = False,
 ) -> tuple[str, ...]:
     print_menu_header(output, "Evidence Review")
     write_lines(
@@ -741,6 +780,9 @@ def _render_review_summary(
     if review.shared_items:
         actions.append("shared")
         print(f"{len(actions)}. Review shared evidence", file=output)
+    if assessment_eligibility_available:
+        actions.append("assessment_eligibility")
+        print(f"{len(actions)}. Review assessment eligibility (batch)", file=output)
     if not actions:
         print("No evidence rows are available for review.", file=output)
     write_lines(output, "")
@@ -1063,7 +1105,14 @@ def _run_teacher_evidence_review(
 ) -> None:
     while True:
         clear_fn()
-        actions = _render_review_summary(output, item, review)
+        actions = _render_review_summary(
+            output,
+            item,
+            review,
+            assessment_eligibility_available=(
+                dependencies.assessment_eligibility_handler is not None
+            ),
+        )
         choice = read_choice(input_fn)
         navigation = parse_navigation_choice(choice)
         if navigation is NavigationChoice.BACK or choice == "":
@@ -1083,7 +1132,7 @@ def _run_teacher_evidence_review(
                         output=output,
                         clear_fn=clear_fn,
                     )
-                else:
+                elif action == "shared":
                     _run_shared_review(
                         root=root,
                         prepared=prepared,
@@ -1093,6 +1142,19 @@ def _run_teacher_evidence_review(
                         input_fn=input_fn,
                         output=output,
                         clear_fn=clear_fn,
+                    )
+                elif (
+                    action == "assessment_eligibility"
+                    and dependencies.assessment_eligibility_handler is not None
+                ):
+                    dependencies.assessment_eligibility_handler(
+                        root,
+                        prepared,
+                        item,
+                        session_context,
+                        input_fn,
+                        output,
+                        clear_fn,
                     )
                 continue
         if actions:

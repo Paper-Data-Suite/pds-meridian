@@ -120,12 +120,8 @@ def test_half_tie_rounding_is_final_and_consistent_across_grade_families(
             hybrid.standards_input(hybrid_value, hybrid_decision),
         )
     )
-    assert hybrid_outcome.conventional_component.unrounded_grade == Decimal(
-        "82.345"
-    )
-    assert hybrid_outcome.standards_component.unrounded_grade == Decimal(
-        "82.345"
-    )
+    assert hybrid_outcome.conventional_component.unrounded_grade == Decimal("82.345")
+    assert hybrid_outcome.standards_component.unrounded_grade == Decimal("82.345")
     assert hybrid_outcome.weighted_numerator == Decimal("82.3450")
     assert hybrid_outcome.active_weight == Decimal("1.0")
     assert hybrid_outcome.unrounded_grade == Decimal("82.345")
@@ -172,14 +168,10 @@ def test_hybrid_combines_unrounded_components_not_component_display_grades() -> 
         == standards_outcome.calculation_fingerprint
     )
 
-    exact = (
-        Decimal("82.3") * Decimal("0.7")
-        + Decimal("82.3153") * Decimal("0.3")
-    )
-    prematurely_rounded = (
-        Decimal("82.30") * Decimal("0.7")
-        + Decimal("82.32") * Decimal("0.3")
-    )
+    exact = Decimal("82.3") * Decimal("0.7") + Decimal("82.3153") * Decimal("0.3")
+    prematurely_rounded = Decimal("82.30") * Decimal("0.7") + Decimal(
+        "82.32"
+    ) * Decimal("0.3")
     assert exact == Decimal("82.30459")
     assert prematurely_rounded == Decimal("82.306")
     assert outcome.weighted_numerator == exact
@@ -286,9 +278,8 @@ def test_profile_adjustment_is_resolved_once_then_consumed_by_hybrid(
         )
     )
 
-    expected_hybrid = (
-        Decimal("80") * Decimal("0.7")
-        + expected_component * Decimal("0.3")
+    expected_hybrid = Decimal("80") * Decimal("0.7") + expected_component * Decimal(
+        "0.3"
     )
     assert outcome.status == "calculated"
     assert outcome.standards_component.component_calculation_fingerprint == (

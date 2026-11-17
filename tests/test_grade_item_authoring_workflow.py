@@ -284,6 +284,7 @@ def test_operation_preconditions_are_explicit(
             revised_at=CREATED + timedelta(hours=1),
         )
 
+
 def _weighted_revision(
     number: int,
     *,

@@ -138,15 +138,15 @@ def test_calculation_input_and_outcome_round_trip_canonically() -> None:
     inputs = _input()
     input_bytes = conventional_grade_calculation_input_to_json_bytes(inputs)
     assert conventional_grade_calculation_input_from_json_bytes(input_bytes) == inputs
-    assert conventional_grade_calculation_input_sha256(inputs) == hashlib.sha256(
-        input_bytes
-    ).hexdigest()
+    assert (
+        conventional_grade_calculation_input_sha256(inputs)
+        == hashlib.sha256(input_bytes).hexdigest()
+    )
 
     outcome = calculate_conventional_grade(inputs)
     outcome_bytes = conventional_grade_calculation_outcome_to_json_bytes(outcome)
     assert (
-        conventional_grade_calculation_outcome_from_json_bytes(outcome_bytes)
-        == outcome
+        conventional_grade_calculation_outcome_from_json_bytes(outcome_bytes) == outcome
     )
 
 

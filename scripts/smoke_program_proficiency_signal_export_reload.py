@@ -394,9 +394,7 @@ def _verify_planning_export_history(
         item for item in export_trace.students if item.student_id == STUDENT_ID
     )
     noncontributor = next(
-        item
-        for item in export_trace.students
-        if item.student_id == NONCONTRIBUTOR_ID
+        item for item in export_trace.students if item.student_id == NONCONTRIBUTOR_ID
     )
     _require(
         contributor.exported
@@ -472,9 +470,7 @@ def main() -> None:
     _verify_proficiency_history(workspace)
     _verify_planning_export_history(root, workspace, baseline)
     _assert_no_concord()
-    print(
-        "Issue #45 fresh-process persisted-history reload passed without Concord."
-    )
+    print("Issue #45 fresh-process persisted-history reload passed without Concord.")
 
 
 if __name__ == "__main__":

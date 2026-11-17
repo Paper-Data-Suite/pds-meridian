@@ -43,9 +43,7 @@ class AcademicPeriodResultPersistenceScopeError(
     code = "teacher_workflow.calculation_preview.academic_period_result_invalid"
 
 
-class AcademicPeriodResultPersistenceStaleError(
-    AcademicPeriodResultPersistenceError
-):
+class AcademicPeriodResultPersistenceStaleError(AcademicPeriodResultPersistenceError):
     """Raised when reviewed #35 calculation/history changes before write."""
 
     code = "teacher_workflow.calculation_preview.academic_period_result_stale"
@@ -110,8 +108,7 @@ class AcademicPeriodResultPersistenceWorkflowResult:
     @property
     def selection_changed_during_write(self) -> bool:
         return (
-            self.selected_revision_after_write
-            != self.preview.selected_revision_before
+            self.selected_revision_after_write != self.preview.selected_revision_before
         )
 
     @property
@@ -205,10 +202,7 @@ def commit_academic_period_result_persistence_preview(
         raise AcademicPeriodResultPersistenceStaleError(
             "Exact Academic Period aggregation inputs changed after preview."
         )
-    if (
-        fresh.calculation.policy_reference
-        != reviewed.calculation.policy_reference
-    ):
+    if fresh.calculation.policy_reference != reviewed.calculation.policy_reference:
         raise AcademicPeriodResultPersistenceStaleError(
             "Academic Period calculation-policy reference changed after preview."
         )
@@ -312,14 +306,10 @@ def _result_state(
 
 def _actor_id(value: str) -> str:
     if not isinstance(value, str):
-        raise AcademicPeriodResultPersistenceScopeError(
-            "actor_id must be a string."
-        )
+        raise AcademicPeriodResultPersistenceScopeError("actor_id must be a string.")
     normalized = value.strip()
     if not normalized:
-        raise AcademicPeriodResultPersistenceScopeError(
-            "actor_id must be nonempty."
-        )
+        raise AcademicPeriodResultPersistenceScopeError("actor_id must be nonempty.")
     if len(normalized) > _MAXIMUM_WORKFLOW_ACTOR_ID_LENGTH:
         raise AcademicPeriodResultPersistenceScopeError(
             "actor_id exceeds the teacher-workflow bound."

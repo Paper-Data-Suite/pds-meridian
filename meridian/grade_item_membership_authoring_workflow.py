@@ -194,8 +194,7 @@ def preview_grade_item_membership_authoring(
     )
     if selected_grade_item_revision is None:
         raise GradeItemMembershipAuthoringScopeError(
-            "Membership authoring requires an explicitly selected Grade Item "
-            "revision."
+            "Membership authoring requires an explicitly selected Grade Item revision."
         )
     if selected_grade_item_revision != grade_item_revision:
         raise GradeItemMembershipAuthoringScopeError(
@@ -332,10 +331,7 @@ def commit_grade_item_membership_authoring_preview(
             preview.work,
             history[-1],
         )
-        if (
-            latest.decision_sha256
-            != preview.latest_persisted_decision_sha256
-        ):
+        if latest.decision_sha256 != preview.latest_persisted_decision_sha256:
             raise GradeItemMembershipAuthoringStaleError(
                 "Latest membership decision digest changed after preview."
             )
@@ -350,10 +346,7 @@ def commit_grade_item_membership_authoring_preview(
         preview.grade_item_id,
         preview.work,
     )
-    if (
-        current_membership_revision
-        != preview.expected_current_membership_revision
-    ):
+    if current_membership_revision != preview.expected_current_membership_revision:
         raise GradeItemMembershipAuthoringStaleError(
             "Current membership selection changed after preview."
         )

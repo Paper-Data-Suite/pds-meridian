@@ -405,7 +405,9 @@ def test_weighted_mean_retains_base_equal_to_final_and_no_profile_data() -> None
     assert outcome.selected_profile_band_id is None
     assert outcome.profile_adjustment is None
 
+
 # Issue #99 Slice 5 selected-band bound provenance regressions.
+
 
 def test_selected_profile_band_bounds_are_preserved_for_floor() -> None:
     configuration = profile_config(

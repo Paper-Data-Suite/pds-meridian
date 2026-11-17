@@ -127,17 +127,13 @@ def test_active_package_boundary_tests_do_not_call_issue39_next() -> None:
 def test_issue39_installed_smoke_is_release_guarded_and_export_free() -> None:
     validator = Path("scripts/validate_repository.py").read_text(encoding="utf-8")
     sdist_checker = Path("scripts/check_sdist.py").read_text(encoding="utf-8")
-    runner_path = Path(
-        "scripts/smoke_test_grouping_signal_preview_review_wheel.py"
-    )
-    program_path = Path(
-        "scripts/smoke_program_grouping_signal_preview_review.py"
-    )
+    runner_path = Path("scripts/smoke_test_grouping_signal_preview_review_wheel.py")
+    program_path = Path("scripts/smoke_program_grouping_signal_preview_review.py")
     program = program_path.read_text(encoding="utf-8")
 
-    core_runner = Path(
-        "scripts/installed_qualification_core_programs.py"
-    ).read_text(encoding="utf-8")
+    core_runner = Path("scripts/installed_qualification_core_programs.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "scripts.installed_qualification_runner" in validator
     assert "grouping-signal-preview-review" in core_runner

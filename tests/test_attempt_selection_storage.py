@@ -185,13 +185,16 @@ def test_policy_path_is_flat_and_class_local(tmp_path: Path) -> None:
         / policy_key
         / "1.json"
     )
-    assert storage.attempt_selection_policy_revision_relative_path(
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        "teacher_explicit_attempts",
-        1,
-    ) == path.relative_to(workspace).as_posix()
+    assert (
+        storage.attempt_selection_policy_revision_relative_path(
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            "teacher_explicit_attempts",
+            1,
+        )
+        == path.relative_to(workspace).as_posix()
+    )
     assert len(path.relative_to(workspace).as_posix()) <= 131
     assert len(f"{path.relative_to(workspace).as_posix()}.sha256") <= 138
 
@@ -230,14 +233,17 @@ def test_long_policy_id_uses_bounded_key_and_round_trips(
     )
     assert long_policy_id not in stored.relative_path
     assert len(stored.relative_path) <= 131
-    assert storage.load_attempt_selection_policy_revision(
-        workspace,
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        long_policy_id,
-        1,
-    ).policy.policy_id == long_policy_id
+    assert (
+        storage.load_attempt_selection_policy_revision(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            long_policy_id,
+            1,
+        ).policy.policy_id
+        == long_policy_id
+    )
 
 
 def test_policy_write_is_immutable_and_does_not_auto_select(
@@ -251,12 +257,14 @@ def test_policy_write_is_immutable_and_does_not_auto_select(
     assert first.disposition == "created"
     assert second.disposition == "existing"
     assert first.stored.content == second.stored.content
-    assert storage.get_current_attempt_selection_policy_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
-    ) is None
     assert (
-        hashlib.sha256(first.stored.content).hexdigest()
-        == first.stored.policy_sha256
+        storage.get_current_attempt_selection_policy_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
+        )
+        is None
+    )
+    assert (
+        hashlib.sha256(first.stored.content).hexdigest() == first.stored.policy_sha256
     )
 
 
@@ -296,9 +304,12 @@ def test_policy_history_selection_and_historical_reselection(
         expected_current_policy_revision=None,
     )
     assert first.disposition == "created"
-    assert storage.get_current_attempt_selection_policy_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
-    ) == 2
+    assert (
+        storage.get_current_attempt_selection_policy_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
+        )
+        == 2
+    )
     second = storage.select_attempt_selection_policy_revision(
         workspace,
         CLASS_ID,
@@ -309,9 +320,12 @@ def test_policy_history_selection_and_historical_reselection(
         expected_current_policy_revision=2,
     )
     assert second.disposition == "updated"
-    assert storage.get_current_attempt_selection_policy_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
-    ) == 1
+    assert (
+        storage.get_current_attempt_selection_policy_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, policy().policy_id
+        )
+        == 1
+    )
 
 
 def test_policy_selection_stale_cas_fails(
@@ -375,16 +389,23 @@ def test_decision_write_is_immutable_and_not_current(
         lambda *args, **kwargs: derivation(),
     )
     first = storage.write_attempt_selection_decision_revision(
-        workspace, value, authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        value,
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     second = storage.write_attempt_selection_decision_revision(
-        workspace, value, authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        value,
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     assert first.disposition == "created"
     assert second.disposition == "existing"
-    assert storage.get_current_attempt_selection_decision_revision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
-    ) is None
+    assert (
+        storage.get_current_attempt_selection_decision_revision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
+        )
+        is None
+    )
 
 
 def test_decision_rejects_candidate_change_before_write(
@@ -401,7 +422,9 @@ def test_decision_rejects_candidate_change_before_write(
     )
     with pytest.raises(storage.AttemptSelectionStorageConflictError, match="candidate"):
         storage.write_attempt_selection_decision_revision(
-            workspace, value, authorized_snapshot=object()  # type: ignore[arg-type]
+            workspace,
+            value,
+            authorized_snapshot=object(),  # type: ignore[arg-type]
         )
 
 
@@ -418,7 +441,9 @@ def test_decision_history_explicit_selection_and_historical_reselection(
         lambda *args, **kwargs: derivation(),
     )
     storage.write_attempt_selection_decision_revision(
-        workspace, decision(ref), authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        decision(ref),
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     storage.write_attempt_selection_decision_revision(
         workspace,
@@ -439,9 +464,12 @@ def test_decision_history_explicit_selection_and_historical_reselection(
         expected_current_decision_revision=None,
     )
     assert first.disposition == "created"
-    assert storage.load_current_attempt_selection_decision(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
-    ).decision.selected_attempts == ()  # type: ignore[union-attr]
+    assert (
+        storage.load_current_attempt_selection_decision(
+            workspace, CLASS_ID, GRADE_ITEM_ID, WORK, "student_1"
+        ).decision.selected_attempts
+        == ()
+    )  # type: ignore[union-attr]
     second = storage.select_attempt_selection_decision_revision(
         workspace,
         CLASS_ID,
@@ -575,7 +603,9 @@ def test_exact_decision_retry_does_not_revalidate_stale_dependencies(
         lambda *args, **kwargs: derivation(),
     )
     first = storage.write_attempt_selection_decision_revision(
-        workspace, value, authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        value,
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
 
     def stale(*args: object, **kwargs: object) -> storage.AttemptCandidateDerivation:
@@ -583,7 +613,9 @@ def test_exact_decision_retry_does_not_revalidate_stale_dependencies(
 
     monkeypatch.setattr(storage, "_validate_decision_dependencies", stale)
     retry = storage.write_attempt_selection_decision_revision(
-        workspace, value, authorized_snapshot=object()  # type: ignore[arg-type]
+        workspace,
+        value,
+        authorized_snapshot=object(),  # type: ignore[arg-type]
     )
     assert first.disposition == "created"
     assert retry.disposition == "existing"
@@ -629,13 +661,13 @@ def test_attempt_selection_collection_allows_reassessment_child(
 ) -> None:
     allow_policy_root(monkeypatch)
     workspace = root(tmp_path)
-    reassessment = storage.attempt_selection_directory(
-        workspace, CLASS_ID, GRADE_ITEM_ID, WORK
-    ) / "reassessment"
+    reassessment = (
+        storage.attempt_selection_directory(workspace, CLASS_ID, GRADE_ITEM_ID, WORK)
+        / "reassessment"
+    )
     reassessment.mkdir(parents=True)
     result = storage.write_attempt_selection_policy_revision(workspace, policy())
     assert result.disposition == "created"
-
 
 
 def fake_membership() -> SimpleNamespace:
@@ -699,25 +731,31 @@ def test_resolution_distinguishes_policy_eligibility_and_candidate_staleness(
         "derive_attempt_candidates",
         lambda *args, **kwargs: derivation((changed_basis, candidates()[1])),
     )
-    assert storage.resolve_current_attempt_selection(
-        workspace,
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        "student_1",
-        authorized_snapshot=object(),  # type: ignore[arg-type]
-    ).status == "eligibility_stale"
+    assert (
+        storage.resolve_current_attempt_selection(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            "student_1",
+            authorized_snapshot=object(),  # type: ignore[arg-type]
+        ).status
+        == "eligibility_stale"
+    )
 
     monkeypatch.setattr(
         storage,
         "derive_attempt_candidates",
         lambda *args, **kwargs: derivation((candidates()[0],)),
     )
-    assert storage.resolve_current_attempt_selection(
-        workspace,
-        CLASS_ID,
-        GRADE_ITEM_ID,
-        WORK,
-        "student_1",
-        authorized_snapshot=object(),  # type: ignore[arg-type]
-    ).status == "candidate_set_stale"
+    assert (
+        storage.resolve_current_attempt_selection(
+            workspace,
+            CLASS_ID,
+            GRADE_ITEM_ID,
+            WORK,
+            "student_1",
+            authorized_snapshot=object(),  # type: ignore[arg-type]
+        ).status
+        == "candidate_set_stale"
+    )

@@ -173,9 +173,10 @@ def test_possible_points_round_trip_canonically_and_bind_policy_digest() -> None
     encoded = grade_policy_revision_to_json_bytes(first)
     assert b'"possible_points": "10"' in encoded
     assert grade_policy_revision_from_json_bytes(encoded) == first
-    assert grade_policy_reference(first).policy_sha256 == hashlib.sha256(
-        encoded
-    ).hexdigest()
+    assert (
+        grade_policy_reference(first).policy_sha256
+        == hashlib.sha256(encoded).hexdigest()
+    )
 
     second_data = grade_policy_revision_to_dict(first)
     configuration = dict(second_data["configuration"])  # type: ignore[arg-type]
@@ -186,9 +187,10 @@ def test_possible_points_round_trip_canonically_and_bind_policy_digest() -> None
     configuration["items"] = items
     second_data["configuration"] = configuration
     second = grade_policy_revision_from_dict(second_data)
-    assert grade_policy_reference(second).policy_sha256 != grade_policy_reference(
-        first
-    ).policy_sha256
+    assert (
+        grade_policy_reference(second).policy_sha256
+        != grade_policy_reference(first).policy_sha256
+    )
 
 
 def test_participation_schema_requires_possible_points_key_even_when_null() -> None:

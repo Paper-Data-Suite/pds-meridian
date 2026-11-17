@@ -401,9 +401,7 @@ def _decimal_argument(value: str) -> Decimal:
     try:
         return Decimal(value)
     except InvalidOperation as error:
-        raise argparse.ArgumentTypeError(
-            "expected decimal text"
-        ) from error
+        raise argparse.ArgumentTypeError("expected decimal text") from error
 
 
 def _positive_integer(value: str) -> int:
@@ -585,9 +583,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
     )
     _add_format_argument(inspect_parser)
-    inspect_parser.set_defaults(
-        handler=_handle_evidence_inspect, show_group_help=None
-    )
+    inspect_parser.set_defaults(handler=_handle_evidence_inspect, show_group_help=None)
 
     explain_parser = evidence_commands.add_parser(
         "explain",
@@ -598,9 +594,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_workspace_argument(explain_parser)
     _add_evidence_authorization_arguments(explain_parser)
     _add_format_argument(explain_parser)
-    explain_parser.set_defaults(
-        handler=_handle_evidence_explain, show_group_help=None
-    )
+    explain_parser.set_defaults(handler=_handle_evidence_explain, show_group_help=None)
 
     evidence.set_defaults(show_group_help=evidence)
 
@@ -713,9 +707,7 @@ def build_parser() -> argparse.ArgumentParser:
     planning_preview_review_trace_parser.add_argument("preview_id")
     _add_workspace_argument(planning_preview_review_trace_parser)
     planning_review_target = (
-        planning_preview_review_trace_parser.add_mutually_exclusive_group(
-            required=True
-        )
+        planning_preview_review_trace_parser.add_mutually_exclusive_group(required=True)
     )
     planning_review_target.add_argument(
         "--selected-review",
@@ -905,9 +897,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     grade_items_author_parser.add_argument("--weighting-category-id")
-    grade_items_author_parser.add_argument(
-        "--relative-weight", type=_decimal_argument
-    )
+    grade_items_author_parser.add_argument("--relative-weight", type=_decimal_argument)
     grade_items_author_parser.add_argument(
         "--clear-weighting",
         action="store_true",
@@ -989,9 +979,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     membership_author_parser.add_argument("--school-year")
     membership_author_parser.add_argument("--period-id")
-    membership_author_parser.add_argument(
-        "--calendar-revision", type=_positive_integer
-    )
+    membership_author_parser.add_argument("--calendar-revision", type=_positive_integer)
     membership_author_parser.add_argument("--rationale")
     membership_author_parser.add_argument(
         "--confirm-write",
@@ -1019,9 +1007,7 @@ def build_parser() -> argparse.ArgumentParser:
     membership_select_parser.add_argument("grade_item_id")
     membership_select_parser.add_argument("module_id")
     membership_select_parser.add_argument("work_id")
-    membership_select_parser.add_argument(
-        "membership_revision", type=_positive_integer
-    )
+    membership_select_parser.add_argument("membership_revision", type=_positive_integer)
     _add_workspace_argument(membership_select_parser)
     membership_select_parser.add_argument(
         "--confirm-select",
@@ -1100,9 +1086,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     attempt_policy_select_parser = workflow_commands.add_parser(
         "attempt-policy-select",
-        help=(
-            "Preview or select one persisted attempt-selection policy."
-        ),
+        help=("Preview or select one persisted attempt-selection policy."),
         description=(
             "Preview one exact persisted attempt-selection policy revision "
             "and, only with --confirm-select, select it as current after "
@@ -1115,9 +1099,7 @@ def build_parser() -> argparse.ArgumentParser:
     attempt_policy_select_parser.add_argument("module_id")
     attempt_policy_select_parser.add_argument("work_id")
     attempt_policy_select_parser.add_argument("policy_id")
-    attempt_policy_select_parser.add_argument(
-        "policy_revision", type=_positive_integer
-    )
+    attempt_policy_select_parser.add_argument("policy_revision", type=_positive_integer)
     _add_workspace_argument(attempt_policy_select_parser)
     attempt_policy_select_parser.add_argument(
         "--confirm-select",
@@ -1168,7 +1150,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     attempt_decision_author_parser.add_argument("--rationale")
     attempt_decision_author_parser.add_argument(
-        "--confirm-write", action="store_true",
+        "--confirm-write",
+        action="store_true",
         help=(
             "Write the exact previewed immutable decision revision after "
             "live dependency revalidation. Omit for a read-only preview."
@@ -1181,9 +1164,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     attempt_decision_select_parser = workflow_commands.add_parser(
         "attempt-decision-select",
-        help=(
-            "Preview or select one persisted student attempt decision."
-        ),
+        help=("Preview or select one persisted student attempt decision."),
         description=(
             "Preview one exact persisted student attempt-decision revision "
             "against the current authorized evidence, membership, policy, "
@@ -1215,9 +1196,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     exclusions_parser = workflow_commands.add_parser(
         "exclusions",
-        help=(
-            "Review academic eligibility separately from source lifecycle."
-        ),
+        help=("Review academic eligibility separately from source lifecycle."),
         description=(
             "Read one exact authorized projection and show selected #29 "
             "academic eligibility beside current Core source lifecycle. "
@@ -1237,9 +1216,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     exclusions_author_parser = workflow_commands.add_parser(
         "exclusions-author",
-        help=(
-            "Preview or write one teacher academic eligibility revision."
-        ),
+        help=("Preview or write one teacher academic eligibility revision."),
         description=(
             "Create one immutable #29 teacher academic "
             "eligibility revision "
@@ -1262,17 +1239,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     exclusions_author_parser.add_argument("--actor-id", required=True)
     exclusions_author_parser.add_argument("--policy-id", required=True)
-    exclusions_author_parser.add_argument(
-        "--policy-version", required=True
-    )
+    exclusions_author_parser.add_argument("--policy-version", required=True)
     exclusions_author_parser.add_argument(
         "--reason-code",
         action="append",
         default=[],
-        help=(
-            "Canonical academic eligibility reason code; "
-            "repeat as needed."
-        ),
+        help=("Canonical academic eligibility reason code; repeat as needed."),
     )
     exclusions_author_parser.add_argument("--rationale")
     exclusions_author_parser.add_argument(
@@ -1295,9 +1267,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     exclusions_select_parser = workflow_commands.add_parser(
         "exclusions-select",
-        help=(
-            "Preview or select one persisted eligibility revision."
-        ),
+        help=("Preview or select one persisted eligibility revision."),
         description=(
             "Preview one exact persisted #29 eligibility revision "
             "against current authorized evidence, membership, source "
@@ -1331,9 +1301,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     standards_review_parser = workflow_commands.add_parser(
         "standards-review",
-        help=(
-            "Review one exact evidence-to-standard interpretation path."
-        ),
+        help=("Review one exact evidence-to-standard interpretation path."),
         description=(
             "Read one authorized evidence item through current Standard "
             "resolution, selected #33 association, explicit mapping context, "
@@ -1375,9 +1343,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     standards_author_parser = workflow_commands.add_parser(
         "standards-association-author",
-        help=(
-            "Preview or write one standards-evidence association revision."
-        ),
+        help=("Preview or write one standards-evidence association revision."),
         description=(
             "Review one exact authorized evidence-to-Standard path, then "
             "preview an immutable #33 association create/revise operation. "
@@ -1449,9 +1415,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     standards_select_parser = workflow_commands.add_parser(
         "standards-association-select",
-        help=(
-            "Preview or select one persisted standards association revision."
-        ),
+        help=("Preview or select one persisted standards association revision."),
         description=(
             "Review one exact authorized evidence-to-Standard path, then "
             "preview selection of one exact persisted #33 association "
@@ -1505,9 +1469,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     calculation_preview_parser = workflow_commands.add_parser(
         "calculation-preview",
-        help=(
-            "Preview one bounded Grade Item standards-proficiency calculation."
-        ),
+        help=("Preview one bounded Grade Item standards-proficiency calculation."),
         description=(
             "Resolve only explicitly supplied evidence bindings into one "
             "exact #33 aggregation input snapshot, then run the pure #34 "
@@ -1519,19 +1481,11 @@ def build_parser() -> argparse.ArgumentParser:
     calculation_preview_parser.add_argument("student_id")
     calculation_preview_parser.add_argument("standard_id")
     calculation_preview_parser.add_argument("scale_id")
-    calculation_preview_parser.add_argument(
-        "scale_revision", type=_positive_integer
-    )
-    calculation_preview_parser.add_argument(
-        "scale_sha256", type=_sha256_argument
-    )
+    calculation_preview_parser.add_argument("scale_revision", type=_positive_integer)
+    calculation_preview_parser.add_argument("scale_sha256", type=_sha256_argument)
     calculation_preview_parser.add_argument("policy_id")
-    calculation_preview_parser.add_argument(
-        "policy_revision", type=_positive_integer
-    )
-    calculation_preview_parser.add_argument(
-        "policy_sha256", type=_sha256_argument
-    )
+    calculation_preview_parser.add_argument("policy_revision", type=_positive_integer)
+    calculation_preview_parser.add_argument("policy_sha256", type=_sha256_argument)
     _add_workspace_argument(calculation_preview_parser)
     _add_evidence_authorization_arguments(calculation_preview_parser)
     calculation_preview_parser.add_argument(
@@ -1571,9 +1525,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     calculation_write_parser = workflow_commands.add_parser(
         "calculation-result-write",
-        help=(
-            "Preview or write one immutable Grade Item proficiency result."
-        ),
+        help=("Preview or write one immutable Grade Item proficiency result."),
         description=(
             "Rebuild one exact bounded Calculation Preview, freeze the "
             "next immutable #34 result revision, and only with "
@@ -1586,19 +1538,11 @@ def build_parser() -> argparse.ArgumentParser:
     calculation_write_parser.add_argument("student_id")
     calculation_write_parser.add_argument("standard_id")
     calculation_write_parser.add_argument("scale_id")
-    calculation_write_parser.add_argument(
-        "scale_revision", type=_positive_integer
-    )
-    calculation_write_parser.add_argument(
-        "scale_sha256", type=_sha256_argument
-    )
+    calculation_write_parser.add_argument("scale_revision", type=_positive_integer)
+    calculation_write_parser.add_argument("scale_sha256", type=_sha256_argument)
     calculation_write_parser.add_argument("policy_id")
-    calculation_write_parser.add_argument(
-        "policy_revision", type=_positive_integer
-    )
-    calculation_write_parser.add_argument(
-        "policy_sha256", type=_sha256_argument
-    )
+    calculation_write_parser.add_argument("policy_revision", type=_positive_integer)
+    calculation_write_parser.add_argument("policy_sha256", type=_sha256_argument)
     _add_workspace_argument(calculation_write_parser)
     _add_evidence_authorization_arguments(calculation_write_parser)
     calculation_write_parser.add_argument(
@@ -1644,9 +1588,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     calculation_select_parser = workflow_commands.add_parser(
         "calculation-result-select",
-        help=(
-            "Preview or select one persisted Grade Item proficiency result."
-        ),
+        help=("Preview or select one persisted Grade Item proficiency result."),
         description=(
             "Preview one exact persisted #34 Grade Item proficiency result "
             "revision. Only --confirm-select mutates the current-result "
@@ -1657,9 +1599,7 @@ def build_parser() -> argparse.ArgumentParser:
     calculation_select_parser.add_argument("grade_item_id")
     calculation_select_parser.add_argument("student_id")
     calculation_select_parser.add_argument("standard_id")
-    calculation_select_parser.add_argument(
-        "result_revision", type=_positive_integer
-    )
+    calculation_select_parser.add_argument("result_revision", type=_positive_integer)
     _add_workspace_argument(calculation_select_parser)
     calculation_select_parser.add_argument(
         "--confirm-select",
@@ -1676,9 +1616,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     period_preview_parser = workflow_commands.add_parser(
         "academic-period-calculation-preview",
-        help=(
-            "Preview one bounded Academic Period proficiency calculation."
-        ),
+        help=("Preview one bounded Academic Period proficiency calculation."),
         description=(
             "Assemble only explicitly named Grade Item, membership, and "
             "optional #34 result revisions into exact #35 inputs, then "
@@ -1689,18 +1627,12 @@ def build_parser() -> argparse.ArgumentParser:
     period_preview_parser.add_argument("class_id")
     period_preview_parser.add_argument("school_year")
     period_preview_parser.add_argument("period_id")
-    period_preview_parser.add_argument(
-        "calendar_revision", type=_positive_integer
-    )
+    period_preview_parser.add_argument("calendar_revision", type=_positive_integer)
     period_preview_parser.add_argument("student_id")
     period_preview_parser.add_argument("standard_id")
     period_preview_parser.add_argument("policy_id")
-    period_preview_parser.add_argument(
-        "policy_revision", type=_positive_integer
-    )
-    period_preview_parser.add_argument(
-        "policy_sha256", type=_sha256_argument
-    )
+    period_preview_parser.add_argument("policy_revision", type=_positive_integer)
+    period_preview_parser.add_argument("policy_sha256", type=_sha256_argument)
     _add_workspace_argument(period_preview_parser)
     period_preview_parser.add_argument(
         "--candidate",
@@ -1744,10 +1676,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     period_write_parser = workflow_commands.add_parser(
         "academic-period-result-write",
-        help=(
-            "Preview or write one immutable Academic Period "
-            "proficiency result."
-        ),
+        help=("Preview or write one immutable Academic Period proficiency result."),
         description=(
             "Rebuild one exact bounded Academic Period Calculation "
             "Preview, freeze the next immutable #35 result revision, "
@@ -1759,18 +1688,12 @@ def build_parser() -> argparse.ArgumentParser:
     period_write_parser.add_argument("class_id")
     period_write_parser.add_argument("school_year")
     period_write_parser.add_argument("period_id")
-    period_write_parser.add_argument(
-        "calendar_revision", type=_positive_integer
-    )
+    period_write_parser.add_argument("calendar_revision", type=_positive_integer)
     period_write_parser.add_argument("student_id")
     period_write_parser.add_argument("standard_id")
     period_write_parser.add_argument("policy_id")
-    period_write_parser.add_argument(
-        "policy_revision", type=_positive_integer
-    )
-    period_write_parser.add_argument(
-        "policy_sha256", type=_sha256_argument
-    )
+    period_write_parser.add_argument("policy_revision", type=_positive_integer)
+    period_write_parser.add_argument("policy_sha256", type=_sha256_argument)
     _add_workspace_argument(period_write_parser)
     period_write_parser.add_argument(
         "--candidate",
@@ -1828,10 +1751,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     period_select_parser = workflow_commands.add_parser(
         "academic-period-result-select",
-        help=(
-            "Preview or select one persisted Academic Period "
-            "proficiency result."
-        ),
+        help=("Preview or select one persisted Academic Period proficiency result."),
         description=(
             "Preview one exact persisted #35 Academic Period "
             "proficiency result revision. Only --confirm-select "
@@ -1844,9 +1764,7 @@ def build_parser() -> argparse.ArgumentParser:
     period_select_parser.add_argument("period_id")
     period_select_parser.add_argument("student_id")
     period_select_parser.add_argument("standard_id")
-    period_select_parser.add_argument(
-        "result_revision", type=_positive_integer
-    )
+    period_select_parser.add_argument("result_revision", type=_positive_integer)
     _add_workspace_argument(period_select_parser)
     period_select_parser.add_argument(
         "--confirm-select",
@@ -2149,11 +2067,7 @@ def _render_attention_text(
     """Render deterministic human-readable attention without priority claims."""
 
     scope = class_id if class_id is not None else "workspace"
-    school_year = (
-        active_school_year
-        if active_school_year is not None
-        else "all"
-    )
+    school_year = active_school_year if active_school_year is not None else "all"
     print("Meridian attention")
     print(f"scope: {scope}")
     print(f"school_year: {school_year}")
@@ -2229,7 +2143,6 @@ def _handle_evidence_inspect(
     )
     _render_evidence_inspection(result, args.format)
     return 0
-
 
 
 def _handle_evidence_explain(
@@ -2374,9 +2287,7 @@ def _build_calculation_result_review_from_args(
             snapshot_digest=stored.snapshot_digest,
             item_id=item_id,
         )
-        profile_spec = profile_specs.get(
-            (publication_id, cache_key, item_id)
-        )
+        profile_spec = profile_specs.get((publication_id, cache_key, item_id))
         mapping_profile = None
         if profile_spec is not None:
             (
@@ -2424,9 +2335,7 @@ def _academic_period_candidate_specs(
             revision = _positive_integer(raw_revision)
             sha256 = _sha256_argument(raw_sha256)
         except argparse.ArgumentTypeError as error:
-            raise AcademicPeriodCalculationAssemblyScopeError(
-                str(error)
-            ) from error
+            raise AcademicPeriodCalculationAssemblyScopeError(str(error)) from error
         declared[grade_item_id] = (revision, sha256)
 
     memberships: dict[str, list[AcademicPeriodMembershipSpec]] = {
@@ -2443,8 +2352,7 @@ def _academic_period_candidate_specs(
         ) = raw
         if grade_item_id not in declared:
             raise AcademicPeriodCalculationAssemblyScopeError(
-                "Every --candidate-membership must identify a declared "
-                "--candidate."
+                "Every --candidate-membership must identify a declared --candidate."
             )
         key = (grade_item_id, module_id, work_id)
         if key in membership_keys:
@@ -2461,9 +2369,7 @@ def _academic_period_candidate_specs(
                 work_id=work_id,
             )
         except (argparse.ArgumentTypeError, RoutingModelError) as error:
-            raise AcademicPeriodCalculationAssemblyScopeError(
-                str(error)
-            ) from error
+            raise AcademicPeriodCalculationAssemblyScopeError(str(error)) from error
         memberships[grade_item_id].append(
             AcademicPeriodMembershipSpec(
                 work=work,
@@ -2486,9 +2392,7 @@ def _academic_period_candidate_specs(
             revision = _positive_integer(raw_revision)
             sha256 = _sha256_argument(raw_sha256)
         except argparse.ArgumentTypeError as error:
-            raise AcademicPeriodCalculationAssemblyScopeError(
-                str(error)
-            ) from error
+            raise AcademicPeriodCalculationAssemblyScopeError(str(error)) from error
         results[grade_item_id] = (revision, sha256)
 
     specs: list[AcademicPeriodCalculationCandidateSpec] = []
@@ -2628,9 +2532,7 @@ def _handle_planning_signal_readiness(
     review_preview_supplied = has_review_preview_id and has_review_preview_sha256
 
     has_preview_derivation_id = args.preview_derivation_id is not None
-    has_preview_derivation_sha256 = (
-        args.preview_derivation_sha256 is not None
-    )
+    has_preview_derivation_sha256 = args.preview_derivation_sha256 is not None
     if has_preview_derivation_id != has_preview_derivation_sha256:
         raise PlanningSignalPreviewWriteScopeError(
             "#39 preview source requires both --preview-derivation-id and "
@@ -2646,8 +2548,7 @@ def _handle_planning_signal_readiness(
         )
     if review_preview_supplied and args.confirm_derivation_write:
         raise PlanningSignalPreviewDiagnosticsScopeError(
-            "#39 diagnostic review and #38 derivation write stages "
-            "cannot be combined."
+            "#39 diagnostic review and #38 derivation write stages cannot be combined."
         )
     if review_preview_supplied and args.confirm_preview_write:
         raise PlanningSignalPreviewDiagnosticsScopeError(
@@ -2729,9 +2630,7 @@ def _handle_planning_signal_readiness(
             "#40 Core export preview requires both --export-signal-set-id "
             "and --export-created-at."
         )
-    core_export_preview_requested = (
-        has_export_signal_set_id and has_export_created_at
-    )
+    core_export_preview_requested = has_export_signal_set_id and has_export_created_at
     csv_export_requested = args.csv_destination is not None
     if csv_export_requested and not core_export_preview_requested:
         raise PlanningSignalCoreExportCommitScopeError(
@@ -3141,9 +3040,7 @@ def _handle_calculation_preview(
             snapshot_digest=stored.snapshot_digest,
             item_id=item_id,
         )
-        profile_spec = profile_specs.get(
-            (publication_id, cache_key, item_id)
-        )
+        profile_spec = profile_specs.get((publication_id, cache_key, item_id))
         mapping_profile = None
         if profile_spec is not None:
             (
@@ -3630,9 +3527,7 @@ def _resolve_attempt_decision_cli_selection(
                 )
             selected.append(matches[0])
     return tuple(
-        candidate.attempt
-        for candidate in candidates
-        if candidate.attempt in selected
+        candidate.attempt for candidate in candidates if candidate.attempt in selected
     )
 
 
@@ -3726,9 +3621,7 @@ def _handle_attempt_policy_selection(
             preview, args.format, confirmation_supplied=True
         )
         sys.stdout.flush()
-    result = commit_attempt_policy_selection_preview(
-        str(args.workspace), preview
-    )
+    result = commit_attempt_policy_selection_preview(str(args.workspace), preview)
     _render_attempt_policy_selection_result(preview, result, args.format)
     return 0
 
@@ -3769,9 +3662,7 @@ def _handle_attempt_policy_authoring(
             preview, args.format, confirmation_supplied=True
         )
         sys.stdout.flush()
-    result = commit_attempt_policy_authoring_preview(
-        str(args.workspace), preview
-    )
+    result = commit_attempt_policy_authoring_preview(str(args.workspace), preview)
     _render_attempt_policy_authoring_result(preview, result, args.format)
     return 0
 
@@ -3836,9 +3727,7 @@ def _handle_grade_item_membership_selection(
     result = commit_grade_item_membership_selection_preview(
         str(args.workspace), preview
     )
-    _render_grade_item_membership_selection_result(
-        preview, result, args.format
-    )
+    _render_grade_item_membership_selection_result(preview, result, args.format)
     return 0
 
 
@@ -3874,8 +3763,7 @@ def _handle_grade_item_membership_authoring(
             )
         elif any(value is not None for value in period_parts):
             raise GradeItemMembershipAuthoringScopeError(
-                "excluded membership must not include Academic Period "
-                "coordinates."
+                "excluded membership must not include Academic Period coordinates."
             )
         preview = preview_grade_item_membership_authoring(
             str(args.workspace),
@@ -3910,9 +3798,7 @@ def _handle_grade_item_membership_authoring(
     result = commit_grade_item_membership_authoring_preview(
         str(args.workspace), preview
     )
-    _render_grade_item_membership_authoring_result(
-        preview, result, args.format
-    )
+    _render_grade_item_membership_authoring_result(preview, result, args.format)
     return 0
 
 
@@ -3937,9 +3823,7 @@ def _handle_grade_item_selection(
             preview, args.format, confirmation_supplied=True
         )
         sys.stdout.flush()
-    result = commit_grade_item_selection_preview(
-        str(args.workspace), preview
-    )
+    result = commit_grade_item_selection_preview(str(args.workspace), preview)
     _render_grade_item_selection_result(preview, result, args.format)
     return 0
 
@@ -3951,8 +3835,7 @@ def _handle_grade_item_authoring(
     del dependencies
     try:
         has_weighting_replacement = (
-            args.weighting_category_id is not None
-            or args.relative_weight is not None
+            args.weighting_category_id is not None or args.relative_weight is not None
         )
         if args.clear_weighting and has_weighting_replacement:
             raise GradeItemAuthoringScopeError(
@@ -3991,9 +3874,7 @@ def _handle_grade_item_authoring(
                 preview, args.format, confirmation_supplied=True
             )
             sys.stdout.flush()
-        result = commit_grade_item_authoring_preview(
-            str(args.workspace), preview
-        )
+        result = commit_grade_item_authoring_preview(str(args.workspace), preview)
     except GradeItemValidationError as error:
         raise GradeItemAuthoringScopeError(str(error)) from error
     _render_grade_item_authoring_result(preview, result, args.format)
@@ -4036,9 +3917,7 @@ def _handle_grade_item_proficiency_trace(
     if args.format == "json":
         _print_json(grade_item_proficiency_explanation_to_dict(explanation))
     else:
-        sys.stdout.write(
-            render_grade_item_proficiency_explanation_text(explanation)
-        )
+        sys.stdout.write(render_grade_item_proficiency_explanation_text(explanation))
     return 0
 
 
@@ -4113,9 +3992,7 @@ def _handle_planning_signal_preview_review_trace(
         target,
     )
     if args.format == "json":
-        _print_json(
-            planning_signal_preview_review_explanation_to_dict(explanation)
-        )
+        _print_json(planning_signal_preview_review_explanation_to_dict(explanation))
     else:
         sys.stdout.write(
             render_planning_signal_preview_review_explanation_text(explanation)
@@ -4192,9 +4069,7 @@ def _handle_new_evidence_eligibility_authoring(
         preview,
         authorized,
     )
-    _render_new_evidence_eligibility_authoring_result(
-        preview, result, args.format
-    )
+    _render_new_evidence_eligibility_authoring_result(preview, result, args.format)
     return 0
 
 
@@ -4241,9 +4116,7 @@ def _handle_new_evidence_eligibility_selection(
         preview,
         authorized,
     )
-    _render_new_evidence_eligibility_selection_result(
-        preview, result, args.format
-    )
+    _render_new_evidence_eligibility_selection_result(preview, result, args.format)
     return 0
 
 
@@ -4291,9 +4164,7 @@ def _new_evidence_eligibility_preview_to_dict(
         "reason_codes": list(decision.reason_codes),
         "rationale": decision.rationale,
         "source_state": decision.source_state.state,
-        "decided_at": decision.decided_at.isoformat().replace(
-            "+00:00", "Z"
-        ),
+        "decided_at": decision.decided_at.isoformat().replace("+00:00", "Z"),
         "selected_revision": preview.selected_revision,
     }
 
@@ -4309,9 +4180,7 @@ def _render_new_evidence_eligibility_preview(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": _new_evidence_eligibility_preview_to_dict(
-                    preview
-                ),
+                "preview": _new_evidence_eligibility_preview_to_dict(preview),
                 "selection_action": "not_performed",
             }
         )
@@ -4326,13 +4195,8 @@ def _render_new_evidence_eligibility_preview(
     print(f"disposition: {decision.disposition}")
     print(f"teacher actor: {decision.actor.actor_id}")
     if decision.policy is not None:
-        print(
-            "policy: "
-            f"{decision.policy.policy_id}@{decision.policy.policy_version}"
-        )
-    print(
-        "reason codes: " + (", ".join(decision.reason_codes) or "none")
-    )
+        print(f"policy: {decision.policy.policy_id}@{decision.policy.policy_version}")
+    print("reason codes: " + (", ".join(decision.reason_codes) or "none"))
     selected = preview.selected_revision
     print(f"currently selected revision: {selected if selected else 'none'}")
     if confirmation_supplied:
@@ -4354,9 +4218,7 @@ def _render_new_evidence_eligibility_authoring_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": _new_evidence_eligibility_preview_to_dict(
-                    preview
-                ),
+                "preview": _new_evidence_eligibility_preview_to_dict(preview),
                 "result": {
                     "write_disposition": result.write_result.disposition,
                     "written_revision": result.written_revision,
@@ -4411,9 +4273,7 @@ def _new_evidence_eligibility_selection_preview_to_dict(
         "target_revision_sha256": preview.target.decision_sha256,
         "expected_current_revision": preview.expected_current_revision,
         "membership_revision": preview.membership_revision,
-        "membership_revision_sha256": (
-            preview.membership_revision_sha256
-        ),
+        "membership_revision_sha256": (preview.membership_revision_sha256),
         "source_state": preview.source_state.state,
     }
 
@@ -4430,9 +4290,7 @@ def _render_new_evidence_eligibility_selection_preview(
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
                 "preview": (
-                    _new_evidence_eligibility_selection_preview_to_dict(
-                        preview
-                    )
+                    _new_evidence_eligibility_selection_preview_to_dict(preview)
                 ),
                 "authoring_action": "not_performed",
             }
@@ -4446,10 +4304,7 @@ def _render_new_evidence_eligibility_selection_preview(
     print(f"target disposition: {preview.target_disposition}")
     print(f"target revision digest: {preview.target.decision_sha256}")
     current = preview.expected_current_revision
-    print(
-        "currently selected revision: "
-        f"{current if current is not None else 'none'}"
-    )
+    print(f"currently selected revision: {current if current is not None else 'none'}")
     print(f"membership revision: {preview.membership_revision}")
     print(f"source state: {preview.source_state.state}")
     if confirmation_supplied:
@@ -4475,15 +4330,11 @@ def _render_new_evidence_eligibility_selection_result(
                 "mode": "selected",
                 "selection_confirmed": True,
                 "preview": (
-                    _new_evidence_eligibility_selection_preview_to_dict(
-                        preview
-                    )
+                    _new_evidence_eligibility_selection_preview_to_dict(preview)
                 ),
                 "result": {
                     "selection_disposition": result.selection_disposition,
-                    "previous_current_revision": (
-                        result.previous_current_revision
-                    ),
+                    "previous_current_revision": (result.previous_current_revision),
                     "selected_revision": result.selected_revision,
                     "selected_disposition": result.selected_disposition,
                     "authoring_action": "not_performed",
@@ -4496,10 +4347,7 @@ def _render_new_evidence_eligibility_selection_result(
         f"{result.selected_revision} ({result.selection_disposition})"
     )
     previous = result.previous_current_revision
-    print(
-        "previous current revision: "
-        f"{previous if previous is not None else 'none'}"
-    )
+    print(f"previous current revision: {previous if previous is not None else 'none'}")
     print(f"selected disposition: {result.selected_disposition}")
     print("authoring action: not performed")
 
@@ -4544,15 +4392,11 @@ def _academic_period_calculation_preview_to_dict(
             "title": calculation.policy_title,
             "strategy": calculation.strategy,
             "period_membership_scope": calculation.period_membership_scope,
-            "minimum_calculated_results": (
-                calculation.minimum_calculated_results
-            ),
+            "minimum_calculated_results": (calculation.minimum_calculated_results),
             "mode_tie_rule": calculation.mode_tie_rule,
             "median_even_rule": calculation.median_even_rule,
             "missing_result_handling": calculation.missing_result_handling,
-            "insufficient_result_handling": (
-                calculation.insufficient_result_handling
-            ),
+            "insufficient_result_handling": (calculation.insufficient_result_handling),
         },
         "outcome": {
             "status": outcome.status,
@@ -4562,9 +4406,7 @@ def _academic_period_calculation_preview_to_dict(
             "calculated_result_count": outcome.calculated_result_count,
             "insufficient_result_count": outcome.insufficient_result_count,
             "missing_result_count": outcome.missing_result_count,
-            "period_scope_mismatch_count": (
-                outcome.period_scope_mismatch_count
-            ),
+            "period_scope_mismatch_count": (outcome.period_scope_mismatch_count),
             "insufficiency_reasons": [
                 {
                     "kind": reason.kind,
@@ -4615,10 +4457,7 @@ def _render_academic_period_calculation_preview(
     print(f"student: {calculation.student_id}")
     print(f"Standard: {calculation.standard_id}")
     print(f"candidate count: {preview.candidate_count}")
-    print(
-        "candidate Grade Items: "
-        + (", ".join(preview.grade_item_ids) or "none")
-    )
+    print("candidate Grade Items: " + (", ".join(preview.grade_item_ids) or "none"))
     print(f"aggregation inputs SHA-256: {calculation.inputs_sha256}")
     print(
         "target scale: "
@@ -4632,31 +4471,16 @@ def _render_academic_period_calculation_preview(
         f"{calculation.policy_title}"
     )
     print(f"strategy: {calculation.strategy}")
-    print(
-        "period membership scope: "
-        f"{calculation.period_membership_scope}"
-    )
-    print(
-        "minimum calculated results: "
-        f"{calculation.minimum_calculated_results}"
-    )
-    print(
-        "missing-result handling: "
-        f"{calculation.missing_result_handling}"
-    )
-    print(
-        "insufficient-result handling: "
-        f"{calculation.insufficient_result_handling}"
-    )
+    print(f"period membership scope: {calculation.period_membership_scope}")
+    print(f"minimum calculated results: {calculation.minimum_calculated_results}")
+    print(f"missing-result handling: {calculation.missing_result_handling}")
+    print(f"insufficient-result handling: {calculation.insufficient_result_handling}")
     if calculation.input_status_counts:
         print("input status counts:")
         for input_status, count in calculation.input_status_counts:
             print(f"  {input_status}: {count}")
     print(f"calculation status: {outcome.status}")
-    print(
-        "proficiency level: "
-        f"{outcome.proficiency_level_id or 'none'}"
-    )
+    print(f"proficiency level: {outcome.proficiency_level_id or 'none'}")
     print(
         "result counts: "
         f"calculated={outcome.calculated_result_count} | "
@@ -4669,18 +4493,13 @@ def _render_academic_period_calculation_preview(
         for insufficiency_reason in outcome.insufficiency_reasons:
             detail: str = insufficiency_reason.kind
             if insufficiency_reason.grade_item_ids:
-                detail += (
-                    " | Grade Items="
-                    + ",".join(insufficiency_reason.grade_item_ids)
+                detail += " | Grade Items=" + ",".join(
+                    insufficiency_reason.grade_item_ids
                 )
             if insufficiency_reason.required_results is not None:
-                detail += (
-                    f" | required={insufficiency_reason.required_results}"
-                )
+                detail += f" | required={insufficiency_reason.required_results}"
             if insufficiency_reason.actual_results is not None:
-                detail += (
-                    f" | actual={insufficiency_reason.actual_results}"
-                )
+                detail += f" | actual={insufficiency_reason.actual_results}"
             print(f"  {detail}")
     tie = outcome.tie_resolution
     if tie is not None:
@@ -4720,9 +4539,7 @@ def _academic_period_result_persistence_preview_to_dict(
         "standard_id": candidate.standard_id,
         "candidate_revision": preview.candidate_revision,
         "candidate_status": preview.candidate_status,
-        "candidate_proficiency_level_id": (
-            preview.candidate_proficiency_level_id
-        ),
+        "candidate_proficiency_level_id": (preview.candidate_proficiency_level_id),
         "candidate_calculation_fingerprint": (
             preview.candidate_calculation_fingerprint
         ),
@@ -4746,9 +4563,7 @@ def _render_academic_period_result_persistence_preview(
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
                 "preview": (
-                    _academic_period_result_persistence_preview_to_dict(
-                        preview
-                    )
+                    _academic_period_result_persistence_preview_to_dict(preview)
                 ),
             }
         )
@@ -4766,14 +4581,8 @@ def _render_academic_period_result_persistence_preview(
     print(f"Standard: {candidate.standard_id}")
     print(f"candidate period-result revision: {preview.candidate_revision}")
     print(f"calculation status: {preview.candidate_status}")
-    print(
-        "proficiency level: "
-        f"{preview.candidate_proficiency_level_id or 'none'}"
-    )
-    print(
-        "calculation fingerprint: "
-        f"{preview.candidate_calculation_fingerprint}"
-    )
+    print(f"proficiency level: {preview.candidate_proficiency_level_id or 'none'}")
+    print(f"calculation fingerprint: {preview.candidate_calculation_fingerprint}")
     print(f"calculated at: {candidate.calculated_at.isoformat()}")
     current = preview.selected_revision_before
     print(
@@ -4807,9 +4616,7 @@ def _render_academic_period_result_persistence_result(
                 "mode": "written",
                 "write_confirmed": True,
                 "preview": (
-                    _academic_period_result_persistence_preview_to_dict(
-                        preview
-                    )
+                    _academic_period_result_persistence_preview_to_dict(preview)
                 ),
                 "result": {
                     "write_disposition": result.write_result.disposition,
@@ -4900,9 +4707,7 @@ def _planning_signal_readiness_to_dict(
             ],
             "tie_handling": policy.tie_handling,
             "missing_result_handling": policy.missing_result_handling,
-            "insufficient_result_handling": (
-                policy.insufficient_result_handling
-            ),
+            "insufficient_result_handling": (policy.insufficient_result_handling),
             "actor": {
                 "kind": policy.actor_kind,
                 "actor_id": policy.actor_id,
@@ -4954,12 +4759,8 @@ def _planning_signal_readiness_to_dict(
                 projection.candidate_calculation_fingerprint
             ),
             "roster_student_count": projection.roster_student_count,
-            "contributing_student_count": (
-                projection.contributing_student_count
-            ),
-            "noncontributing_student_count": (
-                projection.noncontributing_student_count
-            ),
+            "contributing_student_count": (projection.contributing_student_count),
+            "noncontributing_student_count": (projection.noncontributing_student_count),
         },
         "actions": {
             "derivation_write": projection.derivation_write_action,
@@ -4991,10 +4792,7 @@ def _render_planning_signal_readiness(
         period = policy.target_period.period
         source_policy = policy.source_policy_reference
         scale = policy.target_scale_reference
-        print(
-            "selected #37 policy: "
-            f"{reference.policy_id}@{reference.policy_revision}"
-        )
+        print(f"selected #37 policy: {reference.policy_id}@{reference.policy_revision}")
         print(f"policy SHA-256: {reference.policy_sha256}")
         print(f"policy title: {policy.title}")
         print(
@@ -5007,10 +4805,7 @@ def _render_planning_signal_readiness(
             "#35 source policy: "
             f"{source_policy.policy_id}@{source_policy.policy_revision}"
         )
-        print(
-            "target proficiency scale: "
-            f"{scale.scale_id}@{scale.scale_revision}"
-        )
+        print(f"target proficiency scale: {scale.scale_id}@{scale.scale_revision}")
         print(f"grouping dimension: {policy.dimension_id}")
         print(f"band count: {policy.band_count}")
         print("band boundaries:")
@@ -5021,34 +4816,19 @@ def _render_planning_signal_readiness(
                 f"{band.maximum_scale_position}"
             )
         print(f"tie handling: {policy.tie_handling}")
-        print(
-            "missing-result handling: "
-            f"{policy.missing_result_handling}"
-        )
-        print(
-            "insufficient-result handling: "
-            f"{policy.insufficient_result_handling}"
-        )
+        print(f"missing-result handling: {policy.missing_result_handling}")
+        print(f"insufficient-result handling: {policy.insufficient_result_handling}")
 
     if projection.ready_for_derivation_persistence:
         print("generation readiness: ready")
-        print(
-            "candidate derivation ID: "
-            f"{projection.candidate_derivation_id}"
-        )
+        print(f"candidate derivation ID: {projection.candidate_derivation_id}")
         print(
             "candidate calculation fingerprint: "
             f"{projection.candidate_calculation_fingerprint}"
         )
         print(f"roster students: {projection.roster_student_count}")
-        print(
-            "contributing students: "
-            f"{projection.contributing_student_count}"
-        )
-        print(
-            "noncontributing students: "
-            f"{projection.noncontributing_student_count}"
-        )
+        print(f"contributing students: {projection.contributing_student_count}")
+        print(f"noncontributing students: {projection.noncontributing_student_count}")
     else:
         print("generation readiness: blocked")
         print("blockers:")
@@ -5058,15 +4838,9 @@ def _render_planning_signal_readiness(
                 detail += f" | student={blocker.student_id}"
             if blocker.source_result is not None:
                 source = blocker.source_result
-                detail += (
-                    f" | result={source.result_revision}@"
-                    f"{source.result_sha256}"
-                )
+                detail += f" | result={source.result_revision}@{source.result_sha256}"
             if blocker.freshness_reasons:
-                detail += (
-                    " | freshness="
-                    + ",".join(blocker.freshness_reasons)
-                )
+                detail += " | freshness=" + ",".join(blocker.freshness_reasons)
             print(f"  {detail}")
 
     print("NO #38 DERIVATION PERSISTED")
@@ -5123,25 +4897,13 @@ def _render_planning_signal_preview_write_preview(
     policy = preview.policy_reference
     print("Create Planning Signal — #39 preview write")
     print(f"class: {preview.class_id}")
-    print(
-        "bound #37 policy: "
-        f"{policy.policy_id}@{policy.policy_revision}"
-    )
+    print(f"bound #37 policy: {policy.policy_id}@{policy.policy_revision}")
     print(f"exact #38 derivation: {preview.derivation_id}")
     print(f"derivation SHA-256: {preview.derivation_sha256}")
-    print(
-        "derivation calculation fingerprint: "
-        f"{preview.calculation_fingerprint}"
-    )
+    print(f"derivation calculation fingerprint: {preview.calculation_fingerprint}")
     print(f"roster students: {preview.roster_student_count}")
-    print(
-        "contributing students: "
-        f"{preview.contributing_student_count}"
-    )
-    print(
-        "noncontributing students: "
-        f"{preview.noncontributing_student_count}"
-    )
+    print(f"contributing students: {preview.contributing_student_count}")
+    print(f"noncontributing students: {preview.noncontributing_student_count}")
     print("preview write confirmation supplied: no")
     print("NO #39 PREVIEW WRITTEN")
     print("NO TEACHER REVIEW WRITTEN")
@@ -5184,20 +4946,12 @@ def _render_planning_signal_preview_write_result(
                     "preview_fingerprint": result.preview_fingerprint,
                     "write_disposition": result.write_disposition,
                     "currentness_state": result.currentness_state,
-                    "currentness_reason_codes": list(
-                        result.currentness_reason_codes
-                    ),
+                    "currentness_reason_codes": list(result.currentness_reason_codes),
                     "diagnostic_count": result.diagnostic_count,
-                    "warning_diagnostic_ids": list(
-                        result.warning_diagnostic_ids
-                    ),
-                    "blocking_diagnostic_ids": list(
-                        result.blocking_diagnostic_ids
-                    ),
+                    "warning_diagnostic_ids": list(result.warning_diagnostic_ids),
+                    "blocking_diagnostic_ids": list(result.blocking_diagnostic_ids),
                     "roster_student_count": result.roster_student_count,
-                    "contributing_student_count": (
-                        result.contributing_student_count
-                    ),
+                    "contributing_student_count": (result.contributing_student_count),
                     "noncontributing_student_count": (
                         result.noncontributing_student_count
                     ),
@@ -5249,7 +5003,6 @@ def _render_planning_signal_preview_write_result(
     print("NO REVIEW SELECTION CHANGED")
     print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
     print("NO CONCORD GROUP OR GROUPPLAN CREATED")
-
 
 
 def _planning_signal_derivation_reference_to_dict(
@@ -5342,9 +5095,7 @@ def _planning_signal_preview_diagnostics_to_dict(
             "derivation_id": derivation.derivation_id,
             "derivation_sha256": derivation.derivation_sha256,
             "algorithm_version": projection.derivation_algorithm_version,
-            "calculation_fingerprint": (
-                projection.derivation_calculation_fingerprint
-            ),
+            "calculation_fingerprint": (projection.derivation_calculation_fingerprint),
             "live_currentness": {
                 "state": currentness.state,
                 "reason_codes": list(currentness.reason_codes),
@@ -5373,16 +5124,12 @@ def _planning_signal_preview_diagnostics_to_dict(
             ],
             "tie_handling": projection.tie_handling,
             "missing_result_handling": projection.missing_result_handling,
-            "insufficient_result_handling": (
-                projection.insufficient_result_handling
-            ),
+            "insufficient_result_handling": (projection.insufficient_result_handling),
         },
         "coverage": {
             "roster_student_count": coverage.roster_student_count,
             "contributing_student_count": coverage.contributing_student_count,
-            "noncontributing_student_count": (
-                coverage.noncontributing_student_count
-            ),
+            "noncontributing_student_count": (coverage.noncontributing_student_count),
             "missing_noncontributor_count": coverage.missing_noncontributor_count,
             "insufficient_noncontributor_count": (
                 coverage.insufficient_noncontributor_count
@@ -5476,8 +5223,6 @@ def _render_planning_signal_preview_diagnostics(
     print("NO CONCORD GROUP OR GROUPPLAN CREATED")
 
 
-
-
 def _planning_signal_core_export_candidate_to_dict(
     preview: PlanningSignalCoreExportPreview,
 ) -> dict[str, object]:
@@ -5551,18 +5296,12 @@ def _render_planning_signal_core_export_preview(
     if output_format == "json":
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "core_export_preview"
-        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
-            preview
-        )
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(preview)
         data["export_authorization"] = (
             _planning_signal_core_export_authorization_to_dict(preview)
         )
-        data["contributing_student_ids"] = list(
-            preview.contributing_student_ids
-        )
-        data["noncontributing_student_ids"] = list(
-            preview.noncontributing_student_ids
-        )
+        data["contributing_student_ids"] = list(preview.contributing_student_ids)
+        data["noncontributing_student_ids"] = list(preview.noncontributing_student_ids)
         data["final_core_revalidation_required"] = (
             preview.final_core_revalidation_required
         )
@@ -5585,10 +5324,7 @@ def _render_planning_signal_core_export_preview(
     print(format_grouping_signal_teacher_projection(preview.projection))
     print("Core grouping_signal_set_v1 candidate")
     print(f"Core signal-set ID: {signal.signal_set_id}")
-    print(
-        "Core created at: "
-        + signal.created_at.isoformat().replace("+00:00", "Z")
-    )
+    print("Core created at: " + signal.created_at.isoformat().replace("+00:00", "Z"))
     print(f"Core class ID: {signal.class_id}")
     print(
         "authorized selected review: revision "
@@ -5632,9 +5368,7 @@ def _render_planning_signal_csv_export_plan(
     if output_format == "json":
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "core_export_preview"
-        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
-            preview
-        )
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(preview)
         data["export_authorization"] = (
             _planning_signal_core_export_authorization_to_dict(preview)
         )
@@ -5685,9 +5419,7 @@ def _render_planning_signal_csv_export_result(
     if output_format == "json":
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "core_export_committed"
-        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
-            preview
-        )
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(preview)
         data["export_authorization"] = (
             _planning_signal_core_export_authorization_to_dict(preview)
         )
@@ -5722,10 +5454,7 @@ def _render_planning_signal_csv_export_result(
     print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
     print(f"Core write disposition: {core.core_write_disposition}")
     print(f"Core signal SHA-256: {core.core_signal_digest}")
-    print(
-        "Meridian export receipt disposition: "
-        f"{core.receipt_write_disposition}"
-    )
+    print(f"Meridian export receipt disposition: {core.receipt_write_disposition}")
     print(f"Meridian export receipt SHA-256: {core.receipt_sha256}")
     print(f"CSV destination: {csv_result.destination}")
     print(f"CSV write disposition: {csv_result.disposition}")
@@ -5745,9 +5474,7 @@ def _render_planning_signal_csv_export_partial_success(
     if output_format == "json":
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "csv_export_partial_success"
-        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
-            preview
-        )
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(preview)
         data["export_authorization"] = (
             _planning_signal_core_export_authorization_to_dict(preview)
         )
@@ -5777,10 +5504,7 @@ def _render_planning_signal_csv_export_partial_success(
     print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
     print(f"Core write disposition: {core.core_write_disposition}")
     print(f"Core signal SHA-256: {core.core_signal_digest}")
-    print(
-        "Meridian export receipt disposition: "
-        f"{core.receipt_write_disposition}"
-    )
+    print(f"Meridian export receipt disposition: {core.receipt_write_disposition}")
     print(f"Meridian export receipt SHA-256: {core.receipt_sha256}")
     print(f"CSV failure code: {error.csv_error_code}")
     print(f"CSV destination: {error.csv_destination}")
@@ -5798,9 +5522,7 @@ def _render_planning_signal_core_export_result(
     if output_format == "json":
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "core_export_committed"
-        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
-            preview
-        )
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(preview)
         data["export_authorization"] = (
             _planning_signal_core_export_authorization_to_dict(preview)
         )
@@ -5828,10 +5550,7 @@ def _render_planning_signal_core_export_result(
     print(f"Core signal-set ID: {preview.signal_set.signal_set_id}")
     print(f"Core write disposition: {result.core_write_disposition}")
     print(f"Core signal SHA-256: {result.core_signal_digest}")
-    print(
-        "Meridian export receipt disposition: "
-        f"{result.receipt_write_disposition}"
-    )
+    print(f"Meridian export receipt disposition: {result.receipt_write_disposition}")
     print(f"Meridian export receipt SHA-256: {result.receipt_sha256}")
     print("final Core authorization revalidation: completed")
     print("NO CSV EXPORTED")
@@ -5847,9 +5566,7 @@ def _render_planning_signal_core_export_partial_success(
     if output_format == "json":
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "core_export_partial_success"
-        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(
-            preview
-        )
+        data["core_candidate"] = _planning_signal_core_export_candidate_to_dict(preview)
         data["export_authorization"] = (
             _planning_signal_core_export_authorization_to_dict(preview)
         )
@@ -5878,8 +5595,7 @@ def _render_planning_signal_core_export_partial_success(
     print(f"Core signal-set ID: {error.signal_set_id}")
     print(f"Core write disposition: {error.core_disposition}")
     print(
-        "Core signal digest: "
-        f"{error.core_digest_algorithm}:{error.core_signal_digest}"
+        f"Core signal digest: {error.core_digest_algorithm}:{error.core_signal_digest}"
     )
     print(f"Core signal SHA-256: {error.core_signal_digest}")
     print("MERIDIAN EXPORT RECEIPT NOT VERIFIED")
@@ -5914,9 +5630,7 @@ def _planning_signal_review_selection_target_to_dict(
             "status": applicability.status,
             "reason_codes": list(applicability.reason_codes),
         },
-        "expected_current_review_revision": (
-            preview.expected_current_review_revision
-        ),
+        "expected_current_review_revision": (preview.expected_current_review_revision),
     }
 
 
@@ -5930,8 +5644,8 @@ def _render_planning_signal_review_selection_preview(
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "review_selection_preview"
         data["review_selection_confirmed"] = confirmation_supplied
-        data["selection_target"] = (
-            _planning_signal_review_selection_target_to_dict(preview)
+        data["selection_target"] = _planning_signal_review_selection_target_to_dict(
+            preview
         )
         data["actions"] = {
             "derivation_write": "not_performed",
@@ -5959,8 +5673,7 @@ def _render_planning_signal_review_selection_preview(
     )
     print(f"target teacher actor: {review.actor.actor_id}")
     print(
-        "target reviewed at: "
-        + review.reviewed_at.isoformat().replace("+00:00", "Z")
+        "target reviewed at: " + review.reviewed_at.isoformat().replace("+00:00", "Z")
     )
     print(f"target applicability: {applicability.status}")
     print(
@@ -5974,9 +5687,7 @@ def _render_planning_signal_review_selection_preview(
     )
     if confirmation_supplied:
         print("review selection confirmation supplied: yes")
-        print(
-            "CAS-selecting only this exact persisted #39 review revision"
-        )
+        print("CAS-selecting only this exact persisted #39 review revision")
     else:
         print("review selection confirmation supplied: no")
         print("NO REVIEW SELECTION CHANGED")
@@ -5998,8 +5709,8 @@ def _render_planning_signal_review_selection_result(
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "review_selected"
         data["review_selection_confirmed"] = True
-        data["selection_target"] = (
-            _planning_signal_review_selection_target_to_dict(preview)
+        data["selection_target"] = _planning_signal_review_selection_target_to_dict(
+            preview
         )
         data["selection"] = {
             "selection_disposition": result.selection_disposition,
@@ -6056,13 +5767,9 @@ def _planning_signal_review_candidate_to_dict(
             "kind": candidate.actor.kind,
             "actor_id": candidate.actor.actor_id,
         },
-        "reviewed_at": candidate.reviewed_at.isoformat().replace(
-            "+00:00", "Z"
-        ),
+        "reviewed_at": candidate.reviewed_at.isoformat().replace("+00:00", "Z"),
         "verified_history": list(preview.history),
-        "expected_current_review_revision": (
-            preview.expected_current_review_revision
-        ),
+        "expected_current_review_revision": (preview.expected_current_review_revision),
     }
 
 
@@ -6076,9 +5783,7 @@ def _render_planning_signal_review_authoring_preview(
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "review_write_preview"
         data["review_write_confirmed"] = confirmation_supplied
-        data["review_candidate"] = _planning_signal_review_candidate_to_dict(
-            preview
-        )
+        data["review_candidate"] = _planning_signal_review_candidate_to_dict(preview)
         _print_json(data)
         return
 
@@ -6107,10 +5812,7 @@ def _render_planning_signal_review_authoring_preview(
         + (", ".join(candidate.acknowledged_warning_ids) or "none")
     )
     print(f"teacher actor: {candidate.actor.actor_id}")
-    print(
-        "reviewed at: "
-        + candidate.reviewed_at.isoformat().replace("+00:00", "Z")
-    )
+    print("reviewed at: " + candidate.reviewed_at.isoformat().replace("+00:00", "Z"))
     selected = preview.expected_current_review_revision
     print(
         "currently selected review revision: "
@@ -6140,23 +5842,15 @@ def _render_planning_signal_review_authoring_result(
         data = _planning_signal_preview_diagnostics_to_dict(preview.projection)
         data["mode"] = "review_written"
         data["review_write_confirmed"] = True
-        data["review_candidate"] = _planning_signal_review_candidate_to_dict(
-            preview
-        )
+        data["review_candidate"] = _planning_signal_review_candidate_to_dict(preview)
         data["review"] = {
             "review_revision": result.review_revision,
             "review_sha256": result.review_sha256,
             "decision": result.decision,
             "write_disposition": result.write_disposition,
-            "selected_revision_before_write": (
-                result.selected_revision_before_write
-            ),
-            "selected_revision_after_write": (
-                result.selected_revision_after_write
-            ),
-            "selection_changed_during_write": (
-                result.selection_changed_during_write
-            ),
+            "selected_revision_before_write": (result.selected_revision_before_write),
+            "selected_revision_after_write": (result.selected_revision_after_write),
+            "selection_changed_during_write": (result.selection_changed_during_write),
         }
         data["actions"] = {
             "derivation_write": "not_performed",
@@ -6217,18 +5911,13 @@ def _render_planning_signal_derivation_persistence_preview(
         data = _planning_signal_readiness_to_dict(projection)
         data["mode"] = "derivation_write_preview"
         data["derivation_write_confirmed"] = False
-        data["derivation"] = _planning_signal_derivation_preview_to_dict(
-            preview
-        )
+        data["derivation"] = _planning_signal_derivation_preview_to_dict(preview)
         _print_json(data)
         return
 
     _render_planning_signal_readiness(projection, "text")
     print(f"derivation write candidate: {preview.derivation_id}")
-    print(
-        "derivation candidate fingerprint: "
-        f"{preview.calculation_fingerprint}"
-    )
+    print(f"derivation candidate fingerprint: {preview.calculation_fingerprint}")
     print("derivation write confirmation supplied: no")
     print(
         "rerun with --confirm-derivation-write to persist this exact "
@@ -6241,19 +5930,10 @@ def _render_planning_signal_derivation_write_confirmation(
 ) -> None:
     print("Create Planning Signal — #38 derivation write")
     print(f"derivation write candidate: {preview.derivation_id}")
-    print(
-        "derivation candidate fingerprint: "
-        f"{preview.calculation_fingerprint}"
-    )
+    print(f"derivation candidate fingerprint: {preview.calculation_fingerprint}")
     print(f"roster students: {preview.roster_student_count}")
-    print(
-        "contributing students: "
-        f"{preview.contributing_student_count}"
-    )
-    print(
-        "noncontributing students: "
-        f"{preview.noncontributing_student_count}"
-    )
+    print(f"contributing students: {preview.contributing_student_count}")
+    print(f"noncontributing students: {preview.noncontributing_student_count}")
     print("derivation write confirmation supplied: yes")
     print(
         "persisting this exact immutable #38 candidate after live "
@@ -6290,10 +5970,7 @@ def _render_planning_signal_derivation_persistence_result(
     print(f"#38 derivation persisted: {result.derivation_id}")
     print(f"derivation SHA-256: {result.derivation_sha256}")
     print(f"write disposition: {result.write_disposition}")
-    print(
-        "calculation fingerprint: "
-        f"{result.calculation_fingerprint}"
-    )
+    print(f"calculation fingerprint: {result.calculation_fingerprint}")
     print("NO #39 PREVIEW OR REVIEW WRITTEN")
     print("NO REVIEW SELECTION CHANGED")
     print("NO CORE GROUPING SIGNAL OR CSV EXPORTED")
@@ -6313,17 +5990,11 @@ def _academic_period_result_selection_preview_to_dict(
         "target_revision": preview.target_revision,
         "target_result_sha256": preview.target_result_sha256,
         "target_status": preview.target_status,
-        "target_proficiency_level_id": (
-            preview.target_proficiency_level_id
-        ),
-        "target_calculation_fingerprint": (
-            preview.target_calculation_fingerprint
-        ),
+        "target_proficiency_level_id": (preview.target_proficiency_level_id),
+        "target_calculation_fingerprint": (preview.target_calculation_fingerprint),
         "history": list(preview.history),
         "target_is_latest": preview.target_is_latest,
-        "expected_current_result_revision": (
-            preview.expected_current_result_revision
-        ),
+        "expected_current_result_revision": (preview.expected_current_result_revision),
         "authoring_action": preview.authoring_action,
     }
 
@@ -6339,11 +6010,7 @@ def _render_academic_period_result_selection_preview(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": (
-                    _academic_period_result_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_academic_period_result_selection_preview_to_dict(preview)),
             }
         )
         return
@@ -6358,22 +6025,13 @@ def _render_academic_period_result_selection_preview(
     print(f"target result revision: {preview.target_revision}")
     print(f"target result SHA-256: {preview.target_result_sha256}")
     print(f"target calculation status: {preview.target_status}")
-    print(
-        "target proficiency level: "
-        f"{preview.target_proficiency_level_id or 'none'}"
-    )
-    print(
-        "target calculation fingerprint: "
-        f"{preview.target_calculation_fingerprint}"
-    )
+    print(f"target proficiency level: {preview.target_proficiency_level_id or 'none'}")
+    print(f"target calculation fingerprint: {preview.target_calculation_fingerprint}")
     print(
         "persisted Academic Period result history: "
         + (", ".join(str(value) for value in preview.history) or "none")
     )
-    print(
-        "target is latest: "
-        f"{'yes' if preview.target_is_latest else 'no'}"
-    )
+    print(f"target is latest: {'yes' if preview.target_is_latest else 'no'}")
     current = preview.expected_current_result_revision
     print(
         "currently selected Academic Period result revision: "
@@ -6389,8 +6047,7 @@ def _render_academic_period_result_selection_preview(
         print("confirmation supplied: no")
         print("NO CURRENT ACADEMIC PERIOD RESULT SELECTION CHANGED")
         print(
-            "rerun with --confirm-select to authorize Academic Period "
-            "pointer mutation"
+            "rerun with --confirm-select to authorize Academic Period pointer mutation"
         )
     print("NO ACADEMIC PERIOD PROFICIENCY RESULT AUTHORED OR RECALCULATED")
 
@@ -6405,11 +6062,7 @@ def _render_academic_period_result_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": (
-                    _academic_period_result_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_academic_period_result_selection_preview_to_dict(preview)),
                 "result": {
                     "selection_disposition": result.selection_disposition,
                     "previous_current_result_revision": (
@@ -6438,13 +6091,9 @@ def _render_academic_period_result_selection_result(
     print(f"selected result SHA-256: {result.selected_result_sha256}")
     print(f"selected calculation status: {result.selected_status}")
     print(
-        "selected proficiency level: "
-        f"{result.selected_proficiency_level_id or 'none'}"
+        f"selected proficiency level: {result.selected_proficiency_level_id or 'none'}"
     )
-    print(
-        "authoring action: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"authoring action: {result.authoring_action.replace('_', ' ')}")
 
 
 def _calculation_result_selection_preview_to_dict(
@@ -6458,17 +6107,11 @@ def _calculation_result_selection_preview_to_dict(
         "target_revision": preview.target_revision,
         "target_result_sha256": preview.target_result_sha256,
         "target_status": preview.target_status,
-        "target_proficiency_level_id": (
-            preview.target_proficiency_level_id
-        ),
-        "target_calculation_fingerprint": (
-            preview.target_calculation_fingerprint
-        ),
+        "target_proficiency_level_id": (preview.target_proficiency_level_id),
+        "target_calculation_fingerprint": (preview.target_calculation_fingerprint),
         "history": list(preview.history),
         "target_is_latest": preview.target_is_latest,
-        "expected_current_result_revision": (
-            preview.expected_current_result_revision
-        ),
+        "expected_current_result_revision": (preview.expected_current_result_revision),
         "authoring_action": preview.authoring_action,
     }
 
@@ -6484,9 +6127,7 @@ def _render_calculation_result_selection_preview(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": _calculation_result_selection_preview_to_dict(
-                    preview
-                ),
+                "preview": _calculation_result_selection_preview_to_dict(preview),
             }
         )
         return
@@ -6497,22 +6138,13 @@ def _render_calculation_result_selection_preview(
     print(f"target result revision: {preview.target_revision}")
     print(f"target result SHA-256: {preview.target_result_sha256}")
     print(f"target calculation status: {preview.target_status}")
-    print(
-        "target proficiency level: "
-        f"{preview.target_proficiency_level_id or 'none'}"
-    )
-    print(
-        "target calculation fingerprint: "
-        f"{preview.target_calculation_fingerprint}"
-    )
+    print(f"target proficiency level: {preview.target_proficiency_level_id or 'none'}")
+    print(f"target calculation fingerprint: {preview.target_calculation_fingerprint}")
     print(
         "persisted result history: "
         + (", ".join(str(value) for value in preview.history) or "none")
     )
-    print(
-        "target is latest: "
-        f"{'yes' if preview.target_is_latest else 'no'}"
-    )
+    print(f"target is latest: {'yes' if preview.target_is_latest else 'no'}")
     current = preview.expected_current_result_revision
     print(
         "currently selected result revision: "
@@ -6538,9 +6170,7 @@ def _render_calculation_result_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": _calculation_result_selection_preview_to_dict(
-                    preview
-                ),
+                "preview": _calculation_result_selection_preview_to_dict(preview),
                 "result": {
                     "selection_disposition": result.selection_disposition,
                     "previous_current_result_revision": (
@@ -6569,13 +6199,9 @@ def _render_calculation_result_selection_result(
     print(f"selected result SHA-256: {result.selected_result_sha256}")
     print(f"selected calculation status: {result.selected_status}")
     print(
-        "selected proficiency level: "
-        f"{result.selected_proficiency_level_id or 'none'}"
+        f"selected proficiency level: {result.selected_proficiency_level_id or 'none'}"
     )
-    print(
-        "authoring action: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"authoring action: {result.authoring_action.replace('_', ' ')}")
 
 
 def _calculation_result_persistence_preview_to_dict(
@@ -6590,9 +6216,7 @@ def _calculation_result_persistence_preview_to_dict(
         "standard_id": candidate.standard_id,
         "candidate_revision": preview.candidate_revision,
         "candidate_status": preview.candidate_status,
-        "candidate_proficiency_level_id": (
-            preview.candidate_proficiency_level_id
-        ),
+        "candidate_proficiency_level_id": (preview.candidate_proficiency_level_id),
         "candidate_calculation_fingerprint": (
             preview.candidate_calculation_fingerprint
         ),
@@ -6615,9 +6239,7 @@ def _render_calculation_result_persistence_preview(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": (
-                    _calculation_result_persistence_preview_to_dict(preview)
-                ),
+                "preview": (_calculation_result_persistence_preview_to_dict(preview)),
             }
         )
         return
@@ -6628,14 +6250,8 @@ def _render_calculation_result_persistence_preview(
     print(f"Standard: {preview.candidate.standard_id}")
     print(f"candidate result revision: {preview.candidate_revision}")
     print(f"calculation status: {preview.candidate_status}")
-    print(
-        "proficiency level: "
-        f"{preview.candidate_proficiency_level_id or 'none'}"
-    )
-    print(
-        "calculation fingerprint: "
-        f"{preview.candidate_calculation_fingerprint}"
-    )
+    print(f"proficiency level: {preview.candidate_proficiency_level_id or 'none'}")
+    print(f"calculation fingerprint: {preview.candidate_calculation_fingerprint}")
     print(f"calculated at: {preview.candidate.calculated_at.isoformat()}")
     current = preview.selected_revision_before
     print(
@@ -6662,9 +6278,7 @@ def _render_calculation_result_persistence_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": (
-                    _calculation_result_persistence_preview_to_dict(preview)
-                ),
+                "preview": (_calculation_result_persistence_preview_to_dict(preview)),
                 "result": {
                     "write_disposition": result.write_result.disposition,
                     "written_revision": result.written_revision,
@@ -6702,10 +6316,7 @@ def _render_calculation_result_persistence_result(
             "current result selection after write: "
             f"{after if after is not None else 'none'}"
         )
-    print(
-        "result selection action: "
-        f"{result.selection_action.replace('_', ' ')}"
-    )
+    print(f"result selection action: {result.selection_action.replace('_', ' ')}")
 
 
 def _calculation_preview_to_dict(
@@ -6753,18 +6364,14 @@ def _calculation_preview_to_dict(
             ),
             "mode_tie_rule": calculation.mode_tie_rule,
             "median_even_rule": calculation.median_even_rule,
-            "blocking_exclusion_reasons": list(
-                calculation.blocking_exclusion_reasons
-            ),
+            "blocking_exclusion_reasons": list(calculation.blocking_exclusion_reasons),
             "native_state_handling": calculation.native_state_handling,
         },
         "outcome": {
             "status": outcome.status,
             "proficiency_level_id": outcome.proficiency_level_id,
             "calculation_fingerprint": outcome.calculation_fingerprint,
-            "performance_observation_count": (
-                outcome.performance_observation_count
-            ),
+            "performance_observation_count": (outcome.performance_observation_count),
             "native_state_count": outcome.native_state_count,
             "excluded_count": outcome.excluded_count,
             "insufficiency_reasons": [
@@ -6845,26 +6452,17 @@ def _render_calculation_preview(
         for exclusion_reason, count in calculation.exclusion_reason_counts:
             print(f"  {exclusion_reason}: {count}")
     print(f"calculation status: {outcome.status}")
-    print(
-        "proficiency level: "
-        f"{outcome.proficiency_level_id or 'none'}"
-    )
+    print(f"proficiency level: {outcome.proficiency_level_id or 'none'}")
     if outcome.insufficiency_reasons:
         print("insufficiency reasons:")
         for insufficiency_reason in outcome.insufficiency_reasons:
             detail: str = insufficiency_reason.kind
             if insufficiency_reason.required_observations is not None:
-                detail += (
-                    f" | required={insufficiency_reason.required_observations}"
-                )
+                detail += f" | required={insufficiency_reason.required_observations}"
             if insufficiency_reason.actual_observations is not None:
-                detail += (
-                    f" | actual={insufficiency_reason.actual_observations}"
-                )
+                detail += f" | actual={insufficiency_reason.actual_observations}"
             if insufficiency_reason.source_keys:
-                detail += (
-                    f" | sources={','.join(insufficiency_reason.source_keys)}"
-                )
+                detail += f" | sources={','.join(insufficiency_reason.source_keys)}"
             print(f"  {detail}")
     tie = outcome.tie_resolution
     if tie is not None:
@@ -6877,8 +6475,7 @@ def _render_calculation_preview(
     history = ", ".join(str(value) for value in calculation.result_history)
     print(f"persisted result history: {history or 'none'}")
     print(
-        "next result revision if confirmed later: "
-        f"{calculation.next_result_revision}"
+        f"next result revision if confirmed later: {calculation.next_result_revision}"
     )
     current = calculation.current_result_revision
     print(
@@ -6924,11 +6521,7 @@ def _render_standards_association_selection_preview(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": (
-                    _standards_association_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_standards_association_selection_preview_to_dict(preview)),
             }
         )
         return
@@ -6964,24 +6557,14 @@ def _render_standards_association_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": (
-                    _standards_association_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_standards_association_selection_preview_to_dict(preview)),
                 "result": {
                     "selected_revision": result.selected_revision,
                     "selected_disposition": result.selected_disposition,
                     "selected_basis": result.selected_basis,
-                    "selected_decision_sha256": (
-                        result.selected_decision_sha256
-                    ),
-                    "selection_disposition": (
-                        result.selection_disposition
-                    ),
-                    "previous_current_revision": (
-                        result.previous_current_revision
-                    ),
+                    "selected_decision_sha256": (result.selected_decision_sha256),
+                    "selection_disposition": (result.selection_disposition),
+                    "previous_current_revision": (result.previous_current_revision),
                     "authoring_action": result.authoring_action,
                 },
             }
@@ -6996,10 +6579,7 @@ def _render_standards_association_selection_result(
         "previous current association revision: "
         f"{previous if previous is not None else 'none'}"
     )
-    print(
-        "association authoring: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"association authoring: {result.authoring_action.replace('_', ' ')}")
 
 
 def _standards_association_authoring_preview_to_dict(
@@ -7044,11 +6624,7 @@ def _render_standards_association_authoring_preview(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": (
-                    _standards_association_authoring_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_standards_association_authoring_preview_to_dict(preview)),
             }
         )
         return
@@ -7086,18 +6662,12 @@ def _render_standards_association_authoring_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": (
-                    _standards_association_authoring_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_standards_association_authoring_preview_to_dict(preview)),
                 "result": {
                     "written_revision": result.written_revision,
                     "written_disposition": result.written_disposition,
                     "written_basis": result.written_basis,
-                    "write_disposition": (
-                        result.write_result.disposition
-                    ),
+                    "write_disposition": (result.write_result.disposition),
                     "selected_revision_before_write": (
                         result.selected_revision_before_write
                     ),
@@ -7118,18 +6688,9 @@ def _render_standards_association_authoring_result(
     )
     before = result.selected_revision_before_write
     after = result.selected_revision_after_write
-    print(
-        "current selection before write: "
-        f"{before if before is not None else 'none'}"
-    )
-    print(
-        "current selection after write: "
-        f"{after if after is not None else 'none'}"
-    )
-    print(
-        "selection action: "
-        f"{result.selection_action.replace('_', ' ')}"
-    )
+    print(f"current selection before write: {before if before is not None else 'none'}")
+    print(f"current selection after write: {after if after is not None else 'none'}")
+    print(f"selection action: {result.selection_action.replace('_', ' ')}")
 
 
 def _standards_review_to_dict(
@@ -7145,12 +6706,8 @@ def _standards_review_to_dict(
         "standard_id": projection.standard_id,
         "item_id": projection.item_id,
         "producer_alignment": {
-            "standard_ids": list(
-                projection.producer_declared_standard_ids
-            ),
-            "declares_requested_standard": (
-                projection.producer_declares_standard
-            ),
+            "standard_ids": list(projection.producer_declared_standard_ids),
+            "declares_requested_standard": (projection.producer_declares_standard),
         },
         "core_standard": {
             "resolved": standard_resolution.resolved,
@@ -7184,9 +6741,7 @@ def _standards_review_to_dict(
                 }
             ),
             "status": projection.mapping_status,
-            "proficiency_level_id": (
-                projection.mapped_proficiency_level_id
-            ),
+            "proficiency_level_id": (projection.mapped_proficiency_level_id),
             "native_state": (
                 None
                 if native_state is None
@@ -7196,9 +6751,7 @@ def _standards_review_to_dict(
                     "description": native_state.description,
                 }
             ),
-            "unsupported_reason": (
-                projection.mapping_unsupported_reason
-            ),
+            "unsupported_reason": (projection.mapping_unsupported_reason),
         },
         "evidence_context": {
             "result_kind": projection.result_kind,
@@ -7212,9 +6765,7 @@ def _standards_review_to_dict(
             "reassessment_state": projection.reassessment_state,
             "membership_revision": projection.membership_revision,
             "eligibility_revision": projection.eligibility_revision,
-            "attempt_selection_revision": (
-                projection.attempt_selection_revision
-            ),
+            "attempt_selection_revision": (projection.attempt_selection_revision),
             "reassessment_revision": projection.reassessment_revision,
         },
         "aggregation": {
@@ -7238,9 +6789,7 @@ def _render_standards_review(
     print(f"student: {projection.student_id}")
     print(f"evidence item: {projection.item_id}")
     print(f"requested Standard: {projection.standard_id}")
-    producer_ids = ", ".join(
-        projection.producer_declared_standard_ids
-    ) or "none"
+    producer_ids = ", ".join(projection.producer_declared_standard_ids) or "none"
     print(f"producer-declared Standards: {producer_ids}")
     print(
         "producer declares requested standard: "
@@ -7259,8 +6808,7 @@ def _render_standards_review(
         association += f" basis={projection.association_basis}"
     print(f"association: {association}")
     print(
-        "association operative: "
-        f"{'yes' if projection.operative_associated else 'no'}"
+        f"association operative: {'yes' if projection.operative_associated else 'no'}"
     )
     print(
         "target scale: "
@@ -7279,17 +6827,11 @@ def _render_standards_review(
         )
     print(f"mapping status: {projection.mapping_status or 'not supplied'}")
     if projection.mapped_proficiency_level_id is not None:
-        print(
-            "mapped proficiency level: "
-            f"{projection.mapped_proficiency_level_id}"
-        )
+        print(f"mapped proficiency level: {projection.mapped_proficiency_level_id}")
     if projection.native_state is not None:
         print(f"native state: {projection.native_state.code}")
     if projection.mapping_unsupported_reason is not None:
-        print(
-            "mapping unsupported reason: "
-            f"{projection.mapping_unsupported_reason}"
-        )
+        print(f"mapping unsupported reason: {projection.mapping_unsupported_reason}")
     print(
         "upstream: "
         f"eligibility={projection.eligibility_state}; "
@@ -7325,9 +6867,7 @@ def _exclusions_eligibility_selection_preview_to_dict(
         "actor_kind": decision.actor.kind,
         "actor_id": decision.actor.actor_id,
         "policy_id": None if policy is None else policy.policy_id,
-        "policy_version": (
-            None if policy is None else policy.policy_version
-        ),
+        "policy_version": (None if policy is None else policy.policy_version),
         "reason_codes": list(decision.reason_codes),
         "rationale": decision.rationale,
         "authoring_action": preview.authoring_action,
@@ -7345,11 +6885,7 @@ def _render_exclusions_eligibility_selection_preview(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": (
-                    _exclusions_eligibility_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_exclusions_eligibility_selection_preview_to_dict(preview)),
             }
         )
         return
@@ -7386,23 +6922,13 @@ def _render_exclusions_eligibility_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": (
-                    _exclusions_eligibility_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_exclusions_eligibility_selection_preview_to_dict(preview)),
                 "result": {
                     "selected_revision": result.selected_revision,
                     "selected_disposition": result.selected_disposition,
-                    "selected_decision_sha256": (
-                        result.selected_decision_sha256
-                    ),
-                    "selection_disposition": (
-                        result.selection_disposition
-                    ),
-                    "previous_current_revision": (
-                        result.previous_current_revision
-                    ),
+                    "selected_decision_sha256": (result.selected_decision_sha256),
+                    "selection_disposition": (result.selection_disposition),
+                    "previous_current_revision": (result.previous_current_revision),
                     "authoring_action": result.authoring_action,
                 },
             }
@@ -7417,10 +6943,7 @@ def _render_exclusions_eligibility_selection_result(
         "previous current eligibility revision: "
         f"{previous if previous is not None else 'none'}"
     )
-    print(
-        "eligibility authoring: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"eligibility authoring: {result.authoring_action.replace('_', ' ')}")
 
 
 def _exclusions_eligibility_authoring_preview_to_dict(
@@ -7443,9 +6966,7 @@ def _exclusions_eligibility_authoring_preview_to_dict(
         "actor_kind": candidate.actor.kind,
         "actor_id": candidate.actor.actor_id,
         "policy_id": None if policy is None else policy.policy_id,
-        "policy_version": (
-            None if policy is None else policy.policy_version
-        ),
+        "policy_version": (None if policy is None else policy.policy_version),
         "reason_codes": list(candidate.reason_codes),
         "rationale": candidate.rationale,
         "decided_at": candidate.decided_at.isoformat(),
@@ -7464,11 +6985,7 @@ def _render_exclusions_eligibility_authoring_preview(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": (
-                    _exclusions_eligibility_authoring_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_exclusions_eligibility_authoring_preview_to_dict(preview)),
             }
         )
         return
@@ -7481,15 +6998,8 @@ def _render_exclusions_eligibility_authoring_preview(
     print(f"source state: {preview.source_state}")
     print(f"teacher actor: {candidate.actor.actor_id}")
     if candidate.policy is not None:
-        print(
-            "policy: "
-            f"{candidate.policy.policy_id}@"
-            f"{candidate.policy.policy_version}"
-        )
-    print(
-        "reason codes: "
-        f"{', '.join(candidate.reason_codes) or 'none'}"
-    )
+        print(f"policy: {candidate.policy.policy_id}@{candidate.policy.policy_version}")
+    print(f"reason codes: {', '.join(candidate.reason_codes) or 'none'}")
     print(f"rationale: {candidate.rationale or 'none'}")
     current = preview.expected_current_eligibility_revision
     print(
@@ -7516,17 +7026,11 @@ def _render_exclusions_eligibility_authoring_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": (
-                    _exclusions_eligibility_authoring_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_exclusions_eligibility_authoring_preview_to_dict(preview)),
                 "result": {
                     "written_revision": result.written_revision,
                     "written_disposition": result.written_disposition,
-                    "write_disposition": (
-                        result.write_result.disposition
-                    ),
+                    "write_disposition": (result.write_result.disposition),
                     "selected_revision_before_write": (
                         result.selected_revision_before_write
                     ),
@@ -7547,18 +7051,9 @@ def _render_exclusions_eligibility_authoring_result(
     )
     before = result.selected_revision_before_write
     after = result.selected_revision_after_write
-    print(
-        "current selection before write: "
-        f"{before if before is not None else 'none'}"
-    )
-    print(
-        "current selection after write: "
-        f"{after if after is not None else 'none'}"
-    )
-    print(
-        "selection action: "
-        f"{result.selection_action.replace('_', ' ')}"
-    )
+    print(f"current selection before write: {before if before is not None else 'none'}")
+    print(f"current selection after write: {after if after is not None else 'none'}")
+    print(f"selection action: {result.selection_action.replace('_', ' ')}")
 
 
 def _exclusions_projection_to_dict(
@@ -7571,18 +7066,10 @@ def _exclusions_projection_to_dict(
                 "item_id": row.item_id,
                 "student_id": row.student_id,
                 "academic_disposition": row.selected_disposition,
-                "eligibility_revision": (
-                    row.selected_eligibility_revision
-                ),
-                "eligibility_decision_sha256": (
-                    row.selected_decision_sha256
-                ),
-                "reviewed_membership_revision": (
-                    row.reviewed_membership_revision
-                ),
-                "current_membership_revision": (
-                    row.current_membership_revision
-                ),
+                "eligibility_revision": (row.selected_eligibility_revision),
+                "eligibility_decision_sha256": (row.selected_decision_sha256),
+                "reviewed_membership_revision": (row.reviewed_membership_revision),
+                "current_membership_revision": (row.current_membership_revision),
                 "reason_codes": list(row.reason_codes),
                 "rationale": row.rationale,
                 "actor_kind": row.actor_kind,
@@ -7593,9 +7080,7 @@ def _exclusions_projection_to_dict(
                 "review_state": row.review_state,
                 "source_state": row.source_state,
                 "operative_included": row.operative_included,
-                "successor_publication_id": (
-                    row.successor_publication_id
-                ),
+                "successor_publication_id": (row.successor_publication_id),
                 "head_publication_id": row.head_publication_id,
             }
         )
@@ -7656,9 +7141,7 @@ def _render_exclusions_projection(
             f"{','.join(row.reason_codes) or '-'} | "
             f"{row.rationale or '-'}"
         )
-    print(
-        "Academic disposition is distinct from Core publication lifecycle."
-    )
+    print("Academic disposition is distinct from Core publication lifecycle.")
     print("NO ELIGIBILITY WRITE OR SELECTION PERFORMED")
 
 
@@ -7705,16 +7188,15 @@ def _attempt_decision_selection_preview_to_dict(
 def _render_attempt_decision_selection_preview(
     preview: AttemptDecisionSelectionPreview,
     output_format: str,
-    *, confirmation_supplied: bool,
+    *,
+    confirmation_supplied: bool,
 ) -> None:
     if output_format == "json":
         _print_json(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": _attempt_decision_selection_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_decision_selection_preview_to_dict(preview),
                 "authoring_action": "not_performed",
             }
         )
@@ -7724,18 +7206,13 @@ def _render_attempt_decision_selection_preview(
     print(f"student: {decision.student_id}")
     print(f"target decision revision: {preview.target_revision}")
     print(f"latest persisted decision revision: {preview.latest_revision}")
-    print(
-        "target is latest: "
-        f"{'yes' if preview.target_is_latest else 'no'}"
-    )
+    print(f"target is latest: {'yes' if preview.target_is_latest else 'no'}")
     current = preview.expected_current_decision_revision
     print(
         "currently selected decision revision: "
         f"{current if current is not None else 'none'}"
     )
-    print(
-        f"policy: {decision.policy.policy_id}@{decision.policy.policy_revision}"
-    )
+    print(f"policy: {decision.policy.policy_id}@{decision.policy.policy_revision}")
     print(f"candidate attempts: {len(decision.candidates)}")
     print(f"selected attempts: {len(decision.selected_attempts)}")
     if confirmation_supplied:
@@ -7758,17 +7235,11 @@ def _render_attempt_decision_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": _attempt_decision_selection_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_decision_selection_preview_to_dict(preview),
                 "result": {
                     "selected_revision": result.selected_revision,
-                    "selected_decision_sha256": (
-                        result.selected_decision_sha256
-                    ),
-                    "selection_disposition": (
-                        result.selection_disposition
-                    ),
+                    "selected_decision_sha256": (result.selected_decision_sha256),
+                    "selection_disposition": (result.selection_disposition),
                     "previous_current_decision_revision": (
                         result.previous_current_decision_revision
                     ),
@@ -7785,10 +7256,7 @@ def _render_attempt_decision_selection_result(
         "previous current decision revision: "
         f"{result.previous_current_decision_revision}"
     )
-    print(
-        "decision authoring: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"decision authoring: {result.authoring_action.replace('_', ' ')}")
 
 
 def _attempt_decision_authoring_preview_to_dict(
@@ -7840,16 +7308,15 @@ def _attempt_decision_authoring_preview_to_dict(
 def _render_attempt_decision_authoring_preview(
     preview: AttemptDecisionAuthoringPreview,
     output_format: str,
-    *, confirmation_supplied: bool,
+    *,
+    confirmation_supplied: bool,
 ) -> None:
     if output_format == "json":
         _print_json(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": _attempt_decision_authoring_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_decision_authoring_preview_to_dict(preview),
                 "selection_action": "not_performed",
             }
         )
@@ -7858,9 +7325,7 @@ def _render_attempt_decision_authoring_preview(
     print("Attempt-decision authoring preview")
     print(f"student: {decision.student_id}")
     print(f"decision revision: {decision.decision_revision}")
-    print(
-        f"policy: {decision.policy.policy_id}@{decision.policy.policy_revision}"
-    )
+    print(f"policy: {decision.policy.policy_id}@{decision.policy.policy_revision}")
     print(f"candidate attempts: {preview.candidate_count}")
     print(f"selected attempts: {preview.selected_count}")
     if decision.candidates:
@@ -7894,9 +7359,7 @@ def _render_attempt_decision_authoring_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": _attempt_decision_authoring_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_decision_authoring_preview_to_dict(preview),
                 "result": {
                     "written_revision": result.written_revision,
                     "write_disposition": result.write_disposition,
@@ -7909,10 +7372,7 @@ def _render_attempt_decision_authoring_result(
         "Decision write committed: revision "
         f"{result.written_revision} ({result.write_disposition})"
     )
-    print(
-        "current-decision selection: "
-        f"{result.selection_action.replace('_', ' ')}"
-    )
+    print(f"current-decision selection: {result.selection_action.replace('_', ' ')}")
 
 
 def _attempt_policy_selection_preview_to_dict(
@@ -7940,9 +7400,7 @@ def _attempt_policy_selection_preview_to_dict(
         "history": list(preview.history),
         "latest_revision": preview.latest_revision,
         "target_is_latest": preview.target_is_latest,
-        "expected_current_policy_revision": (
-            preview.expected_current_policy_revision
-        ),
+        "expected_current_policy_revision": (preview.expected_current_policy_revision),
     }
 
 
@@ -7957,28 +7415,21 @@ def _render_attempt_policy_selection_preview(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": _attempt_policy_selection_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_policy_selection_preview_to_dict(preview),
                 "authoring_action": "not_performed",
             }
         )
         return
     policy = preview.target.policy
     maximum = (
-        "unbounded"
-        if policy.maximum_selected is None
-        else str(policy.maximum_selected)
+        "unbounded" if policy.maximum_selected is None else str(policy.maximum_selected)
     )
     print("Attempt-selection policy selection preview")
     print(f"target policy: {preview.policy_id}@{preview.target_revision}")
     print(f"selection basis: {policy.selection_basis}")
     print(f"cardinality: {policy.minimum_selected}..{maximum}")
     print(f"latest persisted policy revision: {preview.latest_revision}")
-    print(
-        "target is latest: "
-        f"{'yes' if preview.target_is_latest else 'no'}"
-    )
+    print(f"target is latest: {'yes' if preview.target_is_latest else 'no'}")
     current = preview.expected_current_policy_revision
     print(
         "currently selected policy revision: "
@@ -8004,17 +7455,11 @@ def _render_attempt_policy_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": _attempt_policy_selection_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_policy_selection_preview_to_dict(preview),
                 "result": {
                     "selected_revision": result.selected_revision,
-                    "selected_policy_sha256": (
-                        result.selected_policy_sha256
-                    ),
-                    "selection_disposition": (
-                        result.selection_disposition
-                    ),
+                    "selected_policy_sha256": (result.selected_policy_sha256),
+                    "selection_disposition": (result.selection_disposition),
                     "previous_current_policy_revision": (
                         result.previous_current_policy_revision
                     ),
@@ -8028,13 +7473,9 @@ def _render_attempt_policy_selection_result(
         f"{result.selected_revision} ({result.selection_disposition})"
     )
     print(
-        "previous current policy revision: "
-        f"{result.previous_current_policy_revision}"
+        f"previous current policy revision: {result.previous_current_policy_revision}"
     )
-    print(
-        "policy authoring: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"policy authoring: {result.authoring_action.replace('_', ' ')}")
 
 
 def _attempt_policy_authoring_preview_to_dict(
@@ -8063,12 +7504,8 @@ def _attempt_policy_authoring_preview_to_dict(
         "rationale": policy.rationale,
         "revised_at": policy.revised_at.isoformat(),
         "history": list(preview.history),
-        "latest_persisted_policy_sha256": (
-            preview.latest_persisted_policy_sha256
-        ),
-        "reviewed_current_policy_revision": (
-            preview.reviewed_current_policy_revision
-        ),
+        "latest_persisted_policy_sha256": (preview.latest_persisted_policy_sha256),
+        "reviewed_current_policy_revision": (preview.reviewed_current_policy_revision),
     }
 
 
@@ -8083,18 +7520,14 @@ def _render_attempt_policy_authoring_preview(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": _attempt_policy_authoring_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_policy_authoring_preview_to_dict(preview),
                 "selection_action": "not_performed",
             }
         )
         return
     policy = preview.candidate
     maximum = (
-        "unbounded"
-        if policy.maximum_selected is None
-        else str(policy.maximum_selected)
+        "unbounded" if policy.maximum_selected is None else str(policy.maximum_selected)
     )
     print("Attempt-selection policy authoring preview")
     print(f"operation: {preview.operation}")
@@ -8127,9 +7560,7 @@ def _render_attempt_policy_authoring_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": _attempt_policy_authoring_preview_to_dict(
-                    preview
-                ),
+                "preview": _attempt_policy_authoring_preview_to_dict(preview),
                 "result": {
                     "written_revision": result.written_revision,
                     "write_disposition": result.write_disposition,
@@ -8142,10 +7573,7 @@ def _render_attempt_policy_authoring_result(
         "Policy write committed: revision "
         f"{result.written_revision} ({result.write_disposition})"
     )
-    print(
-        "current-policy selection: "
-        f"{result.selection_action.replace('_', ' ')}"
-    )
+    print(f"current-policy selection: {result.selection_action.replace('_', ' ')}")
 
 
 def _attempt_decisions_review_to_dict(
@@ -8175,9 +7603,7 @@ def _attempt_decisions_review_to_dict(
                     "sequence": row.native_sequence,
                 },
                 "eligible_evidence_count": row.eligible_evidence_count,
-                "selected_in_reviewed_decision": (
-                    row.selected_in_reviewed_decision
-                ),
+                "selected_in_reviewed_decision": (row.selected_in_reviewed_decision),
             }
         )
     source = review.source_snapshot
@@ -8219,25 +7645,16 @@ def _render_attempt_decisions_review(
     print("Attempt Decisions review")
     print(f"Grade Item: {review.grade_item_id}")
     print(f"student: {review.student_id}")
-    print(
-        "work: "
-        f"{review.work.module_id}/{review.work.class_id}/{review.work.work_id}"
-    )
+    print(f"work: {review.work.module_id}/{review.work.class_id}/{review.work.work_id}")
     print(f"status: {review.status}")
     print(f"resolution status: {review.resolution_status}")
     if review.stale_reason is not None:
         print(f"stale reason: {review.stale_reason}")
-    print(
-        "operative selection: "
-        f"{'yes' if review.operative_selection else 'no'}"
-    )
+    print(f"operative selection: {'yes' if review.operative_selection else 'no'}")
     print(f"candidate count: {review.candidate_count}")
     print(f"reviewed selected count: {review.reviewed_selected_count}")
     if review.selected_decision_revision is not None:
-        print(
-            "selected decision revision: "
-            f"{review.selected_decision_revision}"
-        )
+        print(f"selected decision revision: {review.selected_decision_revision}")
     if review.current_policy_id is not None:
         maximum = (
             "unbounded"
@@ -8250,9 +7667,7 @@ def _render_attempt_decisions_review(
             f"cardinality={review.minimum_selected}..{maximum}"
         )
     if review.candidates:
-        print(
-            "native_sequence | target | eligible_sources | reviewed_selected"
-        )
+        print("native_sequence | target | eligible_sources | reviewed_selected")
         for row in review.candidates:
             native = (
                 str(row.native_sequence)
@@ -8261,10 +7676,7 @@ def _render_attempt_decisions_review(
             )
             target = row.target_id or "none"
             selected = "yes" if row.selected_in_reviewed_decision else "no"
-            print(
-                f"{native} | {target} | {row.eligible_evidence_count} | "
-                f"{selected}"
-            )
+            print(f"{native} | {target} | {row.eligible_evidence_count} | {selected}")
     else:
         print("No current attempt candidates are available.")
     print("read-only; no attempt-selection state was written")
@@ -8293,15 +7705,9 @@ def _grade_item_membership_selection_preview_to_dict(
         "target_revision": preview.target_revision,
         "target_decision_sha256": preview.target.decision_sha256,
         "target_decision": preview.target_decision,
-        "target_grade_item_revision": (
-            preview.target_grade_item_revision
-        ),
-        "target_grade_item_revision_sha256": (
-            decision.grade_item_revision_sha256
-        ),
-        "target_registration_revision": (
-            preview.target_registration_revision
-        ),
+        "target_grade_item_revision": (preview.target_grade_item_revision),
+        "target_grade_item_revision_sha256": (decision.grade_item_revision_sha256),
+        "target_registration_revision": (preview.target_registration_revision),
         "academic_period": academic_period,
         "history": list(preview.history),
         "latest_revision": preview.latest_revision,
@@ -8323,11 +7729,7 @@ def _render_grade_item_membership_selection_preview(
             {
                 "mode": "preview",
                 "selection_confirmed": confirmation_supplied,
-                "preview": (
-                    _grade_item_membership_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_grade_item_membership_selection_preview_to_dict(preview)),
                 "authoring_action": "not_performed",
             }
         )
@@ -8338,18 +7740,9 @@ def _render_grade_item_membership_selection_preview(
     print(f"work: {preview.work.module_id}/{preview.work.work_id}")
     print(f"target membership revision: {preview.target_revision}")
     print(f"target decision: {preview.target_decision}")
-    print(
-        "target decision digest: "
-        f"{preview.target.decision_sha256}"
-    )
-    print(
-        "target Grade Item revision: "
-        f"{preview.target_grade_item_revision}"
-    )
-    print(
-        "target registration revision: "
-        f"{preview.target_registration_revision}"
-    )
+    print(f"target decision digest: {preview.target.decision_sha256}")
+    print(f"target Grade Item revision: {preview.target_grade_item_revision}")
+    print(f"target registration revision: {preview.target_registration_revision}")
     assignment = decision.academic_period
     if assignment is None:
         print("target academic period: none")
@@ -8361,10 +7754,7 @@ def _render_grade_item_membership_selection_preview(
             f"{assignment.calendar_revision}"
         )
     print(f"latest persisted membership revision: {preview.latest_revision}")
-    print(
-        "target is latest: "
-        f"{'yes' if preview.target_is_latest else 'no'}"
-    )
+    print(f"target is latest: {'yes' if preview.target_is_latest else 'no'}")
     current = preview.expected_current_membership_revision
     print(
         "currently selected membership revision: "
@@ -8375,10 +7765,7 @@ def _render_grade_item_membership_selection_preview(
         print("selecting this exact revision after live CAS revalidation")
     else:
         print("confirmation supplied: no")
-        print(
-            "NO MEMBERSHIP SELECTION PERFORMED; immutable history is "
-            "unchanged"
-        )
+        print("NO MEMBERSHIP SELECTION PERFORMED; immutable history is unchanged")
         print("rerun with --confirm-select to authorize fresh selection")
 
 
@@ -8392,15 +7779,9 @@ def _render_grade_item_membership_selection_result(
             {
                 "mode": "selected",
                 "selection_confirmed": True,
-                "preview": (
-                    _grade_item_membership_selection_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_grade_item_membership_selection_preview_to_dict(preview)),
                 "result": {
-                    "selection_disposition": (
-                        result.selection_disposition
-                    ),
+                    "selection_disposition": (result.selection_disposition),
                     "previous_current_membership_revision": (
                         result.previous_current_membership_revision
                     ),
@@ -8421,10 +7802,7 @@ def _render_grade_item_membership_selection_result(
         f"{previous if previous is not None else 'none'}"
     )
     print(f"selected decision: {result.selected_decision}")
-    print(
-        "membership authoring action: "
-        f"{result.authoring_action.replace('_', ' ')}"
-    )
+    print(f"membership authoring action: {result.authoring_action.replace('_', ' ')}")
 
 
 def _grade_item_membership_assignment_to_dict(
@@ -8449,17 +7827,13 @@ def _grade_item_membership_authoring_preview_to_dict(
         "class_id": candidate.class_id,
         "grade_item_id": candidate.grade_item_id,
         "grade_item_revision": candidate.grade_item_revision,
-        "grade_item_revision_sha256": (
-            candidate.grade_item_revision_sha256
-        ),
+        "grade_item_revision_sha256": (candidate.grade_item_revision_sha256),
         "work": {
             "module_id": work.module_id,
             "class_id": work.class_id,
             "work_id": work.work_id,
         },
-        "registration_revision": (
-            candidate.work_reference.registration_revision
-        ),
+        "registration_revision": (candidate.work_reference.registration_revision),
         "membership_revision": candidate.membership_revision,
         "supersedes_revision": candidate.supersedes_revision,
         "decision": candidate.decision,
@@ -8470,9 +7844,7 @@ def _grade_item_membership_authoring_preview_to_dict(
         "rationale": candidate.rationale,
         "decided_at": candidate.decided_at.isoformat(),
         "history": list(preview.history),
-        "latest_persisted_decision_sha256": (
-            preview.latest_persisted_decision_sha256
-        ),
+        "latest_persisted_decision_sha256": (preview.latest_persisted_decision_sha256),
         "expected_current_grade_item_revision": (
             preview.expected_current_grade_item_revision
         ),
@@ -8493,11 +7865,7 @@ def _render_grade_item_membership_authoring_preview(
             {
                 "mode": "preview",
                 "write_confirmed": confirmation_supplied,
-                "preview": (
-                    _grade_item_membership_authoring_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_grade_item_membership_authoring_preview_to_dict(preview)),
                 "selection_action": "not_performed",
             }
         )
@@ -8508,15 +7876,9 @@ def _render_grade_item_membership_authoring_preview(
     print(f"operation: {preview.operation}")
     print(f"Grade Item: {candidate.grade_item_id}")
     print(f"Grade Item revision: {candidate.grade_item_revision}")
-    print(
-        "Grade Item revision digest: "
-        f"{candidate.grade_item_revision_sha256}"
-    )
+    print(f"Grade Item revision digest: {candidate.grade_item_revision_sha256}")
     print(f"work: {work.module_id}/{work.work_id}")
-    print(
-        "registration revision: "
-        f"{candidate.work_reference.registration_revision}"
-    )
+    print(f"registration revision: {candidate.work_reference.registration_revision}")
     print(f"membership revision: {candidate.membership_revision}")
     print(f"decision: {candidate.decision}")
     assignment = candidate.academic_period
@@ -8542,8 +7904,7 @@ def _render_grade_item_membership_authoring_preview(
     else:
         print("confirmation supplied: no")
         print(
-            "NO MEMBERSHIP WRITE PERFORMED; current membership selection "
-            "is unchanged"
+            "NO MEMBERSHIP WRITE PERFORMED; current membership selection is unchanged"
         )
         print("rerun with --confirm-write to authorize a fresh write")
 
@@ -8558,11 +7919,7 @@ def _render_grade_item_membership_authoring_result(
             {
                 "mode": "written",
                 "write_confirmed": True,
-                "preview": (
-                    _grade_item_membership_authoring_preview_to_dict(
-                        preview
-                    )
-                ),
+                "preview": (_grade_item_membership_authoring_preview_to_dict(preview)),
                 "result": {
                     "write_disposition": result.write_disposition,
                     "written_revision": result.written_revision,
@@ -8584,10 +7941,7 @@ def _render_grade_item_membership_authoring_result(
         "previous current membership revision: "
         f"{previous if previous is not None else 'none'}"
     )
-    print(
-        "membership selection action: "
-        f"{result.selection_action.replace('_', ' ')}"
-    )
+    print(f"membership selection action: {result.selection_action.replace('_', ' ')}")
 
 
 def _grade_item_selection_preview_to_dict(
@@ -8628,15 +7982,9 @@ def _render_grade_item_selection_preview(
     print(f"target status: {preview.target_status}")
     print(f"target revision digest: {preview.target.revision_sha256}")
     print(f"latest persisted revision: {preview.latest_revision}")
-    print(
-        "target is latest: "
-        f"{'yes' if preview.target_is_latest else 'no'}"
-    )
+    print(f"target is latest: {'yes' if preview.target_is_latest else 'no'}")
     current = preview.expected_current_revision
-    print(
-        "currently selected revision: "
-        f"{current if current is not None else 'none'}"
-    )
+    print(f"currently selected revision: {current if current is not None else 'none'}")
     if confirmation_supplied:
         print("confirmation supplied: yes")
         print("selecting this exact revision after live CAS revalidation")
@@ -8659,9 +8007,7 @@ def _render_grade_item_selection_result(
                 "preview": _grade_item_selection_preview_to_dict(preview),
                 "result": {
                     "selection_disposition": result.selection_disposition,
-                    "previous_current_revision": (
-                        result.previous_current_revision
-                    ),
+                    "previous_current_revision": (result.previous_current_revision),
                     "selected_revision": result.selected_revision,
                     "selected_status": result.selected_status,
                     "authoring_action": "not_performed",
@@ -8674,10 +8020,7 @@ def _render_grade_item_selection_result(
         f"{result.selected_revision} ({result.selection_disposition})"
     )
     previous = result.previous_current_revision
-    print(
-        "previous current revision: "
-        f"{previous if previous is not None else 'none'}"
-    )
+    print(f"previous current revision: {previous if previous is not None else 'none'}")
     print(f"selected status: {result.selected_status}")
     print("authoring action: not performed")
 
@@ -8689,9 +8032,7 @@ def _grade_item_authoring_preview_to_dict(
         "actor_id": preview.actor_id,
         "operation": preview.operation,
         "history_before": list(preview.history_before),
-        "latest_revision_sha256_before": (
-            preview.latest_revision_sha256_before
-        ),
+        "latest_revision_sha256_before": (preview.latest_revision_sha256_before),
         "candidate_sha256": preview.candidate_sha256,
         "candidate": grade_item_revision_to_dict(preview.candidate),
     }
@@ -8730,8 +8071,7 @@ def _render_grade_item_authoring_preview(
             else "none"
         )
         print(
-            "weighting metadata only: "
-            f"category={category} | relative_weight={relative}"
+            f"weighting metadata only: category={category} | relative_weight={relative}"
         )
     if confirmation_supplied:
         print("confirmation supplied: yes")
@@ -8755,15 +8095,9 @@ def _render_grade_item_authoring_result(
                 "preview": _grade_item_authoring_preview_to_dict(preview),
                 "result": {
                     "write_disposition": result.write_disposition,
-                    "written_revision": (
-                        result.preview.candidate.grade_item_revision
-                    ),
-                    "stored_revision_sha256": (
-                        result.stored_revision_sha256
-                    ),
-                    "selected_revision_after": (
-                        result.selected_revision_after
-                    ),
+                    "written_revision": (result.preview.candidate.grade_item_revision),
+                    "stored_revision_sha256": (result.stored_revision_sha256),
+                    "selected_revision_after": (result.selected_revision_after),
                     "selection_action": "not_performed",
                 },
             }
@@ -8771,8 +8105,7 @@ def _render_grade_item_authoring_result(
         return
     revision = result.preview.candidate.grade_item_revision
     print(
-        f"Write committed: Grade Item revision {revision} "
-        f"({result.write_disposition})"
+        f"Write committed: Grade Item revision {revision} ({result.write_disposition})"
     )
     selected = result.selected_revision_after
     print(
@@ -8782,9 +8115,7 @@ def _render_grade_item_authoring_result(
     print("selection action: not performed")
 
 
-def _render_grade_items_review(
-    review: GradeItemsReview, output_format: str
-) -> None:
+def _render_grade_items_review(review: GradeItemsReview, output_format: str) -> None:
     if output_format == "json":
         _print_json(grade_items_review_to_dict(review))
         return
@@ -8799,9 +8130,7 @@ def _render_grade_items_review(
         return
     for row in review.items:
         selected = (
-            str(row.selected_revision)
-            if row.selected_revision is not None
-            else "none"
+            str(row.selected_revision) if row.selected_revision is not None else "none"
         )
         title = row.title or "(no selected revision)"
         status = row.status or "unselected"
@@ -8850,17 +8179,12 @@ def _render_grade_items_review(
     print("read-only review; no Grade Item or membership state changed")
 
 
-def _render_new_evidence_review(
-    review: NewEvidenceReview, output_format: str
-) -> None:
+def _render_new_evidence_review(review: NewEvidenceReview, output_format: str) -> None:
     if output_format == "json":
         _print_json(new_evidence_review_to_dict(review))
         return
     print(f"New Evidence review | Grade Item: {review.grade_item_id}")
-    print(
-        "work: "
-        f"{review.work.module_id}/{review.work.class_id}/{review.work.work_id}"
-    )
+    print(f"work: {review.work.module_id}/{review.work.class_id}/{review.work.work_id}")
     print(f"publication: {review.publication_id}")
     print(f"projection source: {review.projection_source_status}")
     membership: str = review.membership_state
@@ -8986,13 +8310,10 @@ def _render_evidence_inspection(
         print("No evidence items matched the exact filters.")
         return
     print(
-        "item | student | target | standards | result_kind | typed_value | "
-        "eligibility"
+        "item | student | target | standards | result_kind | typed_value | eligibility"
     )
     for item in result.items:
-        subject_id = (
-            item.subject.student_id if item.subject is not None else "none"
-        )
+        subject_id = item.subject.student_id if item.subject is not None else "none"
         target_id = item.target.target_id or "none"
         target_text = f"{item.target.target_kind}/{target_id}"
         if item.target.owning_system is not None:
@@ -9127,10 +8448,7 @@ def _render_publication_verification(
         print(f"legacy exact reader versions: {versions}")
 
     if support.reader_compatibility_reason is not None:
-        print(
-            "reader compatibility reason: "
-            f"{support.reader_compatibility_reason}"
-        )
+        print(f"reader compatibility reason: {support.reader_compatibility_reason}")
 
     print(f"support status: {support.overall_state}")
     if support.reason_codes:

@@ -685,11 +685,14 @@ def _run_preview_review_acceptance(
         CLASS_ID,
         derivation_id,
     ) == (1,)
-    assert get_current_grouping_signal_review_revision(
-        workspace,
-        CLASS_ID,
-        derivation_id,
-    ) is None
+    assert (
+        get_current_grouping_signal_review_revision(
+            workspace,
+            CLASS_ID,
+            derivation_id,
+        )
+        is None
+    )
 
     selected = select_grouping_signal_review_revision(
         workspace,

@@ -108,15 +108,18 @@ class NewEvidenceRow:
             raise NewEvidenceWorkflowScopeError("recommended_task is invalid.")
 
         if self.membership_state != "included":
-            if any(
-                value is not None
-                for value in (
-                    self.eligibility_status,
-                    self.selected_eligibility_revision,
-                    self.selected_eligibility_disposition,
-                    self.eligibility_source_state,
+            if (
+                any(
+                    value is not None
+                    for value in (
+                        self.eligibility_status,
+                        self.selected_eligibility_revision,
+                        self.selected_eligibility_disposition,
+                        self.eligibility_source_state,
+                    )
                 )
-            ) or self.operative_included:
+                or self.operative_included
+            ):
                 raise NewEvidenceWorkflowScopeError(
                     "Eligibility state must not be invented before included membership."
                 )
@@ -208,12 +211,16 @@ def project_new_evidence_review(
     class_id: str,
     grade_item_id: str,
     authorized_snapshot: AuthorizedProjectionSnapshot,
+    *,
+    target_item_id: str | None = None,
 ) -> NewEvidenceReview:
-    """Project one exact authorized evidence snapshot into teacher review state.
+    """Project current eligibility from an exact authorized snapshot.
 
-    Authorization must already have occurred through the established projection
-    cache boundary. This function never opens another projection snapshot and
-    performs no writes.
+    The default is the complete teacher review. ``target_item_id`` is an
+    internal, one-row *action-validation* scope: its status summary describes
+    only that row and must never be shown as whole-assessment coverage.
+    Membership and that source's current canonical state are still reloaded.
+    This function neither grants authorization nor creates any records.
     """
 
     if not isinstance(authorized_snapshot, AuthorizedProjectionSnapshot):
@@ -238,6 +245,16 @@ def project_new_evidence_review(
     )
     membership_state = _membership_state(membership)
 
+    items = snapshot.inventory.items
+    if target_item_id is not None:
+        if not isinstance(target_item_id, str) or not target_item_id:
+            raise NewEvidenceWorkflowScopeError("Invalid exact source item ID.")
+        items = tuple(item for item in items if item.item_id == target_item_id)
+        if len(items) != 1:
+            raise NewEvidenceWorkflowScopeError(
+                "Exactly one item must match the authorized source ID."
+            )
+
     rows = tuple(
         _project_row(
             workspace_root,
@@ -248,7 +265,7 @@ def project_new_evidence_review(
             item,
         )
         for item in sorted(
-            snapshot.inventory.items,
+            items,
             key=lambda value: (
                 value.subject.student_id if value.subject is not None else "",
                 value.item_id,

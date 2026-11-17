@@ -62,9 +62,7 @@ ConventionalGradeResultSelectDisposition: TypeAlias = Literal[
 
 _SHA256: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_JSON: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json$")
-_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(
-    r"^([1-9]\d*)\.json\.sha256$"
-)
+_REVISION_DIGEST: Final[re.Pattern[str]] = re.compile(r"^([1-9]\d*)\.json\.sha256$")
 _POINTER_KEYS: Final[frozenset[str]] = frozenset(
     {
         "schema_version",
@@ -122,9 +120,7 @@ class ConventionalGradeStorageTooLargeError(ConventionalGradeStorageReadError):
     code = "conventional_grade.too_large"
 
 
-class ConventionalGradeResultDependencyError(
-    ConventionalGradeStorageConflictError
-):
+class ConventionalGradeResultDependencyError(ConventionalGradeStorageConflictError):
     code = "conventional_grade.result_dependency_invalid"
 
 
@@ -153,9 +149,7 @@ class StoredConventionalGradeResult:
                 "result_sha256 must match exact immutable content."
             )
         try:
-            decoded = conventional_grade_result_snapshot_from_json_bytes(
-                self.content
-            )
+            decoded = conventional_grade_result_snapshot_from_json_bytes(self.content)
         except (
             ConventionalGradeSerializationError,
             ConventionalGradeValidationError,
@@ -261,11 +255,7 @@ def conventional_grade_result_family_directory(
         period,
         calendar,
     )
-    path = (
-        conventional_grades_directory(root, class_value)
-        / "subjects"
-        / subject_key
-    )
+    path = conventional_grades_directory(root, class_value) / "subjects" / subject_key
     _require_containment(root, path)
     return path
 
@@ -299,13 +289,16 @@ def conventional_grade_result_current_path(
     target_period: AcademicPeriodRef,
     calendar_revision: int,
 ) -> Path:
-    return conventional_grade_result_family_directory(
-        workspace_root,
-        class_id,
-        student_id,
-        target_period,
-        calendar_revision,
-    ) / "current.json"
+    return (
+        conventional_grade_result_family_directory(
+            workspace_root,
+            class_id,
+            student_id,
+            target_period,
+            calendar_revision,
+        )
+        / "current.json"
+    )
 
 
 def conventional_grade_result_revision_relative_path(
@@ -1369,9 +1362,7 @@ def _require_containment(root: Path, path: Path) -> None:
 
 def _identifier(value: object, field_name: str) -> str:
     if not isinstance(value, str):
-        raise ConventionalGradeStorageValidationError(
-            f"{field_name} must be a string."
-        )
+        raise ConventionalGradeStorageValidationError(f"{field_name} must be a string.")
     try:
         return validate_identifier(value, field_name)
     except IdentifierValidationError as error:

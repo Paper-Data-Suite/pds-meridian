@@ -109,9 +109,7 @@ def standards_configuration(
     return StandardsBasedGradeConfiguration(
         target_scale=SCALE,
         standards=(StandardGradeParticipation(STANDARD_ID, Decimal("1")),),
-        conversions=(
-            ProficiencyGradeConversion("proficient", Decimal(grade_value)),
-        ),
+        conversions=(ProficiencyGradeConversion("proficient", Decimal(grade_value)),),
         aggregation_strategy="weighted_mean",
         minimum_calculated_results=1,
     )
@@ -523,9 +521,10 @@ def test_canonical_basis_sha_and_fingerprint_are_deterministic() -> None:
 
     assert encoded.endswith(b"\n")
     assert hybrid_grade_calculation_input_to_json_bytes(inputs) == encoded
-    assert hybrid_grade_calculation_input_sha256(inputs) == hashlib.sha256(
-        encoded
-    ).hexdigest()
+    assert (
+        hybrid_grade_calculation_input_sha256(inputs)
+        == hashlib.sha256(encoded).hexdigest()
+    )
     fingerprint = hybrid_grade_calculation_fingerprint(inputs)
     assert calculate_hybrid_grade(inputs).calculation_fingerprint == fingerprint
 

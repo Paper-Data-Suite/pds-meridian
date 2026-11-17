@@ -136,9 +136,7 @@ def preview_grade_item_authoring(
     actor = _actor_id(actor_id)
     resolved_weighting_action: GradeItemWeightingAction
     if weighting_action is None:
-        resolved_weighting_action = (
-            "replace" if weighting is not None else "preserve"
-        )
+        resolved_weighting_action = "replace" if weighting is not None else "preserve"
     else:
         resolved_weighting_action = weighting_action
     if resolved_weighting_action not in {"preserve", "clear", "replace"}:
@@ -189,11 +187,7 @@ def preview_grade_item_authoring(
             title=title,
             purpose=purpose,
             status="active",
-            weighting=(
-                weighting
-                if resolved_weighting_action == "replace"
-                else None
-            ),
+            weighting=(weighting if resolved_weighting_action == "replace" else None),
             created_at=revised_at,
             revised_at=revised_at,
         )

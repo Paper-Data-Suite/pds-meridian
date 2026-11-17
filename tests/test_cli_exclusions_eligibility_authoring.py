@@ -176,10 +176,13 @@ def test_preview_uses_exact_authorization_and_does_not_write(
         lambda *args, **kwargs: pytest.fail("preview must not write"),
     )
 
-    assert cli.main(
-        _arguments(),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments(),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     _, inspect_kwargs = observed["inspect"]
@@ -199,9 +202,7 @@ def test_preview_uses_exact_authorization_and_does_not_write(
     assert author_kwargs["actor_id"] == "teacher_42"
     assert author_kwargs["policy_id"] == "teacher_local_eligibility"
     assert author_kwargs["policy_version"] == "1"
-    assert author_kwargs["reason_codes"] == (
-        "eligibility.teacher_exclusion",
-    )
+    assert author_kwargs["reason_codes"] == ("eligibility.teacher_exclusion",)
     assert author_kwargs["decided_at"] == NOW
 
     assert "Exclusions eligibility authoring preview" in output
@@ -241,10 +242,13 @@ def test_confirm_write_commits_preview_but_never_selects(
         commit,
     )
 
-    assert cli.main(
-        _arguments("--confirm-write"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [
@@ -281,10 +285,13 @@ def test_json_output_preserves_write_and_selection_boundary(
         lambda *args, **kwargs: _result(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-write", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-write", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     data = json.loads(capsys.readouterr().out)
 
     assert data["mode"] == "written"
@@ -292,9 +299,7 @@ def test_json_output_preserves_write_and_selection_boundary(
     assert data["preview"]["candidate_revision"] == 3
     assert data["preview"]["disposition"] == "excluded"
     assert data["preview"]["source_state"] == "superseded"
-    assert data["preview"]["reason_codes"] == [
-        "eligibility.teacher_exclusion"
-    ]
+    assert data["preview"]["reason_codes"] == ["eligibility.teacher_exclusion"]
     assert data["result"]["written_revision"] == 3
     assert data["result"]["selected_revision_before_write"] == 2
     assert data["result"]["selected_revision_after_write"] == 2

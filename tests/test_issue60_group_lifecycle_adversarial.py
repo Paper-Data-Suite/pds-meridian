@@ -63,9 +63,7 @@ def test_concord_group_evidence_never_becomes_individual_student_evidence(
         standards_library=scenario.standard_library,
     )
     group_entry = next(
-        entry
-        for entry in all_inputs.entries
-        if entry.source.item_id == group.item_id
+        entry for entry in all_inputs.entries if entry.source.item_id == group.item_id
     )
     assert group_entry.target_kind == "concord_group"
     assert group_entry.mapping_status == "mapped"
@@ -153,9 +151,7 @@ def test_publication_withdrawal_changes_basis_without_authoring_new_result(
         standards_library=aggregation.standard_library,
     )
     fresh_quillan = next(
-        entry
-        for entry in fresh_inputs.entries
-        if entry.source == old_quillan.source
+        entry for entry in fresh_inputs.entries if entry.source == old_quillan.source
     )
     assert fresh_quillan.status == "excluded"
     assert fresh_quillan.exclusion_reason == "eligibility_not_included"
@@ -204,9 +200,7 @@ def test_publication_supersession_does_not_author_reassessment_or_select_new_res
         if entry.source.work.module_id == "scoreform"
     )
     assert len(old_scoreform) == 2
-    old_publication_ids = {
-        entry.source.publication_id for entry in old_scoreform
-    }
+    old_publication_ids = {entry.source.publication_id for entry in old_scoreform}
     assert old_publication_ids == {
         workspace.mixed.publications["scoreform"].publication_id
     }
@@ -254,10 +248,7 @@ def test_publication_supersession_does_not_author_reassessment_or_select_new_res
         after_reassessment.selected.decision_sha256
         == before_reassessment.selected.decision_sha256
     )
-    assert (
-        after_reassessment.selected.decision
-        == before_reassessment.selected.decision
-    )
+    assert after_reassessment.selected.decision == before_reassessment.selected.decision
 
     still_selected = load_current_standard_proficiency_result(
         root,

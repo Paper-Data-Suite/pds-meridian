@@ -40,9 +40,7 @@ GRADE_ITEM_PURPOSES: Final[frozenset[str]] = frozenset(
 )
 GRADE_ITEM_STATUSES: Final[frozenset[str]] = frozenset({"active", "archived"})
 
-_WEIGHTING_KEYS: Final[frozenset[str]] = frozenset(
-    {"category_id", "relative_weight"}
-)
+_WEIGHTING_KEYS: Final[frozenset[str]] = frozenset({"category_id", "relative_weight"})
 _WORK_REFERENCE_KEYS: Final[frozenset[str]] = frozenset(
     {"work", "registration_revision"}
 )
@@ -147,9 +145,7 @@ class GradeItemRevision:
         if self.schema_version != GRADE_ITEM_SCHEMA_VERSION:
             raise GradeItemValidationError('schema_version must be "1".')
         if self.record_type != GRADE_ITEM_RECORD_TYPE:
-            raise GradeItemValidationError(
-                'record_type must be "meridian_grade_item".'
-            )
+            raise GradeItemValidationError('record_type must be "meridian_grade_item".')
         object.__setattr__(self, "class_id", _identifier(self.class_id, "class_id"))
         object.__setattr__(
             self,
@@ -178,9 +174,7 @@ class GradeItemRevision:
             )
         if self.status not in GRADE_ITEM_STATUSES:
             raise GradeItemValidationError(
-                "status must be one of: "
-                + ", ".join(sorted(GRADE_ITEM_STATUSES))
-                + "."
+                "status must be one of: " + ", ".join(sorted(GRADE_ITEM_STATUSES)) + "."
             )
         if self.weighting is not None and not isinstance(
             self.weighting, GradeItemWeightingMetadata
@@ -240,13 +234,9 @@ def validate_grade_item_revision_transition(
     if new.class_id != old.class_id:
         raise GradeItemValidationError("candidate class_id must match previous.")
     if new.grade_item_id != old.grade_item_id:
-        raise GradeItemValidationError(
-            "candidate grade_item_id must match previous."
-        )
+        raise GradeItemValidationError("candidate grade_item_id must match previous.")
     if new.created_at != old.created_at:
-        raise GradeItemValidationError(
-            "candidate created_at must match previous."
-        )
+        raise GradeItemValidationError("candidate created_at must match previous.")
     if new.grade_item_revision != old.grade_item_revision + 1:
         raise GradeItemValidationError(
             "candidate grade_item_revision must be exactly one greater than previous."
@@ -267,9 +257,7 @@ def grade_item_weighting_to_dict(
 ) -> dict[str, object]:
     """Convert weighting metadata to its exact JSON-native shape."""
     if not isinstance(value, GradeItemWeightingMetadata):
-        raise GradeItemValidationError(
-            "weighting must be GradeItemWeightingMetadata."
-        )
+        raise GradeItemValidationError("weighting must be GradeItemWeightingMetadata.")
     validated = GradeItemWeightingMetadata(
         category_id=value.category_id,
         relative_weight=value.relative_weight,
@@ -473,9 +461,7 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 
 def _reject_constant(value: str) -> object:
-    raise GradeItemSerializationError(
-        f"nonfinite JSON number is invalid: {value}."
-    )
+    raise GradeItemSerializationError(f"nonfinite JSON number is invalid: {value}.")
 
 
 def _exact_mapping(
@@ -521,8 +507,7 @@ def _title(value: object) -> str:
             "title must not contain leading or trailing whitespace."
         )
     if any(
-        unicodedata.category(character) in {"Cc", "Zl", "Zp"}
-        for character in value
+        unicodedata.category(character) in {"Cc", "Zl", "Zp"} for character in value
     ):
         raise GradeItemValidationError(
             "title must be single-line and free of control characters."

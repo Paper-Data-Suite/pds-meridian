@@ -65,9 +65,7 @@ def _prepared() -> GuidedProjectionResult:
         GuidedProjectionResult,
         SimpleNamespace(
             authorized=SimpleNamespace(
-                current_context=SimpleNamespace(
-                    publication=SimpleNamespace(work=WORK)
-                )
+                current_context=SimpleNamespace(publication=SimpleNamespace(work=WORK))
             )
         ),
     )
@@ -95,9 +93,7 @@ def test_proficiency_menu_carries_context_without_raw_ids(monkeypatch) -> None:
             object,
             SimpleNamespace(
                 scale=SimpleNamespace(
-                    levels=(
-                        SimpleNamespace(level_id="meeting", label="Meeting"),
-                    )
+                    levels=(SimpleNamespace(level_id="meeting", label="Meeting"),)
                 )
             ),
         ),

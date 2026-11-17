@@ -18,6 +18,7 @@ def _console_script_path() -> Path:
     script_name = "meridian.exe" if os.name == "nt" else "meridian"
     return Path(sysconfig.get_path("scripts")) / script_name
 
+
 def test_main_without_arguments_launches_teacher_menu(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -121,6 +122,7 @@ def test_python_module_menu_entrypoints_are_read_only(
     assert "1. Review New Evidence" in result.stdout
     assert "8. Explain" in result.stdout
     assert list(tmp_path.iterdir()) == before
+
 
 def test_console_script_path_uses_python_scripts_directory(
     monkeypatch: pytest.MonkeyPatch,

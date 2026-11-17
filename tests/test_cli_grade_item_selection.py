@@ -123,10 +123,13 @@ def test_confirm_select_commits_exact_preview_without_authoring(
 
     monkeypatch.setattr(cli, "commit_grade_item_selection_preview", fake_commit)
 
-    assert cli.main(
-        _arguments("--confirm-select"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     output = capsys.readouterr().out
 
     assert observed == [("synthetic-workspace", preview)]
@@ -152,10 +155,13 @@ def test_json_confirmation_reports_exact_selector_state(
         lambda *args: _result_stub(),
     )
 
-    assert cli.main(
-        _arguments("--confirm-select", "--format", "json"),
-        dependencies=object(),  # type: ignore[arg-type]
-    ) == 0
+    assert (
+        cli.main(
+            _arguments("--confirm-select", "--format", "json"),
+            dependencies=object(),  # type: ignore[arg-type]
+        )
+        == 0
+    )
     payload = json.loads(capsys.readouterr().out)
 
     assert payload["mode"] == "selected"

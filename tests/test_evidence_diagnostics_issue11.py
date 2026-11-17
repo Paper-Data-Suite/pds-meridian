@@ -313,9 +313,9 @@ def test_json_preserves_native_scalar_types_and_value_variants(
     )
     payload = diagnostics.evidence_inspection_to_dict(result)
     values = {
-        cast(dict[str, object], entry)["item_id"]: cast(
-            dict[str, object], entry
-        )["value"]
+        cast(dict[str, object], entry)["item_id"]: cast(dict[str, object], entry)[
+            "value"
+        ]
         for entry in cast(list[object], payload["items"])
     }
 
