@@ -1,8 +1,8 @@
 # Issue #126 — Slice A: correction and attempt contract baseline
 
-**Branch:** `126-verified-correction-attempt-reassessment-management`  
-**Source base:** merged Meridian `main` at `cb960283d20db13fd7498f7f357d9a1d2d28ef5f` (initial branch state; recheck future HEAD).  
-**Status:** Baseline contract and synthetic regression completed; **no correction-aware teacher workflow has yet been implemented**.  
+**Branch:** `126-verified-correction-attempt-reassessment-management`
+**Source base:** merged Meridian `main` at `cb960283d20db13fd7498f7f357d9a1d2d28ef5f` (initial branch state; recheck future HEAD).
+**Status:** Baseline contract and synthetic regression completed; **no correction-aware teacher workflow has yet been implemented**.
 **Scope:** Read-only audit, synthetic canonical-model tests and the precise Slice B entry contract. No new persisted schema, producer writes, policy change or shared Core dependency.
 
 ## Decision A1 — Existing Meridian authority is sufficient for explicit selection

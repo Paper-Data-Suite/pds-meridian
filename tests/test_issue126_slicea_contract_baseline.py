@@ -164,7 +164,7 @@ def test_attempt_identity_remains_exact_to_producer_snapshot() -> None:
     assert first.source_snapshot != different_snapshot.source_snapshot
 
 
-def test_reassessment_is_separate_explicit_interpretation_of_selected_attempts() -> None:
+def test_reassessment_needs_explicit_interpretation() -> None:
     multi = _decision((_attempt(1), _attempt(2)))
     assert not hasattr(multi, "mode")
     assert REASSESSMENT_RELATIONSHIP_BASIS == "explicit"
