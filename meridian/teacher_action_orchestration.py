@@ -38,6 +38,7 @@ _SUPPORTED: frozenset[str] = frozenset(
         "eligibility",
         "attempt_policy",
         "attempt_decision",
+        "reassessment_decision",
         "standards_association",
         "proficiency_result",
     }

@@ -20,6 +20,7 @@ ActionKind: TypeAlias = Literal[
     "eligibility",
     "attempt_policy",
     "attempt_decision",
+    "reassessment_decision",
     "standards_association",
     "proficiency_result",
 ]
@@ -70,6 +71,7 @@ _KINDS: Final[frozenset[str]] = frozenset(
         "eligibility",
         "attempt_policy",
         "attempt_decision",
+        "reassessment_decision",
         "standards_association",
         "proficiency_result",
     }
