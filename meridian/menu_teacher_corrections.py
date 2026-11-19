@@ -1,8 +1,8 @@
-"""#126-F1 assessment-bound, read-only correction and attempt exception queue.
+"""#126-F1/F2A assessment queue and explicitly reviewed single correction action.
 
-No teacher decision or action is authored here. A fresh source-scoped #125/#30/#31
-projection is required; original native observations are never ranked, inferred
-as corrections, or selected by this menu. Consequential treatment follows in F2.
+The queue remains a read-only #125/#30/#31 projection; original native
+observations are never ranked or inferred as corrections. One explicit
+teacher-reviewed #30 Save/Use action is delegated to F2A.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from meridian.assessment_attempt_inventory import (
     StudentAttemptInventoryRow,
     project_assessment_attempt_inventory,
 )
+from meridian.guided_attempts import GuidedAttemptDependencies
 from meridian.guided_eligibility import (
     GuidedEligibilityDependencies,
     GuidedEligibilityGradeItemChoice,
@@ -28,6 +29,9 @@ from meridian.guided_eligibility import (
 )
 from meridian.guided_projection import GuidedProjectionResult
 from meridian.menu_teacher_attempts import _choose_grade_item
+from meridian.menu_teacher_correction_decision import (
+    run_teacher_correction_decision_menu,
+)
 from meridian.menu_ui import (
     ClearFunction,
     InputFunction,
@@ -72,7 +76,7 @@ def _load_inventory(
 
 @dataclass(frozen=True, slots=True)
 class CorrectionsMenuPorts:
-    """Read-only seams for injection; no author, writer or selector is exposed."""
+    """Bounded assessment loaders plus explicit guarded correction action."""
 
     grade_items_loader: Callable[
         [Path, ModuleWorkRef, GuidedEligibilityDependencies],
@@ -82,6 +86,7 @@ class CorrectionsMenuPorts:
         [Path, str, GuidedProjectionResult, str, str],
         AssessmentAttemptInventory,
     ] = _load_inventory
+    correction_handler: Callable[..., bool] = run_teacher_correction_decision_menu
 
 
 def _safe(value: object, *, limit: int = 112) -> str:
@@ -135,7 +140,8 @@ def _print_queue(
         f"Shared/unmatched evidence: "
         f"{inventory.shared_item_count}/{inventory.unmatched_item_count}",
         "Native attempts and scores do not establish a correction or retake.",
-        "This is a read-only review. No academic decision is saved.",
+        "Queue navigation is read-only. No academic decision is saved.",
+        "An explicit per-student Save and Use confirmation is required.",
         "",
         ("ATTENTION NEEDED" if attention_only else "ALL AUTHORIZED STUDENTS")
         + f" — page {page}/{_page_count(rows)}",
@@ -205,11 +211,16 @@ def _show_student(
     clear_fn: ClearFunction,
     inventory: AssessmentAttemptInventory,
     row: StudentAttemptInventoryRow,
+    *,
+    workspace_root: Path,
+    prepared: GuidedProjectionResult,
+    attempt_dependencies: GuidedAttemptDependencies,
+    correction_handler: Callable[..., bool],
 ) -> bool:
-    """Return True only on an explicit refresh; M/Q propagate to parent shell."""
+    """Return True when canonical assessment must be reloaded; M/Q propagate."""
     while True:
         clear_fn()
-        print_menu_header(output, "Review Student Attempts (READ ONLY)")
+        print_menu_header(output, "Review Student Attempts")
         write_lines(
             output,
             f"Assessment: {_safe(inventory.assessment_title or 'Selected assessment')}",
@@ -232,7 +243,8 @@ def _show_student(
             "",
             "H. Source attempt history    T. Technical Details",
             "R. Refresh assessment review",
-            "F2 will add explicitly reviewed correction/reassessment decisions.",
+            "C. Review teacher-verified correction (explicit single-attempt use)",
+            "Genuine reassessment relationships are added in F2B.",
             "",
         )
         print_standard_navigation(output)
@@ -241,6 +253,17 @@ def _show_student(
             return False
         if choice.casefold() == "r":
             return True
+        if choice.casefold() == "c":
+            return correction_handler(
+                workspace_root,
+                prepared,
+                inventory,
+                row,
+                attempt_dependencies,
+                input_fn,
+                output,
+                clear_fn,
+            )
         if choice.casefold() == "h":
             clear_fn()
             print_menu_header(output, "Source Attempt History (READ ONLY)")
@@ -279,7 +302,7 @@ def _show_student(
             write_lines(output, "", "Technical identifiers are not academic decisions.")
             pause_for_user(input_fn)
             continue
-        write_lines(output, "Choose H, T, R, B, M, or Q.")
+        write_lines(output, "Choose C, H, T, R, B, M, or Q.")
         pause_for_user(input_fn)
 
 
@@ -328,9 +351,11 @@ def run_assessment_corrections_menu(
     output: TextIO,
     clear_fn: ClearFunction,
     ports: CorrectionsMenuPorts | None = None,
+    attempt_dependencies: GuidedAttemptDependencies | None = None,
 ) -> None:
     """Enter from exact authorized assessment; never ask for IDs or save a decision."""
     services = ports or CorrectionsMenuPorts()
+    active_attempt_dependencies = attempt_dependencies or GuidedAttemptDependencies()
     try:
         publication = prepared.authorized.current_context.publication
         work = publication.work
@@ -441,7 +466,15 @@ def run_assessment_corrections_menu(
                 row = window[index - 1]
                 session_context.select_student(row.student_id)
                 reload_needed = _show_student(
-                    output, input_fn, clear_fn, inventory, row
+                    output,
+                    input_fn,
+                    clear_fn,
+                    inventory,
+                    row,
+                    workspace_root=workspace_root,
+                    prepared=prepared,
+                    attempt_dependencies=active_attempt_dependencies,
+                    correction_handler=services.correction_handler,
                 )
                 continue
         write_lines(output, "Choose a listed student, A/E, N, P, R, B, M, or Q.")
