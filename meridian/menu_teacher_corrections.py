@@ -1,8 +1,9 @@
-"""#126-F1/F2A/F2B assessment queue and explicitly reviewed teacher decisions.
+"""#126-F1/F2A/F2B/F3A assessment queue, history and recovery entry.
 
 The queue remains a read-only #125/#30/#31 projection; original native
 observations are never ranked or inferred as corrections. One explicit
 teacher-reviewed #30 correction and #30/#31 reassessment actions are delegated.
+F3A exposes bounded canonical history and existing class journal review.
 """
 
 from __future__ import annotations
@@ -31,6 +32,10 @@ from meridian.guided_projection import GuidedProjectionResult
 from meridian.menu_teacher_attempts import _choose_grade_item
 from meridian.menu_teacher_correction_decision import (
     run_teacher_correction_decision_menu,
+)
+from meridian.menu_teacher_correction_history import (
+    run_bound_teacher_recovery_menu,
+    run_teacher_corrections_history_menu,
 )
 from meridian.menu_teacher_reassessment_decision import (
     run_teacher_reassessment_decision_menu,
@@ -91,6 +96,8 @@ class CorrectionsMenuPorts:
     ] = _load_inventory
     correction_handler: Callable[..., bool] = run_teacher_correction_decision_menu
     reassessment_handler: Callable[..., bool] = run_teacher_reassessment_decision_menu
+    decision_history_handler: Callable[..., None] = run_teacher_corrections_history_menu
+    recovery_handler: Callable[..., None] = run_bound_teacher_recovery_menu
 
 
 def _safe(value: object, *, limit: int = 112) -> str:
@@ -172,6 +179,7 @@ def _print_queue(
         "",
         "A. All authorized students" if attention_only else "E. Attention needed",
         "N. Next page    P. Previous page    R. Refresh current source",
+        "I. Review interrupted saves (class-wide journal)",
         "",
     )
     print_standard_navigation(output)
@@ -221,6 +229,9 @@ def _show_student(
     attempt_dependencies: GuidedAttemptDependencies,
     correction_handler: Callable[..., bool],
     reassessment_handler: Callable[..., bool],
+    decision_history_handler: Callable[..., None] | None = None,
+    recovery_handler: Callable[..., None] | None = None,
+    session_context: TeacherSessionContext | None = None,
 ) -> bool:
     """Return True when canonical assessment must be reloaded; M/Q propagate."""
     while True:
@@ -247,6 +258,8 @@ def _show_student(
             output,
             "",
             "H. Source attempt history    T. Technical Details",
+            "D. Canonical #30/#31 decision history (read only)",
+            "I. Review interrupted saves (class-wide journal)",
             "R. Refresh assessment review",
             "C. Review teacher-verified correction (explicit single-attempt use)",
             "S. Review genuine reassessment (explicit #30 and #31)",
@@ -280,6 +293,34 @@ def _show_student(
                 output,
                 clear_fn,
             )
+        if choice.casefold() == "d":
+            if decision_history_handler is None:
+                write_lines(output, "Decision history requires a bound assessment.")
+                return True
+            decision_history_handler(
+                workspace_root,
+                prepared,
+                inventory,
+                row,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            return True
+        if choice.casefold() == "i":
+            if recovery_handler is None or session_context is None:
+                write_lines(output, "Recovery requires a bound class session.")
+                return True
+            recovery_handler(
+                workspace_root,
+                prepared,
+                inventory,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            return True
         if choice.casefold() == "h":
             clear_fn()
             print_menu_header(output, "Source Attempt History (READ ONLY)")
@@ -318,7 +359,7 @@ def _show_student(
             write_lines(output, "", "Technical identifiers are not academic decisions.")
             pause_for_user(input_fn)
             continue
-        write_lines(output, "Choose C, S, H, T, R, B, M, or Q.")
+        write_lines(output, "Choose C, S, D, I, H, T, R, B, M, or Q.")
         pause_for_user(input_fn)
 
 
@@ -470,6 +511,18 @@ def run_assessment_corrections_menu(
         if lower == "r":
             reload_needed = True
             continue
+        if lower == "i":
+            services.recovery_handler(
+                workspace_root,
+                prepared,
+                inventory,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
+            reload_needed = True
+            continue
         if lower == "n":
             page = min(page + 1, _page_count(rows))
             continue
@@ -492,9 +545,12 @@ def run_assessment_corrections_menu(
                     attempt_dependencies=active_attempt_dependencies,
                     correction_handler=services.correction_handler,
                     reassessment_handler=services.reassessment_handler,
+                    decision_history_handler=services.decision_history_handler,
+                    recovery_handler=services.recovery_handler,
+                    session_context=session_context,
                 )
                 continue
-        write_lines(output, "Choose a listed student, A/E, N, P, R, B, M, or Q.")
+        write_lines(output, "Choose a listed student, A/E, N, P, R, I, B, M, or Q.")
         pause_for_user(input_fn)
 
 
