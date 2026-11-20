@@ -1,10 +1,11 @@
-"""#126-F1/F2A/F2B/F3A/F3B1 assessment queue and verified continuation.
+"""#126-F1/F2A/F2B/F3A/F3B1/F3B2 reviewed assessment continuation.
 
 The queue remains a read-only #125/#30/#31 projection; original native
 observations are never ranked or inferred as corrections. One explicit
 teacher-reviewed #30 correction and #30/#31 reassessment actions are delegated.
 F3A exposes bounded canonical history and existing class journal review.
 F3B1 gates Standards on fresh canonical #30/#31 state and diagnoses #31.
+F3B2 offers original-receipt-only selection restart for written #31.
 """
 
 from __future__ import annotations
@@ -37,6 +38,9 @@ from meridian.menu_teacher_correction_decision import (
 from meridian.menu_teacher_correction_history import (
     run_bound_teacher_recovery_menu,
     run_teacher_corrections_history_menu,
+)
+from meridian.menu_teacher_pair_restart import (
+    run_teacher_exact_pair_restart_menu,
 )
 from meridian.menu_teacher_reassessment_decision import (
     run_teacher_reassessment_decision_menu,
@@ -107,6 +111,7 @@ class CorrectionsMenuPorts:
     reassessment_recovery_handler: Callable[..., bool] = (
         run_read_only_reassessment_recovery_check
     )
+    pair_restart_handler: Callable[..., bool] = run_teacher_exact_pair_restart_menu
 
 
 def _safe(value: object, *, limit: int = 112) -> str:
@@ -243,6 +248,7 @@ def _show_student(
     session_context: TeacherSessionContext | None = None,
     standards_handler: Callable[..., bool] | None = None,
     reassessment_recovery_handler: Callable[..., bool] | None = None,
+    pair_restart_handler: Callable[..., bool] | None = None,
 ) -> bool:
     """Return True when canonical assessment must be reloaded; M/Q propagate."""
     while True:
@@ -273,6 +279,7 @@ def _show_student(
             "I. Review interrupted saves (class-wide journal)",
             "V. Continue to Standards (current decisions required)",
             "X. Inspect #31 reassessment recovery (read only)",
+            "Z. Resume written #31 (original receipt only)",
             "R. Refresh assessment review",
             "C. Review teacher-verified correction (explicit single-attempt use)",
             "S. Review genuine reassessment (explicit #30 and #31)",
@@ -362,6 +369,20 @@ def _show_student(
                 output,
                 clear_fn,
             )
+        if choice.casefold() == "z":
+            if pair_restart_handler is None or session_context is None:
+                write_lines(output, "Restart requires a bound class session.")
+                return True
+            return pair_restart_handler(
+                workspace_root,
+                prepared,
+                inventory,
+                row,
+                session_context,
+                input_fn,
+                output,
+                clear_fn,
+            )
         if choice.casefold() == "h":
             clear_fn()
             print_menu_header(output, "Source Attempt History (READ ONLY)")
@@ -400,7 +421,7 @@ def _show_student(
             write_lines(output, "", "Technical identifiers are not academic decisions.")
             pause_for_user(input_fn)
             continue
-        write_lines(output, "Choose C, S, D, I, V, X, H, T, R, B, M, or Q.")
+        write_lines(output, "Choose C, S, D, I, V, X, Z, H, T, R, B, M, or Q.")
         pause_for_user(input_fn)
 
 
@@ -593,6 +614,7 @@ def run_assessment_corrections_menu(
                     reassessment_recovery_handler=(
                         services.reassessment_recovery_handler
                     ),
+                    pair_restart_handler=services.pair_restart_handler,
                 )
                 continue
         write_lines(output, "Choose a listed student, A/E, N, P, R, I, B, M, or Q.")
