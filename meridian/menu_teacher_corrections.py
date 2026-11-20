@@ -1,8 +1,8 @@
-"""#126-F1/F2A assessment queue and explicitly reviewed single correction action.
+"""#126-F1/F2A/F2B assessment queue and explicitly reviewed teacher decisions.
 
 The queue remains a read-only #125/#30/#31 projection; original native
 observations are never ranked or inferred as corrections. One explicit
-teacher-reviewed #30 Save/Use action is delegated to F2A.
+teacher-reviewed #30 correction and #30/#31 reassessment actions are delegated.
 """
 
 from __future__ import annotations
@@ -31,6 +31,9 @@ from meridian.guided_projection import GuidedProjectionResult
 from meridian.menu_teacher_attempts import _choose_grade_item
 from meridian.menu_teacher_correction_decision import (
     run_teacher_correction_decision_menu,
+)
+from meridian.menu_teacher_reassessment_decision import (
+    run_teacher_reassessment_decision_menu,
 )
 from meridian.menu_ui import (
     ClearFunction,
@@ -87,6 +90,7 @@ class CorrectionsMenuPorts:
         AssessmentAttemptInventory,
     ] = _load_inventory
     correction_handler: Callable[..., bool] = run_teacher_correction_decision_menu
+    reassessment_handler: Callable[..., bool] = run_teacher_reassessment_decision_menu
 
 
 def _safe(value: object, *, limit: int = 112) -> str:
@@ -216,6 +220,7 @@ def _show_student(
     prepared: GuidedProjectionResult,
     attempt_dependencies: GuidedAttemptDependencies,
     correction_handler: Callable[..., bool],
+    reassessment_handler: Callable[..., bool],
 ) -> bool:
     """Return True when canonical assessment must be reloaded; M/Q propagate."""
     while True:
@@ -244,7 +249,7 @@ def _show_student(
             "H. Source attempt history    T. Technical Details",
             "R. Refresh assessment review",
             "C. Review teacher-verified correction (explicit single-attempt use)",
-            "Genuine reassessment relationships are added in F2B.",
+            "S. Review genuine reassessment (explicit #30 and #31)",
             "",
         )
         print_standard_navigation(output)
@@ -255,6 +260,17 @@ def _show_student(
             return True
         if choice.casefold() == "c":
             return correction_handler(
+                workspace_root,
+                prepared,
+                inventory,
+                row,
+                attempt_dependencies,
+                input_fn,
+                output,
+                clear_fn,
+            )
+        if choice.casefold() == "s":
+            return reassessment_handler(
                 workspace_root,
                 prepared,
                 inventory,
@@ -302,7 +318,7 @@ def _show_student(
             write_lines(output, "", "Technical identifiers are not academic decisions.")
             pause_for_user(input_fn)
             continue
-        write_lines(output, "Choose C, H, T, R, B, M, or Q.")
+        write_lines(output, "Choose C, S, H, T, R, B, M, or Q.")
         pause_for_user(input_fn)
 
 
@@ -475,6 +491,7 @@ def run_assessment_corrections_menu(
                     prepared=prepared,
                     attempt_dependencies=active_attempt_dependencies,
                     correction_handler=services.correction_handler,
+                    reassessment_handler=services.reassessment_handler,
                 )
                 continue
         write_lines(output, "Choose a listed student, A/E, N, P, R, B, M, or Q.")
