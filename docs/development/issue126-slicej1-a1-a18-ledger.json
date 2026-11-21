@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "issue": 126,
+  "stage": "J1 candidate; no final merge/release attestation",
+  "evidence_cutoff_commit": "0dacf27e7bb58336f36bc94cec73e9f64a7588b4",
+  "as_of_date": "2026-11-21",
+  "classroom_fixture": "29 synthetic students, six ScoreForm questions, 0/6 original and 6/6 teacher-reviewed correction as native Attempt 2; genuine separate retake not auto-selected",
+  "accepted_local_source_evidence": {
+    "I1": "500 passed, 2 symlink-permission skips",
+    "I2A": "506 passed, 2 symlink-permission skips",
+    "I2B": "552 passed, 2 symlink-permission skips",
+    "I3A": "629 passed, 2 symlink-permission skips",
+    "I3B": "133 passed, 0 skipped in targeted run"
+  },
+  "environment": {
+    "pds-core": "0.6.6",
+    "scoreform": "0.13.0",
+    "quillan": "0.10.6",
+    "pds-concord": "0.3.2",
+    "meridian_source_label": "0.4.2"
+  },
+  "provenance": {
+    "meridian_runtime": "source_checkout",
+    "official_meridian_release_wheel": "not_attested",
+    "official_dependency_wheel_hashes": "require_J1_validator_artifact_validation",
+    "candidate_built_wheel": "not_an_official_published_release"
+  },
+  "d_levels": {
+    "D0": "binding_contracts_present_review_needed",
+    "D1": "targeted_source_and_native_Windows_qualified",
+    "D2": "new_Core_UI_not_attested_by_0_6_6",
+    "D3": "official_noneditable_Meridian_wheel_not_attested",
+    "D4": "full_Suite_launcher_not_attested"
+  },
+  "outstanding_release_gates": [
+    "full_local_validate_repository_on_J1_candidate",
+    "eight_GitHub_CI_jobs_exact_final_PR_SHA",
+    "real_saved_teacher_profile",
+    "physical_ScoreForm_scan",
+    "manual_observed_teacher_journey",
+    "official_released_Meridian_wheel_and_release_hash",
+    "full_Suite_composition",
+    "Report9_issues_133_134_separate"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "gate": "Assessment-level entry",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Synthetic current-assessment entry and teacher-readable queue are covered.",
+      "evidence_paths": [
+        "tests/test_issue126_slicef1_assessment_corrections_queue.py",
+        "tests/test_issue126_slicei3a_installed_three_producer_teacher_journey.py"
+      ],
+      "conditional_variant": "Human end-to-end navigation and independent session observation remain open.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A2",
+      "gate": "Provenance fidelity",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Teacher-reviewed interpretation is distinct from producer-certified provenance and unresolved states.",
+      "evidence_paths": [
+        "tests/test_issue126_slicec_correction_interpretation.py",
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py"
+      ],
+      "conditional_variant": "Physical original source inspection and producer-owned causal metadata are not certified by these tests.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A3",
+      "gate": "Classroom correction",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Synthetic 29x6 ScoreForm 0/6 to 6/6 correction; selected #30 Attempt 2 and finalized #122 receipt.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei1_native_scoreform_29x6.py",
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py",
+        "tests/test_issue126_slicei3a_installed_three_producer_teacher_journey.py"
+      ],
+      "conditional_variant": "Full installed Meridian wheel, live saved profile, physical paper and human timing remain open.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A4",
+      "gate": "Real reassessment",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Distinct synthetic retake remains unselected; separate #31 actions have source regression coverage.",
+      "evidence_paths": [
+        "tests/test_issue126_slicee3b_production_reassessment_adapter.py",
+        "tests/test_issue126_slicei2a_native_correction_current.py"
+      ],
+      "conditional_variant": "A real second sitting and end-to-end human reassessment treatment remain unverified.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A5",
+      "gate": "Multiple attempts",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Explicit multi-attempt relationship and #31 guarded composition covered in source/native tests.",
+      "evidence_paths": [
+        "tests/test_issue126_sliced2b2_multi_attempt_coordinator.py",
+        "tests/test_issue126_slicef2b_teacher_reassessment_save_use.py"
+      ],
+      "conditional_variant": "No automatic arithmetic or universal proficiency policy; installed production journey for each #31 mode remains conditional.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A6",
+      "gate": "Source revisions",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Synthetic native attempt identity separated from publication and cache snapshots.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei1_native_scoreform_29x6.py",
+        "tests/test_issue126_slicec_correction_interpretation.py"
+      ],
+      "conditional_variant": "Producer-managed physical correction cause remains outside #126.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A7",
+      "gate": "Cross-producer honesty",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Installed Quillan and Concord public readers do not create ScoreForm-style attempt candidates.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei3a_installed_three_producer_teacher_journey.py",
+        "tests/test_issue117_producer_teacher_acceptance.py"
+      ],
+      "conditional_variant": "Live producer corrected-publication and Concord group-only variants require separate human/native proof.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A8",
+      "gate": "Historical preservation",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Original manifest and immutable #30/#31 histories retained during synthetic selection.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py",
+        "tests/test_issue126_slicee3a_native_interruption_matrix.py"
+      ],
+      "conditional_variant": "No real classroom records, SIS, or producer history mutations were exercised.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A9",
+      "gate": "No contamination",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Selected Attempt 2 only feeds verified Standards continuation; historical Attempt 1 remains audit-only there.",
+      "evidence_paths": [
+        "tests/test_issue126_slicef3b1_verified_standards_recovery_check.py",
+        "tests/test_issue126_sliceh1_report9_attempt_consumer_handoff.py",
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py"
+      ],
+      "conditional_variant": "Report 9 multi-attempt item statistics are separately owned by #134 and are not qualified here.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A10",
+      "gate": "Authorization and eligibility",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Exact current Core publication, authorized snapshot, membership and selected #29 inclusion required.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei2a_native_correction_current.py",
+        "tests/test_issue126_slicei3a_installed_three_producer_teacher_journey.py"
+      ],
+      "conditional_variant": "Full Suite authorization/role provider and live teacher permission remain unverified.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A11",
+      "gate": "Staleness",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Native CAS conflicts, interrupted operations, and stale dependencies fail closed.",
+      "evidence_paths": [
+        "tests/test_issue126_slicee3a_native_interruption_matrix.py",
+        "tests/test_issue126_slicei2a_native_correction_current.py"
+      ],
+      "conditional_variant": "Adversarial human concurrent edits across separately installed processes remain conditional.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A12",
+      "gate": "Usability",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Scripted synthetic journey used five responses and exactly one actionable Save/Use choice.",
+      "evidence_paths": [
+        "tests/test_issue126_slicef1_assessment_corrections_queue.py",
+        "tests/test_issue126_slicei3b_release_boundary.py"
+      ],
+      "conditional_variant": "Not a human timing study or proof of live saved #121 attribution or shortcut accessibility.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A13",
+      "gate": "Cancellation",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Menu cancel cases create no canonical #30 revision or #122 receipt in synthetic workspace.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py",
+        "tests/test_issue126_slicef2a_teacher_correction_save_use.py"
+      ],
+      "conditional_variant": "Separate real-world cancellation after external side effects is not a source-only guarantee.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A14",
+      "gate": "Recovery",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Native write-before-CAS, restart and receipt behavior preserve uncertain/not-current states.",
+      "evidence_paths": [
+        "tests/test_issue126_slicee1_durable_pair_recovery.py",
+        "tests/test_issue126_slicee3a_native_interruption_matrix.py",
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py"
+      ],
+      "conditional_variant": "Human cross-process restart on final installed wheel remains unverified.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A15",
+      "gate": "Idempotency",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Immutable identity retries, duplicate prevention and exact restart are covered.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei2a_native_correction_current.py",
+        "tests/test_issue126_slicee2a_exact_restart.py"
+      ],
+      "conditional_variant": "Unobserved cross-repository failure cannot be certified as atomic.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A16",
+      "gate": "Core and Suite shared UX",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Installed Core 0.6.6 supports qualified plain header/navigation fallback; D1 source tests passed.",
+      "evidence_paths": [
+        "tests/test_issue126_sliceg1_shared_header.py",
+        "tests/test_issue126_sliceg2_installed_navigation_collision.py"
+      ],
+      "conditional_variant": "New Core shared UI D2, installed Meridian D3, and full Suite D4 are not attested.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A17",
+      "gate": "Downstream consumer contract",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Exact selected-evidence/attempt contract and downstream Report 9 gap regression documented.",
+      "evidence_paths": [
+        "tests/test_issue126_sliceh1_report9_attempt_consumer_handoff.py",
+        "tests/test_issue126_sliceh2_selected_evidence_consumer_contract.py"
+      ],
+      "conditional_variant": "Report 9 generation #133 and multi-attempt statistics #134 require independently owned fixes.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    },
+    {
+      "id": "A18",
+      "gate": "Exact qualification",
+      "overall_status": "partial_source_qualified_not_final_release",
+      "qualified_variant": "Earlier targeted source/native Windows tests qualified; J1 is the full local-validator candidate.",
+      "evidence_paths": [
+        "tests/test_issue126_slicei3b_release_boundary.py",
+        "tests/test_issue117_installed_benchmark_journey.py"
+      ],
+      "conditional_variant": "Full official-wheel local validator, eight CI jobs on final PR SHA, original artifact hashes, and human acceptance remain unverified until executed.",
+      "unsupported_variant": "No unsupported behavior is inferred as supported; ambiguous or unauthorized cases must remain fail-closed.",
+      "deferred_variant": "D3/D4 and human qualification are separate from source-checkout tests."
+    }
+  ]
+}
