@@ -134,7 +134,7 @@ def _status(row: StudentAttemptInventoryRow) -> str:
         "stale": "Needs refresh before use",
     }
     return "Current result: " + descriptions.get(
-        row.selection_status, "Unavailable; review before use"
+        row.selection_status or "", "Unavailable; review before use"
     )
 
 
