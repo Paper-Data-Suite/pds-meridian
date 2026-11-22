@@ -32,7 +32,12 @@ from meridian import menu_ui
 def test_student_shortcuts_dispatch_only_one_owner_and_refresh(
     tmp_path: Path, choice: str, handler_name: str
 ) -> None:
-    fixture = _setup(tmp_path, "1", choice, "b")
+    keys = (
+        ("1", "o", choice, "b")
+        if choice in {"d", "i", "x", "z"}
+        else ("1", choice, "b")
+    )
+    fixture = _setup(tmp_path, *keys)
     invocations: list[tuple[object, ...]] = []
 
     def chosen(*args: object) -> bool:
@@ -50,7 +55,7 @@ def test_student_shortcuts_dispatch_only_one_owner_and_refresh(
 
 
 def test_uppercase_shortcut_preserves_local_semantics(tmp_path: Path) -> None:
-    fixture = _setup(tmp_path, "1", "Z", "b")
+    fixture = _setup(tmp_path, "1", "o", "Z", "b")
     calls: list[object] = []
 
     def restart(*args: object) -> bool:
@@ -81,10 +86,10 @@ def test_class_recovery_is_accessible_without_student_selection(
 def test_history_and_technical_details_remain_local_read_only(
     tmp_path: Path,
 ) -> None:
-    fixture = _setup(tmp_path, "1", "h", "", "t", "", "b", "b")
+    fixture = _setup(tmp_path, "1", "h", "", "o", "t", "", "b", "b", "b")
     fixture.run()
     text = fixture.output.getvalue()
-    assert "Source Attempt History (READ ONLY)" in text
+    assert "Attempt History (READ ONLY)" in text
     assert "Technical Details (READ ONLY)" in text
     assert "not proof of correction cause" in text
     assert fixture.calls == ["read"]
@@ -128,7 +133,10 @@ def test_notes_token_at_queue_cannot_dispatch_shared_notes(tmp_path: Path) -> No
 def test_notes_token_in_student_menu_is_invalid_not_action(tmp_path: Path) -> None:
     fixture = _setup(tmp_path, "1", ":notes", "", "b", "b")
     fixture.run()
-    assert "Choose C, S, D, I, V, X, Z" in fixture.output.getvalue()
+    assert (
+        "Choose a visible option, ? for Help, B for Back, M for Main, or Q."
+        in fixture.output.getvalue()
+    )
     assert fixture.calls == ["read"]
 
 
@@ -163,7 +171,7 @@ def test_pause_has_no_command_interception() -> None:
 
 
 def test_session_publication_drift_blocks_post_action_reload(tmp_path: Path) -> None:
-    fixture = _setup(tmp_path, "1", "d", "")
+    fixture = _setup(tmp_path, "1", "o", "d", "")
     actions: list[str] = []
 
     def view(*args: object) -> None:
