@@ -367,7 +367,7 @@ def test_recovery_rejects_stale_session_class(tmp_path: Path, case):
 
 
 def test_f1_student_decision_history_route_refreshes_queue(tmp_path: Path):
-    fixture = _setup(tmp_path, "1", "d", "b")
+    fixture = _setup(tmp_path, "1", "o", "d", "b")
     calls: list[tuple[object, ...]] = []
     ports = replace(
         fixture.services,
@@ -392,7 +392,7 @@ def test_f1_queue_recovery_route_refreshes_without_student_selection(
 
 
 def test_f1_student_recovery_route_remains_class_wide(tmp_path: Path):
-    fixture = _setup(tmp_path, "1", "i", "b")
+    fixture = _setup(tmp_path, "1", "o", "i", "b")
     calls: list[tuple[object, ...]] = []
     ports = replace(fixture.services, recovery_handler=lambda *a: calls.append(a))
     fixture.run(ports=ports)
@@ -402,10 +402,10 @@ def test_f1_student_recovery_route_remains_class_wide(tmp_path: Path):
 
 
 def test_f3a_keeps_source_history_and_correction_actions_distinct(tmp_path: Path):
-    fixture = _setup(tmp_path, "1", "h", "", "b", "b")
+    fixture = _setup(tmp_path, "1", "h", "", "o", "b", "b", "b")
     fixture.run()
     text = fixture.output.getvalue()
-    assert "Source Attempt History" in text
-    assert "Canonical #30/#31 decision history" in text
-    assert "Review teacher-verified correction" in text
-    assert "Review genuine reassessment" in text
+    assert "Attempt History" in text
+    assert "D. Review previous attempt decisions (read only)" in text
+    assert "C. Use a corrected result (original scan or entry was wrong)" in text
+    assert "S. Review a retake (student completed the work again)" in text

@@ -124,9 +124,18 @@ def _safe(value: object, *, limit: int = 112) -> str:
 
 
 def _status(row: StudentAttemptInventoryRow) -> str:
-    if row.selection_status in {"selected", "selected_none"}:
-        return f"#30: {row.selection_status.replace('_', ' ')}"
-    return f"#30: {_safe(row.selection_status or 'unavailable')}"
+    """Plain-language selection status; exact resolver remains authoritative."""
+    descriptions = {
+        "selected": "Saved selection in use",
+        "selected_none": "No attempt selected (teacher's saved choice)",
+        "no_decision": "Not chosen yet",
+        "not_applicable": "Attempt selection not needed",
+        "unsupported_attempt_shape": "Attempt format needs review",
+        "stale": "Needs refresh before use",
+    }
+    return "Current result: " + descriptions.get(
+        row.selection_status, "Unavailable; review before use"
+    )
 
 
 def _queue_rows(
@@ -193,7 +202,7 @@ def _print_queue(
         "",
         "A. All authorized students" if attention_only else "E. Attention needed",
         "N. Next page    P. Previous page    R. Refresh current source",
-        "I. Review interrupted saves (class-wide journal)",
+        "I. Check unfinished saves (entire class)",
         "",
     )
     print_standard_navigation(output)
@@ -231,6 +240,95 @@ def _attempt_lines(row: StudentAttemptInventoryRow) -> tuple[str, ...]:
     return tuple(lines)
 
 
+def _teacher_attempt_lines(row: StudentAttemptInventoryRow) -> tuple[str, ...]:
+    """Compact student-facing summary; detailed provenance remains in History."""
+    if not row.attempts:
+        return ("No recorded attempts. Do not assume a score of zero.",)
+    result: list[str] = []
+    for attempt in row.attempts:
+        score = (
+            "score unavailable"
+            if attempt.point_result is None
+            else f"{attempt.point_result[0]}/{attempt.point_result[1]}"
+        )
+        current = (
+            "Selected for current use"
+            if attempt.current_selected
+            else "Available to choose"
+            if attempt.operative_eligible
+            else "Not available for current use"
+        )
+        result.append(f"{_safe(attempt.attempt_label)} — {score} — {current}")
+    return tuple(result)
+
+
+def _attention_lines(row: StudentAttemptInventoryRow) -> tuple[str, ...]:
+    """Explain all known exception codes without inventing academic judgments."""
+    descriptions = {
+        "publication_not_current": "The assessment publication is no longer current.",
+        "membership_not_included": "This assessment is not included in the Grade Item.",
+        "projection_coverage_unavailable": (
+            "Some evidence could not be loaded for review."
+        ),
+        "eligibility_attention": (
+            "Some evidence needs eligibility review before it can count."
+        ),
+        "attempt_identity_unsupported": "The recorded attempt format is not supported.",
+        "multiple_attempts_relationship_unverified": (
+            "Multiple attempts: check whether the result was corrected or retaken."
+        ),
+        "operative_selection_missing": "Choose which result is currently in use.",
+        "operative_selection_stale": (
+            "The saved attempt selection needs a fresh review."
+        ),
+        "reassessment_unresolved": (
+            "The way multiple selected attempts count is unresolved."
+        ),
+        "selection_integrity_conflict": (
+            "Saved attempt information conflicts; refresh before use."
+        ),
+    }
+    return tuple(
+        "- " + descriptions.get(code, "An unresolved issue needs review.")
+        for code in row.attention
+    )
+
+
+def _print_student_help(output: TextIO, *, advanced: bool) -> None:
+    """Context-specific help with no academic action or side effect."""
+    if advanced:
+        print_menu_header(output, "Help — More Options")
+        write_lines(
+            output,
+            "D. Previous decisions: See how this student's attempts were handled.",
+            "I. Unfinished saves: Check whether an interrupted save completed",
+            "   for anyone in this class (for example, after a crash or forced exit).",
+            "X. Retake save status: Check the recorded decision; make no changes.",
+            "Z. Finish interrupted retake save: Only after an earlier save was",
+            "   interrupted. Requires a separate confirmation; may select the",
+            "   existing saved decision, but never creates a new one.",
+            "T. Technical Details: Identifiers for troubleshooting or support.",
+            "",
+            "B returns to this student's review.",
+        )
+    else:
+        print_menu_header(output, "Help — Reviewing Attempts")
+        write_lines(
+            output,
+            "C. Corrected result: Use a result already corrected after an",
+            "   incorrect scan or data entry. Meridian does not fix the scan.",
+            "S. Retake: A student completed the work again. Decide how those",
+            "   separate performances should count; never choose by score alone.",
+            "V. Learning standards: Review which skills the selected work",
+            "   demonstrates. Opening this screen does not assign a grade.",
+            "H. Attempt History: See every recorded attempt, even if not counted.",
+            "R. Refresh: Reload the assessment before another decision.",
+            "O. More options: Previous decisions, interrupted saves and details.",
+            "",
+            "Nothing is saved until you explicitly confirm a decision.",
+        )
+
+
 def _show_student(
     output: TextIO,
     input_fn: InputFunction,
@@ -251,44 +349,72 @@ def _show_student(
     pair_restart_handler: Callable[..., bool] | None = None,
 ) -> bool:
     """Return True when canonical assessment must be reloaded; M/Q propagate."""
+    advanced = False
     while True:
         clear_fn()
-        print_menu_header(output, "Review Student Attempts")
-        write_lines(
-            output,
-            f"Assessment: {_safe(inventory.assessment_title or 'Selected assessment')}",
-            f"Student: {_safe(row.display_label)}",
-            _status(row),
-            "#31: " + _safe(row.reassessment_status or "not resolved / not applicable"),
-            "Relationship: not established from score, order or scan origin.",
-            "",
-            *_attempt_lines(row),
-        )
-        if row.attention:
+        if advanced:
+            print_menu_header(output, "More Options — Student Attempts")
+            write_lines(
+                output,
+                f"Student: {_safe(row.display_label)}",
+                "For checking prior decisions or troubleshooting an interrupted save.",
+                "",
+                "D. Review previous attempt decisions (read only)",
+                "I. Check unfinished saves (entire class)",
+                "X. Check retake save status (read only)",
+                "Z. Finish interrupted retake save (confirmation required)",
+                "T. Technical Details",
+                "?. Help with these options",
+                "",
+            )
+        else:
+            print_menu_header(output, "Review Student Attempts")
+            assessment_label = _safe(
+                inventory.assessment_title or "Selected assessment"
+            )
+            write_lines(
+                output,
+                f"Assessment: {assessment_label}",
+                f"Student: {_safe(row.display_label)}",
+                _status(row),
+                "",
+                *_teacher_attempt_lines(row),
+            )
+            if len(row.attempts) > 1:
+                write_lines(
+                    output,
+                    "Scores alone cannot tell a corrected result from a retake.",
+                )
+            if row.attention:
+                write_lines(output, "", "Needs attention:", *_attention_lines(row))
             write_lines(
                 output,
                 "",
-                "Attention: "
-                + "; ".join(_safe(x.replace("_", " ")) for x in row.attention),
+                "C. Use a corrected result (original scan or entry was wrong)",
+                "S. Review a retake (student completed the work again)",
+                "V. Review selected work against learning standards",
+                "H. Attempt History",
+                "R. Refresh assessment review",
+                "O. More options",
+                "?. Help with these choices",
+                "",
             )
-        write_lines(
-            output,
-            "",
-            "H. Source attempt history    T. Technical Details",
-            "D. Canonical #30/#31 decision history (read only)",
-            "I. Review interrupted saves (class-wide journal)",
-            "V. Continue to Standards (current decisions required)",
-            "X. Inspect #31 reassessment recovery (read only)",
-            "Z. Resume written #31 (original receipt only)",
-            "R. Refresh assessment review",
-            "C. Review teacher-verified correction (explicit single-attempt use)",
-            "S. Review genuine reassessment (explicit #30 and #31)",
-            "",
-        )
         print_standard_navigation(output)
         choice = read_choice(input_fn)
-        if choice == "" or parse_navigation_choice(choice) is NavigationChoice.BACK:
+        navigation = parse_navigation_choice(choice)
+        if choice == "" or navigation is NavigationChoice.BACK:
+            if advanced:
+                advanced = False
+                continue
             return False
+        if choice.casefold() == "o" and not advanced:
+            advanced = True
+            continue
+        if choice == "?":
+            clear_fn()
+            _print_student_help(output, advanced=advanced)
+            pause_for_user(input_fn)
+            continue
         if choice.casefold() == "r":
             return True
         if choice.casefold() == "c":
@@ -385,12 +511,12 @@ def _show_student(
             )
         if choice.casefold() == "h":
             clear_fn()
-            print_menu_header(output, "Source Attempt History (READ ONLY)")
+            print_menu_header(output, "Attempt History (READ ONLY)")
             write_lines(
                 output,
                 f"Student: {_safe(row.display_label)}",
-                "Original native observations are preserved even when inoperative.",
-                "An attempt sequence is not a Core publication revision.",
+                "All recorded attempts stay visible, even when no longer counted.",
+                "A later attempt does not automatically replace an earlier one.",
                 "",
                 *_attempt_lines(row),
                 "",
@@ -421,7 +547,10 @@ def _show_student(
             write_lines(output, "", "Technical identifiers are not academic decisions.")
             pause_for_user(input_fn)
             continue
-        write_lines(output, "Choose C, S, D, I, V, X, Z, H, T, R, B, M, or Q.")
+        write_lines(
+            output,
+            "Choose a visible option, ? for Help, B for Back, M for Main, or Q.",
+        )
         pause_for_user(input_fn)
 
 

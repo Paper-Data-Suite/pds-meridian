@@ -119,11 +119,15 @@ def test_assessment_level_queue_opens_without_manual_ids_or_writes(tmp_path):
 
 
 def test_one_student_history_and_technical_are_explicit(tmp_path):
-    s = _setup(tmp_path, "1", "h", "", "t", "", "b", "b")
+    s = _setup(tmp_path, "1", "h", "", "o", "t", "", "b", "b", "b")
     s.run()
     text = s.output.getvalue()
     assert "0/6" in text and "6/6" in text
-    assert "Source Attempt History (READ ONLY)" in text
+    assert "Attempt History (READ ONLY)" in text
+    options = text.splitlines()
+    assert "H. Attempt History" in options
+    assert "T. Technical Details" in options
+    assert "H. Source attempt history    T. Technical Details" not in options
     assert "Scan-review reference exists (not proof of correction cause)" in text
     assert "Technical Details (READ ONLY)" in text
     assert _PUB in text
@@ -385,3 +389,60 @@ def test_assessment_entry_dispatches_without_drilling_into_evidence_row(tmp_path
     assert calls[0][2] is item
     assert calls[0][3] is session
     assert "2. Review Corrections & Attempts" in output.getvalue()
+
+
+def test_finding3_primary_student_options_use_teacher_language(tmp_path):
+    s = _setup(tmp_path, "1", "b", "b")
+    s.run()
+    text = s.output.getvalue()
+    student_screen = text.split("Meridian\nReview Student Attempts\n", 1)[1]
+    assert "Current result: " in student_screen
+    assert "#30:" not in student_screen
+    assert "#31:" not in student_screen
+    corrected_option = "C. Use a corrected result (original scan or entry was wrong)"
+    assert corrected_option in student_screen
+    assert "S. Review a retake (student completed the work again)" in student_screen
+    assert "V. Review selected work against learning standards" in student_screen
+    assert "H. Attempt History" in student_screen.splitlines()
+    assert "R. Refresh assessment review" in student_screen.splitlines()
+    assert "O. More options" in student_screen.splitlines()
+    assert "?. Help with these choices" in student_screen.splitlines()
+    assert "X. Inspect #31 reassessment recovery (read only)" not in student_screen
+    assert "Z. Resume written #31 (original receipt only)" not in student_screen
+    assert s.calls == ["read"]
+
+
+def test_finding3_advanced_options_are_separate_and_back_returns_to_student(tmp_path):
+    s = _setup(tmp_path, "1", "o", "b", "b", "b")
+    s.run()
+    text = s.output.getvalue()
+    assert "More Options — Student Attempts" in text
+    assert text.count("Meridian\nReview Student Attempts\n") == 2
+    assert "D. Review previous attempt decisions (read only)" in text
+    assert "I. Check unfinished saves (entire class)" in text
+    assert "X. Check retake save status (read only)" in text
+    assert "Z. Finish interrupted retake save (confirmation required)" in text
+    assert "T. Technical Details" in text.splitlines()
+    assert s.calls == ["read"]
+
+
+def test_finding3_primary_help_explains_without_writing(tmp_path):
+    s = _setup(tmp_path, "1", "?", "", "b", "b")
+    s.run()
+    text = s.output.getvalue()
+    assert "Help — Reviewing Attempts" in text
+    assert "Meridian does not fix the scan" in text
+    assert "Opening this screen does not assign a grade" in text
+    assert "Nothing is saved until you explicitly confirm" in text
+    assert s.calls == ["read"]
+
+
+def test_finding3_advanced_help_explains_recovery_and_confirmation(tmp_path):
+    s = _setup(tmp_path, "1", "o", "?", "", "b", "b", "b")
+    s.run()
+    text = s.output.getvalue()
+    assert "Help — More Options" in text
+    assert "after a crash or forced exit" in text
+    assert "Requires a separate confirmation" in text
+    assert "never creates a new one" in text
+    assert s.calls == ["read"]

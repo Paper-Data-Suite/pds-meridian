@@ -284,10 +284,11 @@ def test_f1_student_route_dispatches_single_review_and_refresh(tmp_path):
     assert len(calls) == 1
     assert calls[0][3].student_id == "synthetic_student_01"
     assert s.calls == ["read", "read"]  # fresh projection after student action
-    assert "C. Review teacher-verified correction" in s.output.getvalue()
+    label = "C. Use a corrected result (original scan or entry was wrong)"
+    assert label in s.output.getvalue()
 
 
 def test_plain_student_history_remains_available_in_f1(tmp_path):
     s = _setup(tmp_path, "1", "h", "", "b", "b")
     s.run()
-    assert "Source Attempt History (READ ONLY)" in s.output.getvalue()
+    assert "Attempt History (READ ONLY)" in s.output.getvalue()
