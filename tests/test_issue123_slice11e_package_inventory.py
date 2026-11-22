@@ -75,6 +75,29 @@ ISSUE125_MODULES = frozenset(
 )
 
 
+# Current #126 modules added after the frozen #123/#124/#125 inventory baseline.
+# Each path is reviewed explicitly, never inferred from a wildcard.
+ISSUE126_MODULES = frozenset(
+    {
+        "meridian/assessment_attempt_inventory.py",
+        "meridian/attempt_correction_interpretation.py",
+        "meridian/attempt_pair_new_continuation.py",
+        "meridian/attempt_pair_recovery.py",
+        "meridian/attempt_pair_restart.py",
+        "meridian/attempt_reassessment_review.py",
+        "meridian/attempt_resolution_coordinator.py",
+        "meridian/attempt_resolution_execution.py",
+        "meridian/menu_teacher_correction_decision.py",
+        "meridian/menu_teacher_correction_history.py",
+        "meridian/menu_teacher_corrections.py",
+        "meridian/menu_teacher_pair_restart.py",
+        "meridian/menu_teacher_reassessment_decision.py",
+        "meridian/menu_teacher_verified_continuation.py",
+        "meridian/teacher_action_reassessment.py",
+    }
+)
+
+
 def _required() -> frozenset[str]:
     source = Path("scripts/check_package.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -107,11 +130,14 @@ def test_exact_current_meridian_modules_are_explicitly_allowlisted() -> None:
     required = _required()
     actual = _actual()
     assert len(EXPECTED_ADDITIONS) == 44
-    # Frozen #123: 272; #124: 19; #125: six explicit eligibility modules.
+    # Frozen #123: 272; #124: 19; #125: 6; #126: 15 explicit modules.
     assert len(ISSUE125_MODULES) == 6
-    assert len(actual) == 272 + 19 + len(ISSUE125_MODULES)
+    assert len(ISSUE126_MODULES) == 15
+    assert len(actual) == 272 + 19 + len(ISSUE125_MODULES) + len(ISSUE126_MODULES)
     assert ISSUE125_MODULES.issubset(actual)
     assert ISSUE125_MODULES.issubset(required)
+    assert ISSUE126_MODULES.issubset(actual)
+    assert ISSUE126_MODULES.issubset(required)
     assert "meridian/assessment_setup_inventory.py" in actual
     assert "meridian/assessment_setup_choices.py" in actual
     assert "meridian/assessment_setup_preview.py" in actual

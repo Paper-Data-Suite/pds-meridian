@@ -42,6 +42,7 @@ from meridian.menu_teacher_assessment_discovery import (
 )
 from meridian.menu_teacher_assessment_eligibility import run_assessment_eligibility_menu
 from meridian.menu_teacher_attempts import run_guided_attempt_menu
+from meridian.menu_teacher_corrections import run_assessment_corrections_menu
 from meridian.menu_teacher_eligibility import run_guided_eligibility_menu
 from meridian.menu_teacher_standards import run_guided_standard_menu
 from meridian.menu_ui import (
@@ -116,6 +117,9 @@ AssessmentEligibilityHandler: TypeAlias = Callable[
     ],
     None,
 ]
+
+
+AssessmentCorrectionsHandler: TypeAlias = AssessmentEligibilityHandler
 
 
 class _RefreshEvidenceInbox(Exception):
@@ -269,6 +273,7 @@ class TeacherEvidenceInboxMenuDependencies:
     catalog_rebuilder: CatalogRebuilder = rebuild_academic_catalog
     setup_published_assessment: PublishedAssessmentSetupHandler | None = None
     assessment_eligibility_handler: AssessmentEligibilityHandler | None = None
+    assessment_corrections_handler: AssessmentCorrectionsHandler | None = None
 
 
 def default_teacher_evidence_inbox_menu_dependencies(
@@ -442,6 +447,27 @@ def default_teacher_evidence_inbox_menu_dependencies(
             clear_fn=clear_fn,
         )
 
+    def handle_assessment_corrections(
+        root: Path,
+        prepared: GuidedProjectionResult,
+        inbox_item: TeacherEvidenceInboxItem,
+        session: TeacherSessionContext,
+        input_fn: InputFunction,
+        output: TextIO,
+        clear_fn: ClearFunction,
+    ) -> None:
+        run_assessment_corrections_menu(
+            workspace_root=root,
+            prepared=prepared,
+            class_label=inbox_item.class_label,
+            assessment_title=inbox_item.work_title,
+            session_context=session,
+            dependencies=eligibility_dependencies,
+            input_fn=input_fn,
+            output=output,
+            clear_fn=clear_fn,
+        )
+
     return TeacherEvidenceInboxMenuDependencies(
         workspace_resolver=resolve_workspace_root,
         diagnostics=active,
@@ -454,6 +480,7 @@ def default_teacher_evidence_inbox_menu_dependencies(
         continuation_resolver=resolve_continuation,
         setup_published_assessment=setup_published,
         assessment_eligibility_handler=handle_assessment_eligibility,
+        assessment_corrections_handler=handle_assessment_corrections,
     )
 
 
@@ -760,6 +787,7 @@ def _render_review_summary(
     review: TeacherEvidenceReview,
     *,
     assessment_eligibility_available: bool = False,
+    assessment_corrections_available: bool = False,
 ) -> tuple[str, ...]:
     print_menu_header(output, "Evidence Review")
     write_lines(
@@ -783,6 +811,9 @@ def _render_review_summary(
     if assessment_eligibility_available:
         actions.append("assessment_eligibility")
         print(f"{len(actions)}. Review assessment eligibility (batch)", file=output)
+    if assessment_corrections_available:
+        actions.append("assessment_corrections")
+        print(f"{len(actions)}. Review Corrections & Attempts", file=output)
     if not actions:
         print("No evidence rows are available for review.", file=output)
     write_lines(output, "")
@@ -1112,6 +1143,9 @@ def _run_teacher_evidence_review(
             assessment_eligibility_available=(
                 dependencies.assessment_eligibility_handler is not None
             ),
+            assessment_corrections_available=(
+                dependencies.assessment_corrections_handler is not None
+            ),
         )
         choice = read_choice(input_fn)
         navigation = parse_navigation_choice(choice)
@@ -1148,6 +1182,19 @@ def _run_teacher_evidence_review(
                     and dependencies.assessment_eligibility_handler is not None
                 ):
                     dependencies.assessment_eligibility_handler(
+                        root,
+                        prepared,
+                        item,
+                        session_context,
+                        input_fn,
+                        output,
+                        clear_fn,
+                    )
+                elif (
+                    action == "assessment_corrections"
+                    and dependencies.assessment_corrections_handler is not None
+                ):
+                    dependencies.assessment_corrections_handler(
                         root,
                         prepared,
                         item,

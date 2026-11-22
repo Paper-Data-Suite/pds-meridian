@@ -195,6 +195,21 @@ def validate_wheel(path: str | Path) -> None:
         )
 
     required = {
+        "meridian/assessment_attempt_inventory.py",
+        "meridian/attempt_correction_interpretation.py",
+        "meridian/attempt_pair_new_continuation.py",
+        "meridian/attempt_pair_recovery.py",
+        "meridian/attempt_pair_restart.py",
+        "meridian/attempt_reassessment_review.py",
+        "meridian/attempt_resolution_coordinator.py",
+        "meridian/attempt_resolution_execution.py",
+        "meridian/menu_teacher_correction_decision.py",
+        "meridian/menu_teacher_correction_history.py",
+        "meridian/menu_teacher_corrections.py",
+        "meridian/menu_teacher_pair_restart.py",
+        "meridian/menu_teacher_reassessment_decision.py",
+        "meridian/menu_teacher_verified_continuation.py",
+        "meridian/teacher_action_reassessment.py",
         "meridian/__init__.py",
         "meridian/__main__.py",
         "meridian/_version.py",
