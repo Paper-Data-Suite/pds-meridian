@@ -292,3 +292,19 @@ def test_plain_student_history_remains_available_in_f1(tmp_path):
     s = _setup(tmp_path, "1", "h", "", "b", "b")
     s.run()
     assert "Attempt History (READ ONLY)" in s.output.getvalue()
+
+
+def test_finding4_questions_are_short_and_attempts_are_identifiable(tmp_path):
+    s = _rig(tmp_path, "1", "1", "")  # Stop at rationale; no academic write.
+    s.run()
+    text = s.output.getvalue()
+    assert "Original Attempt" in text
+    assert "Which attempt was the original?" in text
+    assert "Corrected Attempt" in text
+    assert "Which attempt is the corrected version?" in text
+    assert "1. Attempt 1 — 0/6" in text
+    assert "1. Attempt 2 — 6/6" in text
+    assert "source points" not in text
+    assert "operative eligible" not in text
+    assert s.action.calls == []
+    assert s.observed == []

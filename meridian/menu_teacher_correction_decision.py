@@ -80,19 +80,12 @@ def _safe(text: str, *, maximum: int = 140) -> str:
 
 
 def _label(value: NativeAttemptInventoryRow) -> str:
-    parts = [_safe(value.attempt_label)]
-    if value.point_result is not None:
-        parts.append(f"source points {value.point_result[0]}/{value.point_result[1]}")
+    """Show attempt identity and score without internal provenance jargon."""
+    if value.point_result is None:
+        score = "score unavailable"
     else:
-        parts.append("source points unavailable")
-    parts.append(
-        (
-            "operative eligible"
-            if value.operative_eligible
-            else "historical / not eligible"
-        )
-    )
-    return "; ".join(parts)
+        score = f"{value.point_result[0]}/{value.point_result[1]}"
+    return f"{_safe(value.attempt_label)} — {score}"
 
 
 def _choose_observation(
@@ -186,8 +179,8 @@ def run_teacher_correction_decision_menu(
         )
         return True
     original = _choose_observation(
-        "Identify Original Observation",
-        "Which original attempt did the teacher verify on the source?",
+        "Original Attempt",
+        "Which attempt was the original?",
         row.attempts,
         input_fn=input_fn,
         output=output,
@@ -211,8 +204,8 @@ def run_teacher_correction_decision_menu(
         )
         return True
     corrected = _choose_observation(
-        "Choose Current-Use Correction Result",
-        "Choose the result to use; score and sequence cannot choose for you.",
+        "Corrected Attempt",
+        "Which attempt is the corrected version?",
         available,
         input_fn=input_fn,
         output=output,
