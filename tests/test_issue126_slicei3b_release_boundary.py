@@ -131,8 +131,8 @@ def test_measured_scripted_29_student_teacher_correction_is_not_human_time(
     )
     assert input_counter.requests == 5  # Scripted prompts, NOT real-teacher timing.
     for title in (
-        "Identify Original Observation",
-        "Choose Current-Use Correction Result",
+        "Original Attempt",
+        "Corrected Attempt",
         "Teacher-Reviewed Correction Rationale",
         "Review and Use Correction Decision",
         "Correction Decision — Current Verified",
