@@ -1,0 +1,307 @@
+{
+  "schema_version": 2,
+  "issue": 126,
+  "stage": "J2 postmerge installed functional acceptance reconciled; next release candidate NOT built or released",
+  "as_of_date": "2026-11-23",
+  "source_merge_commit": "698903fa1db4ad43c32664eb64211d69ba3f987c",
+  "baseline": "J1 ledger preserved as historical; do not rewrite earlier acceptance statements",
+  "version_state": {
+    "authoritative_source_file": "meridian/_version.py",
+    "current_source_version": "0.4.2",
+    "last_official_published_tag": "v0.4.2",
+    "candidate_next_version": "0.4.3_proposed_not_applied"
+  },
+  "environment": {
+    "core": "0.6.6",
+    "scoreform": "0.13.0",
+    "quillan": "0.10.6",
+    "concord": "0.3.2",
+    "meridian": "0.4.2_unpublished_local_candidate",
+    "operator_platform": "Windows",
+    "exact_Python_version": "not_independently_recorded"
+  },
+  "provenance": {
+    "last_official_meridian_release": "v0.4.2 published 2026-10-16; not the code-qualified local candidate",
+    "published_v042_wheel_sha256": "484f0ba3d7ca47d392bae26573c299eb02089d23a5caa3bd11c3ce3ddb45ead5",
+    "unpublished_installed_candidate_wheel_sha256": "070eb11636830027b746e788f138a59f31487d0604e40e4c29a29684e2073024",
+    "unpublished_candidate_qualifies_D3": false,
+    "official_core_v066_wheel_sha256": "d6d21e426092b0329bcfd69b6fbee44c345edc46794a914d847d5ea73a2b7301",
+    "official_scoreform_v0130_wheel_sha256": "4a4d158fda6e899f1835f3312ca8291622e2b1c7da219b349adf5e88b9b7c9b7",
+    "official_quillan_v0106_wheel_sha256": "7dbe975c969e60cfda9a8489154450f95c4dc58a8d75afcfad92e7a3c026afbb",
+    "official_concord_v032_wheel_sha256": "825b27bc6142cc8bce8c3b9381a3337c4a55e983f6f3f2e7e4b1a10f980e83ce",
+    "source_manifest_sha256_in_two_installed_synthetic_runs": "1345215ab3745853a48bae14429e39a376ebfb2cb5d38aebdacbd91559aa5cfe",
+    "no_real_student_data": true
+  },
+  "operator_evidence": [
+    {
+      "id": "correction_29x6",
+      "run_id": "meridian126_manual_20261122_182938_65146455",
+      "result": "PASS",
+      "record": "fresh_process_verification.json",
+      "facts": "Original 0/6 retained; corrected Attempt 2 6/6 current; one final #122 receipt; original source unchanged; selected items only."
+    },
+    {
+      "id": "finding4_retake",
+      "run_id": "meridian126_finding4_retake_20261123_194715_5b085096",
+      "result": "PASS_WITH_TRANSCRIPT_LIMITATION",
+      "record": "finding4_retake_reconciled_fresh_process_verification.json",
+      "facts": "Human approved wording; independent installed cancel-only replay rendered all four expected strings; transcript did not record those four; retake Attempt 2 (5/6) explicitly replaces Attempt 1 (4/6); two final receipts; exact Standards current."
+    },
+    {
+      "id": "interrupted_save",
+      "run_id": "meridian126_interrupted_save_20261123_214144_e1387a0b",
+      "result": "PASS",
+      "record": "fresh-process Inspect WRITTEN_NOT_CURRENT_READY and final read-only Verify candidate_interrupted_save_gate PASS",
+      "facts": "Controlled exit code 73 after #31 immutable write before CAS, original receipt-only RESUME, one #30, one #31, same two final #122 receipts, no replay, exact Standards current."
+    }
+  ],
+  "source_and_ci": {
+    "prior_merged_PR_147": "CI 8 of 8 accepted before J2; not a final J2 SHA CI claim",
+    "J2_full_validator": "not_run",
+    "J2_final_PR_SHA": "not_created",
+    "J2_eight_CI_jobs": "not_run",
+    "J2_artifact_package_and_twine": "not_run"
+  },
+  "d_levels": {
+    "D0": "contract_documented",
+    "D1": "merged_source_and_targeted_installed_qualified",
+    "D2": "published_Core_0_6_6_plain_fallback_qualified_new_UI_not_attested",
+    "D3": "official_new_Meridian_wheel_not_published_or_qualified",
+    "D4": "Suite_mixed_wheel_launcher_not_qualified"
+  },
+  "outstanding_release_gates": [
+    "0.4.3 coordinated_version_migration_and_release_notes",
+    "full_local_validate_repository_on_final_candidate",
+    "official_dependencies_six_installed_matrices_on_final_candidate",
+    "build_wheel_sdist_Twine_and_archive_hashes",
+    "final_PR_head_eight_GitHub_CI_jobs_exact_SHA",
+    "final_merged_main_CI_if_release_process_requires",
+    "official_new_Meridian_publish_and_independent_download_D3",
+    "exact_Suite_launcher_mixed_wheel_D4",
+    "physical_ScoreForm_paper_source",
+    "human_elapsed_time_and_live_teacher_profile_only_if_required",
+    "A1_A18_final_release_ledger_provenance",
+    "Report9_issues_133_134_separate"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "gate": "Assessment-level entry",
+      "overall_status": "source_and_installed_candidate_qualified",
+      "qualified_variant": "Installed synthetic assessment inventory and exception queue support teacher selection without infrastructure IDs.",
+      "conditional_variant": "The full Suite foreground handoff and return are not established.",
+      "unsupported_variant": "Physical class/workspace and non-synthetic saved actor are untested.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicef1_assessment_corrections_queue.py"
+      ]
+    },
+    {
+      "id": "A2",
+      "gate": "Provenance fidelity",
+      "overall_status": "source_and_installed_candidate_qualified",
+      "qualified_variant": "Teacher-reviewed correction versus actual retake is chosen explicitly; neither score nor scan-origin field certifies the cause.",
+      "conditional_variant": "Physical paper/producer correction-cause facts cannot be inferred from the synthetic public manifest.",
+      "unsupported_variant": "Do not promote teacher interpretation to ScoreForm-certified cause.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicec_correction_interpretation.py"
+      ]
+    },
+    {
+      "id": "A3",
+      "gate": "Classroom correction",
+      "overall_status": "targeted_installed_human_accepted",
+      "qualified_variant": "Synthetic 29 x 6 original 0/6 and corrected 6/6; exact Attempt 2 current, immutable source and original preserved; independently reloaded #122 finalized receipt. Finding 4 prompts human approved and direct installed-menu replay saw all four exact strings.",
+      "conditional_variant": "Original operator transcript omitted those four strings; targeted gate accepted only PASS_WITH_TRANSCRIPT_LIMITATION.",
+      "unsupported_variant": "Official published D3 Meridian and physical scan remain untested.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicei2b_native_teacher_receipt_menu.py"
+      ]
+    },
+    {
+      "id": "A4",
+      "gate": "Real reassessment",
+      "overall_status": "targeted_installed_human_accepted",
+      "qualified_variant": "Different synthetic learner has two explicitly separate sittings (4/6 and 5/6); teacher chose retake/replace; independent #30 and #31 readback passed.",
+      "conditional_variant": "Only synthetic source distinguishes sittings; physical second paper and actual student evidence not inspected.",
+      "unsupported_variant": "No implicit latest/highest attempt policy.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicef2b_teacher_reassessment_save_use.py"
+      ]
+    },
+    {
+      "id": "A5",
+      "gate": "Multiple attempts",
+      "overall_status": "targeted_installed_replace_qualified",
+      "qualified_variant": "Installed #30 selected two exact attempts, installed #31 replace relationship says Attempt 2 replaces Attempt 1, two finalized #122 receipts and verified current Standards handoff.",
+      "conditional_variant": "Other retain/combine/recency modes covered by source regression tests, not human-installed walkthroughs; no automatic arithmetic.",
+      "unsupported_variant": "Never infer a Grade or selected contributor solely from number/score.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_sliced2b2_multi_attempt_coordinator.py"
+      ]
+    },
+    {
+      "id": "A6",
+      "gate": "Source revisions",
+      "overall_status": "source_qualified_release_open",
+      "qualified_variant": "Synthetic attempts have separate native identities and publication/cache references; source manifest unchanged across acceptance and recovery.",
+      "conditional_variant": "Live producer republish, paper-correction cause and non-native attempt variants remain conditional.",
+      "unsupported_variant": "Changing a publication revision is not itself a new student attempt.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicei1_native_scoreform_29x6.py"
+      ]
+    },
+    {
+      "id": "A7",
+      "gate": "Cross-producer honesty",
+      "overall_status": "source_and_reader_qualified",
+      "qualified_variant": "I3A installed Quillan and Concord public-reader boundaries avoid fabricating ScoreForm-like attempt attempts.",
+      "conditional_variant": "No new human cross-producer corrected-publication or shared-only Concord data acceptance; full mixed official wheel composition is separate.",
+      "unsupported_variant": "Unsupported source modes remain explicit rather than synthesized.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicei3a_installed_three_producer_teacher_journey.py"
+      ]
+    },
+    {
+      "id": "A8",
+      "gate": "Historical preservation",
+      "overall_status": "targeted_installed_human_accepted",
+      "qualified_variant": "Source manifest remained byte-identical. Original and corrected attempts, retake decision, and immutable #30/#31 history persisted without overwrites.",
+      "conditional_variant": "No real classroom/SIS or separate producer storage writes were attempted.",
+      "unsupported_variant": "No claim of cross-repository atomicity.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicei2a_native_correction_current.py"
+      ]
+    },
+    {
+      "id": "A9",
+      "gate": "No contamination",
+      "overall_status": "targeted_installed_human_accepted",
+      "qualified_variant": "Corrected single selection excluded original 0/6 from verified Standards continuation; positive retake and recovery exposed only selected included items.",
+      "conditional_variant": "Report 9 multi-attempt item-level interpretation is owned by #134; broader downstream reporting not certified here.",
+      "unsupported_variant": "Do not convert an excluded historical attempt to a zero or Grade.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicef3b1_verified_standards_recovery_check.py"
+      ]
+    },
+    {
+      "id": "A10",
+      "gate": "Authorization and eligibility",
+      "overall_status": "source_and_installed_candidate_qualified",
+      "qualified_variant": "Current Core publication authorization, exact Grade Item membership, and individually operative included attempt evidence were prerequisites in installed synthetic fixtures.",
+      "conditional_variant": "Live institutional permissions, district identity and actual teacher authorization not tested.",
+      "unsupported_variant": "Missing/stale credentials must fail closed.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicei2a_native_correction_current.py"
+      ]
+    },
+    {
+      "id": "A11",
+      "gate": "Staleness",
+      "overall_status": "source_and_installed_candidate_qualified",
+      "qualified_variant": "Native CAS, policy/current source drift and immutable-receipt checks fail closed; controlled restart checked exact original intent.",
+      "conditional_variant": "Adversarial separate live teacher processes and full Suite source changes not human tested.",
+      "unsupported_variant": "An uncertain Save outcome never authorizes blind replay.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicee3a_native_interruption_matrix.py"
+      ]
+    },
+    {
+      "id": "A12",
+      "gate": "Usability",
+      "overall_status": "targeted_installed_human_accepted",
+      "qualified_variant": "Human approved simpler original/corrected questions and completed an ordinary positive retake journey; synthetic saved teacher profile worked.",
+      "conditional_variant": "No measured human elapsed-time study, accessibility hardware matrix or live district-saved teacher identity.",
+      "unsupported_variant": "No claim of a quantified time saving.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicef2a_teacher_correction_save_use.py"
+      ]
+    },
+    {
+      "id": "A13",
+      "gate": "Cancellation",
+      "overall_status": "targeted_installed_human_accepted",
+      "qualified_variant": "Human correction-menu cancel and cancel-only installed replay wrote zero decisions; retake existing receipts unchanged.",
+      "conditional_variant": "Broader external side effects and real-world power failure were not tested.",
+      "unsupported_variant": "Cancellation is not a guarantee for operations already past a commit boundary.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicef2a_teacher_correction_save_use.py"
+      ]
+    },
+    {
+      "id": "A14",
+      "gate": "Recovery",
+      "overall_status": "targeted_installed_crash_restart_accepted",
+      "qualified_variant": "Actual installed workflow intentionally exited 73 after #31 immutable write but before #31 CAS; fresh-process Inspect WRITTEN_NOT_CURRENT_READY; explicit RESUME reused original receipt; final independent Verify PASS.",
+      "conditional_variant": "Controlled process termination is not physical power removal; official D3 wheel recovery still pending.",
+      "unsupported_variant": "Original-not-found, stale or ambiguous recovery must not invent a new receipt.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicee2a_exact_restart.py",
+        "tests/test_issue126_slicef3b2_exact_pair_restart_menu.py"
+      ]
+    },
+    {
+      "id": "A15",
+      "gate": "Idempotency",
+      "overall_status": "targeted_installed_crash_restart_accepted",
+      "qualified_variant": "After restart exactly one #30, one #31 and the original two receipts; no new decision, no new receipt, no automatic retry; exact once-only original selection.",
+      "conditional_variant": "Actual hardware crash and all possible concurrent writers are not covered.",
+      "unsupported_variant": "Cross-process two-domain transaction is not falsely claimed atomic.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicee3b_production_reassessment_adapter.py"
+      ]
+    },
+    {
+      "id": "A16",
+      "gate": "Core/Suite UI",
+      "overall_status": "installed_plain_fallback_qualified_D4_open",
+      "qualified_variant": "With published Core 0.6.6, Meridian kept plain header/navigation fallback, B/M/Q and literal prompt safeguards, including synthetic human menu navigation.",
+      "conditional_variant": "Core new terminal.header.v1 published D2 remains unattested; full Suite launcher, home and mixed-wheel D4 are outstanding.",
+      "unsupported_variant": "A skipped new-Core capability is not a passed D2 gate.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_sliceg2_installed_navigation_collision.py"
+      ]
+    },
+    {
+      "id": "A17",
+      "gate": "Downstream selected-evidence contract",
+      "overall_status": "source_and_targeted_standards_qualified",
+      "qualified_variant": "Installed synthetic corrections/retake and interrupted recovery independently verified eligible selected-item-only continuation into Standards review.",
+      "conditional_variant": "Report 9 issues #133 and #134 are separately owned, not implicitly closed; broader downstream Grades/reports not exercised.",
+      "unsupported_variant": "No automatic score, proficiency, grade or producer-side mutation.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_sliceh2_selected_evidence_consumer_contract.py"
+      ]
+    },
+    {
+      "id": "A18",
+      "gate": "Exact release qualification",
+      "overall_status": "release_open",
+      "qualified_variant": "J1 source/native qualification and postmerge targeted installed human correction, positive retake and controlled recovery are documented with exact merged SHA and unpublished wheel digest.",
+      "conditional_variant": "Final candidate version migration, full local validator, packaging/Twine, exact 8-job CI on final J2 PR SHA, official *published* Meridian D3, Suite D4 and physical source evidence remain open.",
+      "unsupported_variant": "This ledger and synthetic acceptance are not merge, publication or issue-closure authorization.",
+      "deferred_variant": "Official D3/D4 or physical/mixed-repository acceptance is not inferred from this candidate.",
+      "source_test_paths": [
+        "tests/test_issue126_slicej1_final_gate_contract.py"
+      ]
+    }
+  ],
+  "release_authorized": false,
+  "issue_close_authorized": false
+}
