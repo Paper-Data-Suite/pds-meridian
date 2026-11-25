@@ -181,7 +181,7 @@ def _sample_metadata() -> bytes:
     items = [
         "Metadata-Version: 2.4",
         "Name: pds-meridian",
-        "Version: 0.4.2",
+        "Version: 0.4.3",
         (
             "Summary: Teacher-controlled evidence, proficiency, Grades, reporting, "
             "and planning for Paper Data Suite"
@@ -203,16 +203,16 @@ def _sample_wheel(path: Path, *, extra: str | None = None) -> None:
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as wheel:
         for name in sorted(entries):
             wheel.writestr(name, b"pass\n")
-        wheel.writestr("pds_meridian-0.4.2.dist-info/METADATA", _sample_metadata())
+        wheel.writestr("pds_meridian-0.4.3.dist-info/METADATA", _sample_metadata())
         wheel.writestr(
-            "pds_meridian-0.4.2.dist-info/entry_points.txt",
+            "pds_meridian-0.4.3.dist-info/entry_points.txt",
             (
                 "[console_scripts]\nmeridian = meridian.cli:main\n"
                 "[paper_data_suite.module_operations]\n"
                 "meridian = meridian.pds_operations:get_module_operations_profile\n"
             ),
         )
-        wheel.writestr("pds_meridian-0.4.2.dist-info/licenses/LICENSE", "MIT\n")
+        wheel.writestr("pds_meridian-0.4.3.dist-info/licenses/LICENSE", "MIT\n")
 
 
 def test_exact_candidate_inventory_passes_validator(tmp_path: Path) -> None:

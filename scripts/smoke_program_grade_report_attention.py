@@ -139,8 +139,8 @@ def _assert_installed_boundary() -> None:
         "Issue #58 installed smoke requires exact Core 0.6.6.",
     )
     _require(
-        metadata.version("pds-meridian") == "0.4.2",
-        "Issue #58 installed smoke requires candidate Meridian 0.4.2.",
+        metadata.version("pds-meridian") == "0.4.3",
+        "Issue #58 installed smoke requires candidate Meridian 0.4.3.",
     )
     for name in SIBLING_MODULES:
         _require(

@@ -222,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("root", type=Path)
     args = parser.parse_args(argv)
     base._installed()
-    assert importlib.metadata.version("pds-meridian") == "0.4.2"
+    assert importlib.metadata.version("pds-meridian") == "0.4.3"
     if args.root.exists():
         raise RuntimeError("11K requires a new, absent synthetic root.")
     args.root.mkdir(parents=True)

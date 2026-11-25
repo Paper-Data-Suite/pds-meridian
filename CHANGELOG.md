@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.4.3 — release candidate (Issues #123–#126)
+
+- #123 adds teacher-first menu navigation and contextual, guarded review.
+- #124 adds assessment discovery and teacher-reviewed Grade Item setup.
+- #125 adds assessment-level eligibility with exact currentness/recovery.
+- #126 adds correction/retake interpretation, #30/#31 current-selection
+  controls, original-receipt restart and verified Standards continuation.
+- Separate installed synthetic operator acceptance was obtained for
+  Finding 4, a genuine retake and deliberate interrupted-save recovery;
+  Finding 4 retains a documented operator-transcript limitation.
+- This is a candidate, not an officially published or Suite-qualified
+  release; physical ScoreForm paper and Report 9 #133/#134 are separate.
+
 ## 0.4.2 — release candidate (Issue #117)
 
 - Corrects a protected-evidence authorization scope vulnerability: a grant for

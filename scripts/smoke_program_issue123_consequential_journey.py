@@ -433,7 +433,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     issue56._verify_installed_composition()
     for distribution, version in (
-        ("pds-meridian", "0.4.2"),
+        ("pds-meridian", "0.4.3"),
         ("pds-core", "0.6.6"),
         ("scoreform", "0.13.0"),
         ("quillan", "0.10.6"),

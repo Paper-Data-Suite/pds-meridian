@@ -9,7 +9,7 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 
 EXPECTED_DISTRIBUTION = "pds-meridian"
-EXPECTED_VERSION = "0.4.2"
+EXPECTED_VERSION = "0.4.3"
 EXPECTED_SUMMARY = (
     "Teacher-controlled evidence, proficiency, Grades, reporting, and "
     "planning for Paper Data Suite"
@@ -33,6 +33,7 @@ REQUIRED_MEMBERS = frozenset(
         "docs/development/issue117-installed-benchmark-scoreform-quillan.md",
         "docs/development/issue117-installed-concord-benchmark.md",
         "docs/development/v0.4.2-release-notes.md",
+        "docs/development/v0.4.3-release-notes.md",
         "meridian/benchmark_current_analysis.py",
         "meridian/benchmark_plan_authoring.py",
         "meridian/benchmark_plan_notes.py",

@@ -1,10 +1,11 @@
 # Meridian documentation
 
-Meridian **v0.4.2 is a release candidate** for Issue #117. Its active
-qualification target is **Core v0.6.6**, ScoreForm v0.13.0, Quillan
-v0.10.6, and Concord v0.3.2. The complete installed and CI gates are
-still pending. Historical v0.4.1 qualification records below are not
-updated to new historical claims.
+Meridian **v0.4.3 is an unpublished release candidate** for Issues
+#123–#126. The latest officially published Meridian version remains
+**v0.4.2**. Candidate qualification targets Core v0.6.6, ScoreForm
+v0.13.0, Quillan v0.10.6 and Concord v0.3.2. Complete validator,
+exact-SHA CI, official-wheel D3, Suite D4 and physical-paper gates
+are separate and still pending. Historical records below are intact.
 
 Meridian v0.4.1 implements Issue #115's protected-workflow authorization repair
 and ninth Benchmark Analysis & Instructional Response Planner. It preserves the
