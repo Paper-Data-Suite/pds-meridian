@@ -43,9 +43,7 @@ def test_j2_all_eighteen_gates_and_historical_j1_preserved() -> None:
 def test_exact_installed_evidence_is_kept_separate_from_official_release() -> None:
     data = _data()
     prov = data["provenance"]
-    assert data["source_merge_commit"] == (
-        "698903fa1db4ad43c32664eb64211d69ba3f987c"
-    )
+    assert data["source_merge_commit"] == ("698903fa1db4ad43c32664eb64211d69ba3f987c")
     assert prov["unpublished_installed_candidate_wheel_sha256"] == (
         "070eb11636830027b746e788f138a59f31487d0604e40e4c29a29684e2073024"
     )
@@ -71,8 +69,9 @@ def test_targeted_acceptance_qualified_without_upgrading_open_release_gate() -> 
         assert "targeted_installed" in rows[item]["overall_status"]
     assert rows["A18"]["overall_status"] == "release_open"
     assert data["source_and_ci"]["J2_eight_CI_jobs"] == "not_run"
-    assert "final_PR_head_eight_GitHub_CI_jobs_exact_SHA" in (
-        data["outstanding_release_gates"]
+    assert (
+        "final_PR_head_eight_GitHub_CI_jobs_exact_SHA"
+        in (data["outstanding_release_gates"])
     )
 
 
