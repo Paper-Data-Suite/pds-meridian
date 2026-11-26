@@ -25,6 +25,8 @@ EXPECTED = (
     Path("docs/development/v0.3.1-release-notes.md"),
     Path("docs/development/v0.4.0-release-notes.md"),
     Path("docs/development/v0.4.1-release-notes.md"),
+    Path("docs/development/v0.4.2-release-notes.md"),
+    Path("docs/development/v0.4.3-release-notes.md"),
     Path("docs/development/installed-qualification-matrix.md"),
     Path("docs/architecture/core-v0.6-publication-ingestion.md"),
     Path("docs/architecture/typed-evidence-inventory.md"),

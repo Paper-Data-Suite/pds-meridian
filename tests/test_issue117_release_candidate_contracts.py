@@ -20,9 +20,9 @@ def _source(relative: str) -> str:
 
 
 def test_issue117_candidate_identity_and_exact_core_release() -> None:
-    assert meridian.__version__ == "0.4.2"
-    assert check_package.EXPECTED_VERSION == "0.4.2"
-    assert check_sdist.EXPECTED_VERSION == "0.4.2"
+    assert meridian.__version__ == "0.4.3"
+    assert check_package.EXPECTED_VERSION == "0.4.3"
+    assert check_sdist.EXPECTED_VERSION == "0.4.3"
     assert EXPECTED_CORE_VERSION == "0.6.6"
     assert EXPECTED_CORE_WHEEL_FILENAME == "pds_core-0.6.6-py3-none-any.whl"
     assert EXPECTED_CORE_WHEEL_SHA256 == (

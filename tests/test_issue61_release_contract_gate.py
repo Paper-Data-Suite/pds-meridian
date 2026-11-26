@@ -46,9 +46,9 @@ def test_current_patch_version_advances_without_rewriting_issue61_audit() -> Non
     version = (REPO_ROOT / "meridian/_version.py").read_text(encoding="utf-8")
     audit = AUDIT.read_text(encoding="utf-8")
 
-    assert '__version__: Final[str] = "0.4.2"' in version
-    assert check_package.EXPECTED_VERSION == "0.4.2"
-    assert check_sdist.EXPECTED_VERSION == "0.4.2"
+    assert '__version__: Final[str] = "0.4.3"' in version
+    assert check_package.EXPECTED_VERSION == "0.4.3"
+    assert check_sdist.EXPECTED_VERSION == "0.4.3"
     assert "Candidate package version: **0.3.0**" in audit
 
 

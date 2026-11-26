@@ -101,7 +101,7 @@ def _installed() -> None:
         origin = getattr(module, "__file__", None)
         if not origin or not Path(origin).resolve().is_relative_to(prefix):
             raise AssertionError("Runtime module was imported outside installed venv.")
-    for distribution, version in (("pds-meridian", "0.4.2"), ("pds-core", "0.6.6")):
+    for distribution, version in (("pds-meridian", "0.4.3"), ("pds-core", "0.6.6")):
         if importlib.metadata.version(distribution) != version:
             raise AssertionError("Unexpected installed distribution version.")
 
